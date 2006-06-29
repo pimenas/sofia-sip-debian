@@ -1,0 +1,8 @@
+
+1) Write manpages for: sip-dig, stunc
+
+	- man pages will be included in 1.12.1 upstream release
+
+2) Resolve the current legal issues: http://lists.debian.org/debian-legal/2006/06/msg00301.html
+
+	- remaining issues solved in 1.12.1 upstream release

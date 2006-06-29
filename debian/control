@@ -1,0 +1,102 @@
+Source: sofia-sip
+Priority: optional
+Maintainer: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
+Uploaders: George Danchev <danchev@spnet.net>, Kai Vehmanen <kai.vehmanen@nokia.com>, Kilian Krause <kilian@debian.org>, Mark Purcell <msp@debian.org>
+Build-Depends: debhelper (>= 4.2.0), cdbs, pkg-config, libglib2.0-dev, doxygen, graphviz
+Standards-Version: 3.7.2
+
+Package: sofia-sip-bin
+Architecture: any
+Section: net
+Depends: libsofia-sip-ua0 (= ${Source-Version})
+Suggests: sofia-sip-doc
+Description: Sofia-SIP library utilities
+ Sofia-SIP is an open-source SIP User-Agent library, compliant 
+ with the IETF RFC3261 specification. It can be used as 
+ a building block for SIP client software for uses such as VoIP, 
+ IM, and many other real-time and person-to-person communication 
+ services. 
+ .
+ This package provides a set of console tools and helper 
+ applications for use in scripts, testing and other uses. All
+ the tools utilize the Sofia-SIP library.
+
+# note: debian guidelines are followed in library name and SONAME selection
+#       see http://www.netfort.gr.jp/~dancer/column/libpkg-guide/libpkg-guide.html
+Package: libsofia-sip-ua0
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: sofia-sip-doc
+Description: Sofia-SIP library runtime
+ Sofia-SIP is an open-source SIP User-Agent library, compliant 
+ with the IETF RFC3261 specification. It can be used as 
+ a building block for SIP client software for uses such as VoIP, 
+ IM, and many other real-time and person-to-person communication 
+ services. 
+ . 
+ The library is implemented in ANSI C, and provides an extensive
+ set of features for implementing SIP/SIMPLE User-Agents. Highlights
+ include full UDP/TCP/TLS support, IPv4/6 support, SIMPLE presence
+ and messaging support, SIP offer/answer engine and numerous 
+ mechanisms for NAT/FW traversal.
+ .
+ This package provides the main library runtime files.
+
+Package: libsofia-sip-ua-dev
+Architecture: any
+Section: devel
+Depends: libsofia-sip-ua0 (= ${Source-Version})
+Suggests: sofia-sip-doc
+Description: Sofia-SIP library development files
+ Sofia-SIP is an open-source SIP User-Agent library, compliant 
+ with the IETF RFC3261 specification. It can be used as 
+ a building block for SIP client software for uses such as VoIP, 
+ IM, and many other real-time and person-to-person communication 
+ services.
+ .
+ This package provides the headers and libraries needed to build
+ applications against the Sofia-SIP library.
+
+# note: debian guidelines are followed in library name and SONAME selection
+#       see http://www.netfort.gr.jp/~dancer/column/libpkg-guide/libpkg-guide.html
+Package: libsofia-sip-ua-glib0
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: sofia-sip-doc
+Description: Sofia-SIP library glib/gobject interfaces runtime
+ Sofia-SIP is an open-source SIP User-Agent library, compliant 
+ with the IETF RFC3261 specification. It can be used as 
+ a building block for SIP client software for uses such as VoIP, 
+ IM, and many other real-time and person-to-person communication 
+ services. 
+ .
+ This package provides glib/object interfaces to the Sofia-SIP library.
+
+Package: libsofia-sip-ua-glib-dev
+Architecture: any
+Section: devel
+Depends: libsofia-sip-ua0 (= ${Source-Version}), libsofia-sip-ua-glib0 (= ${Source-Version})
+Suggests: sofia-sip-doc
+Description: Sofia-SIP library glib/gobject interface development files
+ Sofia-SIP is an open-source SIP User-Agent library, compliant 
+ with the IETF RFC3261 specification. It can be used as 
+ a building block for SIP client software for uses such as VoIP, 
+ IM, and many other real-time and person-to-person communication 
+ services. 
+ .
+ This package provides the headers and libraries needed to build
+ applications against the glib/object interfaces of Sofia-SIP library.
+
+Package: sofia-sip-doc
+Architecture: all
+Section: doc
+Description: Sofia-SIP library library documentation
+ Sofia-SIP is an open-source SIP User-Agent library, compliant 
+ with the IETF RFC3261 specification. It can be used as 
+ a building block for SIP client software for uses such as VoIP, 
+ IM, and many other real-time and person-to-person communication 
+ services. 
+ .
+ This package provides the library reference documentation.

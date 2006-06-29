@@ -1,0 +1,78 @@
+#!/usr/bin/make -f
+
+DEB_DH_INSTALL_SOURCEDIR=debian/tmp
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+
+#DEB_CONFIGURE_PREFIX=/usr
+#DEB_CONFIGURE_SYSCONFDIR=/etc
+#DEB_CONFIGURE_EXTRA_FLAGS=--prefix=/usr
+
+DEB_INSTALL_DOCS_sofia-sip-doc          := libsofia-sip-ua/docs/html
+
+#debian/stamp-autotools-files:
+#	./configure --prefix=/usr
+#	touch debian/stamp-autotools-files
+
+common-build-indep::
+	$(MAKE) doxygen
+
+cleanbuilddir/sofia-sip::
+	rm -f libsofia-sip-ua/nta/nta_tag_ref.c
+	rm -f libsofia-sip-ua/soa/soa_tag_ref.c
+	rm -f libsofia-sip-ua/nua/nua_tag_ref.c
+
+# The following is for internal development usage only
+# Update that sum when new releases occur, this
+# catches silent file content forges at the server side
+
+MD5TRUSTED := 69ca5e5f67728d6a8907dd67704e48ad
+
+DEBVERSION:=$(shell head -n 1 debian/changelog | sed -e 's/^[^(]*(\([^)]*\)).*/\1/')
+UPVERSION:=$(shell echo $(DEBVERSION) | sed -e 's/^.*://' -e 's/-[0-9.]*$$//' -e 's/.dfsg$$//')
+UPNAME := sofia-sip
+UPFILE := $(UPNAME)-$(UPVERSION).tar.gz
+DEFILE := $(UPNAME)_$(UPVERSION).orig.tar.gz
+URL    := http://heanet.dl.sourceforge.net/sofia-sip
+MD5CURRENT := `md5sum ../tarballs/$(DEFILE) | original-awk '{print $$1}'`
+
+DFSGNAME = $(UPNAME)_$(UPVERSION).dfsg.orig.tar.gz
+SRCDIR = sofia-sip-$(UPVERSION)
+
+get-orig-source:
+	@@dh_testdir
+	@@[ -d ../tarballs/. ]||mkdir -p ../tarballs
+
+	-@if [ ! -f ../tarballs/$(DEFILE) ] ; then \
+		echo "Downloading $(URL)/$(UPFILE) from $(URL)/$(UPFILE) ..." ; \
+		wget -N -nv -T10 -t3 -O ../tarballs/$(DEFILE) $(URL)/$(UPFILE) ; \
+	else \
+		echo "Upstream source tarball have been already downloaded" ; \
+	fi
+
+	-@if [ "$(MD5CURRENT)" != "$(MD5TRUSTED)" ] ; then \
+		echo "Expecting upstream filename md5sum $(MD5TRUSTED), but $(MD5CURRENT) found" ; \
+		echo "Upstream filename md5sum is NOT trusted! Possible upstream filename forge!" ; \
+		echo "Purging downloaded file. Try new download." ; \
+		rm -f../tarballs/$(DEFILE); \
+		false ; \
+	else \
+		echo "Upstream filename md5sum is trusted!" ; \
+	fi
+	
+	@@echo Removing non dfsg compliant parts out of it
+	@@[ -d ../tarballs/dfsg/. ]||mkdir -p ../tarballs/dfsg
+	@@tar -xzf ../tarballs/$(DEFILE) -C ../tarballs/dfsg
+	@@find ../tarballs/dfsg/$(SRCDIR)/ -name rfc*.txt | xargs rm -f 
+	@@ echo Building the dfsg tarball
+	@@GZIP=-9 tar -b1 -czf ../tarballs/$(DFSGNAME) -C ../tarballs/dfsg $(SRCDIR)
+	@@echo Cleaning up
+	@@rm -rf ../tarballs/dfsg
+	@@rm -f ../tarballs/$(DEFILE)
+
+print-version:
+	@@echo "Debian version:          $(DEBVERSION)"
+	@@echo "Upstream version:        $(UPVERSION)"
+
+

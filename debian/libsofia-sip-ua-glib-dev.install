@@ -1,0 +1,6 @@
+usr/include/*/*/su_source.h
+usr/include/*/*/nua_glib.h
+usr/lib/libsofia-sip-ua-glib.a
+usr/lib/libsofia-sip-ua-glib.so
+usr/lib/pkgconfig/sofia-sip-ua-glib.pc
+usr/lib/libsofia-sip-ua-glib.la
