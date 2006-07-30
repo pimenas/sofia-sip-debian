@@ -1,0 +1,107 @@
+#
+# Makefile.am @template@ for su module
+#
+# Copyright (C) 2006 Nokia Corporation
+# Contact: Pekka Pessi <pekka.pessi@nokia.com>
+# Licensed under LGPL. See file COPYING.
+#
+
+# ----------------------------------------------------------------------
+# Headers
+
+# ----------------------------------------------------------------------
+# Build targets
+
+noinst_LTLIBRARIES = 	libsu.la
+
+bin_PROGRAMS = 		addrinfo localinfo 
+
+check_PROGRAMS = 	su_torture torture_su_port \
+			su_alloc_test su_time_test su_tag_test \
+			htable_test torture_rbtree \
+			test_memmem torture_su_bm \
+			su_root_test su_timer_test \
+			su_test su_proxy poll_test
+
+# ----------------------------------------------------------------------
+# Tests
+
+TESTS = 		su_torture torture_su_port \
+			su_alloc_test su_time_test su_tag_test \
+			htable_test torture_rbtree \
+			test_memmem torture_su_bm \
+			su_root_test su_timer_test \
+			run_addrinfo run_localinfo run_su_test
+
+# ----------------------------------------------------------------------
+# Rules for building the targets
+
+BUILT_SOURCES = su_tag_ref.c
+
+nobase_include_sofia_HEADERS = \
+			sofia-sip/su_types.h sofia-sip/su.h \
+			sofia-sip/su_errno.h sofia-sip/su_addrinfo.h \
+			sofia-sip/su_localinfo.h sofia-sip/su_wait.h \
+			sofia-sip/su_alloc.h sofia-sip/su_alloc_stat.h \
+			sofia-sip/su_strlst.h sofia-sip/su_vector.h \
+			sofia-sip/su_time.h sofia-sip/su_tag.h \
+			sofia-sip/su_tag_class.h sofia-sip/su_tagarg.h \
+			sofia-sip/su_tag_io.h sofia-sip/su_tag_inline.h \
+			sofia-sip/htable.h sofia-sip/htable2.h \
+			sofia-sip/rbtree.h sofia-sip/su_debug.h \
+			sofia-sip/su_log.h \
+			sofia-sip/su_config.h sofia-sip/su_md5.h \
+			sofia-sip/su_uniqueid.h sofia-sip/su_bm.h \
+			sofia-sip/tstdef.h
+
+nobase_nodist_include_sofia_HEADERS = sofia-sip/su_configure.h
+
+libsu_la_SOURCES = \
+	su.c su_errno.c su_addrinfo.c \
+	su_alloc.c su_alloc_lock.c su_strdup.c su_sprintf.c \
+	su_strlst.c su_vector.c \
+	su_time.c su_time0.c \
+	su_wait.c su_root.c su_timer.c su_port.c su_port.h \
+	su_localinfo.c \
+	su_taglist.c su_tag.c su_tag_io.c \
+	su_log.c su_global_log.c su_default_log.c su_module_debug.h \
+	su_md5.c su_uniqueid.c su_bm.c
+
+EXTRA_libsu_la_SOURCES = \
+			memmem.c strtoull.c strcasestr.c \
+			memspn.c memcspn.c memccpy.c \
+			inet_ntop.c inet_pton.c \
+			su_tag_ref.c
+
+libsu_la_LIBADD = 	$(REPLACE_LIBADD)
+libsu_la_DEPENDENCIES = $(REPLACE_LIBADD)
+
+COVERAGE_INPUT = 	$(libsu_la_SOURCES) $(include_sofia_HEADERS)
+
+LDADD = 		libsu.la
+
+if NDEBUG
+AM_CFLAGS = -DNDEBUG
+endif
+
+# ----------------------------------------------------------------------
+# Install and distribution rules
+
+EXTRA_DIST = 		Doxyfile su.docs \
+			run_addrinfo run_localinfo run_su_test
+
+dist_sofialibexec_SCRIPTS = tag_dll.awk
+
+sofialibexecdir = $(libexecdir)/sofia
+
+sofia-sip/su_configure.h: sofia-sip/su_configure.h.in
+
+# ----------------------------------------------------------------------
+# Automake options
+
+AUTOMAKE_OPTIONS = 	foreign
+
+# ----------------------------------------------------------------------
+# Sofia specific rules
+
+include ../sofia.am

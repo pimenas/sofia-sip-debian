@@ -1,0 +1,11 @@
+PROJECT_NAME         = "sdp"
+OUTPUT_DIRECTORY     = ../docs/html/sdp
+
+INPUT 		     = sdp.docs .  sofia-sip
+
+@INCLUDE = ../docs/Doxyfile.conf
+
+TAGFILES             += ../docs/doxytags_su=../su
+GENERATE_TAGFILE     = ../docs/doxytags_sdp
+
+ALIASES             +=

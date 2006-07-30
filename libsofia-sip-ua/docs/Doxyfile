@@ -1,0 +1,28 @@
+PROJECT_NAME         = "libsofia-sip-ua"
+OUTPUT_DIRECTORY     = ../docs/html
+
+INPUT 		     = mainpage.docs docguide.docs conformance.docs
+
+#			release.docs
+
+@INCLUDE = ../docs/Doxyfile.conf
+
+GENERATE_TAGFILE    = doxytags_docs
+
+TAGFILES            = 
+TAGFILES            += doxytags_su=su
+TAGFILES            += doxytags_ipt=ipt
+TAGFILES            += doxytags_bnf=bnf
+TAGFILES            += doxytags_url=url
+TAGFILES            += doxytags_msg=msg
+TAGFILES            += doxytags_sip=sip
+TAGFILES            += doxytags_sresolv=sresolv
+TAGFILES            += doxytags_stun=stun
+TAGFILES            += doxytags_tport=tport
+TAGFILES            += doxytags_nta=nta
+TAGFILES            += doxytags_iptsec=iptsec
+TAGFILES            += doxytags_sdp=sdp
+TAGFILES            += doxytags_soa=soa
+TAGFILES            += doxytags_nea=nea
+TAGFILES            += doxytags_nua=nua
+TAGFILES            += doxytags_features=features

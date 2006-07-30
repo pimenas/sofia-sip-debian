@@ -1,0 +1,57 @@
+#
+# Makefile.am for sofia-sip/libsofia-sip-ua-glib
+#
+# Copyright (C) 2006 Nokia Corporation
+# Contact: Pekka Pessi <pekka.pessi@nokia.com>
+# Licensed under LGPL. See file COPYING.
+#
+
+AUTOMAKE_OPTIONS = foreign 1.7
+
+SUBDIRS=su-glib nua-glib
+
+GLIB_TARGETS=su-glib/libsu-glib.la
+
+if HAVE_GOBJECT
+GOBJECT_TARGETS=nua-glib/libnua-glib.la
+endif
+
+lib_LTLIBRARIES =
+if HAVE_GLIB
+lib_LTLIBRARIES += libsofia-sip-ua-glib.la
+endif
+
+libsofia_sip_ua_glib_la_SOURCES = 
+libsofia_sip_ua_glib_la_LIBADD = $(GLIB_TARGETS) $(GOBJECT_TARGETS)
+
+# set the libtool version info version:revision:age for libsofia-sip-ua-glib
+# - soname to 'libsofia-sip-ua-glib.so.(CUR-AGE)'
+libsofia_sip_ua_glib_la_LDFLAGS = \
+	-version-info $(LIBVER_SOFIA_SIP_UA_GLIB_CUR):$(LIBVER_SOFIA_SIP_UA_GLIB_REV):$(VER_LIBSOFIA_SIP_UA_INTERFACE_GLIB_AGE)
+
+DOXYGEN = doxygen
+
+EXTRA_DIST = docs/Doxyfile.aliases \
+	     docs/Doxyfile.conf \
+	     docs/Doxyfile.version
+
+built-sources-recursive clean-built-sources-recursive:
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $@ in $$subdir"; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$target) \
+	done;
+
+doxygen: built-sources
+	@cd ${srcdir} ;\
+	mkdir -p docs docs/html &&\
+	for d in $(DIST_SUBDIRS) $(DIST_SUBDIRS); do \
+	  test -r $$d/Doxyfile \
+	  && pushd $$d > /dev/null \
+	  && echo running ${DOXYGEN} in $$d \
+          && ${DOXYGEN} \
+          && popd > /dev/null ; \
+	done
+#	cd ${srcdir}/docs/html && ../hide_emails.sh
+
+.PHONY: built-sources built-sources-am doxygen 

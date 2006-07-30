@@ -1,0 +1,14 @@
+PROJECT_NAME         = "bnf"
+OUTPUT_DIRECTORY     = ../docs/html/bnf
+
+INPUT 		     = bnf.docs . sofia-sip
+
+@INCLUDE = ../docs/Doxyfile.conf
+
+TAGFILES            += ../docs/doxytags_su=../su
+
+GENERATE_TAGFILE     = ../docs/doxytags_bnf
+
+PREDEFINED += "static="
+
+MAX_INITIALIZER_LINES = 2
