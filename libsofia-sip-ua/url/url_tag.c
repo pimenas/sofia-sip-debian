@@ -41,6 +41,8 @@
 
 #include <sofia-sip/url.h>
 
+#include <string.h>
+
 tag_typedef_t urltag_any = NSTAG_TYPEDEF(*);
 
 tag_typedef_t urltag_url = URLTAG_TYPEDEF(url);
@@ -90,11 +92,55 @@ tagi_t *urltag_dup(tagi_t *dst, tagi_t const *src, void **bb)
     url_dup(b + sizeof(*d), xtra, d, url);
 
     dst->t_tag = src->t_tag;
-    dst->t_value = (long)d;
+    dst->t_value = (tag_value_t)d;
     *bb = b + sizeof(*d) + xtra;
   }
   
   return dst + 1;
+}
+
+#define IS_EXCLUDED(u)						\
+  (u <= ' '							\
+   || u >= '\177'						\
+   || (u < 64 ? (0xb400000aU  & (1 << (63 - u)))			\
+       : (u < 96 ? (0x0000001eU & (1 << (95 - u)))		\
+	  : /*u < 128*/ (0x8000001dU & (1 << (127 - u))))) != 0)
+
+/** Tag function used to convert a string to a URL tag value.
+ *
+ * @param tt tag type
+ * @param home memory home used to allocate new #url_t structure
+ * @param str string to convert 
+ * @param return_value return-value parameter for converted url
+ *
+ * @retval 0 when successful
+ * @retval -1 upon an error
+ *
+ * @since New in @VERSION_1_12_2.
+ */
+int urltag_scan(tag_type_t tt, su_home_t *home,
+		char const *str,
+		tag_value_t *return_value)
+{
+  size_t len;
+  url_t *url;
+  char *s;
+
+  for (len = 0; !IS_EXCLUDED(str[len]); len++)
+    ;
+  
+  url = su_alloc(home, (sizeof *url) + len + 1);
+  if (!url)
+    return -1;
+  s = memcpy((char *)(url + 1), str, len);
+  s[len] = 0;
+
+  if (url_d(url, s) < 0)
+    return (void)su_free(home, url), -1;
+
+  *return_value = (tag_value_t)url;
+
+  return 0;
 }
 
 tag_class_t url_tag_class[1] = 
@@ -110,5 +156,6 @@ tag_class_t url_tag_class[1] =
     /* tc_snprintf */ urltag_snprintf,
     /* tc_filter */   NULL,
     /* tc_ref_set */  t_ptr_ref_set,
+    /* tc_scan */     urltag_scan,
   }};
 

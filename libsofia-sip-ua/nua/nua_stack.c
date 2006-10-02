@@ -112,11 +112,7 @@ char const nua_application_sdp[] = "application/sdp";
 int nua_stack_init(su_root_t *root, nua_t *nua)
 {
   su_home_t *home;
-
   nua_handle_t *dnh;
-  int media_enable = 1;
-  soa_session_t *soa = NULL;
-  char const *soa_name = NULL;
 
   static int initialized_logs = 0;
 
@@ -137,6 +133,10 @@ int nua_stack_init(su_root_t *root, nua_t *nua)
   }
 
   nua->nua_root = root;
+  nua->nua_timer = su_timer_create(su_root_task(root),
+				   NUA_STACK_TIMER_INTERVAL);
+  if (!nua->nua_timer)
+    return -1;
 
   home = nua->nua_home;
   nua->nua_handles_tail = &nua->nua_handles;
@@ -152,13 +152,14 @@ int nua_stack_init(su_root_t *root, nua_t *nua)
   nua_handle_ref(dnh); dnh->nh_ref_by_stack = 1; 
   nua_handle_ref(dnh); dnh->nh_ref_by_user = 1;
   nh_append(nua, dnh);
+  dnh->nh_identity = dnh;
   dnh->nh_ds->ds_local = nua->nua_from;
   dnh->nh_ds->ds_remote = nua->nua_from;
 
   if (nua_stack_set_defaults(dnh, dnh->nh_prefs) < 0)
     return -1;
 
-  if (nua_stack_init_instance(dnh, nua->nua_args) < 0)
+  if (nua_stack_set_params(nua, dnh, nua_i_none, nua->nua_args) < 0)
     return -1;
 
   nua->nua_invite_accept = sip_accept_make(home, SDP_MIME_TYPE);
@@ -183,36 +184,16 @@ int nua_stack_init(su_root_t *root, nua_t *nua)
       nta_agent_set_params(nua->nua_nta, NTATAG_UA(1), TAG_END()) < 0 ||
       nua_stack_init_transport(nua, nua->nua_args) < 0) {
     SU_DEBUG_1(("nua: initializing SIP stack failed\n"));
+    return -1;
   }
 
   if (nua_stack_set_from(nua, 1, nua->nua_args) < 0)
     return -1;
 
-  /* Set initial nta/soa parameters */
-  if (tl_gets(nua->nua_args,
-	      NUTAG_MEDIA_ENABLE_REF(media_enable),
-	      NUTAG_SOA_NAME_REF(soa_name),
-	      TAG_NULL()) < 0)
-    return -1;
-
-  nua->nua_media_enable = media_enable;
-  
-  if (media_enable) {
-    if (soa == NULL)
-      soa = soa_create(soa_name, nua->nua_root, nua->nua_dhandle);
-    dnh->nh_soa = soa;
-    soa_set_params(soa, TAG_NEXT(nua->nua_args));
-  }
-
-  nua->nua_timer = su_timer_create(su_root_task(root),
-				   NUA_STACK_TIMER_INTERVAL);
-
-  if (!nua->nua_timer)
-    return -1;
+  if (NHP_ISSET(dnh->nh_prefs, detect_network_updates))
+    nua_stack_launch_network_change_detector(nua);
 
   nua_stack_timer(nua, nua->nua_timer, NULL);
-
-  nua->nua_args = NULL;
 
   return 0;
 }
@@ -253,7 +234,10 @@ int nua_stack_event(nua_t *nua, nua_handle_t *nh, msg_t *msg,
   su_msg_r sumsg = SU_MSG_R_INIT;
 
   ta_list ta;
-  int e_len, len, xtra, p_len;
+  size_t e_len, len, xtra, p_len;
+
+  if (event == nua_r_ack || event == nua_i_none)
+    return event;
 
   enter;
 
@@ -276,8 +260,9 @@ int nua_stack_event(nua_t *nua, nua_handle_t *nh, msg_t *msg,
     return event;
   }
 
-  if (event > nua_r_method || (nh && !nh->nh_valid) ||
-      (nua->nua_shutdown && event != nua_r_shutdown)) {
+  if ((event > nua_r_method && event <= nua_r_ack) 
+      || (nh && !nh->nh_valid)
+      || (nua->nua_shutdown && event != nua_r_shutdown)) {
     if (msg)
       msg_destroy(msg);
     return event;
@@ -290,7 +275,7 @@ int nua_stack_event(nua_t *nua, nua_handle_t *nh, msg_t *msg,
   xtra = tl_xtra(ta_args(ta), len);
   p_len = phrase ? strlen(phrase) + 1 : 1;
 
-  if (su_msg_create(sumsg, nua->nua_client, nua->nua_server,
+  if (su_msg_create(sumsg, nua->nua_client, su_task_null,
 		    nua_event, e_len + len + xtra + p_len) == 0) {
     event_t *e = su_msg_data(sumsg);
 
@@ -342,6 +327,7 @@ void nua_stack_signal(nua_t *nua, su_msg_r msg, nua_event_data_t *e)
     if (!nh->nh_prev)
       nh_append(nua, nh);
     if (!nh->nh_ref_by_stack) {
+      /* Mark handle as used by stack */
       nh->nh_ref_by_stack = 1;
       nua_handle_ref(nh);
     }
@@ -364,6 +350,7 @@ void nua_stack_signal(nua_t *nua, su_msg_r msg, nua_event_data_t *e)
 		    901, "Stack is going down",
 		    TAG_END());
   }
+
   else switch (e->e_event) {
   case nua_r_get_params:
     nua_stack_get_params(nua, nh ? nh : nua->nua_dhandle, e->e_event, tags);
@@ -675,20 +662,19 @@ void nh_destroy(nua_t *nua, nua_handle_t *nh)
     nea_server_destroy(nh->nh_notifier), nh->nh_notifier = NULL;
 
   nua_creq_deinit(nh->nh_cr, NULL);
-  if (nh->nh_ss)
+
+  if (nh->nh_ss) {
     nua_creq_deinit(nh->nh_ss->ss_crequest, NULL);
-
-  if (nh->nh_ds->ds_leg) {
-    nta_leg_destroy(nh->nh_ds->ds_leg), nh->nh_ds->ds_leg = NULL;
-  }
-
-  if (nh->nh_ss->ss_srequest->sr_irq) {
-    nta_incoming_destroy(nh->nh_ss->ss_srequest->sr_irq);
-    nh->nh_ss->ss_srequest->sr_irq = NULL;
+    if (nh->nh_ss->ss_srequest->sr_irq) {
+      nta_incoming_destroy(nh->nh_ss->ss_srequest->sr_irq);
+      nh->nh_ss->ss_srequest->sr_irq = NULL;
+    }
   }
 
   if (nh->nh_soa)
     soa_destroy(nh->nh_soa), nh->nh_soa = NULL;
+
+  nua_dialog_deinit(nh, nh->nh_ds);
 
   if (nh_is_inserted(nh))
     nh_remove(nua, nh);
@@ -718,7 +704,7 @@ void nua_creq_deinit(struct nua_client_request *cr, nta_outgoing_t *orq)
 /* ======================================================================== */
 
 /**@internal
- * Initialize handle Allow and authentication info.
+ * Initialize handle Allow and authentication info, save parameters.
  *
  * @retval -1 upon an error
  * @retval 0 when successful
@@ -754,14 +740,6 @@ int nua_stack_init_handle(nua_t *nua, nua_handle_t *nh,
   if (nua_stack_set_params(nua, nh, nua_i_error, ta_args(ta)) < 0)
     retval = -1;
 
-  if (!retval && !nh->nh_soa && nua->nua_dhandle->nh_soa) {
-    nh->nh_soa = soa_clone(nua->nua_dhandle->nh_soa, nua->nua_root, nh);
-
-    if (nh->nh_soa && nh->nh_tags)
-      if (soa_set_params(nh->nh_soa, TAG_NEXT(nh->nh_tags)))
-	retval = -1;
-  }
-
   if (!retval && nh->nh_soa)
     if (soa_set_params(nh->nh_soa, ta_tags(ta)) < 0)
       retval = -1;
@@ -770,11 +748,6 @@ int nua_stack_init_handle(nua_t *nua, nua_handle_t *nh,
 
   if (retval || nh->nh_init) /* Already initialized? */
     return retval;
-
-#if HAVE_UICC_H
-  if (nh->nh_has_register && nua->nua_uicc)
-    auc_with_uicc(&nh->nh_auth, nh->nh_home, nua->nua_uicc);
-#endif
 
   if (nh->nh_tags)
     nh_authorize(nh, TAG_NEXT(nh->nh_tags));
@@ -808,6 +781,7 @@ nua_handle_t *nua_stack_incoming_handle(nua_t *nua,
   else
     url = sip->sip_from->a_url;
 
+  /* Strip away parameters */
   sip_from_init(from)->a_display = sip->sip_to->a_display;
   *from->a_url = *sip->sip_to->a_url;
 
@@ -815,9 +789,9 @@ nua_handle_t *nua_stack_incoming_handle(nua_t *nua,
   *to->a_url = *sip->sip_from->a_url;
 
   nh = nh_create(nua,
-		 NUTAG_URL((url_string_t *)url),
-		 SIPTAG_TO(to), /* Local address */
-		 SIPTAG_FROM(from), /* Remote address */
+		 NUTAG_URL((url_string_t *)url), /* Remote target */
+		 SIPTAG_TO(to), /* Local AoR */
+		 SIPTAG_FROM(from), /* Remote AoR */
 		 TAG_END());
 
   if (nua_stack_init_handle(nh->nh_nua, nh, kind, default_allow,
@@ -922,7 +896,7 @@ msg_t *nua_creq_msg(nua_t *nua,
 		    tag_type_t tag, tag_value_t value, ...)
 {
   struct nua_dialog_state *ds = nh->nh_ds;
-  msg_t *msg;
+  msg_t *msg = NULL;
   sip_t *sip;
   ta_list ta;
   url_string_t const *url = NULL;
@@ -963,6 +937,25 @@ msg_t *nua_creq_msg(nua_t *nua,
 	msg_destroy(cr->cr_msg), cr->cr_msg = NULL;
     }
     msg = nta_msg_create(nua->nua_nta, 0);
+
+    /**@par Populating SIP Request Message with Tagged Arguments
+     *
+     * The tagged arguments can be used to pass values for any SIP headers
+     * to the stack. When the INVITE message (or any other SIP message) is
+     * created, the tagged values saved with nua_handle() are used first,
+     * next the tagged values given with the operation (nua_invite()) are
+     * added.
+     *
+     * When multiple tags for the same header are specified, the behaviour
+     * depends on the header type. If only a single header field can be
+     * included in a SIP message, the latest non-NULL value is used, e.g.,
+     * @Subject. However, if the SIP header can consist of multiple lines or
+     * header fields separated by comma, e.g., @Accept, all the tagged
+     * values are concatenated.
+     *
+     * However, if a tag value is #SIP_NONE (-1 casted as a void pointer),
+     * the values from previous tags are ignored.
+     */
     tl_gets(nh->nh_tags, NUTAG_URL_REF(url), TAG_END());
     sip_add_tl(msg, sip_object(msg), TAG_NEXT(nh->nh_tags));
   }
@@ -972,22 +965,42 @@ msg_t *nua_creq_msg(nua_t *nua,
   sip = sip_object(msg);
   if (!sip)
     goto error;
+  if (sip_add_tl(msg, sip, ta_tags(ta)) < 0)
+    goto error;
 
+  if (method != sip_method_ack) {
+    /**
+     * Next, values previously set with nua_set_params() or nua_set_hparams()
+     * are used: @Allow, @Supported, @Organization, and @UserAgent headers are
+     * added to the request if they are not already set. 
+     */
+    if (!sip->sip_allow && !ds->ds_remote_tag)
+      sip_add_dup(msg, sip, (sip_header_t*)NH_PGET(nh, allow));
+
+    if (!sip->sip_supported && NH_PGET(nh, supported))
+      sip_add_dup(msg, sip, (sip_header_t *)NH_PGET(nh, supported));
+    
+    if (method == sip_method_register && NH_PGET(nh, path_enable) &&
+	!sip_has_feature(sip->sip_supported, "path") &&
+	!sip_has_feature(sip->sip_require, "path"))
+      sip_add_make(msg, sip, sip_supported_class, "path");
+
+    if (!sip->sip_organization && NH_PGET(nh, organization))
+      sip_add_dup(msg, sip, (sip_header_t *)NH_PGET(nh, organization));
+
+    if (!sip->sip_user_agent && NH_PGET(nh, user_agent))
+      sip_add_make(msg, sip, sip_user_agent_class, NH_PGET(nh, user_agent));
+  }
+	  
   {
     tl_gets(ta_args(ta),
 	    NUTAG_URL_REF(url),
 	    NUTAG_USE_DIALOG_REF(use_dialog),
-	    /* NUTAG_COPY_REF(copy), */
 	    NUTAG_ADD_CONTACT_REF(add_contact),
 	    TAG_END());
 
-    if (method == sip_method_register && url == NULL && !sip->sip_request) {
-      tl_gets(ta_args(ta), NUTAG_REGISTRAR_REF(url), TAG_END());
-      if (url == NULL)
-	tl_gets(nh->nh_tags, NUTAG_REGISTRAR_REF(url), TAG_END());
-      if (url == NULL)
-	url = (url_string_t *)nua->nua_registrar;
-    }
+    if (method == sip_method_register && url == NULL)
+      url = (url_string_t const *)NH_PGET(nh, registrar);
 
     if (seq != -1) {
       sip_cseq_t *cseq;
@@ -1004,25 +1017,27 @@ msg_t *nua_creq_msg(nua_t *nua,
       sip_header_insert(msg, sip, (sip_header_t *)cseq);
     }
 
-    if (ds->ds_leg) {
-      add_service_route = 0;
-
-      /* If leg has established route, use it, not original URL */
-      if (ds->ds_route)
-	url = NULL;
-
-      if (sip_add_tl(msg, sip, ta_tags(ta)) < 0 ||
-	  nta_msg_request_complete(msg, ds->ds_leg, method, name, url) < 0)
-	goto error;
-    }
-    else {
+    /**
+     * Now, the target URI for the request needs to be determined.
+     *
+     * For initial requests, values from tags are used. If NUTAG_URL() is
+     * given, it is used as target URI. Otherwise, if SIPTAG_TO() is given,
+     * it is used as target URI. If neither is given, the complete request
+     * line already specified using SIPTAG_REQUEST() or SIPTAG_REQUEST_STR()
+     * is used. At this point, the target URI is stored in the request line,
+     * together with method name and protocol version ("SIP/2.0"). The
+     * initial dialog information is also created: @CallID, @CSeq headers
+     * are generated, if they do not exist, and a tag is added to the @From
+     * header.
+     */
+    if (!ds->ds_leg) {
       nta_leg_t *leg = nua->nua_dhandle->nh_ds->ds_leg;
 
-      if (sip_add_tl(msg, sip, ta_tags(ta)) < 0
-	  || (ds->ds_remote_tag &&
-	      sip_to_tag(nh->nh_home, sip->sip_to, ds->ds_remote_tag) < 0)
-	  || (sip->sip_from == NULL &&
-	      sip_add_dup(msg, sip, (sip_header_t *)nua->nua_from) < 0))
+      if ((ds->ds_remote_tag && ds->ds_remote_tag[0] && 
+	   sip_to_tag(nh->nh_home, sip->sip_to, ds->ds_remote_tag) < 0)
+	  || 
+	  (sip->sip_from == NULL &&
+	   sip_add_dup(msg, sip, (sip_header_t *)nua->nua_from) < 0))
 	goto error;
 
       if (use_dialog) {
@@ -1049,10 +1064,36 @@ msg_t *nua_creq_msg(nua_t *nua,
 
       add_service_route = !restart;
     }
+    else {
+      /**
+       * For in-dialog requests, the request URI is taken from the @Contact
+       * header received from the remote party during dialog establishment, 
+       * and the NUTAG_URL() is ignored.
+       */
+      if (ds->ds_route)
+	url = NULL;
 
-    /*
-     * If application did not specify an empty contact,
-     * use contact generated by stack.
+      /**Also, the @CallID and @CSeq headers and @From and @To tags are
+       * generated based on the dialog information and added to the request. 
+       * If the dialog has a route, it is added to the request, too.
+       */
+      if (nta_msg_request_complete(msg, ds->ds_leg, method, name, url) < 0)
+	goto error;
+      add_service_route = 0;
+    }
+    /***
+     * @MaxForwards header (with default value set by NTATAG_MAX_FORWARDS()) is
+     * also added now, if it does not exist.
+     */
+
+    /**
+     * Next, the stack generates a @Contact header for the request (unless
+     * the application already gave a @Contact header or it does not want to
+     * use @Contact and indicates that by including SIPTAG_CONTACT(NULL) or
+     * SIPTAG_CONTACT(SIP_NONE) in the tagged parameters.) If the
+     * application has registered the URI in @From header, the @Contact
+     * header used with registration is used. Otherwise, the @Contact header
+     * is generated from the local IP address and port number.
      */
     if (!add_contact ||
 	sip->sip_contact ||
@@ -1062,35 +1103,23 @@ msg_t *nua_creq_msg(nua_t *nua,
 	tl_find(ta_args(ta), siptag_contact_str))
       add_contact = 0;
 
+    /**For the initial requests, @ServiceRoute set received from the registrar
+     * is also added to the request message.
+     */
     if (add_contact || add_service_route) {
-      if (nua_registration_add_contact(nh, msg, sip, 
-				       add_contact, add_service_route) < 0)
+      if (nua_registration_add_contact_to_request(nh, msg, sip, 
+						  add_contact, 
+						  add_service_route) < 0)
 	goto error;
     }
 
-    if (!sip->sip_user_agent && NH_PGET(nh, user_agent))
-      sip_add_dup(msg, sip, (sip_header_t *)NH_PGET(nh, user_agent));
-
     if (method != sip_method_ack) {
-      if (!sip->sip_allow && !ds->ds_remote_tag)
-	sip_add_dup(msg, sip, (sip_header_t*)NH_PGET(nh, allow));
-
-      if (!sip->sip_supported && NH_PGET(nh, supported))
-	sip_add_dup(msg, sip, (sip_header_t *)NH_PGET(nh, supported));
-
-      if (method == sip_method_register && NH_PGET(nh, path_enable) &&
-	  !sip_has_feature(sip->sip_supported, "path") &&
-	  !sip_has_feature(sip->sip_require, "path"))
-	sip_add_make(msg, sip, sip_supported_class, "path");
-
-      if (!sip->sip_organization && NH_PGET(nh, organization))
-	sip_add_dup(msg, sip, (sip_header_t *)NH_PGET(nh, organization));
-
       if (nh->nh_auth) {
 	nh_authorize(nh, ta_tags(ta));
 
 	if (method != sip_method_invite &&
 	    method != sip_method_update &&
+	    method != sip_method_prack &&
 	    /* auc_authorize() removes existing authentication headers */
 	    auc_authorize(&nh->nh_auth, msg, sip) < 0)
 	  goto error;
@@ -1133,6 +1162,24 @@ msg_t *nua_creq_msg(nua_t *nua,
 }
 
 /**@internal
+ * Get remote contact header for @a irq */
+static inline
+sip_contact_t const *incoming_contact(nta_incoming_t *irq)
+{
+  sip_contact_t const *retval = NULL;
+  msg_t *request;
+  sip_t *sip;
+
+  request = nta_incoming_getrequest(irq);
+  sip = sip_object(request);
+  if (sip)
+    retval = sip->sip_contact;
+  msg_destroy(request);
+
+  return retval;
+}
+
+/**@internal
  * Create a response message.
  *
  * @param nua
@@ -1142,7 +1189,8 @@ msg_t *nua_creq_msg(nua_t *nua,
  * @param phrase
  * @param tag, value, ... list of tag-value pairs
  */
-msg_t *nh_make_response(nua_t *nua, nua_handle_t *nh,
+msg_t *nh_make_response(nua_t *nua,
+			nua_handle_t *nh,
 			nta_incoming_t *irq,
 			int status, char const *phrase,
 			tag_type_t tag, tag_value_t value, ...)
@@ -1167,7 +1215,8 @@ msg_t *nh_make_response(nua_t *nua, nua_handle_t *nh,
 	   sip_add_dup(msg, sip, (sip_header_t *)NH_PGET(nh, supported)) < 0)
     msg_destroy(msg);
   else if (!sip->sip_user_agent && NH_PGET(nh, user_agent) &&
-	   sip_add_dup(msg, sip, (sip_header_t *)NH_PGET(nh, user_agent)) < 0)
+	   sip_add_make(msg, sip, sip_user_agent_class, 
+			NH_PGET(nh, user_agent)) < 0)
     msg_destroy(msg);
   else if (!sip->sip_organization && NH_PGET(nh, organization) &&
 	   sip_add_dup(msg, sip, (sip_header_t *)NH_PGET(nh, organization)) < 0)
@@ -1177,7 +1226,9 @@ msg_t *nh_make_response(nua_t *nua, nua_handle_t *nh,
     msg_destroy(msg);
   else if (!sip->sip_contact &&
 	   (t = tl_find(ta_args(ta), _nutag_add_contact)) &&
-	   nua_registration_add_contact(nh, msg, sip, t->t_value, 0) < 0)
+	   t->t_value && 
+	   nua_registration_add_contact_to_response(nh, msg, sip, NULL, 
+						    incoming_contact(irq)) < 0)
     msg_destroy(msg);
   else
     retval = msg;
@@ -1313,10 +1364,8 @@ int nua_creq_save_restart(nua_handle_t *nh,
 		  TAG_END());
   nta_outgoing_destroy(orq);
 
-  if (du) {
-    du->du_pending = NULL;
+  if (du)
     du->du_refresh = 0;
-  }
 
   cr->cr_restart = restart_function;
   return 1;
@@ -1433,7 +1482,6 @@ int nua_creq_check_restart(nua_handle_t *nh,
     cr->cr_orq = orq;
 
   if (du) {
-    du->du_pending = NULL;
     du->du_refresh = 0;
   }
 
@@ -1518,7 +1566,7 @@ int nua_stack_process_request(nua_handle_t *nh,
 {
   nua_t *nua = nh->nh_nua;
   sip_method_t method = sip->sip_request->rq_method;
-  sip_user_agent_t const *user_agent = NH_PGET(nh, user_agent);
+  char const *user_agent = NH_PGET(nh, user_agent);
   sip_supported_t const *supported = NH_PGET(nh, supported);
   sip_allow_t const *allow = NH_PGET(nh, allow);
   enter;
@@ -1527,7 +1575,7 @@ int nua_stack_process_request(nua_handle_t *nh,
 
   if (nta_check_method(irq, sip, allow,
 		       SIPTAG_SUPPORTED(supported),
-		       SIPTAG_USER_AGENT(user_agent),
+		       SIPTAG_USER_AGENT_STR(user_agent),
 		       TAG_END()))
     return 405;
 
@@ -1542,13 +1590,13 @@ int nua_stack_process_request(nua_handle_t *nh,
     nta_incoming_treply(irq, SIP_416_UNSUPPORTED_URI,
 			SIPTAG_ALLOW(allow),
 			SIPTAG_SUPPORTED(supported),
-			SIPTAG_USER_AGENT(user_agent),
+			SIPTAG_USER_AGENT_STR(user_agent),
 			TAG_END());
   }
 
   if (nta_check_required(irq, sip, supported,
 			 SIPTAG_ALLOW(allow),
-			 SIPTAG_USER_AGENT(user_agent),
+			 SIPTAG_USER_AGENT_STR(user_agent),
 			 TAG_END()))
     return 420;
 
@@ -1587,7 +1635,7 @@ int nua_stack_process_request(nua_handle_t *nh,
 			481, "Call Does Not Exist",
 			SIPTAG_ALLOW(allow),
 			SIPTAG_SUPPORTED(supported),
-			SIPTAG_USER_AGENT(user_agent),
+			SIPTAG_USER_AGENT_STR(user_agent),
 			TAG_END());
     return 481;
 
@@ -1598,7 +1646,7 @@ int nua_stack_process_request(nua_handle_t *nh,
     return nua_stack_process_notify(nua, nh, irq, sip);
 
   case sip_method_subscribe:
-    return nua_stack_process_subsribe(nua, nh, irq, sip);
+    return nua_stack_process_subscribe(nua, nh, irq, sip);
 
   case sip_method_options:
     return nua_stack_process_options(nua, nh, irq, sip);

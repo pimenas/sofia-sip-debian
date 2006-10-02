@@ -82,7 +82,7 @@ enum { HE_TIMER = 1000 };
 /** @c http_flag telling that this message is internally generated. */
 #define NTH_INTERNAL_MSG (1<<16)
 
-HTABLE_DECLARE(hc_htable, hct, nth_client_t);
+HTABLE_DECLARE_WITH(hc_htable, hct, nth_client_t, uintptr_t, size_t);
 
 struct nth_engine_s {
   su_home_t he_home[1];
@@ -144,7 +144,7 @@ struct nth_client_s {
   url_string_t const *hc_route_url;
   tp_name_t hc_tpn[1];			/**< Where to send requests */
   tport_t *hc_tport;
-  unsigned hc_pending;			/**< Request is pending in tport */
+  int hc_pending;			/**< Request is pending in tport */
   tagi_t *hc_tags;			/**< Transport tags */
 
   auth_client_t **hc_auc;		/**< List of authenticators */
@@ -170,7 +170,7 @@ struct nth_client_s {
  * module.
  *
  * The NTH_DEBUG environment variable is used to determine the debug
- * logging level for @b nth module. The default level is 3.
+ * logging level for @b nth module. The default level is 1.
  *
  * @sa <su_debug.h>, nth_client_log, #SOFIA_DEBUG
  */
@@ -232,16 +232,17 @@ static uint32_t he_now(nth_engine_t const *he);
 static void he_recv_message(nth_engine_t * he, tport_t * tport,
 			    msg_t *msg, void *arg, su_time_t now);
 static msg_t *he_msg_create(nth_engine_t * he, int flags,
-			    char const data[], unsigned dlen,
+			    char const data[], usize_t dlen,
 			    tport_t const *tport, nth_client_t * hc);
 static void he_tp_error(nth_engine_t * he,
 			tport_t * tport, int errcode, char const *remote);
 static int hc_recv(nth_client_t * hc, msg_t *msg, http_t * http);
 
-HTABLE_PROTOS(hc_htable, hct, nth_client_t);
+HTABLE_PROTOS_WITH(hc_htable, hct, nth_client_t, uintptr_t, size_t);
 
-#define HTABLE_HASH_CLIENT(hc) ((hash_value_t)(hc)->hc_tport)
-HTABLE_BODIES(hc_htable, hct, nth_client_t, HTABLE_HASH_CLIENT);
+#define HTABLE_HASH_CLIENT(hc) ((uintptr_t)(hc)->hc_tport)
+HTABLE_BODIES_WITH(hc_htable, hct, nth_client_t, HTABLE_HASH_CLIENT,
+		   uintptr_t, size_t);
 
 static url_string_t const *hc_request_complete(nth_client_t * hc,
 					       msg_t *msg, http_t * http,
@@ -307,7 +308,7 @@ nth_engine_t *nth_engine_create(su_root_t *root,
 void nth_engine_destroy(nth_engine_t * he)
 {
   if (he) {
-    int i;
+    size_t i;
     hc_htable_t *hct = he->he_clients;
 
     for (i = 0; i < hct->hct_size; i++)
@@ -506,7 +507,7 @@ void he_recv_message(nth_engine_t * he,
   nth_client_t *hc, **hcp;
   tp_name_t const *tpn;
 
-  for (hcp = hc_htable_hash(he->he_clients, (hash_value_t) tport);
+  for (hcp = hc_htable_hash(he->he_clients, (hash_value_t)(uintptr_t) tport);
        (hc = *hcp); hcp = hc_htable_next(he->he_clients, hcp)) {
     if (hc->hc_tport == tport) {
       if (hc_recv(hc, msg, http_object(msg)) < 0)
@@ -520,8 +521,10 @@ void he_recv_message(nth_engine_t * he,
   tpn = tport_name(tport);
 
   if (msg_size(msg))
-    SU_DEBUG_3(("nth client: received extra data (%u bytes) from %s/%s:%s\n",
-		msg_size(msg), tpn->tpn_proto, tpn->tpn_host, tpn->tpn_port));
+    SU_DEBUG_3(("nth client: received extra data ("MOD_ZU" bytes) "
+		"from %s/%s:%s\n",
+		(size_t)msg_size(msg), 
+		tpn->tpn_proto, tpn->tpn_host, tpn->tpn_port));
   else
     SU_DEBUG_3(("nth client: received extra data from %s/%s:%s\n",
 		tpn->tpn_proto, tpn->tpn_host, tpn->tpn_port));
@@ -561,7 +564,7 @@ msg_t *nth_engine_msg_create(nth_engine_t * he, int flags)
 /** Create a new message for transport */
 static
 msg_t *he_msg_create(nth_engine_t * he, int flags,
-		     char const data[], unsigned dlen,
+		     char const data[], usize_t dlen,
 		     tport_t const *tport, nth_client_t * hc)
 {
 
@@ -574,7 +577,7 @@ msg_t *he_msg_create(nth_engine_t * he, int flags,
 
   if (hc == NULL) {
     nth_client_t **slot;
-    for (slot = hc_htable_hash(he->he_clients, (hash_value_t) tport);
+    for (slot = hc_htable_hash(he->he_clients, (hash_value_t)(uintptr_t) tport);
 	 (hc = *slot); slot = hc_htable_next(he->he_clients, slot))
       if (hc->hc_tport == tport)
 	break;
@@ -830,7 +833,7 @@ nth_client_t *hc_create(nth_engine_t * he,
   nth_client_t *hc;
   su_home_t *home = msg_home(msg);
 
-  if (!(hc = su_salloc(he->he_home, sizeof(*hc))))
+  if (!(hc = su_zalloc(he->he_home, sizeof(*hc))))
     return NULL;
 
   if (!callback)
@@ -1041,7 +1044,7 @@ static nth_client_t *hc_send(nth_client_t * hc)
   hc->hc_tport = tport_incref(tp);
 
   hc->hc_pending = tport_pend(tp, hc->hc_request, hc_tport_error, hc);
-  if (hc->hc_pending < 0)
+  if (hc->hc_pending == -1)
     hc->hc_pending = 0;
 
   if (hc->hc_expires) {
@@ -1057,7 +1060,7 @@ static nth_client_t *hc_send(nth_client_t * hc)
 void hc_tport_error(nth_engine_t * he, nth_client_t * hc,
 		    tport_t * tp, msg_t *msg, int error)
 {
-  su_sockaddr_t *su = msg_addr(msg);
+  su_sockaddr_t const *su = msg_addr(msg);
   tp_name_t const *tpn = tp ? tport_name(tp) : hc->hc_tpn;
   char addr[SU_ADDRSIZE];
   char const *errmsg;

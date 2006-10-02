@@ -194,6 +194,17 @@ NTA_DLL extern tag_typedef_t ntatag_udp_mtu;
 NTA_DLL extern tag_typedef_t ntatag_udp_mtu_ref;
 #define NTATAG_UDP_MTU_REF(x) ntatag_udp_mtu_ref, tag_uint_vr(&(x))
 
+NTA_DLL extern tag_typedef_t ntatag_max_forwards;
+/** Default value for @MaxForwards header. 
+ *
+ * @since New in @VERSION_1_12_2.
+ * @hideinitializer 
+ */
+#define NTATAG_MAX_FORWARDS(x) ntatag_max_forwards, tag_uint_v((x))
+
+NTA_DLL extern tag_typedef_t ntatag_max_forwards_ref;
+#define NTATAG_MAX_FORWARDS_REF(x) ntatag_max_forwards_ref, tag_uint_vr(&(x))
+
 NTA_DLL extern tag_typedef_t ntatag_sip_t1;
 /** Initial retransmission interval (in milliseconds) @HI */
 #define NTATAG_SIP_T1(x) ntatag_sip_t1, tag_uint_v((x))
@@ -286,7 +297,7 @@ NTA_DLL extern tag_typedef_t ntatag_ua_ref;
 #define NTATAG_UA_REF(x) ntatag_ua_ref, tag_bool_vr(&(x))
 
 NTA_DLL extern tag_typedef_t ntatag_stateless;
-/** If true, application processes requests statelessly by default. @HI */
+/** If true, agent processes incoming requests statelessly by default. @HI */
 #define NTATAG_STATELESS(x) ntatag_stateless, tag_bool_v((x))
 
 NTA_DLL extern tag_typedef_t ntatag_stateless_ref;

@@ -236,15 +236,23 @@ void su_task_move(su_task_r dst, su_task_r src)
  * @param a  First task
  * @param b  Second task
  * 
- * @return 
- *   The function @c su_task_cmp() returns negative number, if a < b,
- *   positive number, if a > b, and 0, if a == b.
+ * @retval negative number, if a < b
+ * @retval positive number, if a > b
+ * @retval 0, if a == b.
  */
-int  su_task_cmp(su_task_r const a, su_task_r const b)
+int su_task_cmp(su_task_r const a, su_task_r const b)
 {
-  int retval = a->sut_port - b->sut_port;
+  intptr_t retval = a->sut_port - b->sut_port;
+  retval = retval ? retval : (char *)a->sut_root - (char *)b->sut_root;
 
-  return retval ? retval : (char *)a->sut_root - (char *)b->sut_root;
+  if (sizeof(retval) != sizeof(int)) {
+    if (retval < 0)
+      retval = -1;
+    else if (retval > 0)
+      retval = 1;
+  }
+
+  return (int)retval;
 }
 
 /**
@@ -288,8 +296,8 @@ int su_task_attach(su_task_r self, su_root_t *root)
  * @param self task handle
  *
  * @return 
- * The function @c su_task_root() returns a pointer to root object attached
- * to the task handle, or NULL if no root object has been attached.
+ * A pointer to root object attached to the task handle, or NULL if no root
+ * object has been attached.
  */
 su_root_t *su_task_root(su_task_r const self)
 {
@@ -313,8 +321,8 @@ int su_task_detach(su_task_r self)
  * 
  * @param task task handle
  *
- * @return The function @c su_task_timers() returns a timer list of the
- * task. If there are no timers, it returns NULL.
+ * @return A timer list of the task. If there are no timers, it returns
+ * NULL.
  */
 su_timer_t **su_task_timers(su_task_r const task)
 {
@@ -329,16 +337,17 @@ struct su_task_execute
   pthread_cond_t cond[1];
   int (*function)(void *);
   void *arg;
-  int *return_value;
+  int value;
 };
 
 static void _su_task_execute(su_root_magic_t *m,
 			     su_msg_r msg,
 			     su_msg_arg_t *a)
 {
-  struct su_task_execute *frame = (void *)a;
+  struct su_task_execute *frame = *(struct su_task_execute **)a;
   pthread_mutex_lock(frame->mutex);
-  *frame->return_value = frame->function(frame->arg);
+  frame->value = frame->function(frame->arg);
+  frame->function = NULL;	/* Mark as completed */
   pthread_cond_signal(frame->cond);
   pthread_mutex_unlock(frame->mutex);
 }
@@ -354,42 +363,55 @@ int su_task_execute(su_task_r const task,
 		    int (*function)(void *), void *arg,
 		    int *return_value)
 {
-  int value;
+  if (function == NULL)
+    return (errno = EFAULT), -1;
 
   if (!su_port_own_thread(task->sut_port)) {
 #if SU_HAVE_PTHREADS
+    int success;
     su_msg_r m = SU_MSG_R_INIT;
-    struct su_task_execute *frame;
+    struct su_task_execute frame = {
+      { PTHREAD_MUTEX_INITIALIZER },
+      { PTHREAD_COND_INITIALIZER },
+      function, arg, 0
+    };
 
     if (su_msg_create(m, task, su_task_null,
-		      _su_task_execute, (sizeof *frame)) < 0)
+		      _su_task_execute, (sizeof &frame)) < 0)
       return -1;
 
-    frame = (void *)su_msg_data(m);
-    pthread_mutex_init(frame->mutex, NULL);
-    pthread_cond_init(frame->cond, NULL);
-    frame->function = function;
-    frame->arg = arg;
-    frame->return_value = &value;
+    *(struct su_task_execute **)su_msg_data(m) = &frame;
 
-    pthread_mutex_lock(frame->mutex);
+    pthread_mutex_lock(frame.mutex);
 
-    if (su_msg_send(m) < 0) {
+    success = su_msg_send(m);
+
+    if (success == 0)
+      while (frame.function)
+	pthread_cond_wait(frame.cond, frame.mutex);
+    else
       su_msg_destroy(m);
-      return -1;
-    }
 
-    pthread_cond_wait(frame->cond, frame->mutex);
+    pthread_mutex_unlock(frame.mutex);
+    pthread_mutex_destroy(frame.mutex);
+    pthread_cond_destroy(frame.cond);
+
+    if (return_value)
+      *return_value = frame.value;
+
+    return success;
 #else
-    return -1;
+    return (errno = ENOSYS), -1;
 #endif
   }
-  else
-    value = function(arg);
-  if (return_value)
-    *return_value = value;
+  else {
+    int value = function(arg);
 
-  return 0;
+    if (return_value)
+      *return_value = value;
+
+    return 0;
+  }
 }
 
 _su_task_r su_task_new(su_task_r task, su_root_t *root, su_port_t *port);
@@ -1381,16 +1403,17 @@ int su_msg_create(su_msg_r        rmsg,
 		  su_task_r const to,
 		  su_task_r const from,
 		  su_msg_f        wakeup,
-		  int             size)
+		  isize_t         size)
 {
   su_port_t *port = to->sut_port;
   su_msg_t *msg;
 
   SU_PORT_LOCK(port, su_msg_create);
-  msg = su_salloc(NULL /*port->sup_home*/, sizeof(*msg) + size);
+  msg = su_zalloc(NULL /*port->sup_home*/, sizeof(*msg) + size);
   SU_PORT_UNLOCK(port, su_msg_create);
 
   if (msg) {
+    msg->sum_size = sizeof(*msg) + size;
     SU_TASK_COPY(msg->sum_to, to, su_msg_create);
     SU_TASK_COPY(msg->sum_from, from, su_msg_create);
     msg->sum_func = wakeup;
@@ -1402,8 +1425,12 @@ int su_msg_create(su_msg_r        rmsg,
   return -1;
 }
 
-/** Add a report function to a message
- *
+/** Add a delivery report function to a message.
+ * 
+ * The delivery report funcgtion gets called by the sending task after the
+ * message was delivered and the message function was executed. (The
+ * su_root_t message delivery loop calls su_msg_delivery_report() 
+ * 
  */
 int su_msg_report(su_msg_r msg,
 		  su_msg_f report)
@@ -1429,7 +1456,7 @@ int su_msg_report(su_msg_r msg,
  */
 
 int su_msg_reply(su_msg_r reply, su_msg_r const msg,
-		 su_msg_f wakeup, int size)
+		 su_msg_f wakeup, isize_t size)
 {
   su_msg_r msg0;
 
@@ -1442,11 +1469,24 @@ int su_msg_reply(su_msg_r reply, su_msg_r const msg,
 }
 
 
-/** Send a delivery report 
+/** Send a delivery report.
+ *
+ * If the sender has attached a delivery report function to message with
+ * su_msg_report(), the message is returned to the message queue of the
+ * sending task. The sending task calls the delivery report function when it
+ * has received the message.
  */
 void su_msg_delivery_report(su_msg_r msg)
 {
   su_task_r swap;
+
+  if (!msg || !msg[0])
+    return;
+
+  if (!msg[0]->sum_report) {
+    su_msg_destroy(msg);
+    return;
+  }
 
   *swap = *msg[0]->sum_from;
   *msg[0]->sum_from = *msg[0]->sum_to;
@@ -1454,11 +1494,10 @@ void su_msg_delivery_report(su_msg_r msg)
 
   msg[0]->sum_func = msg[0]->sum_report;
   msg[0]->sum_report = NULL;
-  
   su_msg_send(msg);
 }
 
-/** Save a message */
+/** Save a message. */
 void su_msg_save(su_msg_r save, su_msg_r msg)
 {
   if (save) {
@@ -1515,7 +1554,7 @@ su_msg_arg_t *su_msg_data(su_msg_cr rmsg)
 }
 
 /** Get size of message data area. */
-int su_msg_size(su_msg_cr rmsg)
+isize_t su_msg_size(su_msg_cr rmsg)
 {
   return rmsg[0] ? rmsg[0]->sum_size - sizeof(su_msg_t) : 0;
 }

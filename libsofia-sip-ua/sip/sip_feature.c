@@ -49,21 +49,22 @@
 /**@SIP_HEADER sip_allow Allow Header
  *
  * The Allow header lists the set of methods supported by the user agent
- * generating the message.  Its syntax is defined in [S10.10] as
+ * generating the message.  Its syntax is defined in @RFC3261 as
  * follows:
  * 
  * @code
  *    Allow  =  "Allow" HCOLON [Method *(COMMA Method)]
  * @endcode
  *
+ * The parsed Allow header is stored in #sip_allow_t structure.
  */
 
 /**@ingroup sip_allow
  * @typedef struct msg_list_s sip_allow_t; 
  *
- * The structure sip_allow_t contains representation of an @b Allow header.
+ * The structure #sip_allow_t contains representation of an @Allow header.
  *
- * The sip_allow_t is defined as follows:
+ * The #sip_allow_t is defined as follows:
  * @code
  * typedef struct msg_list_s
  * {
@@ -77,13 +78,13 @@
 msg_hclass_t sip_allow_class[] = 
 SIP_HEADER_CLASS_LIST(allow, "Allow", "", list);
 
-int sip_allow_d(su_home_t *home, sip_header_t *h, char *s, int slen)
+issize_t sip_allow_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
   sip_allow_t *k = (sip_allow_t *)h;
   return msg_commalist_d(home, &s, &k->k_items, msg_token_scan);
 }
 
-int sip_allow_e(char b[], int bsiz, sip_header_t const *h, int f)
+issize_t sip_allow_e(char b[], isize_t bsiz, sip_header_t const *h, int f)
 {
   assert(sip_is_allow(h));
   return msg_list_e(b, bsiz, h, f);
@@ -94,27 +95,29 @@ int sip_allow_e(char b[], int bsiz, sip_header_t const *h, int f)
 /**@SIP_HEADER sip_proxy_require Proxy-Require Header
  *
  * The Proxy-Require header is used to indicate proxy-sensitive features
- * that @b MUST be supported by the proxy.  Its syntax is defined in [S10.33]
+ * that @b MUST be supported by the proxy.  Its syntax is defined in @RFC3261
  * as follows:
  * 
  * @code
  *    Proxy-Require  =  "Proxy-Require" HCOLON option-tag *(COMMA option-tag)
  * @endcode
  *
+ *
+ * The parsed Proxy-Require header is stored in #sip_proxy_require_t structure.
  */
 
 /**@ingroup sip_proxy_require
  * @typedef struct msg_list_s sip_proxy_require_t; 
  *
- * The structure sip_proxy_require_t contains representation of an @b
- * Proxy-Require header.
+ * The structure #sip_proxy_require_t contains representation of an 
+ * @ProxyRequire header.
  *
- * The sip_proxy_require_t is defined as follows:
+ * The #sip_proxy_require_t is defined as follows:
  * @code
  * typedef struct msg_list_s
  * {
  *   msg_common_t       k_common[1];  // Common fragment info
- *   msg_list_t        *k_next;	      // Link to next header
+ *   msg_list_t        *k_next;	      // Dummy link
  *   msg_param_t       *k_items;      // List of items
  * } sip_proxy_require_t;
  * @endcode
@@ -123,13 +126,13 @@ int sip_allow_e(char b[], int bsiz, sip_header_t const *h, int f)
 msg_hclass_t sip_proxy_require_class[] = 
 SIP_HEADER_CLASS_LIST(proxy_require, "Proxy-Require", "", list);
 
-int sip_proxy_require_d(su_home_t *home, sip_header_t *h, char *s, int slen)
+issize_t sip_proxy_require_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
   sip_proxy_require_t *k = (sip_proxy_require_t *)h;
   return msg_commalist_d(home, &s, &k->k_items, msg_token_scan);
 }
 
-int sip_proxy_require_e(char b[], int bsiz, sip_header_t const *h, int f)
+issize_t sip_proxy_require_e(char b[], isize_t bsiz, sip_header_t const *h, int f)
 {
   assert(sip_is_proxy_require(h));
   return msg_list_e(b, bsiz, h, f);
@@ -141,22 +144,23 @@ int sip_proxy_require_e(char b[], int bsiz, sip_header_t const *h, int f)
  *
  * The Require header is used by clients to tell user agent servers about
  * options that the client expects the server to support in order to
- * properly process the request.  Its syntax is defined in [S10.35] 
+ * properly process the request.  Its syntax is defined in @RFC3261 
  * as follows:
  * 
  * @code
  *    Require       =  "Require" HCOLON option-tag *(COMMA option-tag)
  * @endcode
  *
+ * The parsed Require header is stored in #sip_require_t structure.
  */
 
 /**@ingroup sip_require
  * @typedef struct msg_list_s sip_require_t; 
  *
- * The structure sip_require_t contains representation of an @b
- * Require header.
+ * The structure #sip_require_t contains representation of an 
+ * @Require header.
  *
- * The sip_require_t is defined as follows:
+ * The #sip_require_t is defined as follows:
  * @code
  * typedef struct msg_list_s
  * {
@@ -170,13 +174,13 @@ int sip_proxy_require_e(char b[], int bsiz, sip_header_t const *h, int f)
 msg_hclass_t sip_require_class[] = 
 SIP_HEADER_CLASS_LIST(require, "Require", "", list);
 
-int sip_require_d(su_home_t *home, sip_header_t *h, char *s, int slen)
+issize_t sip_require_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
   sip_require_t *k = (sip_require_t *)h;
   return msg_commalist_d(home, &s, &k->k_items, msg_token_scan);
 }
 
-int sip_require_e(char b[], int bsiz, sip_header_t const *h, int f)
+issize_t sip_require_e(char b[], isize_t bsiz, sip_header_t const *h, int f)
 {
   assert(sip_is_require(h));
   return msg_list_e(b, bsiz, h, f);
@@ -187,22 +191,24 @@ int sip_require_e(char b[], int bsiz, sip_header_t const *h, int f)
 /**@SIP_HEADER sip_supported Supported Header
  *
  * The Supported header enumerates all the capabilities of the client or
- * server.  Its syntax is defined in [S10.41] as follows:
+ * server.  Its syntax is defined in @RFC3261 as follows:
  * 
  * @code
  *    Supported  =  ( "Supported" / "k" ) HCOLON
  *                  [option-tag *(COMMA option-tag)]
  * @endcode
  *
+ * The parsed option-tags of Supported header
+ * are stored in #sip_supported_t structure.
  */
 
 /**@ingroup sip_supported
  * @typedef struct msg_list_s sip_supported_t; 
  *
- * The structure sip_supported_t contains representation of an @b
- * Supported header.
+ * The structure #sip_supported_t contains representation of an 
+ * @Supported header.
  *
- * The sip_supported_t is defined as follows:
+ * The #sip_supported_t is defined as follows:
  * @code
  * typedef struct msg_list_s
  * {
@@ -217,13 +223,13 @@ int sip_require_e(char b[], int bsiz, sip_header_t const *h, int f)
 msg_hclass_t sip_supported_class[] = 
 SIP_HEADER_CLASS_LIST(supported, "Supported", "k", list);
 
-int sip_supported_d(su_home_t *home, sip_header_t *h, char *s, int slen)
+issize_t sip_supported_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
   sip_supported_t *k = (sip_supported_t *)h;
   return msg_commalist_d(home, &s, &k->k_items, msg_token_scan);
 }
 
-int sip_supported_e(char b[], int bsiz, sip_header_t const *h, int f)
+issize_t sip_supported_e(char b[], isize_t bsiz, sip_header_t const *h, int f)
 {
   assert(sip_is_supported(h));
   return msg_list_e(b, bsiz, h, f);
@@ -234,21 +240,23 @@ int sip_supported_e(char b[], int bsiz, sip_header_t const *h, int f)
 /**@SIP_HEADER sip_unsupported Unsupported Header
  *
  * The Unsupported header lists the features not supported by the server.
- * Its syntax is defined in [S20.40] as follows:
+ * Its syntax is defined in @RFC3261 as follows:
  * 
  * @code
  *    Unsupported  =  "Unsupported" HCOLON [option-tag *(COMMA option-tag)]
  * @endcode
  *
+ *
+ * The parsed Unsupported header is stored in #sip_unsupported_t structure.
  */
 
 /**@ingroup sip_unsupported
  * @typedef struct msg_list_s sip_unsupported_t; 
  *
- * The structure sip_unsupported_t contains representation of an @b
- * Unsupported header.
+ * The structure #sip_unsupported_t contains representation of an 
+ * @Unsupported header.
  *
- * The sip_unsupported_t is defined as follows:
+ * The #sip_unsupported_t is defined as follows:
  * @code
  * typedef struct msg_list_s
  * {
@@ -262,13 +270,13 @@ int sip_supported_e(char b[], int bsiz, sip_header_t const *h, int f)
 msg_hclass_t sip_unsupported_class[] = 
 SIP_HEADER_CLASS_LIST(unsupported, "Unsupported", "", list);
 
-int sip_unsupported_d(su_home_t *home, sip_header_t *h, char *s, int slen)
+issize_t sip_unsupported_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
   sip_unsupported_t *k = (sip_unsupported_t *)h;
   return msg_commalist_d(home, &s, &k->k_items, msg_token_scan);
 }
 
-int sip_unsupported_e(char b[], int bsiz, sip_header_t const *h, int f)
+issize_t sip_unsupported_e(char b[], isize_t bsiz, sip_header_t const *h, int f)
 {
   assert(sip_is_unsupported(h));
   return msg_list_e(b, bsiz, h, f);
@@ -277,7 +285,7 @@ int sip_unsupported_e(char b[], int bsiz, sip_header_t const *h, int f)
 /** Check if required feature is supported.
  *
  * @retval NULL if all the required features are supported
- * @retval pointer to a @b Unsupported header or
+ * @retval pointer to a @Unsupported header or
  *         #SIP_NONE if @a home is NULL  
  */
 sip_unsupported_t *sip_has_unsupported(su_home_t *home,
@@ -292,7 +300,7 @@ sip_unsupported_t *sip_has_unsupported(su_home_t *home,
 /** Check if required feature is supported.
  *
  * @retval NULL if all the required features are supported
- * @retval pointer to a @b Unsupported header or
+ * @retval pointer to a @Unsupported header or
  *         #SIP_NONE if @a home is NULL
  */
 sip_unsupported_t *
@@ -310,23 +318,23 @@ sip_has_unsupported2(su_home_t *home,
 
 /** Ensure that required features are supported.
  *
- * The supported features can be listed in @b Supported, @b Require or @b
- * Proxy-Require headers (in @a supported, @a by_require, or @a
+ * The supported features can be listed in @Supported, @Require or 
+ * @ProxyRequire headers (in @a supported, @a by_require, or @a
  * by_proxy_require parameters, respectively)
  *
- * @param home (optional) home pointer for allocating @b Unsupported header
- * @param supported @b Supported features (may be NULL) [IN]
+ * @param home (optional) home pointer for allocating @Unsupported header
+ * @param supported @Supported features (may be NULL) [IN]
  * @param by_require  supported features listed by 
- *                    @b Require (may be NULL) [IN] 
+ *                    @Require (may be NULL) [IN] 
  * @param by_proxy_require supported features listed 
- *                         by @b Proxy-Require (may be NULL) [IN]
+ *                         by @ProxyRequire (may be NULL) [IN]
  *
  * @param require   list of required features (may be NULL) [IN]
  * @param require2  2nd list of required features (may be NULL) [IN]
  * @param require3  3rd list of required features (may be NULL) [IN]
  *
  * @retval NULL if all the required features are supported
- * @retval pointer to a @b Unsupported header or
+ * @retval pointer to a @Unsupported header or
  *         #SIP_NONE if @a home is NULL 
  */
 sip_unsupported_t *
@@ -338,7 +346,7 @@ sip_has_unsupported_any(su_home_t *home,
 			sip_require_t const *require2,
 			sip_require_t const *require3)
 {
-  int i, j;
+  size_t i, j;
   sip_unsupported_t *unsupported = NULL;
   msg_param_t const empty[1] = { NULL };
   msg_param_t const *slist = empty;
@@ -407,7 +415,7 @@ sip_has_unsupported_any(su_home_t *home,
 
 int sip_has_feature(msg_list_t const *supported, char const *feature)
 {
-  int i;
+  size_t i;
   
   if (!feature || !feature[0])
     return 1;			/* Empty feature is always supported */
@@ -432,7 +440,7 @@ int sip_has_supported(sip_supported_t const *supported, char const *feature)
 /**@SIP_HEADER sip_path Path Header
  *
  * The Path header field is a SIP extension header field (@RFC3327) with
- * syntax very similar to the Record-Route header field. It is used in
+ * syntax very similar to the @RecordRoute header field. It is used in
  * conjunction with SIP REGISTER requests and with 200 class messages in
  * response to REGISTER (REGISTER responses).
  * 
@@ -441,20 +449,22 @@ int sip_has_supported(sip_supported_t const *supported, char const *feature)
  *    path-value  =  name-addr *( SEMI rr-param )
  * @endcode
  *
+ *
+ * The parsed Path header is stored in #sip_path_t structure.
  */
 
 /**@ingroup sip_path
  * @typedef typedef struct sip_route_s sip_path_t;
  *
- * The structure #sip_path_t contains representation of SIP @b Path header.
+ * The structure #sip_path_t contains representation of SIP @Path header.
  *
  * The #sip_path_t is defined as follows:
  * @code
  * typedef struct sip_route_s {
  *   sip_common_t        r_common[1];   // Common fragment info
- *   sip_path_t         *r_next;        // Link to next Path
+ *   sip_path_t         *r_next;        // Link to next @Path
  *   char const         *r_display;     // Display name
- *   url_t               r_url[1];      // Path URL
+ *   url_t               r_url[1];      // @Path URL
  *   msg_param_t const  *r_params;      // List of parameters
  * } sip_path_t;
  * @endcode
@@ -463,15 +473,12 @@ int sip_has_supported(sip_supported_t const *supported, char const *feature)
 msg_hclass_t sip_path_class[] =
 SIP_HEADER_CLASS(path, "Path", "", r_params, prepend, any_route);
 
-int sip_path_d(su_home_t *home,
-	       sip_header_t *h,
-	       char *s,
-	       int slen)
+issize_t sip_path_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
   return sip_any_route_d(home, h, s, slen);
 }
 
-int sip_path_e(char b[], int bsiz, sip_header_t const *h, int flags)
+issize_t sip_path_e(char b[], isize_t bsiz, sip_header_t const *h, int flags)
 {
   assert(sip_is_path(h));
   return sip_any_route_e(b, bsiz, h, flags);
@@ -495,19 +502,22 @@ int sip_path_e(char b[], int bsiz, sip_header_t const *h, int flags)
  *    sr-value  =  name-addr *( SEMI rr-param )
  * @endcode
  *
+ * The parsed Service-Route header is stored in #sip_service_route_t structure.
+ *
+ * @sa @RFC3608, @Path, @Route, @RecordRoute
  */
 
 /**@ingroup sip_service_route
  * @typedef typedef struct sip_route_s sip_service_route_t;
  *
  * The structure #sip_service_route_t contains representation of SIP 
- * @b Service-Route header.
+ * @ServiceRoute header.
  *
  * The #sip_service_route_t is defined as follows:
  * @code
  * typedef struct sip_route_s {
  *   sip_common_t        r_common[1];   // Common fragment info
- *   sip_service_route_t*r_next;        // Link to next Service-Route
+ *   sip_service_route_t*r_next;        // Link to next @ServiceRoute
  *   char const         *r_display;     // Display name
  *   url_t               r_url[1];      // Service-Route URL
  *   msg_param_t const  *r_params;      // List of parameters
@@ -519,15 +529,12 @@ msg_hclass_t sip_service_route_class[] =
 SIP_HEADER_CLASS(service_route, "Service-Route", "", 
 		 r_params, append, any_route);
 
-int sip_service_route_d(su_home_t *home,
-	       sip_header_t *h,
-	       char *s,
-	       int slen)
+issize_t sip_service_route_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
   return sip_any_route_d(home, h, s, slen);
 }
 
-int sip_service_route_e(char b[], int bsiz, sip_header_t const *h, int flags)
+issize_t sip_service_route_e(char b[], isize_t bsiz, sip_header_t const *h, int flags)
 {
   assert(sip_is_service_route(h));
   return sip_any_route_e(b, bsiz, h, flags);

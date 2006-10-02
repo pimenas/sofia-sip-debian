@@ -16,22 +16,22 @@ noinst_LTLIBRARIES = 	libsu.la
 
 bin_PROGRAMS = 		addrinfo localinfo 
 
-check_PROGRAMS = 	su_torture torture_su_port \
-			su_alloc_test su_time_test su_tag_test \
-			htable_test torture_rbtree \
+check_PROGRAMS = 	torture_su torture_su_port \
+			torture_su_alloc torture_su_time torture_su_tag \
+			test_htable torture_rbtree \
 			test_memmem torture_su_bm \
-			su_root_test su_timer_test \
-			su_test su_proxy poll_test
+			torture_su_root torture_su_timer \
+			test_su su_proxy test_poll
 
 # ----------------------------------------------------------------------
 # Tests
 
-TESTS = 		su_torture torture_su_port \
-			su_alloc_test su_time_test su_tag_test \
-			htable_test torture_rbtree \
+TESTS = 		torture_su torture_su_port \
+			torture_su_alloc torture_su_time torture_su_tag \
+			test_htable torture_rbtree \
 			test_memmem torture_su_bm \
-			su_root_test su_timer_test \
-			run_addrinfo run_localinfo run_su_test
+			torture_su_root torture_su_timer \
+			run_addrinfo run_localinfo run_test_su
 
 # ----------------------------------------------------------------------
 # Rules for building the targets
@@ -63,6 +63,7 @@ libsu_la_SOURCES = \
 	su_time.c su_time0.c \
 	su_wait.c su_root.c su_timer.c su_port.c su_port.h \
 	su_localinfo.c \
+	su_os_nw.c sofia-sip/su_os_nw.h \
 	su_taglist.c su_tag.c su_tag_io.c \
 	su_log.c su_global_log.c su_default_log.c su_module_debug.h \
 	su_md5.c su_uniqueid.c su_bm.c
@@ -70,7 +71,7 @@ libsu_la_SOURCES = \
 EXTRA_libsu_la_SOURCES = \
 			memmem.c strtoull.c strcasestr.c \
 			memspn.c memcspn.c memccpy.c \
-			inet_ntop.c inet_pton.c \
+			inet_ntop.c inet_pton.c getopt.c \
 			su_tag_ref.c
 
 libsu_la_LIBADD = 	$(REPLACE_LIBADD)
@@ -88,11 +89,9 @@ endif
 # Install and distribution rules
 
 EXTRA_DIST = 		Doxyfile su.docs \
-			run_addrinfo run_localinfo run_su_test
+			run_addrinfo run_localinfo run_test_su
 
-dist_sofialibexec_SCRIPTS = tag_dll.awk
-
-sofialibexecdir = $(libexecdir)/sofia
+dist_pkgdata_SCRIPTS = 	tag_dll.awk
 
 sofia-sip/su_configure.h: sofia-sip/su_configure.h.in
 

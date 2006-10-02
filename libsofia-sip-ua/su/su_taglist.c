@@ -112,6 +112,15 @@
  *
  */
 
+/**@class tag_class_s sofia-sip/su_tag_class.h <sofia-sip/su_tag_class.h>
+ *
+ * @brief Virtual function table for @ref su_tag "tags".
+ *
+ * The struct tag_class_s contains virtual function table for tags,
+ * specifying non-default behaviour of different tags. It provides functions
+ * for copying, matching, printing and converting the tagged values.
+ */
+
 #ifdef longlong
 typedef longlong unsigned llu;
 #else
@@ -122,13 +131,15 @@ typedef long unsigned llu;
 int t_snprintf(tagi_t const *t, char b[], size_t size)
 {
   tag_type_t tt = TAG_TYPE_OF(t);
-  size_t n, m;
+  int n, m;
   
   n = snprintf(b, size, "%s::%s: ", 
                tt->tt_ns ? tt->tt_ns : "",
 	       tt->tt_name ? tt->tt_name : "null");
+  if (n < 0)
+    return n;
 
-  if (n > (unsigned)size)
+  if ((size_t)n > size)
     size = n;
 
   if (tt->tt_snprintf)
@@ -136,9 +147,10 @@ int t_snprintf(tagi_t const *t, char b[], size_t size)
   else
     m = snprintf(b + n, size - n, "%llx", (llu)t->t_value);
 
-  assert(m != (size_t)-1);
+  if (m < 0)
+    return m;
 
-  if (m == 0 && n < size)
+  if (m == 0 && (size_t)n < size)
     b[--n] = '\0';
 
   return n + m;
@@ -183,7 +195,7 @@ size_t tl_tmove(tagi_t *dst, size_t size,
   tagi->t_tag = t_tag, tagi->t_value = t_value;
 
   for (;;) {
-    assert((char *)&dst[n] - (char *)dst < size);
+    assert((size_t)((char *)&dst[n] - (char *)dst) < size);
     if (n < N)
       dst[n] = *tagi;
     n++;
@@ -221,7 +233,7 @@ tagi_t *tl_move(tagi_t *dst, tagi_t const src[])
   return dst;
 }
 
-/** Calculate effective length of a tag list. */
+/** Calculate effective length of a tag list as bytes. */
 size_t tl_len(tagi_t const lst[])
 {
   size_t len = 0;
@@ -246,23 +258,26 @@ size_t tl_xtra(tagi_t const lst[], size_t offset)
 }
 
 /** Duplicate a tag list.
- * 
- * The function tl_dup() deep copies the tag list @a src to the buffer @a
- * dst.  Memory areas associated with @a src are copied to buffer at @a **bb.
+ *
+ * Deep copy the tag list @a src to the buffer @a dst. Memory areas
+ * associated with @a src are copied to buffer at @a **bb.
+ *
+ * This is a rather low-level function. See tl_adup() for a more convenient
+ * functionality.
  *
  * The size of the @a dst buffer must be at least @c tl_len(src) bytes.  The
  * size of buffer @a **bb must be at least @c tl_dup_xtra(src) bytes. 
  * 
- * @param dst pointer to the destination buffer
- * @param src tag list to be duplicated
- * @param bb  pointer to pointer to buffer
+ * @param[out] dst pointer to the destination buffer
+ * @param[in] src tag list to be duplicated
+ * @param[in,out] bb  pointer to pointer to buffer
  *
  * @return
- * The function tl_dup() returns a pointer to the @a dst list after last
+ * A pointer to the @a dst list after last
  * duplicated taglist element.  
  *
- * The function tl_dup updates the pointer at @a *bb to the byte after 
- * last duplicated memory area.
+ * The pointer at @a *bb is updated to the byte after last duplicated memory
+ * area.
  */
 tagi_t *tl_dup(tagi_t dst[], tagi_t const src[], void **bb)
 {
@@ -274,7 +289,19 @@ tagi_t *tl_dup(tagi_t dst[], tagi_t const src[], void **bb)
 }
 	       
 
-/** Allocate and duplicate a tag list. */
+/** Free a tag list.
+ *
+ * The function tl_free() frees resources associated with a tag list.
+ * In other words, it calls t_free on each tag item on the list. 
+ *
+ */
+void tl_free(tagi_t list[])
+{
+  while (list)
+    list = t_free(list);
+}
+
+/** Allocate and duplicate a tag list using memory home. */
 tagi_t *tl_adup(su_home_t *home, tagi_t const lst[])
 {
   size_t len = tl_len(lst);
@@ -294,7 +321,7 @@ tagi_t *tl_adup(su_home_t *home, tagi_t const lst[])
   return newlst;
 }
 
-
+/** Allocate and duplicate tagged arguments as a tag list using memory home. */
 tagi_t *tl_tlist(su_home_t *home, tag_type_t tag, tag_value_t value, ...)
 {
   tagi_t *tl;
@@ -307,14 +334,21 @@ tagi_t *tl_tlist(su_home_t *home, tag_type_t tag, tag_value_t value, ...)
   return tl;
 }
 
-
-/** Find a tag from given list. */
-tagi_t const *tl_find(tagi_t const lst[], tag_type_t tt)
+/** Find first tag item with type @a tt from list. */
+tagi_t *tl_find(tagi_t const lst[], tag_type_t tt)
 {
-  if (tt)
-    return t_find(tt, lst);
+  return (tagi_t *)t_find(tt, lst);
+}
 
-  return NULL;
+/** Find last tag item with type @a tt from list. */
+tagi_t *tl_find_last(tagi_t const lst[], tag_type_t tt)
+{
+  tagi_t const *last, *next;
+  
+  for (next = last = t_find(tt, lst); next; next = t_find(tt, last))
+    last = next;
+
+  return (tagi_t *)last;
 }
 
 static inline
@@ -369,7 +403,7 @@ int tl_gets(tagi_t const lst[], tag_type_t tag, tag_value_t value, ...)
       n += tl_get(tt, (void *)t->t_value, lst);
     }
 #if !defined(NDEBUG)
-    else if (tt->tt_class->tc_ref_set) {
+    else if (tt->tt_class && tt->tt_class->tc_ref_set) {
       fprintf(stderr, "WARNING: tag %s::%s directly used by tl_gets()\n",
 	      tt->tt_ns, tt->tt_name);
       assert(tt->tt_class == ref_tag_class);
@@ -384,7 +418,7 @@ int tl_gets(tagi_t const lst[], tag_type_t tag, tag_value_t value, ...)
 
 /** Find tags from given list. 
  *
- * The function tl_tgets() copies values of argument tag list into the tag
+ * Copies values of argument tag list into the reference tags in the tag
  * list @a lst.
  *
  * @sa tl_gets()
@@ -457,10 +491,22 @@ tagi_t *t_filter(tagi_t *dst,
   return dst;
 }
 
+/** Make filtered copy of a tag list @a src with @a filter to @a dst.
+ *
+ * Each tag in @a src is checked against tags in list @a filter. If the tag
+ * is in the @a filter list, or there is a special filter tag in the list
+ * which matches with the tag in @a src, the tag is duplicated to @a dst using 
+ * memory buffer in @a b.
+ *
+ * When @a dst is NULL, this function calculates the size of the filtered list.
+ *
+ * @sa tl_afilter(), tl_tfilter(), tl_filtered_tlist(),
+ * TAG_FILTER(), TAG_ANY(), #ns_tag_class
+ */
 tagi_t *tl_filter(tagi_t dst[], 
-		 tagi_t const filter[], 
-		 tagi_t const src[], 
-		 void **b)
+		  tagi_t const filter[], 
+		  tagi_t const src[], 
+		  void **b)
 {
   tagi_t const *s;
   tagi_t *d;
@@ -490,6 +536,9 @@ tagi_t *tl_filter(tagi_t dst[],
  * The function tl_afilter() will build a tag list containing tags specified
  * in @a filter and extracted from @a src.  It will allocate the memory used by
  * tag list via the specified memory @a home, which may be also @c NULL.
+ *
+ * @sa tl_afilter(), tl_tfilter(), tl_filtered_tlist(), 
+ * TAG_FILTER(), TAG_ANY(), #ns_tag_class
  */
 tagi_t *tl_afilter(su_home_t *home, tagi_t const filter[], tagi_t const src[])
 {
@@ -519,6 +568,10 @@ tagi_t *tl_afilter(su_home_t *home, tagi_t const filter[], tagi_t const src[])
   return dst;
 }
 
+/** Filter tag list @a src with given tags.
+ * 
+ * @sa tl_afilter(), tl_filtered_tlist(), TAG_FILTER(), TAG_ANY(), #ns_tag_class
+ */
 tagi_t *tl_tfilter(su_home_t *home, tagi_t const src[], 
 		   tag_type_t tag, tag_value_t value, ...)
 {
@@ -531,6 +584,8 @@ tagi_t *tl_tfilter(su_home_t *home, tagi_t const src[],
 }
 
 /** Create a filtered tag list.
+ *
+ * @sa tl_afilter(), tl_tfilter(), TAG_FILTER(), TAG_ANY(), #ns_tag_class
  */
 tagi_t *tl_filtered_tlist(su_home_t *home, tagi_t const filter[], 
 			  tag_type_t tag, tag_value_t value, ...)
@@ -609,7 +664,7 @@ tagi_t *tl_vlist2(tag_type_t tag, tag_value_t value, va_list ap)
 {
   tagi_t *t, *rv;
   tagi_t tagi[1];
-  int size;
+  size_t size;
 
   tagi->t_tag = tag, tagi->t_value = value;
 
@@ -689,7 +744,7 @@ tagi_t *tl_vllist(tag_type_t tag, tag_value_t value, va_list ap)
   tagi_t const *next;
   tagi_t tagi[2];
 
-  int size;
+  size_t size;
 
   va_copy(aq, ap);
   size = tl_vllen(tag, value, aq);
@@ -723,7 +778,10 @@ tagi_t *tl_vllist(tag_type_t tag, tag_value_t value, va_list ap)
 
   return rv;
 }
-/** Make a linear tag list until TAG_END() */
+
+/** Make a linear tag list until TAG_END().
+ *
+ */
 tagi_t *tl_llist(tag_type_t tag, tag_value_t value, ...)
 {
   va_list ap;  
@@ -752,9 +810,10 @@ int t_scan(tag_type_t tt, su_home_t *home, char const *s,
 
   if (tt->tt_class->tc_scan) {
     return tt->tt_class->tc_scan(tt, home, s, return_value);
-  } else {
+  }
+  else {			/* Not implemented */
     *return_value = (tag_value_t)0;
-    return 0;
+    return -2;
   }
 }
 
@@ -955,6 +1014,53 @@ tag_class_t next_tag_class[1] =
 tag_typedef_t tag_next = TAG_TYPEDEF(tag_next, next);
 
 /* ====================================================================== */
+/* filter tag  - use function to filter tag */
+
+tagi_t *t_filter_with(tagi_t *dst,
+		      tagi_t const *t, 
+		      tagi_t const *src, 
+		      void **bb)
+{
+  tag_filter_f *function;
+
+  if (!src || !t)
+    return dst;
+
+  function = (tag_filter_f *)t->t_value;
+
+  if (!function || !function(t, src))
+    return dst;
+
+  if (dst) {
+    return t_dup(dst, src, bb); 
+  }
+  else {
+    dst = (tagi_t *)((char *)dst + t_len(src));
+    *bb = (char *)*bb + t_xtra(src, (size_t)*bb);
+    return dst;
+  }
+}
+		   
+tag_class_t filter_tag_class[1] = 
+  {{
+    sizeof(filter_tag_class),
+    /* tc_next */     NULL,
+    /* tc_len */      NULL,
+    /* tc_move */     NULL,
+    /* tc_xtra */     NULL,
+    /* tc_dup */      NULL,
+    /* tc_free */     NULL,
+    /* tc_find */     NULL,
+    /* tc_snprintf */ NULL,
+    /* tc_filter */   t_filter_with,
+    /* tc_ref_set */  NULL,
+    /* tc_scan */     NULL,
+  }};
+
+/** Filter tag - apply function in order to filter tag. */
+tag_typedef_t tag_filter = TAG_TYPEDEF(tag_filter, filter);
+
+/* ====================================================================== */
 /* any tag - match to any tag when filtering */
 
 tagi_t *t_any_filter(tagi_t *dst,
@@ -990,6 +1096,7 @@ tag_class_t any_tag_class[1] =
     /* tc_scan */     NULL,
   }};
 
+/** Any tag - match any tag when filtering. */
 tag_typedef_t tag_any = TAG_TYPEDEF(tag_any, any);
 
 /* ====================================================================== */
@@ -1031,10 +1138,11 @@ tagi_t *t_ns_filter(tagi_t *dst,
     return dst;
   }
 }
-		   
+
+/** Namespace filtering class */		   
 tag_class_t ns_tag_class[1] = 
   {{
-    sizeof(any_tag_class),
+    sizeof(ns_tag_class),
     /* tc_next */     NULL,
     /* tc_len */      NULL,
     /* tc_move */     NULL,
@@ -1256,6 +1364,40 @@ tag_class_t ptr_tag_class[1] =
   }};
 
 /* ====================================================================== */
+/* socket tag - pass socket */
+
+#include <sofia-sip/su.h>
+
+int t_socket_snprintf(tagi_t const *t, char b[], size_t size)
+{
+  /* socket can be int or DWORD (or QWORD on win64?) */
+  return snprintf(b, size, LLI, (longlong)t->t_value);
+}
+
+int t_socket_ref_set(tag_type_t tt, void *ref, tagi_t const value[])
+{
+  *(su_socket_t *)ref = (su_socket_t)value->t_value;
+
+  return 1;
+}
+
+tag_class_t socket_tag_class[1] = 
+  {{
+    sizeof(socket_tag_class),
+    /* tc_next */     NULL,
+    /* tc_len */      NULL,
+    /* tc_move */     NULL,
+    /* tc_xtra */     NULL,
+    /* tc_dup */      NULL,
+    /* tc_free */     NULL,
+    /* tc_find */     NULL,
+    /* tc_snprintf */ t_socket_snprintf,
+    /* tc_filter */   NULL,
+    /* tc_ref_set */  t_socket_ref_set,
+    /* tc_scan */     NULL,
+  }};
+
+/* ====================================================================== */
 /* str tag - pass string value */
 
 int t_str_snprintf(tagi_t const *t, char b[], size_t size)
@@ -1287,7 +1429,7 @@ tagi_t *t_str_dup(tagi_t *dst, tagi_t const *src, void **bb)
   dst->t_tag = src->t_tag;
   if (src->t_value) {
     char const *s = (char const *)src->t_value;
-    int len = strlen(s) + 1;
+    size_t len = strlen(s) + 1;
     dst->t_value = (tag_value_t)strcpy(*bb, s); 
     *bb = (char *)*bb + len;
   }

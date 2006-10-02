@@ -64,11 +64,21 @@ SOFIA_BEGIN_DECLS
 #define SU_LEAST32_T int_least32_t
 #define SU_LEAST16_T int_least16_t
 #define SU_LEAST8_T int_least8_t
-#elif SU_HAVE_WIN32 || DOCUMENTATION_ONLY
+#endif
+
+#if DOXYGEN_ONLY || (!SU_HAVE_STDINT && !SU_HAVE_INTTYPES && SU_HAVE_WIN32)
+
 /* Use macros defined in <su_configure_win32.h> */
 
-/** Integer large enough for pointers */
+#ifndef _INTPTR_T_DEFINED
+/** Integer type large enough to store pointers */
 typedef SU_INTPTR_T intptr_t;
+#endif
+#ifndef _UINTPTR_T_DEFINED
+/** Unsigned integer type large enough to store pointers */
+typedef unsigned SU_INTPTR_T uintptr_t;
+#endif
+
 /** 64-bit unsigned integer */ 
 typedef SU_U64_T uint64_t;
 /** 64-bit signed integer */   
@@ -94,8 +104,61 @@ typedef SU_LEAST32_T int_least32_t;
 typedef SU_LEAST16_T int_least16_t;
 /** At least 8-bit integer */
 typedef SU_LEAST8_T int_least8_t;
-#else
+#endif
+
+#if !SU_HAVE_STDINT && !SU_HAVE_INTTYPES && !SU_HAVE_WIN32
 #error "no integer types available."
+#endif
+
+/* ---------------------------------------------------------------------- */
+/* size_t types for binary compatibility */
+
+#ifdef SOFIA_SSIZE_T
+/** POSIX type used for a count of bytes or an error indication. */
+typedef SOFIA_SSIZE_T ssize_t;
+#endif
+
+#ifdef SOFIA_ISIZE_T
+/** Compatibility type. 
+ *
+ * sofia-sip <= 1.12.1 often used int for count of bytes. 
+ * When configured for compatibility with sofia-sip 1.12.0, this is defined
+ * as int, otherwise as size_t. Note that int is signed and size_t is
+ * unsigned.
+ *
+ * @since New in @VERSION_1_12_2.
+ */
+typedef SOFIA_ISIZE_T isize_t;
+#else
+typedef size_t isize_t;
+#endif
+
+#ifdef SOFIA_ISSIZE_T
+/**Compatibility type. 
+ *
+ * sofia-sip <= 1.12.1 used int for count of bytes. 
+ * When configured for compatibility with sofia-sip 1.12.0, this is defined
+ * as int, otherwise as ssize_t. (-1 is used for error indication).
+ *
+ * @since New in @VERSION_1_12_2.
+ */
+typedef SOFIA_ISSIZE_T issize_t;
+#else
+typedef ssize_t issize_t;
+#endif
+
+#ifdef SOFIA_USIZE_T
+/**Compatibility type. 
+ *
+ * sofia-sip <= 1.12.1 sometimes used unsigned int for count of bytes. 
+ * When configured for compatibility with sofia-sip 1.12.0, this is defined
+ * as unsigned int, otherwise as size_t.
+ *
+ * @since New in @VERSION_1_12_2.
+ */
+typedef SOFIA_USIZE_T usize_t;
+#else
+typedef size_t usize_t;
 #endif
 
 SOFIA_END_DECLS

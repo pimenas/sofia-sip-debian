@@ -60,8 +60,8 @@ struct su_vector_s
 {
   su_home_t         v_home[1];
   su_home_t        *v_parent;
-  unsigned          v_size;
-  unsigned          v_len;
+  size_t            v_size;
+  size_t            v_len;
   su_free_func_t    v_free_func;
   void              **v_list;
 };
@@ -94,7 +94,7 @@ su_vector_t *su_vector_create(su_home_t *home, su_free_func_t free_func)
  */
 void su_vector_destroy(su_vector_t *vector)
 {
-  int i;
+  size_t i;
 
   if (vector) {
     if (vector->v_free_func != NULL) {
@@ -108,22 +108,21 @@ void su_vector_destroy(su_vector_t *vector)
 }
 
 /** Increase the list size for next item, if necessary. */
-static int su_vector_make_place(su_vector_t *vector, unsigned index)
+static int su_vector_make_place(su_vector_t *vector, usize_t index)
 {
   if (vector->v_size <= vector->v_len + 1) {
-    unsigned n = 2 * vector->v_size;
+    size_t newsize = 2 * vector->v_size * sizeof(vector->v_list[0]);
     void **list;
 
-    if (n < vector->v_size || n * sizeof(vector->v_list[0]) < n)
+    if (newsize < vector->v_size * sizeof(vector->v_list[0])) /* overflow */
       return -1;
 
     if (vector->v_list != (void **)(vector + 1) && index == vector->v_len) {
-      if (!(list = su_realloc(vector->v_home, vector->v_list,
-			      n * sizeof(vector->v_list[0]))))
+      if (!(list = su_realloc(vector->v_home, vector->v_list, newsize)))
 	return 0;
     }
     else {
-      if (!(list = su_alloc(vector->v_home, n * sizeof(vector->v_list[0]))))
+      if (!(list = su_alloc(vector->v_home, newsize)))
 	return 0;
 
       memcpy(list, vector->v_list, index * sizeof(vector->v_list[0]));
@@ -136,7 +135,7 @@ static int su_vector_make_place(su_vector_t *vector, unsigned index)
     }
     
     vector->v_list = list;
-    vector->v_size = n;
+    vector->v_size *= 2;
   }
   else {
     memmove(vector->v_list + index + 1, vector->v_list + index, 
@@ -156,14 +155,15 @@ static int su_vector_make_place(su_vector_t *vector, unsigned index)
  * @param vector pointer to a vector object
  * @param item   item to be appended
  * @param index  index for the new item
- * @return
- * Pointer to string, if successful, or NULL upon an error.
+ *
+ * @retval 0 when successful
+ * @retval -1 upon an error
  */
-int su_vector_insert(su_vector_t *vector, unsigned index, void *item)
+int su_vector_insert(su_vector_t *vector, usize_t index, void *item)
 {
   if (vector && 
       index <= vector->v_len &&
-      su_vector_make_place(vector, index)) {
+      su_vector_make_place(vector, index) > 0) {
     vector->v_list[index] = item;
     return 0;
   }
@@ -177,10 +177,11 @@ int su_vector_insert(su_vector_t *vector, unsigned index, void *item)
  *
  * @param vector pointer to a vector object
  * @param index  index for the removed item
- * @return
- * Pointer to string, if successful, or NULL upon an error.
+ *
+ * @retval 0 when successful
+ * @retval -1 upon an error
  */
-int su_vector_remove(su_vector_t *vector, unsigned index)
+int su_vector_remove(su_vector_t *vector, usize_t index)
 {
   if (vector && index < vector->v_len) {
     if (vector->v_free_func)
@@ -201,10 +202,13 @@ int su_vector_remove(su_vector_t *vector, unsigned index)
  * The function su_vector_empty() removes all items from the @a vector.
  *
  * @param vector pointer to a vector object
+ *
+ * @retval 0 if successful
+ * @retval -1 upon an error
  */
 int su_vector_empty(su_vector_t *vector)
 {
-  int i;
+  size_t i;
 
   if (vector) {
     if (vector->v_free_func != NULL) {
@@ -232,7 +236,7 @@ int su_vector_empty(su_vector_t *vector)
  */
 int su_vector_append(su_vector_t *vector, void *item)
 {
-  unsigned index = vector->v_len;
+  size_t index = vector->v_len;
 
   if (vector && su_vector_make_place(vector, index)) {
     vector->v_list[index] = item;
@@ -252,7 +256,7 @@ int su_vector_append(su_vector_t *vector, void *item)
  * @return
  * Pointer, if item exists, or NULL upon an error.
  */
-void *su_vector_item(su_vector_t const *vector, unsigned i)
+void *su_vector_item(su_vector_t const *vector, usize_t i)
 {
   if (vector && i < vector->v_len)
     return vector->v_list[i];
@@ -265,7 +269,7 @@ void *su_vector_item(su_vector_t const *vector, unsigned i)
  * The function su_vector_len() returns the number of items in the 
  * vector.
  */
-unsigned su_vector_len(su_vector_t const *l)
+usize_t su_vector_len(su_vector_t const *l)
 {
   return l ? l->v_len : 0;
 }
@@ -289,8 +293,10 @@ int su_vector_is_empty(su_vector_t const *vector)
 void **su_vector_get_array(su_vector_t *vector)
 {
   if (vector) {
-    void **retval = 
-      su_alloc(vector->v_home, sizeof(retval[0]) * (vector->v_len + 1));
+    void **retval;
+    size_t newsize = sizeof(retval[0]) * (vector->v_len + 1);
+
+    retval = su_alloc(vector->v_home, newsize);
     
     if (retval) {
       retval[vector->v_len] = NULL;

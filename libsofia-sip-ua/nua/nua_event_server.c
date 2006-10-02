@@ -253,7 +253,7 @@ void nua_stack_authorize(nua_t *nua,
 			 tagi_t const *tags)
 {
   nea_sub_t *sub = NULL;
-  nea_state_t state = nea_extended;
+  int state = nea_extended;
 
   tl_gets(tags,
 	  NEATAG_SUB_REF(sub),

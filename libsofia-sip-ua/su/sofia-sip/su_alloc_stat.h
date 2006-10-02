@@ -49,7 +49,7 @@ typedef struct su_home_stat_t su_home_stat_t;
 
 SU_DLL void su_home_init_stats(su_home_t *h);
 SU_DLL void su_home_get_stats(su_home_t *, int include_clones, 
-			      su_home_stat_t *stats, int statssize);
+			      su_home_stat_t *stats, isize_t statssize);
 
 SU_DLL void su_home_stat_add(su_home_stat_t *total, 
 			     su_home_stat_t const *hs);
@@ -57,9 +57,9 @@ SU_DLL void su_home_stat_add(su_home_stat_t *total,
 struct su_home_stat_t
 {
   int      hs_size;
-  unsigned hs_clones;		/**< Number of clones */
-  unsigned hs_rehash;		/**< Number of (re)allocations of hash table. */
-  unsigned hs_blocksize;	/**< Current size of hash table */
+  usize_t hs_clones;		/**< Number of clones */
+  usize_t hs_rehash;		/**< Number of (re)allocations of hash table. */
+  usize_t hs_blocksize; 	/**< Current size of hash table */
 
   struct {
     unsigned hsp_size;		/**< Size of preload area */

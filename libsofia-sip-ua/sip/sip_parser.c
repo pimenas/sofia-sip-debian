@@ -49,6 +49,10 @@
 #include <assert.h>
 #include <limits.h>
 
+#ifndef UINT32_MAX
+#define UINT32_MAX (0xffffffffU)
+#endif
+
 /** Version of the SIP module */
 char const sip_parser_version[] = VERSION;
 
@@ -75,10 +79,10 @@ msg_mclass_t *sip_default_mclass(void)
  * @retval 0  cannot proceed
  * @retval m 
  */
-int sip_extract_body(msg_t *msg, sip_t *sip, char b[], int bsiz, int eos)
+issize_t sip_extract_body(msg_t *msg, sip_t *sip, char b[], isize_t bsiz, int eos)
 {
-  int m = 0;
-  unsigned body_len;
+  ssize_t m = 0;
+  size_t body_len;
   
   if (!(sip->sip_flags & MSG_FLG_BODY)) {
     /* We are looking at a potential empty line */
@@ -127,7 +131,7 @@ int sip_extract_body(msg_t *msg, sip_t *sip, char b[], int bsiz, int eos)
 
 /** Parse SIP version.
  *
- * The function sip_version_d() parses a SIP version string. It updates the 
+ * Parse a SIP version string. Update the 
  * pointer at @a ss to first non-LWS character after the version string.
  *
  * @param ss   string to be parsed [IN/OUT]
@@ -140,7 +144,7 @@ int sip_version_d(char **ss, char const **ver)
 {
   char *s = *ss;
   char const *result;
-  int const version_size = sizeof(sip_version_2_0) - 1;
+  size_t const version_size = sizeof(sip_version_2_0) - 1;
 
   if (strncasecmp(s, sip_version_2_0, version_size) == 0 && 
       !IS_TOKEN(s[version_size])) {
@@ -149,7 +153,7 @@ int sip_version_d(char **ss, char const **ver)
   }
   else {
     /* Version consists of two tokens, separated by / */
-    int l1 = 0, l2 = 0, n;
+    size_t l1 = 0, l2 = 0, n;
 
     result = s;
 
@@ -189,7 +193,7 @@ int sip_version_d(char **ss, char const **ver)
 }
 
 /** Calculate extra space required by version string */
-int sip_version_xtra(char const *version)
+isize_t sip_version_xtra(char const *version)
 {
   if (version == SIP_VERSION_CURRENT)
     return 0;
@@ -245,7 +249,7 @@ char const * const sip_method_names[] = {
 char const *sip_method_name(sip_method_t method, char const *name)
 {
   const size_t N = sizeof(sip_method_names)/sizeof(sip_method_names[0]);
-  if (method > 0 && method <= N)
+  if (method > 0 && (size_t)method <= N)
     return sip_method_names[method];
   else if (method == 0)
     return name;
@@ -255,31 +259,31 @@ char const *sip_method_name(sip_method_t method, char const *name)
 
 /**Parse a SIP method name.
  *
- * The function sip_method_d() parses a SIP method, and returns a code
- * corresponding to the method.  It stores the address of the first non-LWS
- * character after method name in @a *ss.
+ * Parse a SIP method name and return a code corresponding to the method. 
+ * The address of the first non-LWS character after method name is stored in
+ * @a *ss.
  *
  * @param ss    pointer to pointer to string to be parsed
  * @param return_name  value-result parameter for method name
  *
  * @note
- * If there is no whitespace after method name, the value in @a *nname
+ * If there is no whitespace after method name, the value in @a *return_name
  * may not be NUL-terminated.  The calling function @b must NUL terminate
  * the value by setting the @a **ss to NUL after first examining its value.
  *
- * @return The function  sip_method_d returns the method code if method
+ * @return The method code if method
  * was identified, 0 (sip_method_unknown()) if method is not known, or @c -1
  * (sip_method_invalid()) if an error occurred.
  *
- * If the value-result argument @a nname is not @c NULL, sip_method_d()
- * stores a pointer to the method name to it.
+ * If the value-result argument @a return_name is not @c NULL,
+ * a pointer to the method name is stored to it.
  */
 sip_method_t sip_method_d(char **ss, char const **return_name)
 {
   char *s = *ss, c = *s;
   char const *name;
   int code = sip_method_unknown;
-  int n = 0;
+  size_t n = 0;
 
 #define MATCH(s, m) (strncmp(s, m, n = sizeof(m) - 1) == 0)
 
@@ -362,11 +366,11 @@ char const sip_transport_sctp[] = "SIP/2.0/SCTP";
 char const sip_transport_tls[] = "SIP/2.0/TLS";
 
 /** Decode transport */
-int sip_transport_d(char **ss, char const **ttransport)
+issize_t sip_transport_d(char **ss, char const **ttransport)
 {
   char const *transport;
   char *pn, *pv, *pt;
-  int  pn_len, pv_len, pt_len;
+  size_t pn_len, pv_len, pt_len;
   char *s = *ss;
 
 #define TRANSPORT_MATCH(t)					     \
@@ -431,7 +435,7 @@ int sip_transport_d(char **ss, char const **ttransport)
 }
 
 /** Calculate extra space required by sip_transport_dup() */
-int sip_transport_xtra(char const *transport)
+isize_t sip_transport_xtra(char const *transport)
 {
   if (transport == sip_transport_udp ||
       transport == sip_transport_tcp ||
@@ -469,7 +473,7 @@ void sip_transport_dup(char **pp, char const **dd, char const *s)
     MSG_STRING_DUP(*pp, *dd, s);
 }
 
-/** Parse SIP <word "@" word> construct. */
+/** Parse SIP <word "@" word> construct used in @CallID. */
 char *sip_word_at_word_d(char **ss)
 {
   char *rv = *ss, *s0 = *ss;
@@ -494,8 +498,8 @@ char *sip_word_at_word_d(char **ss)
 /**Add message separator, then test if message is complete. 
  *
  * Add sip_content_length and sip_separator if they are missing. 
- * The test that all necessary message components (@b From, @b To, @b
- * CSeq, @b Call-ID, @b Content-Length and message separator are present.
+ * The test that all necessary message components ( @From, @To,
+ * @CSeq, @CallID, @ContentLength and message separator are present.
  *
  * @retval 0 when successful
  * @retval -1 upon an error: headers are missing and they could not be added
@@ -504,7 +508,8 @@ int sip_complete_message(msg_t *msg)
 {
   sip_t *sip = sip_object(msg);
   su_home_t *home = msg_home(msg);
-  unsigned len = 0;
+  size_t len = 0;
+  ssize_t mplen;
 
   if (sip == NULL)
     return -1;
@@ -528,21 +533,25 @@ int sip_complete_message(msg_t *msg)
     if (!head || !msg_multipart_serialize(&head->h_succ, mp))
       return -1;
 
-    len = (unsigned)msg_multipart_prepare(msg, mp, sip->sip_flags);
-    if (len == (unsigned)-1)
+    mplen = msg_multipart_prepare(msg, mp, sip->sip_flags);
+    if (mplen == -1)
       return -1;
+    len = (size_t)mplen;
   } 
 
   if (sip->sip_payload)
     len += sip->sip_payload->pl_len;
 
+  if (len > UINT32_MAX)
+    return -1;
+
   if (!sip->sip_content_length) {
     msg_header_insert(msg, (msg_pub_t *)sip, (msg_header_t*)
-		      sip_content_length_create(home, len));
+		      sip_content_length_create(home, (uint32_t)len));
   }
   else {
     if (sip->sip_content_length->l_length != len) {
-      sip->sip_content_length->l_length = len;
+      sip->sip_content_length->l_length = (uint32_t)len;
       sip_fragment_clear(sip->sip_content_length->l_common);
     }
   }

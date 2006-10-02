@@ -35,8 +35,8 @@
  *
  */
 
-#ifndef SU_CONFIG_H
-#include <sofia-sip/su_config.h>
+#ifndef SU_TYPES_H
+#include <sofia-sip/su_types.h>
 #endif
 
 SOFIA_BEGIN_DECLS
@@ -74,9 +74,9 @@ typedef unsigned long msg_time_t;
 
 /**Public protocol-specific message structure for accessing the message. 
  * 
- * This type can be either #sip_t, #rtsp_t or #http_t, depending on the
- * message. The base structure used by msg module is defined in struct
- * #msg_pub_s.
+ * This type can be either #sip_t, #http_t, or #msg_multipart_t, depending
+ * on the message. The base structure used by msg module is defined in
+ * struct #msg_pub_s.
  */
 typedef MSG_PUB_T msg_pub_t;
 
@@ -105,14 +105,14 @@ typedef struct msg_auth_s     	    msg_auth_t;
 
 /** Common part of the header objects (or message fragments). 
  *
- * This structure is also known as #sip_common_t or #rtsp_common_t.
+ * This structure is also known as #msg_common_t or #sip_common_t.
  */
 struct msg_common_s {
   msg_header_t       *h_succ;	/**< Pointer to succeeding fragment. */
   msg_header_t      **h_prev;	/**< Pointer to preceeding fragment. */
   msg_hclass_t       *h_class;	/**< Header class. */
   void const         *h_data;	/**< Fragment data */
-  unsigned            h_len;    /**< Fragment length (including CRLF) */
+  usize_t             h_len;    /**< Fragment length (including CRLF) */
 };
 
 
@@ -202,7 +202,7 @@ struct msg_payload_s {
   msg_common_t    pl_common[1];	    /**< Common fragment info */
   msg_payload_t  *pl_next;	    /**< Next payload chunk */
   char           *pl_data;	    /**< Data - may contain NUL */
-  unsigned        pl_len;	    /**< Length of message payload */
+  usize_t         pl_len;	    /**< Length of message payload */
 };
 
 /** Any header. */
@@ -230,24 +230,6 @@ union msg_header_u {
 };
 
 /* ====================================================================== */
-/* Types used when handling streaming */
-
-typedef struct msg_buffer_s msg_buffer_t;
-
-/** Buffer for message body. */
-struct msg_buffer_s {
-  char           *b_data;	    /**< Data - may contain NUL */
-  unsigned        b_size;	    /**< Length of message payload */
-  unsigned        b_used;	    /**< Used data */
-  unsigned        b_avail;	    /**< Available data */
-  unsigned        b_complete;	    /**< This buffer completes the message */
-  msg_buffer_t   *b_next;	    /**< Next buffer */
-  msg_payload_t  *b_chunks;	    /**< List of body chunks */
-};
-
-#define MSG_SSIZE_MAX (UINT_MAX)
-
-/* ====================================================================== */
 
 /**Define how to handle existing headers 
  * when a new header is added to a message. 
@@ -263,14 +245,14 @@ typedef enum {
 
 struct su_home_s;
 
-typedef int msg_parse_f(struct su_home_s *, msg_header_t *, char *, int);
-typedef int msg_print_f(char buf[], int bufsiz, 
-			msg_header_t const *, int flags);
+typedef issize_t msg_parse_f(struct su_home_s *, msg_header_t *, char *, isize_t);
+typedef issize_t msg_print_f(char buf[], isize_t bufsiz, 
+			     msg_header_t const *, int flags);
 typedef char *msg_dup_f(msg_header_t *dst, msg_header_t const *src, 
-			char *buf, int bufsiz);
-typedef int msg_xtra_f(msg_header_t const *h, int offset);
+			char *buf, isize_t bufsiz);
+typedef isize_t msg_xtra_f(msg_header_t const *h, isize_t offset);
 
-typedef int msg_update_f(msg_common_t *, char const *name, int namelen,
+typedef int msg_update_f(msg_common_t *, char const *name, isize_t namelen,
 			 char const *value);
 
 /** Factory object for a header. 
@@ -282,6 +264,7 @@ typedef int msg_update_f(msg_common_t *, char const *name, int namelen,
  */
 struct msg_hclass_s
 {
+  /* XXX size of header class missing. Someone has saved bits in wrong place. */
   int               hc_hash;	/**< Header name hash or ID */
   msg_parse_f      *hc_parse;	/**< Parse header. */
   msg_print_f      *hc_print;	/**< Print header. */
@@ -292,23 +275,14 @@ struct msg_hclass_s
   short             hc_len;	/**< Length of hc_name. */
   char              hc_short[2];/**< Short name, if any. */
   unsigned char     hc_size;	/**< Size of header structure. */
-  unsigned char     hc_params;	/**< Offset of parameters */
-  unsigned /* msg_header_kind_t */
-                    hc_kind:3;	/**< Kind of header:
+  unsigned char     hc_params;	/**< Offset of parameter list */
+  unsigned          hc_kind:3;	/**< Kind of header (#msg_header_kind_t):
 				 * single, append, list, apndlist, prepend. */
   unsigned          hc_critical:1; /**< True if header is critical */
   unsigned          /*pad*/:0;
 };
 
-/* ====================================================================== */
-/* Deprecated types */
-
-/** Reference to message object. @deprecated Use msg_t. */
-typedef struct msg_s msg_ref_t;
-/** Alternative name for msg_pub_t. @deprecated Use msg_pub_t. */
-typedef msg_pub_t msg_obj_t;	
-/** Alternative name for msg_header_t. @deprecated Use msg_header_t. */
-typedef MSG_HDR_T msg_hdr_t;
+#define HC_LEN_MAX SHRT_MAX
 
 SOFIA_END_DECLS
 

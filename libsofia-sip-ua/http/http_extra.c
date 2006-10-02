@@ -100,7 +100,7 @@ HTTP_HEADER_CLASS_LIST(proxy_connection, "Proxy-Connection", list);
 static inline
 void http_cookie_update(http_cookie_t *c)
 {
-  int i;
+  size_t i;
 
   c->c_name = NULL;
   c->c_version = NULL, c->c_domain = NULL, c->c_path = NULL;
@@ -131,10 +131,10 @@ void http_cookie_update(http_cookie_t *c)
 }
 
 /* Scan a cookie parameter */
-static int cookie_scanner(char *s)
+static issize_t cookie_scanner(char *s)
 {
   char *p = s;
-  unsigned tlen;
+  size_t tlen;
 
   skip_token(&s);
 
@@ -154,7 +154,7 @@ static int cookie_scanner(char *s)
 
     /* get value */
     if (*s == '"') {
-      int qlen = span_quoted(s);
+      size_t qlen = span_quoted(s);
       if (!qlen)
 	return -1;
       s += qlen;
@@ -178,7 +178,7 @@ static int cookie_scanner(char *s)
 }
 
 /** Decode (parse) a Cookie header */
-int http_cookie_d(su_home_t *home, msg_header_t *h, char *s, int slen)
+issize_t http_cookie_d(su_home_t *home, msg_header_t *h, char *s, isize_t slen)
 {
   http_cookie_t *c = (http_cookie_t *)h;
 
@@ -205,11 +205,11 @@ int http_cookie_d(su_home_t *home, msg_header_t *h, char *s, int slen)
 }
 
 /** Encode (print) a Cookie header */
-int http_cookie_e(char b[], int bsiz, msg_header_t const *h, int flags)
+issize_t http_cookie_e(char b[], isize_t bsiz, msg_header_t const *h, int flags)
 {
   char *b0 = b, *end = b + bsiz;
   http_cookie_t const *c = (http_cookie_t *)h;
-  int i;
+  size_t i;
 
   if (c->c_params) {
     for (i = 0; c->c_params[i]; i++) {
@@ -224,19 +224,18 @@ int http_cookie_e(char b[], int bsiz, msg_header_t const *h, int flags)
 }
 
 /** Calculate extra storage used by Cookie header field */
-int http_cookie_dup_xtra(msg_header_t const *h, int offset)
+isize_t http_cookie_dup_xtra(msg_header_t const *h, isize_t offset)
 {
-  int rv = offset;
   http_cookie_t const *c = (http_cookie_t *)h;
 
-  MSG_PARAMS_SIZE(rv, c->c_params);
+  MSG_PARAMS_SIZE(offset, c->c_params);
 
-  return rv;
+  return offset;
 }
 
 /** Duplicate a Cookie header field */
 char *http_cookie_dup_one(msg_header_t *dst, msg_header_t const *src,
-		      char *b, int xtra)
+			  char *b, isize_t xtra)
 {
   http_cookie_t *c = (http_cookie_t *)dst;
   http_cookie_t const *o = (http_cookie_t const *)src;
@@ -303,7 +302,7 @@ HTTP_HEADER_CLASS(cookie, "Cookie", c_params, append, cookie);
 static inline
 void http_set_cookie_update(http_set_cookie_t *sc)
 {
-  int i;
+  size_t i;
 
   sc->sc_name = NULL;
   sc->sc_version = NULL, sc->sc_domain = NULL, sc->sc_path = NULL;
@@ -343,7 +342,7 @@ void http_set_cookie_update(http_set_cookie_t *sc)
 #include <sofia-sip/msg_date.h>
 
 /* Scan a cookie parameter */
-static int set_cookie_scanner(char *s)
+static issize_t set_cookie_scanner(char *s)
 {
   char *rest;
 
@@ -374,7 +373,7 @@ static int set_cookie_scanner(char *s)
 }
 
 /** Decode (parse) Set-Cookie header */
-int http_set_cookie_d(su_home_t *home, msg_header_t *h, char *s, int slen)
+issize_t http_set_cookie_d(su_home_t *home, msg_header_t *h, char *s, isize_t slen)
 {
   msg_header_t **hh = &h->sh_succ, *h0 = h;
   http_set_cookie_t *sc = (http_set_cookie_t *)h;
@@ -422,11 +421,11 @@ int http_set_cookie_d(su_home_t *home, msg_header_t *h, char *s, int slen)
 }
 
 /** Encode (print) Set-Cookie header */
-int http_set_cookie_e(char b[], int bsiz, msg_header_t const *h, int flags)
+issize_t http_set_cookie_e(char b[], isize_t bsiz, msg_header_t const *h, int flags)
 {
   char *b0 = b, *end = b + bsiz;
   http_set_cookie_t const *sc = (http_set_cookie_t *)h;
-  int i;
+  size_t i;
 
   if (sc->sc_params) {
     for (i = 0; sc->sc_params[i]; i++) {
@@ -441,19 +440,18 @@ int http_set_cookie_e(char b[], int bsiz, msg_header_t const *h, int flags)
 }
 
 /** Calculate extra storage used by Set-Cookie header field */
-int http_set_cookie_dup_xtra(msg_header_t const *h, int offset)
+isize_t http_set_cookie_dup_xtra(msg_header_t const *h, isize_t offset)
 {
-  int rv = offset;
   http_set_cookie_t const *sc = (http_set_cookie_t *)h;
 
-  MSG_PARAMS_SIZE(rv, sc->sc_params);
+  MSG_PARAMS_SIZE(offset, sc->sc_params);
 
-  return rv;
+  return offset;
 }
 
 /** Duplicate a Set-Cookie header field */
 char *http_set_cookie_dup_one(msg_header_t *dst, msg_header_t const *src,
-		      char *b, int xtra)
+			      char *b, isize_t xtra)
 {
   http_set_cookie_t *sc = (http_set_cookie_t *)dst;
   http_set_cookie_t const *o = (http_set_cookie_t const *)src;

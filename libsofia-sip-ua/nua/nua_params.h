@@ -35,12 +35,29 @@
  * @date Created: Wed Mar  8 11:38:18 EET 2006  ppessi
  */
 
+/** NUA preferences.
+ *
+ * This structure contains values for various preferences and a separate
+ * bitmap (nhp_set) for each preference. Preferences are set using
+ * nua_set_params() or nua_set_hparams() or a handle-specific operation
+ * setting the preferences, including nua_invite(), nua_respond(),
+ * nua_ack(), nua_prack(), nua_update(), nua_info(), nua_bye(),
+ * nua_options(), nua_message(), nua_register(), nua_publish(), nua_refer(),
+ * nua_subscribe(), nua_notify(), nua_refer(), and nua_notifier().
+ *
+ * The stack uses preference value if corresponding bit in bitmap is set,
+ * otherwise it uses preference value from default handle.
+ *
+ * @see NHP_GET(), NH_PGET(), NHP_ISSET(), NH_PISSET()
+ */
 typedef struct nua_handle_preferences
 {
   unsigned         nhp_retry_count;	/**< times to retry a request */
   unsigned         nhp_max_subscriptions;
 
   /* Session-related preferences */
+  char const      *nhp_soa_name;
+  unsigned         nhp_media_enable:1;
   unsigned     	   nhp_invite_enable:1;
   unsigned     	   nhp_auto_alert:1;
   unsigned         nhp_early_media:1;/**< Establish early media session */
@@ -55,10 +72,6 @@ typedef struct nua_handle_preferences
    * INVITE client transaction times out
    */
   unsigned         nhp_invite_timeout;
-
-  /* REGISTER Keepalive intervals */
-  unsigned         nhp_keepalive, nhp_keepalive_stream;
-  
   /** Default session timer (in seconds, 0 disables) */
   unsigned         nhp_session_timer;
   /** Default Min-SE Delta value */
@@ -81,6 +94,8 @@ typedef struct nua_handle_preferences
   unsigned         nhp_service_route_enable:1;
   /** Enable Path */
   unsigned         nhp_path_enable:1;
+  /** Always include id with Event: refer */
+  unsigned         nhp_refer_with_id:1;
 
   unsigned:0;
 
@@ -90,73 +105,93 @@ typedef struct nua_handle_preferences
   /* Subscriber state, i.e. nua_substate_pending */
   unsigned         nhp_substate;
 
+  /* REGISTER Keepalive intervals */
+  unsigned         nhp_keepalive, nhp_keepalive_stream;
+  char const      *nhp_registrar;
+
   sip_allow_t        *nhp_allow;
   sip_supported_t    *nhp_supported;
-  sip_user_agent_t   *nhp_user_agent;
-  char const         *nhp_ua_name;
-  sip_organization_t *nhp_organization;
+  char const         *nhp_user_agent;
+  char const         *nhp_organization;
 
+  char const         *nhp_m_display;
+  char const         *nhp_m_username;
+  char const         *nhp_m_params;
+  char const         *nhp_m_features;
   char const         *nhp_instance;
+
   /**< Outbound OPTIONS */
   char const         *nhp_outbound; 
+  
+  /**< Network detection: NONE, INFORMAL, TRY_FULL */
+  int                 nhp_detect_network_updates;
 
   /* A bit for each feature set by application */
-  union {
-    uint32_t set_any;
-    struct {
-      unsigned nhb_retry_count:1;
-      unsigned nhb_max_subscriptions:1;
-      unsigned nhb_invite_enable:1;
-      unsigned nhb_auto_alert:1;
-      unsigned nhb_early_media:1;
-      unsigned nhb_only183_100rel:1;
-      unsigned nhb_auto_answer:1;
-      unsigned nhb_auto_ack:1;
-      unsigned nhb_invite_timeout:1;
-      unsigned nhb_keepalive:1;
-      unsigned nhb_keepalive_stream:1;
-      unsigned nhb_session_timer:1;
-      unsigned nhb_min_se:1;
-      unsigned nhb_refresher:1; 
-      unsigned nhb_update_refresh:1;
-      unsigned nhb_message_enable:1;
-      unsigned nhb_win_messenger_enable:1;
-      unsigned nhb_message_auto_respond:1;
-      unsigned nhb_callee_caps:1;
-      unsigned nhb_media_features:1;
-      unsigned nhb_service_route_enable:1;
-      unsigned nhb_path_enable:1;
-      unsigned nhb_refer_expires:1;
-      unsigned nhb_substate:1;
-      unsigned nhb_allow:1;
-      unsigned nhb_supported:1;
-      unsigned nhb_user_agent:1;
-      unsigned nhb_ua_name:1;
-      unsigned nhb_organization:1;
-      unsigned nhb_instance:1;
-      unsigned nhb_outbound:1;
-      unsigned :0;
-    } set_bits;
+  struct {
+    unsigned nhb_retry_count:1;
+    unsigned nhb_max_subscriptions:1;
+
+    unsigned nhb_soa_name:1;
+    unsigned nhb_media_enable:1;
+    unsigned nhb_invite_enable:1;
+    unsigned nhb_auto_alert:1;
+    unsigned nhb_early_media:1;
+    unsigned nhb_only183_100rel:1;
+    unsigned nhb_auto_answer:1;
+    unsigned nhb_auto_ack:1;
+    unsigned nhb_invite_timeout:1;
+
+    unsigned nhb_session_timer:1;
+    unsigned nhb_min_se:1;
+    unsigned nhb_refresher:1; 
+    unsigned nhb_update_refresh:1;
+    unsigned nhb_message_enable:1;
+    unsigned nhb_win_messenger_enable:1;
+    unsigned nhb_message_auto_respond:1;
+    unsigned nhb_callee_caps:1;
+    unsigned nhb_media_features:1;
+    unsigned nhb_service_route_enable:1;
+    unsigned nhb_path_enable:1;
+    unsigned nhb_refer_with_id:1;
+    unsigned nhb_refer_expires:1;
+    unsigned nhb_substate:1;
+    unsigned nhb_keepalive:1;
+    unsigned nhb_keepalive_stream:1;
+    unsigned nhb_registrar:1;
+
+    unsigned nhb_allow:1;
+    unsigned nhb_supported:1;
+    unsigned nhb_user_agent:1;
+    unsigned nhb_organization:1;
+    unsigned :0;		/* at most 32 bits ... */
+
+    unsigned nhb_m_display:1;
+    unsigned nhb_m_username:1;
+    unsigned nhb_m_params:1;
+    unsigned nhb_m_features:1;
+    unsigned nhb_instance:1;
+    unsigned nhb_outbound:1;
+    unsigned nhb_detect_network_updates:1;
+    unsigned :0;
   } nhp_set;
 } nua_handle_preferences_t;
 
 #define DNHP_GET(dnhp, pref) ((dnhp)->nhp_##pref)
 
 #define NHP_GET(nhp, dnhp, pref)					\
-  ((nhp)->nhp_set.set_bits.nhb_##pref					\
+  ((nhp)->nhp_set.nhb_##pref					\
    ? (nhp)->nhp_##pref : (dnhp)->nhp_##pref)
 
 #define NHP_SET(nhp, pref, value)					\
   ((nhp)->nhp_##pref = (value),						\
-   (nhp)->nhp_set.set_bits.nhb_##pref = 1)
+   (nhp)->nhp_set.nhb_##pref = 1)
 
 /* Check if preference is set */
 #define NHP_ISSET(nhp, pref)						\
-  ((nhp)->nhp_set.set_bits.nhb_##pref)
+  ((nhp)->nhp_set.nhb_##pref)
 
-#define NHP_UNSET_ALL(nhp) ((nhp)->nhp_set.set_any = 0)
-#define NHP_SET_ALL(nhp) ((nhp)->nhp_set.set_any = 0xffffffffU)
-#define NHP_IS_ANY_SET(nhp) ((nhp)->nhp_set.set_any != 0)
+#define NHP_UNSET_ALL(nhp) (memset(&(nhp)->nhp_set, 0, sizeof (nhp)->nhp_set))
+#define NHP_SET_ALL(nhp) (memset(&(nhp)->nhp_set, 255, sizeof (nhp)->nhp_set))
 
 /* Get preference from handle, if set, otherwise from default handle */
 #define NH_PGET(nh, pref)						\

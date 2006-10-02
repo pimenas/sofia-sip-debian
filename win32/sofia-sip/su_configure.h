@@ -65,7 +65,9 @@
 #define su_inline                  static __inline
 #define SU_HAVE_INLINE             (1)
 
-#define SU_INTPTR_T unsigned __int32
+/** Define this as 1 if we can use tags directly from stack. */
+#define SU_HAVE_TAGSTACK (1)
+
 #define SU_S64_T __int64
 #define SU_U64_T unsigned __int64
 #define SU_S32_T __int32
@@ -89,12 +91,48 @@
 #define SU_S8_C(i)  (SU_S8_T)(i)
 #define SU_U8_C(i)  (SU_U8_T)(i ## U)
 
+#ifndef strcasecmp
 #define strcasecmp  _stricmp
+#endif
+#ifndef strncasecmp
 #define strncasecmp _strnicmp
+#endif
+#ifndef snprintf
 #define snprintf    _snprintf
+#endif
+#ifndef vsnprintf
 #define vsnprintf   _vsnprintf
+#endif
 
 #define srandom(x)    srand((x))
 #define random()      rand()
 
-#define ssize_t SSIZE_T
+#include <basetsd.h>
+
+#define SOFIA_ISIZE_T size_t
+#define SOFIA_USIZE_T size_t
+
+#ifdef _WIN64
+#define SOFIA_SSIZE_T __in64
+#define SOFIA_ISSIZE_T __int64
+#define SU_INTPTR_T __int64
+#elif _MSC_VER >= 1400
+#define SOFIA_SSIZE_T __int32 __w64
+#define SOFIA_ISSIZE_T __int32 __w64
+#define SU_INTPTR_T __int32 __w64
+#else
+#define SOFIA_SSIZE_T __int32
+#define SOFIA_ISSIZE_T __int32
+#define SU_INTPTR_T __int32
+#endif
+
+#ifndef SIZE_MAX
+#define SIZE_MAX MAXINT_PTR
+#endif
+#ifndef SSIZE_MAX
+#define SSIZE_MAX MAXUINT_PTR
+#endif
+
+#define ISIZE_MAX SIZE_MAX
+#define ISSIZE_MAX SSIZE_MAX
+#define USIZE_MAX SIZE_MAX

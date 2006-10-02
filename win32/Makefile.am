@@ -23,18 +23,19 @@ EXTRA_DIST = SofiaSIP.dsw \
 	tests/test_tport/test_tport.dsp \
 	tests/test_tport/test_class.cpp \
 	tests/test_tport/test_table.cpp \
-	tests/su_alloc_test/su_alloc_test.dsp \
-	tests/su_root_test/su_root_test.dsp \
-	tests/su_tag_test/su_tag_test.dsp \
-	tests/su_test/su_test.dsp \
-	tests/su_time_test/su_time_test.dsp \
-	tests/su_timer_test/su_timer_test.dsp \
-	tests/su_torture/su_torture.dsp \
+	tests/torture_su_alloc/torture_su_alloc.dsp \
+	tests/torture_su_root/torture_su_root.dsp \
+	tests/torture_su_tag/torture_su_tag.dsp \
+	tests/test_su/test_su.dsp \
+	tests/torture_su_time/torture_su_time.dsp \
+	tests/torture_su_timer/torture_su_timer.dsp \
+	tests/torture_su/torture_su.dsp \
 	tests/test_memmem/test_memmem.dsp \
-	tests/torture_htable/torture_htable.dsp \
+	tests/test_htable/test_htable.dsp \
 	tests/torture_rbtree/torture_rbtree.dsp \
 	tests/torture_su_bm/torture_su_bm.dsp \
 	tests/torture_su_port/torture_su_port.dsp \
+	utils/localinfo/localinfo.dsp \
 	utils/sip_options/sip_options.dsp \
 	utils/sip_dig/sip_dig.dsp \
 	utils/stunc/stunc.dsp \
@@ -51,3 +52,6 @@ PTHREAD_DIST = \
 	pthread/semaphore.h \
 	pthread/sched.h \
 	pthread/pthread.h
+
+mostlyclean-local:
+	test "$(top_builddir)" = "$(top_srcdir)" || rm -f config.h

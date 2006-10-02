@@ -55,27 +55,27 @@ msg_time_t msg_now(void)
 
 #define is_digit(c) ((c) >= '0' && (c) <= '9')
 
-/**Epoch year.
+/**Epoch year. @internal
  *
  * First day of the epoch year should be Monday.
  */
 #define EPOCH 1900		
-/** Is this year a leap year? */
+/** Is this year a leap year? @internal */
 #define LEAP_YEAR(y) ((y) % 4 == 0 && ((y) % 100 != 0 || (y) % 400 == 0))
-/** Day number of New Year Day of given year */
+/** Day number of New Year Day of given year. @internal */
 #define YEAR_DAYS(y) \
   (((y)-1) * 365 + ((y)-1) / 4 - ((y)-1) / 100 + ((y)-1) / 400)
 
 
 /* ====================================================================== */
 
-static char const days_per_months[12] = 
+static unsigned char const days_per_months[12] = 
   {
     31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
   };
 
 /** Offset of first day of the month with formula day = 30 * month + offset. */
-static char const first_day_offset[12] = 
+static signed char const first_day_offset[12] = 
   {
     0, 1, -1, 0, 0, 1, 1, 2, 3, 3, 4, 4
   };
@@ -150,32 +150,35 @@ int time_d(char const **ss,
 
 /**Decode RFC1123-date, RFC822-date or asctime-date.
  * 
- * The function msg_date_d() decodes @e HTTP-date, which may have 
+ * The function msg_date_d() decodes <HTTP-date>, which may have 
  * different formats.
  * 
- * @verbatim
- * HTTP-date    = rfc1123-date | rfc850-date | asctime-date
+ * @code
+ * HTTP-date    = rfc1123-date / rfc850-date / asctime-date
+ *
  * rfc1123-date = wkday "," SP date1 SP time SP "GMT"
- * rfc850-date  = weekday "," SP date2 SP time SP "GMT"
- * asctime-date = wkday SP date3 SP time SP 4DIGIT
  * date1        = 2DIGIT SP month SP 4DIGIT
  *                ; day month year (e.g., 02 Jun 1982)
+ *
+ * rfc850-date  = weekday "," SP date2 SP time SP "GMT"
  * date2        = 2DIGIT "-" month "-" 2DIGIT
  *                ; day-month-year (e.g., 02-Jun-82)
- * date3        = month SP ( 2DIGIT | ( SP 1DIGIT ))
+ *
+ * asctime-date = wkday SP date3 SP time SP 4DIGIT
+ * date3        = month SP ( 2DIGIT / ( SP 1DIGIT ))
  *                ; month day (e.g., Jun  2)
+ *
  * time         = 2DIGIT ":" 2DIGIT ":" 2DIGIT
  *                ; 00:00:00 - 23:59:59
- * wkday        = "Mon" | "Tue" | "Wed"
- *              | "Thu" | "Fri" | "Sat" | "Sun"
- * weekday      = "Monday" | "Tuesday" | "Wednesday"
- *              | "Thursday" | "Friday" | "Saturday" | "Sunday"
- * month        = "Jan" | "Feb" | "Mar" | "Apr"
- *              | "May" | "Jun" | "Jul" | "Aug"
- *              | "Sep" | "Oct" | "Nov" | "Dec"
- * @endverbatim
+ *
+ * wkday        = "Mon" / "Tue" / "Wed" / "Thu" / "Fri" / "Sat" / "Sun"
+ * weekday      = "Monday" / "Tuesday" / "Wednesday"
+ *              / "Thursday" / "Friday" / "Saturday" / "Sunday"
+ * month        = "Jan" / "Feb" / "Mar" / "Apr" / "May" / "Jun" 
+ *              / "Jul" / "Aug" / "Sep" / "Oct" / "Nov" / "Dec"
+ * @endcode
  */
-int msg_date_d(char const **ss, msg_time_t *date)
+issize_t msg_date_d(char const **ss, msg_time_t *date)
 {
   char const *s = *ss;
   char const *wkday;
@@ -299,21 +302,21 @@ int msg_date_d(char const **ss, msg_time_t *date)
 
 /**Encode RFC1123-date.
  * 
- * The function msg_date_e() prints @e http-date in the @e rfc1123-date
+ * The function msg_date_e() prints @e http-date in the <rfc1123-date>
  * format. The format is as follows:
  * 
- * @verbatim
- *     rfc1123-date = wkday "," SP date SP time SP "GMT"
- *     wkday        = "Mon" | "Tue" | "Wed"
- *                  | "Thu" | "Fri" | "Sat" | "Sun"
- *     date         = 2DIGIT SP month SP 4DIGIT
- *                    ; day month year (e.g., 02 Jun 1982)
- *     month        = "Jan" | "Feb" | "Mar" | "Apr"
- *                  | "May" | "Jun" | "Jul" | "Aug"
- *                  | "Sep" | "Oct" | "Nov" | "Dec"
- *     time         = 2DIGIT ":" 2DIGIT ":" 2DIGIT
- *                    ; 00:00:00 - 23:59:59
- * @endverbatim
+ * @code
+ * rfc1123-date = wkday "," SP date SP time SP "GMT"
+ * wkday        = "Mon" | "Tue" | "Wed"
+ *              | "Thu" | "Fri" | "Sat" | "Sun"
+ * date         = 2DIGIT SP month SP 4DIGIT
+ *                ; day month year (e.g., 02 Jun 1982)
+ * month        = "Jan" | "Feb" | "Mar" | "Apr"
+ *              | "May" | "Jun" | "Jul" | "Aug"
+ *              | "Sep" | "Oct" | "Nov" | "Dec"
+ * time         = 2DIGIT ":" 2DIGIT ":" 2DIGIT
+ *                ; 00:00:00 - 23:59:59
+ * @endcode
  * 
  * @param b         buffer to print the date
  * @param bsiz      size of the buffer
@@ -321,7 +324,7 @@ int msg_date_d(char const **ss, msg_time_t *date)
  * 
  * @return The function msg_date_e() returns the size of the formatted date.
  */
-int msg_date_e(char b[], int bsiz, msg_time_t http_date)
+issize_t msg_date_e(char b[], isize_t bsiz, msg_time_t http_date)
 {
   msg_time_t sec, min, hour, wkday, day, month, year;
   msg_time_t days_per_month, leap_year;
@@ -359,34 +362,45 @@ int msg_date_e(char b[], int bsiz, msg_time_t http_date)
 }
 
 
-/**Decode a http-delta.
+/**Decode a delta-seconds.
  * 
- * The function msg_delta_d() decodes a http-delta field.
+ * The function msg_delta_d() decodes a <delta-seconds> field.
+ *
+ * The <delta-seconds> is defined as follows:
+ * @code
+ * delta-seconds  = 1*DIGIT
+ * @endcode
+ *
+ * Note, however, that <delta-seconds> may not be larger than #MSG_TIME_MAX.
  */
-int msg_delta_d(char const **ss, msg_time_t *delta)
+issize_t msg_delta_d(char const **ss, msg_time_t *delta)
 {
-  if (!is_digit(**ss))
+  char const *s = *ss;
+
+  if (!is_digit(*s))
     return -1;
 
   *delta = strtoul(*ss, (char **)ss, 10);
   skip_lws(ss);
-  return 0;
+
+  return *ss - s;
 }
 
-/**Encode http-delta
+/**Encode @ref msg_delta_d() "<delta-seconds>" field.
  */
-int msg_delta_e(char b[], int bsiz, msg_time_t delta)
+issize_t msg_delta_e(char b[], isize_t bsiz, msg_time_t delta)
 {
   return snprintf(b, bsiz, "%lu", (unsigned long)delta);
 }
 
-/** Decode a date or delta 
+/** Decode a HTTP date or delta 
  * 
- * The function msg_date_delta_d() decodes a http-date or http-delta field.
+ * Decode a @ref msg_date_d() "<http-date>" or 
+ * @ref msg_delta_d() "<delta-seconds>" field.
  */
-int msg_date_delta_d(char const **ss,
-		     msg_time_t *date,
-		     msg_time_t *delta)
+issize_t msg_date_delta_d(char const **ss,
+			  msg_time_t *date,
+			  msg_time_t *delta)
 {
   if (delta && is_digit(**ss)) {
     return msg_delta_d(ss, delta);

@@ -6,6 +6,8 @@
 # Licensed under LGPL. See file COPYING.
 #
 
+AUTOMAKE_OPTIONS = foreign 1.7
+
 GLIB_BUILT = 	nua_glib_marshal.c \
 		nua_glib_marshal.h
 
@@ -54,11 +56,14 @@ nobase_include_sofia_HEADERS += \
 			sofia-sip/nua_glib.h
 endif
 
-noinst_HEADERS =	nua_glib_priv.h
+noinst_HEADERS =	nua_glib_priv.h \
+			nua_glib_op.h
 
 check_PROGRAMS =	test_nua_glib
 
-libnua_glib_la_SOURCES = nua_glib.c
+libnua_glib_la_SOURCES = \
+			nua_glib.c \
+			nua_glib_op.c
 
 libnua_glib_la_LIBADD =  nua_glib_marshal.lo
 
@@ -74,10 +79,13 @@ test_nua_glib_LDFLAGS = -static
 %_marshal.c: ${srcdir}/%_marshal.list ${srcdir}/Makefile.am
 	glib-genmarshal --body --prefix=$(subst -,_,$*)_marshal $< > $*_marshal.c
 
+# Correctly clean the generated headers, but keep the xml description
+CLEANFILES = 		$(BUILT_SOURCES)
+
 # ----------------------------------------------------------------------
 # Install and distribution rules
 
-EXTRA_DIST =		Doxyfile nua_glib.docs $(BUILT_SOURCES)
+EXTRA_DIST =		Doxyfile nua_glib.docs nua_glib_marshal.list
 
 # ----------------------------------------------------------------------
 # Sofia specific rules

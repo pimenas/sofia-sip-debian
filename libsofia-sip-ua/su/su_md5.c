@@ -131,7 +131,7 @@ void su_md5_deinit(su_md5_t *context)
 void
 su_md5_update(su_md5_t *ctx,
 	      void const *b,
-	      unsigned len)
+	      usize_t len)
 {
   unsigned char const *buf = (unsigned char const *)b;
   uint32_t t;
@@ -141,7 +141,7 @@ su_md5_update(su_md5_t *ctx,
   t = ctx->bits[0];
   if ((ctx->bits[0] = (t + ((uint32_t)len << 3)) & 0xffffffff) < t)
     ctx->bits[1]++;	/* Carry from low to high */
-  ctx->bits[1] += len >> 29;
+  ctx->bits[1] += (uint32_t)(len >> 29);
   
   t = (t >> 3) & 0x3f;	/* Bytes already in shsInfo->data */
   
@@ -177,9 +177,9 @@ su_md5_update(su_md5_t *ctx,
 
 /** Copy memory, fix case to lower. */
 static 
-void mem_i_cpy(unsigned char *d, unsigned char const *s, int len)
+void mem_i_cpy(unsigned char *d, unsigned char const *s, size_t len)
 {
-  int i;
+  size_t i;
 
   for (i = 0; i < len; i++)
     if (s[i] >= 'A' && s[i] <= 'Z')
@@ -200,7 +200,7 @@ void mem_i_cpy(unsigned char *d, unsigned char const *s, int len)
 void
 su_md5_iupdate(su_md5_t *ctx,
 	       void const *b,
-	       unsigned len)
+	       usize_t len)
 {
   unsigned char const *buf = (unsigned char const *)b;
   uint32_t t;
@@ -210,7 +210,7 @@ su_md5_iupdate(su_md5_t *ctx,
   t = ctx->bits[0];
   if ((ctx->bits[0] = (t + ((uint32_t)len << 3)) & 0xffffffff) < t)
     ctx->bits[1]++;	/* Carry from low to high */
-  ctx->bits[1] += len >> 29;
+  ctx->bits[1] += (uint32_t)(len >> 29);
   
   t = (t >> 3) & 0x3f;	/* Bytes already in shsInfo->data */
   

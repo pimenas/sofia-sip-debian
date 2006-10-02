@@ -24,12 +24,6 @@ case "$target" in
 ;;
 esac
 
-case "$target" in 
-i?86-*-* )
-  SAC_SU_DEFINE(SU_HAVE_TAGSTACK, 1, [Define to 1 if we can use tags directly from stack.])
-;;
-esac
-
 # Check includes used by su includes
 AC_CHECK_HEADER(sys/types.h, 
 	SAC_SU_DEFINE([SU_HAVE_SYS_TYPES], 1, 
@@ -91,6 +85,91 @@ case "$ac_cv_c_inline" in
   ;;
 esac
 
+AC_ARG_ENABLE(size-compat,
+[  --disable-size-compat            use compatibility size_t types (enabled)],
+ , enable_size_compat=yes)
+
+if test X$enable_size_compat != Xyes; then
+       SAC_SU_DEFINE(SOFIA_ISIZE_T, size_t)dnl
+       SAC_SU_DEFINE(ISIZE_MAX, SIZE_MAX)dnl
+       SAC_SU_DEFINE(SOFIA_ISSIZE_T, ssize_t)dnl
+       SAC_SU_DEFINE(ISSIZE_MAX, SSIZE_MAX)dnl
+       SAC_SU_DEFINE(SOFIA_USIZE_T, size_t)dnl
+       SAC_SU_DEFINE(USIZE_MAX, SIZE_MAX)dnl
+else
+       SAC_SU_DEFINE(SOFIA_ISIZE_T, int)dnl
+       SAC_SU_DEFINE(ISIZE_MAX, INT_MAX)dnl
+       SAC_SU_DEFINE(SOFIA_ISSIZE_T, int)dnl
+       SAC_SU_DEFINE(ISSIZE_MAX, INT_MAX)dnl
+       SAC_SU_DEFINE(SOFIA_USIZE_T, unsigned)dnl
+       SAC_SU_DEFINE(USIZE_MAX, UINT_MAX)dnl
+fi
+
+
+### ======================================================================
+### Test if we have stack suitable for handling tags directly
+###
+
+test -z "$ac_cv_tagstack" && 
+case "$target" in 
+i?86-*-* ) ac_cv_tagstack=yes ;;
+esac
+
+AC_CACHE_CHECK([for stack suitable for tags],[ac_cv_tagstack],[
+ac_cv_tagstack=no
+
+AC_RUN_IFELSE([
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+#if HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#include <stdarg.h>
+
+typedef void *tp;
+typedef intptr_t tv;
+
+int test1(tv l, tv h, ...)
+{
+  va_list ap;
+  tv i, *p = &l;
+
+  va_start(ap, h);
+
+  if (*p++ != l || *p++ != h) return 1;
+
+  for (i = l; i <= h; i++) {
+    if (*p++ != i)
+      return 1;
+  }
+
+  for (i = l; i <= h; i++) {
+    if (va_arg(ap, tv) != i)
+      return 1;
+  }
+
+  va_end(ap);
+
+  return 0;
+}
+
+int main(int avc, char **av)
+{
+  return test1((tv)1, (tv)10,
+	       (tv)1, (tv)2, (tv)3, (tv)4, (tv)5,
+	       (tv)6, (tv)7, (tv)8, (tv)9, (tv)10);
+}
+],[ac_cv_tagstack=yes],[ac_cv_tagstack=no],[ac_cv_tagstack=no])])
+
+if test $ac_cv_tagstack = yes ; then
+SAC_SU_DEFINE([SU_HAVE_TAGSTACK], 1, [
+Define this as 1 if your compiler puts the variable argument list nicely in memory])
+fi
+
+dnl ======================================================================
+dnl Socket features
+
 AC_REQUIRE([AC_SYS_SA_LEN])
 if test "$ac_cv_sa_len" = yes ;then
   SAC_SU_DEFINE([SU_HAVE_SOCKADDR_SA_LEN], 1, 
@@ -107,7 +186,7 @@ esac
 
 AC_CHECK_HEADERS([unistd.h sys/time.h])
 
-AC_CHECK_HEADERS([fcntl.h])
+AC_CHECK_HEADERS([fcntl.h dirent.h])
 
 AC_CHECK_HEADERS([winsock2.h], [
   AC_DEFINE([HAVE_WIN32], 1, [Define to 1 you have WIN32])
@@ -257,6 +336,7 @@ else
 fi
 
 ]) dnl AC_CHECK_HEADERS([winsock2.h ... ])
+
 
 # ===========================================================================
 # Checks for libraries

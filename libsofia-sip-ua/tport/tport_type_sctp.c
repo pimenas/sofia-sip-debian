@@ -148,7 +148,7 @@ static int tport_sctp_init_primary(tport_primary_t *pri,
 
   socket = su_socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 
-  if (socket == SOCKET_ERROR)
+  if (socket == INVALID_SOCKET)
     return *return_culprit = "socket", -1;
 
   if (tport_sctp_init_socket(pri, socket, return_culprit) < 0)
@@ -213,7 +213,7 @@ static
 int tport_recv_sctp(tport_t *self)
 {
   msg_t *msg;
-  int N, veclen;
+  ssize_t N, veclen;
   msg_iovec_t iovec[2] = {{ 0 }};
 
   char sctp_buf[TP_SCTP_MSG_MAX];
@@ -223,18 +223,9 @@ int tport_recv_sctp(tport_t *self)
 
   N = su_vrecv(self->tp_socket, iovec, 1, 0, NULL, NULL);
   if (N == SOCKET_ERROR) {
-    int err = su_errno();
-    if (err == EAGAIN || err == EWOULDBLOCK)
-      return 1;
-    return -1;
+    return su_is_blocking(su_errno()) ? 1 : -1;
   }
 
-  if (N == SOCKET_ERROR) {
-    int err = su_errno();
-    SU_DEBUG_1(("%s(%p): su_getmsgsize(): %s (%d)\n", __func__, self,
-		su_strerror(err), err));
-    return -1;
-  }
   if (N == 0) {
     if (self->tp_msg)
       msg_recv_commit(self->tp_msg, 0, 1);

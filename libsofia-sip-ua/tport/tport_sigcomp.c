@@ -22,7 +22,9 @@
  *
  */
 
-/**@CFILE tport_connect.c Transport using HTTP CONNECT.
+/**@CFILE tport_sigcomp.c Transport using SigComp.
+ *
+ * Incomplete.
  *
  * See tport.docs for more detailed description of tport interface.
  *
@@ -194,7 +196,7 @@ int tport_sigcomp_assign(tport_t *self, struct sigcomp_compartment *cc)
 {
   if (tport_is_connection_oriented(self) && 
       tport_is_secondary(self) &&
-      self->tp_socket != SOCKET_ERROR) {
+      self->tp_socket != INVALID_SOCKET) {
 
     if (self->tp_sigcomp->sc_cc) {
       if (cc == self->tp_sigcomp->sc_cc)
@@ -335,14 +337,15 @@ static int tport_recv_sigcomp_r(tport_t *self,
 				int N)
 {
   msg_t *msg;
-  unsigned n, m, i, eos, complete;
-  int veclen;
+  size_t n, m, i;
+  int eos, complete;
+  ssize_t veclen;
   msg_iovec_t iovec[msg_n_fragments] = {{ 0 }};
   su_sockaddr_t su[1];
   socklen_t su_size = sizeof(su);
   struct sigcomp_buffer *input, *output;
   void *data;
-  unsigned dlen;
+  size_t dlen;
 
   SU_DEBUG_7(("%s(%p)\n", __func__, self));
 
@@ -385,7 +388,7 @@ static int tport_recv_sigcomp_r(tport_t *self,
       char const *pn = self->tp_protoname;
       int err = su_errno();
     
-      if (err == EAGAIN || err == EWOULDBLOCK) {
+      if (su_is_blocking(err)) {
 	SU_DEBUG_7(("%s(%p): recv from %s: EAGAIN\n", __func__, self, pn));
 	return 1;
       }
@@ -637,7 +640,7 @@ int vsc_send_sigcomp(tport_t const *self,
   if (m == -1) {
     int error = su_errno();
 
-    if (error != EAGAIN && error != EWOULDBLOCK) {
+    if (su_is_blocking(error)) {
       sigcomp_compressor_free(c);
       sc->sc_compressor = NULL;
       sc->sc_output = NULL; sc->sc_input = NULL;
@@ -804,7 +807,6 @@ tport_sigcomp_deliver(tport_t *self, msg_t *msg, su_time_t now)
   if (d->d_udvm && *d->d_udvm)
     sigcomp_udvm_accept(*d->d_udvm, NULL); /* reject */
 }
-#endif
 
 
 #if HAVE_SIGCOMP && 0
@@ -881,4 +883,3 @@ int tport_recv_sigcomp_dgram(tport_t *self, int N)
   /* XXX - send NACK ? */
   return su_seterrno(error);     
 }
-

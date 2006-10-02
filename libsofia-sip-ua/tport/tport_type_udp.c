@@ -22,7 +22,7 @@
  *
  */
 
-/**@CFILE tport_connect.c Transport using HTTP CONNECT.
+/**@CFILE tport_type_udp.c UDP Transport
  *
  * See tport.docs for more detailed description of tport interface.
  *
@@ -107,7 +107,7 @@ int tport_udp_init_primary(tport_primary_t *pri,
   int s;
 
   s = su_socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-  if (s == SOCKET_ERROR)
+  if (s == INVALID_SOCKET)
     return *return_culprit = "socket", -1;
 
   pri->pri_primary->tp_socket = s;
@@ -177,20 +177,20 @@ int tport_udp_init_client(tport_primary_t *pri,
 static void tport_check_trunc(tport_t *tp, su_addrinfo_t *ai)
 {
 #if HAVE_MSG_TRUNC
-  int n;
+  ssize_t n;
   char buffer[2];
   su_sockaddr_t su[1];
   socklen_t sulen = sizeof su;
 
-  n = sendto(tp->tp_socket,
-	     "TEST", 4, 0,
-	     (void *)ai->ai_addr, ai->ai_addrlen);
+  n = su_sendto(tp->tp_socket,
+		"TEST", 4, 0,
+		(void *)ai->ai_addr, ai->ai_addrlen);
 
   for (;;) {
-    n = recvfrom(tp->tp_socket, buffer, sizeof buffer, MSG_TRUNC, 
-		 (void *)&su, &sulen);
+    n = su_recvfrom(tp->tp_socket, buffer, sizeof buffer, MSG_TRUNC, 
+		    (void *)&su, &sulen);
 
-    if (n > sizeof buffer) {
+    if (n > (ssize_t)sizeof buffer) {
       tp->tp_trunc = 1;
       return;
     }
@@ -213,7 +213,7 @@ static void tport_check_trunc(tport_t *tp, su_addrinfo_t *ai)
 int tport_recv_dgram(tport_t *self)
 {
   msg_t *msg;
-  int n, veclen;
+  ssize_t n, veclen;
   su_addrinfo_t *ai;
   su_sockaddr_t *from;
   socklen_t fromlen;
@@ -222,8 +222,8 @@ int tport_recv_dgram(tport_t *self)
 
   /* Simulate packet loss */
   if (self->tp_params->tpp_drop && 
-      su_randint(0, 1000) < self->tp_params->tpp_drop) {
-    recv(self->tp_socket, sample, 1, 0);
+      (unsigned)su_randint(0, 1000) < self->tp_params->tpp_drop) {
+    su_recv(self->tp_socket, sample, 1, 0);
     SU_DEBUG_3(("tport(%p): simulated packet loss!\n", self));
     return 0;
   }
@@ -237,7 +237,7 @@ int tport_recv_dgram(tport_t *self)
   msg = self->tp_msg;
 
   ai = msg_addrinfo(msg);
-  from = (su_sockaddr_t *)ai->ai_addr, fromlen = ai->ai_addrlen;
+  from = (su_sockaddr_t *)ai->ai_addr, fromlen = (socklen_t)(ai->ai_addrlen);
 
   n = su_vrecv(self->tp_socket, iovec, veclen, 0, from, &fromlen);
   
@@ -248,7 +248,7 @@ int tport_recv_dgram(tport_t *self)
     msg_destroy(msg); self->tp_msg = NULL;
     su_seterrno(error);
 
-    if (error == EAGAIN || error == EWOULDBLOCK)
+    if (su_is_blocking(error))
       return 0;
     else
       return -1;
@@ -281,9 +281,9 @@ int tport_recv_dgram(tport_t *self)
 }
 
 /** Send using su_vsend(). Map IPv4 addresses as IPv6 addresses, if needed. */
-int tport_send_dgram(tport_t const *self, msg_t *msg, 
-		     msg_iovec_t iov[], 
-		     int iovused)
+ssize_t tport_send_dgram(tport_t const *self, msg_t *msg, 
+			 msg_iovec_t iov[], 
+			 size_t iovused)
 {
   su_sockaddr_t su[1];
   socklen_t sulen = sizeof su;
@@ -347,7 +347,7 @@ int tport_udp_error(tport_t const *self, su_sockaddr_t name[1])
 
   if (n < 0) {
     int err = su_errno();
-    if (err != EAGAIN && err != EWOULDBLOCK)
+    if (!su_is_blocking(err))
       SU_DEBUG_1(("%s: recvmsg: %s\n", __func__, su_strerror(err)));
     return 0;
   }

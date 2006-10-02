@@ -22,7 +22,7 @@
  *
  */
 
-/**@CFILE tport_connect.c Transport using HTTP CONNECT.
+/**@CFILE tport_type_connect.c Transport using HTTP CONNECT.
  *
  * See tport.docs for more detailed description of tport interface.
  *
@@ -127,6 +127,7 @@ static int tport_http_connect_init_primary(tport_primary_t *pri,
   hints->ai_addr = NULL;
   hints->ai_addrlen = 0;
   hints->ai_next = NULL;
+  hints->ai_canonname = NULL;
   
   error = su_getaddrinfo(host, port, hints, &thc->thc_proxy);
   if (error)

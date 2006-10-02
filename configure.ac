@@ -11,18 +11,18 @@ dnl information on the package
 dnl ---------------------------
 
 dnl update both the version for AC_INIT and the LIBSOFIA_SIP_UA_MAJOR_MINOR
-AC_INIT([sofia-sip], [1.12.1])
+AC_INIT([sofia-sip], [1.12.3])
 AC_CONFIG_SRCDIR([libsofia-sip-ua/sip/sofia-sip/sip.h])
 AC_SUBST(VER_LIBSOFIA_SIP_UA_MAJOR_MINOR, [1.12])
 dnl Includedir specific to this sofia version
 AC_SUBST(include_sofiadir, '${includedir}/sofia-sip-1.12')
-AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [1])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [2])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_REV, [0])
-AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [1])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [2])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_SOVER, [0]) # CUR-AGE
-AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_CUR, [0])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_CUR, [1])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_REV, [0])
-AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_AGE, [0])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_AGE, [1])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_SOVER, [0]) # CUR-AGE
 					    
 # dnl calls AC_CANONICAL_ macros that are required by AM_INIT_AUTOMAKE
@@ -79,9 +79,8 @@ AC_DEFINE([HAVE_SOFIA_SIP], 1, [Define to 1 always])
 AC_DEFINE([HAVE_SOFIA_SRESOLV], 1, [Define to 1 if we use DNS library])
 AC_DEFINE([HAVE_SOFIA_SMIME], 0, [Define to 1 if we use S/MIME library])
 
-dnl Disable stun by default while it is broken
 AC_ARG_ENABLE(stun,
-[  --enable-stun               enable stun module (enabled)],
+[  --disable-stun              disable stun module (enabled)],
  , enable_stun=yes)
 
 if test x$enable_stun = xno ; then
@@ -128,6 +127,8 @@ AC_DEFINE([LLU], ["%llu"], [Define to format (%llu) for unsigned long long])dnl
 AC_DEFINE([LLI], ["%lli"], [Define to format (%lli) for long long])dnl
 AC_DEFINE([LLX], ["%llx"], [Define to format (%llx) for long long hex])dnl
 ])
+AC_DEFINE([MOD_ZD], ["%zd"], [Define printf() modifier for ssize_t])
+AC_DEFINE([MOD_ZU], ["%zu"], [Define printf() modifier for size_t])
 
 ### checks for structures
 ### ---------------------
@@ -163,7 +164,6 @@ AC_DEV_URANDOM
 AC_CONFIG_FILES([
 Makefile
 packages/Makefile
-packages/sofia-sip.spec
 packages/sofia-sip-ua.pc
 packages/sofia-sip-ua-glib.pc
 libsofia-sip-ua/Makefile
@@ -193,6 +193,7 @@ libsofia-sip-ua-glib/Makefile
 libsofia-sip-ua-glib/nua-glib/Makefile
 libsofia-sip-ua-glib/su-glib/Makefile
 utils/Makefile
+utils/Doxyfile.build
 win32/Makefile
 win32/config.h
 ])

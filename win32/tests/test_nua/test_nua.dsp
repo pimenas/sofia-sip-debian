@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
 # ADD CPP /nologo /MD /W3 /GX /O2 /I "..\.." /I "..\..\..\libsofia-sip-ua\su" /I "..\..\..\libsofia-sip-ua\ipt" /I "..\..\..\libsofia-sip-ua\sresolv" /I "..\..\..\libsofia-sip-ua\bnf" /I "..\..\..\libsofia-sip-ua\url" /I "..\..\..\libsofia-sip-ua\msg" /I "..\..\..\libsofia-sip-ua\sip" /I "..\..\..\libsofia-sip-ua\nta" /I "..\..\..\libsofia-sip-ua\nua" /I "..\..\..\libsofia-sip-ua\iptsec" /I "..\..\..\libsofia-sip-ua\http" /I "..\..\..\libsofia-sip-ua\nth" /I "..\..\..\libsofia-sip-ua\nea" /I "..\..\..\libsofia-sip-ua\sdp" /I "..\..\..\libsofia-sip-ua\soa" /I "..\..\..\libsofia-sip-ua\stun" /I "..\..\..\libsofia-sip-ua\tport" /I "include" /I "." /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /FR /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -65,7 +65,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
 # ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\.." /I "..\..\..\libsofia-sip-ua\su" /I "..\..\..\libsofia-sip-ua\ipt" /I "..\..\..\libsofia-sip-ua\sresolv" /I "..\..\..\libsofia-sip-ua\bnf" /I "..\..\..\libsofia-sip-ua\url" /I "..\..\..\libsofia-sip-ua\msg" /I "..\..\..\libsofia-sip-ua\sip" /I "..\..\..\libsofia-sip-ua\nta" /I "..\..\..\libsofia-sip-ua\nua" /I "..\..\..\libsofia-sip-ua\iptsec" /I "..\..\..\libsofia-sip-ua\http" /I "..\..\..\libsofia-sip-ua\nth" /I "..\..\..\libsofia-sip-ua\nea" /I "..\..\..\libsofia-sip-ua\sdp" /I "..\..\..\libsofia-sip-ua\soa" /I "..\..\..\libsofia-sip-ua\stun" /I "..\..\..\libsofia-sip-ua\tport" /I "include" /I "." /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -88,6 +88,26 @@ SOURCE="..\..\..\libsofia-sip-ua\su\memmem.c"
 # End Source File
 # Begin Source File
 
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_100rel.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_basic_call.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_call_hold.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_call_reject.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_cancel_bye.c"
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\..\libsofia-sip-ua\nua\test_nat.c"
 # End Source File
 # Begin Source File
@@ -104,11 +124,51 @@ SOURCE="..\..\..\libsofia-sip-ua\nua\test_nua.c"
 # End Source File
 # Begin Source File
 
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_nua.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_init.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_ops.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_nua_api.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_nua_params.c"
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\..\libsofia-sip-ua\nua\test_proxy.c"
 # End Source File
 # Begin Source File
 
 SOURCE="..\..\..\libsofia-sip-ua\nua\test_proxy.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_refer.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_register.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_session_timer.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_simple.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\libsofia-sip-ua\nua\test_sip_events.c"
 # End Source File
 # Begin Source File
 

@@ -46,17 +46,17 @@ SOFIA_BEGIN_DECLS
 enum { 
   /**@ingroup sip_request @internal 
    *
-   * Hash of request line. 
+   * Hash of @ref sip_request "request line".
    */
   sip_request_hash = -1 
 };
 
-/**Header class for SIP request line.
+/**Header class for @ref sip_request "request line".
  * 
  * The header class sip_request_class defines how a SIP
- * request line is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_request_t header structure.
+ * @ref sip_request "request line" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_request_t header structure.
  *
  * @ingroup sip_request
  */
@@ -67,17 +67,17 @@ SIP_DLL extern msg_hclass_t sip_request_class[];
 enum { 
   /**@ingroup sip_status @internal 
    *
-   * Hash of status line. 
+   * Hash of @ref sip_status "status line".
    */
   sip_status_hash = -2 
 };
 
-/**Header class for SIP status line.
+/**Header class for @ref sip_status "status line".
  * 
  * The header class sip_status_class defines how a SIP
- * status line is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_status_t header structure.
+ * @ref sip_status "status line" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_status_t header structure.
  *
  * @ingroup sip_status
  */
@@ -88,17 +88,17 @@ SIP_DLL extern msg_hclass_t sip_status_class[];
 enum { 
   /**@ingroup sip_via @internal 
    *
-   * Hash of Via header. 
+   * Hash of @ref sip_via "Via header".
    */
   sip_via_hash = 46244 
 };
 
-/**Header class for SIP Via header.
+/**Header class for @ref sip_via "Via header".
  * 
  * The header class sip_via_class defines how a SIP
- * Via header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_via_t header structure.
+ * @ref sip_via "Via header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_via_t header structure.
  *
  * @ingroup sip_via
  */
@@ -109,17 +109,17 @@ SIP_DLL extern msg_hclass_t sip_via_class[];
 enum { 
   /**@ingroup sip_route @internal 
    *
-   * Hash of Route header. 
+   * Hash of @ref sip_route "Route header".
    */
   sip_route_hash = 28359 
 };
 
-/**Header class for SIP Route header.
+/**Header class for @ref sip_route "Route header".
  * 
  * The header class sip_route_class defines how a SIP
- * Route header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_route_t header structure.
+ * @ref sip_route "Route header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_route_t header structure.
  *
  * @ingroup sip_route
  */
@@ -130,17 +130,17 @@ SIP_DLL extern msg_hclass_t sip_route_class[];
 enum { 
   /**@ingroup sip_record_route @internal 
    *
-   * Hash of Record-Route header. 
+   * Hash of @ref sip_record_route "Record-Route header".
    */
   sip_record_route_hash = 33211 
 };
 
-/**Header class for SIP Record-Route header.
+/**Header class for @ref sip_record_route "Record-Route header".
  * 
  * The header class sip_record_route_class defines how a SIP
- * Record-Route header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_record_route_t header structure.
+ * @ref sip_record_route "Record-Route header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_record_route_t header structure.
  *
  * @ingroup sip_record_route
  */
@@ -151,17 +151,17 @@ SIP_DLL extern msg_hclass_t sip_record_route_class[];
 enum { 
   /**@ingroup sip_max_forwards @internal 
    *
-   * Hash of Max-Forwards header. 
+   * Hash of @ref sip_max_forwards "Max-Forwards header".
    */
   sip_max_forwards_hash = 27231 
 };
 
-/**Header class for SIP Max-Forwards header.
+/**Header class for @ref sip_max_forwards "Max-Forwards header".
  * 
  * The header class sip_max_forwards_class defines how a SIP
- * Max-Forwards header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_max_forwards_t header structure.
+ * @ref sip_max_forwards "Max-Forwards header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_max_forwards_t header structure.
  *
  * @ingroup sip_max_forwards
  */
@@ -172,17 +172,17 @@ SIP_DLL extern msg_hclass_t sip_max_forwards_class[];
 enum { 
   /**@ingroup sip_proxy_require @internal 
    *
-   * Hash of Proxy-Require header. 
+   * Hash of @ref sip_proxy_require "Proxy-Require header".
    */
   sip_proxy_require_hash = 11704 
 };
 
-/**Header class for SIP Proxy-Require header.
+/**Header class for @ref sip_proxy_require "Proxy-Require header".
  * 
  * The header class sip_proxy_require_class defines how a SIP
- * Proxy-Require header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_proxy_require_t header structure.
+ * @ref sip_proxy_require "Proxy-Require header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_proxy_require_t header structure.
  *
  * @ingroup sip_proxy_require
  */
@@ -193,17 +193,17 @@ SIP_DLL extern msg_hclass_t sip_proxy_require_class[];
 enum { 
   /**@ingroup sip_from @internal 
    *
-   * Hash of From header. 
+   * Hash of @ref sip_from "From header".
    */
   sip_from_hash = 15368 
 };
 
-/**Header class for SIP From header.
+/**Header class for @ref sip_from "From header".
  * 
  * The header class sip_from_class defines how a SIP
- * From header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_from_t header structure.
+ * @ref sip_from "From header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_from_t header structure.
  *
  * @ingroup sip_from
  */
@@ -214,17 +214,17 @@ SIP_DLL extern msg_hclass_t sip_from_class[];
 enum { 
   /**@ingroup sip_to @internal 
    *
-   * Hash of To header. 
+   * Hash of @ref sip_to "To header".
    */
   sip_to_hash = 62495 
 };
 
-/**Header class for SIP To header.
+/**Header class for @ref sip_to "To header".
  * 
  * The header class sip_to_class defines how a SIP
- * To header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_to_t header structure.
+ * @ref sip_to "To header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_to_t header structure.
  *
  * @ingroup sip_to
  */
@@ -235,17 +235,17 @@ SIP_DLL extern msg_hclass_t sip_to_class[];
 enum { 
   /**@ingroup sip_call_id @internal 
    *
-   * Hash of Call-ID header. 
+   * Hash of @ref sip_call_id "Call-ID header".
    */
   sip_call_id_hash = 38022 
 };
 
-/**Header class for SIP Call-ID header.
+/**Header class for @ref sip_call_id "Call-ID header".
  * 
  * The header class sip_call_id_class defines how a SIP
- * Call-ID header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_call_id_t header structure.
+ * @ref sip_call_id "Call-ID header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_call_id_t header structure.
  *
  * @ingroup sip_call_id
  */
@@ -256,17 +256,17 @@ SIP_DLL extern msg_hclass_t sip_call_id_class[];
 enum { 
   /**@ingroup sip_cseq @internal 
    *
-   * Hash of CSeq header. 
+   * Hash of @ref sip_cseq "CSeq header".
    */
   sip_cseq_hash = 12268 
 };
 
-/**Header class for SIP CSeq header.
+/**Header class for @ref sip_cseq "CSeq header".
  * 
  * The header class sip_cseq_class defines how a SIP
- * CSeq header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_cseq_t header structure.
+ * @ref sip_cseq "CSeq header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_cseq_t header structure.
  *
  * @ingroup sip_cseq
  */
@@ -277,17 +277,17 @@ SIP_DLL extern msg_hclass_t sip_cseq_class[];
 enum { 
   /**@ingroup sip_contact @internal 
    *
-   * Hash of Contact header. 
+   * Hash of @ref sip_contact "Contact header".
    */
   sip_contact_hash = 25428 
 };
 
-/**Header class for SIP Contact header.
+/**Header class for @ref sip_contact "Contact header".
  * 
  * The header class sip_contact_class defines how a SIP
- * Contact header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_contact_t header structure.
+ * @ref sip_contact "Contact header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_contact_t header structure.
  *
  * @ingroup sip_contact
  */
@@ -298,17 +298,17 @@ SIP_DLL extern msg_hclass_t sip_contact_class[];
 enum { 
   /**@ingroup sip_rseq @internal 
    *
-   * Hash of RSeq header. 
+   * Hash of @ref sip_rseq "RSeq header".
    */
   sip_rseq_hash = 16651 
 };
 
-/**Header class for SIP RSeq header.
+/**Header class for @ref sip_rseq "RSeq header".
  * 
  * The header class sip_rseq_class defines how a SIP
- * RSeq header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_rseq_t header structure.
+ * @ref sip_rseq "RSeq header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_rseq_t header structure.
  *
  * @ingroup sip_rseq
  */
@@ -319,17 +319,17 @@ SIP_DLL extern msg_hclass_t sip_rseq_class[];
 enum { 
   /**@ingroup sip_rack @internal 
    *
-   * Hash of RAck header. 
+   * Hash of @ref sip_rack "RAck header".
    */
   sip_rack_hash = 46065 
 };
 
-/**Header class for SIP RAck header.
+/**Header class for @ref sip_rack "RAck header".
  * 
  * The header class sip_rack_class defines how a SIP
- * RAck header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_rack_t header structure.
+ * @ref sip_rack "RAck header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_rack_t header structure.
  *
  * @ingroup sip_rack
  */
@@ -340,17 +340,17 @@ SIP_DLL extern msg_hclass_t sip_rack_class[];
 enum { 
   /**@ingroup sip_request_disposition @internal 
    *
-   * Hash of Request-Disposition header. 
+   * Hash of @ref sip_request_disposition "Request-Disposition header".
    */
   sip_request_disposition_hash = 61507 
 };
 
-/**Header class for SIP Request-Disposition header.
+/**Header class for @ref sip_request_disposition "Request-Disposition header".
  * 
  * The header class sip_request_disposition_class defines how a SIP
- * Request-Disposition header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_request_disposition_t header structure.
+ * @ref sip_request_disposition "Request-Disposition header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_request_disposition_t header structure.
  *
  * @ingroup sip_request_disposition
  */
@@ -361,17 +361,17 @@ SIP_DLL extern msg_hclass_t sip_request_disposition_class[];
 enum { 
   /**@ingroup sip_accept_contact @internal 
    *
-   * Hash of Accept-Contact header. 
+   * Hash of @ref sip_accept_contact "Accept-Contact header".
    */
   sip_accept_contact_hash = 30081 
 };
 
-/**Header class for SIP Accept-Contact header.
+/**Header class for @ref sip_accept_contact "Accept-Contact header".
  * 
  * The header class sip_accept_contact_class defines how a SIP
- * Accept-Contact header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_accept_contact_t header structure.
+ * @ref sip_accept_contact "Accept-Contact header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_accept_contact_t header structure.
  *
  * @ingroup sip_accept_contact
  */
@@ -382,17 +382,17 @@ SIP_DLL extern msg_hclass_t sip_accept_contact_class[];
 enum { 
   /**@ingroup sip_reject_contact @internal 
    *
-   * Hash of Reject-Contact header. 
+   * Hash of @ref sip_reject_contact "Reject-Contact header".
    */
   sip_reject_contact_hash = 34934 
 };
 
-/**Header class for SIP Reject-Contact header.
+/**Header class for @ref sip_reject_contact "Reject-Contact header".
  * 
  * The header class sip_reject_contact_class defines how a SIP
- * Reject-Contact header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_reject_contact_t header structure.
+ * @ref sip_reject_contact "Reject-Contact header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_reject_contact_t header structure.
  *
  * @ingroup sip_reject_contact
  */
@@ -403,17 +403,17 @@ SIP_DLL extern msg_hclass_t sip_reject_contact_class[];
 enum { 
   /**@ingroup sip_expires @internal 
    *
-   * Hash of Expires header. 
+   * Hash of @ref sip_expires "Expires header".
    */
   sip_expires_hash = 28680 
 };
 
-/**Header class for SIP Expires header.
+/**Header class for @ref sip_expires "Expires header".
  * 
  * The header class sip_expires_class defines how a SIP
- * Expires header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_expires_t header structure.
+ * @ref sip_expires "Expires header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_expires_t header structure.
  *
  * @ingroup sip_expires
  */
@@ -424,17 +424,17 @@ SIP_DLL extern msg_hclass_t sip_expires_class[];
 enum { 
   /**@ingroup sip_date @internal 
    *
-   * Hash of Date header. 
+   * Hash of @ref sip_date "Date header".
    */
   sip_date_hash = 43982 
 };
 
-/**Header class for SIP Date header.
+/**Header class for @ref sip_date "Date header".
  * 
  * The header class sip_date_class defines how a SIP
- * Date header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_date_t header structure.
+ * @ref sip_date "Date header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_date_t header structure.
  *
  * @ingroup sip_date
  */
@@ -445,17 +445,17 @@ SIP_DLL extern msg_hclass_t sip_date_class[];
 enum { 
   /**@ingroup sip_retry_after @internal 
    *
-   * Hash of Retry-After header. 
+   * Hash of @ref sip_retry_after "Retry-After header".
    */
   sip_retry_after_hash = 30349 
 };
 
-/**Header class for SIP Retry-After header.
+/**Header class for @ref sip_retry_after "Retry-After header".
  * 
  * The header class sip_retry_after_class defines how a SIP
- * Retry-After header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_retry_after_t header structure.
+ * @ref sip_retry_after "Retry-After header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_retry_after_t header structure.
  *
  * @ingroup sip_retry_after
  */
@@ -466,17 +466,17 @@ SIP_DLL extern msg_hclass_t sip_retry_after_class[];
 enum { 
   /**@ingroup sip_timestamp @internal 
    *
-   * Hash of Timestamp header. 
+   * Hash of @ref sip_timestamp "Timestamp header".
    */
   sip_timestamp_hash = 12632 
 };
 
-/**Header class for SIP Timestamp header.
+/**Header class for @ref sip_timestamp "Timestamp header".
  * 
  * The header class sip_timestamp_class defines how a SIP
- * Timestamp header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_timestamp_t header structure.
+ * @ref sip_timestamp "Timestamp header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_timestamp_t header structure.
  *
  * @ingroup sip_timestamp
  */
@@ -487,17 +487,17 @@ SIP_DLL extern msg_hclass_t sip_timestamp_class[];
 enum { 
   /**@ingroup sip_min_expires @internal 
    *
-   * Hash of Min-Expires header. 
+   * Hash of @ref sip_min_expires "Min-Expires header".
    */
   sip_min_expires_hash = 21461 
 };
 
-/**Header class for SIP Min-Expires header.
+/**Header class for @ref sip_min_expires "Min-Expires header".
  * 
  * The header class sip_min_expires_class defines how a SIP
- * Min-Expires header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_min_expires_t header structure.
+ * @ref sip_min_expires "Min-Expires header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_min_expires_t header structure.
  *
  * @ingroup sip_min_expires
  */
@@ -508,17 +508,17 @@ SIP_DLL extern msg_hclass_t sip_min_expires_class[];
 enum { 
   /**@ingroup sip_subject @internal 
    *
-   * Hash of Subject header. 
+   * Hash of @ref sip_subject "Subject header".
    */
   sip_subject_hash = 16360 
 };
 
-/**Header class for SIP Subject header.
+/**Header class for @ref sip_subject "Subject header".
  * 
  * The header class sip_subject_class defines how a SIP
- * Subject header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_subject_t header structure.
+ * @ref sip_subject "Subject header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_subject_t header structure.
  *
  * @ingroup sip_subject
  */
@@ -529,17 +529,17 @@ SIP_DLL extern msg_hclass_t sip_subject_class[];
 enum { 
   /**@ingroup sip_priority @internal 
    *
-   * Hash of Priority header. 
+   * Hash of @ref sip_priority "Priority header".
    */
   sip_priority_hash = 8846 
 };
 
-/**Header class for SIP Priority header.
+/**Header class for @ref sip_priority "Priority header".
  * 
  * The header class sip_priority_class defines how a SIP
- * Priority header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_priority_t header structure.
+ * @ref sip_priority "Priority header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_priority_t header structure.
  *
  * @ingroup sip_priority
  */
@@ -550,17 +550,17 @@ SIP_DLL extern msg_hclass_t sip_priority_class[];
 enum { 
   /**@ingroup sip_call_info @internal 
    *
-   * Hash of Call-Info header. 
+   * Hash of @ref sip_call_info "Call-Info header".
    */
   sip_call_info_hash = 57337 
 };
 
-/**Header class for SIP Call-Info header.
+/**Header class for @ref sip_call_info "Call-Info header".
  * 
  * The header class sip_call_info_class defines how a SIP
- * Call-Info header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_call_info_t header structure.
+ * @ref sip_call_info "Call-Info header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_call_info_t header structure.
  *
  * @ingroup sip_call_info
  */
@@ -571,17 +571,17 @@ SIP_DLL extern msg_hclass_t sip_call_info_class[];
 enum { 
   /**@ingroup sip_organization @internal 
    *
-   * Hash of Organization header. 
+   * Hash of @ref sip_organization "Organization header".
    */
   sip_organization_hash = 6389 
 };
 
-/**Header class for SIP Organization header.
+/**Header class for @ref sip_organization "Organization header".
  * 
  * The header class sip_organization_class defines how a SIP
- * Organization header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_organization_t header structure.
+ * @ref sip_organization "Organization header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_organization_t header structure.
  *
  * @ingroup sip_organization
  */
@@ -592,17 +592,17 @@ SIP_DLL extern msg_hclass_t sip_organization_class[];
 enum { 
   /**@ingroup sip_server @internal 
    *
-   * Hash of Server header. 
+   * Hash of @ref sip_server "Server header".
    */
   sip_server_hash = 31323 
 };
 
-/**Header class for SIP Server header.
+/**Header class for @ref sip_server "Server header".
  * 
  * The header class sip_server_class defines how a SIP
- * Server header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_server_t header structure.
+ * @ref sip_server "Server header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_server_t header structure.
  *
  * @ingroup sip_server
  */
@@ -613,17 +613,17 @@ SIP_DLL extern msg_hclass_t sip_server_class[];
 enum { 
   /**@ingroup sip_user_agent @internal 
    *
-   * Hash of User-Agent header. 
+   * Hash of @ref sip_user_agent "User-Agent header".
    */
   sip_user_agent_hash = 40911 
 };
 
-/**Header class for SIP User-Agent header.
+/**Header class for @ref sip_user_agent "User-Agent header".
  * 
  * The header class sip_user_agent_class defines how a SIP
- * User-Agent header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_user_agent_t header structure.
+ * @ref sip_user_agent "User-Agent header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_user_agent_t header structure.
  *
  * @ingroup sip_user_agent
  */
@@ -634,17 +634,17 @@ SIP_DLL extern msg_hclass_t sip_user_agent_class[];
 enum { 
   /**@ingroup sip_in_reply_to @internal 
    *
-   * Hash of In-Reply-To header. 
+   * Hash of @ref sip_in_reply_to "In-Reply-To header".
    */
   sip_in_reply_to_hash = 19812 
 };
 
-/**Header class for SIP In-Reply-To header.
+/**Header class for @ref sip_in_reply_to "In-Reply-To header".
  * 
  * The header class sip_in_reply_to_class defines how a SIP
- * In-Reply-To header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_in_reply_to_t header structure.
+ * @ref sip_in_reply_to "In-Reply-To header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_in_reply_to_t header structure.
  *
  * @ingroup sip_in_reply_to
  */
@@ -655,17 +655,17 @@ SIP_DLL extern msg_hclass_t sip_in_reply_to_class[];
 enum { 
   /**@ingroup sip_accept @internal 
    *
-   * Hash of Accept header. 
+   * Hash of @ref sip_accept "Accept header".
    */
   sip_accept_hash = 29344 
 };
 
-/**Header class for SIP Accept header.
+/**Header class for @ref sip_accept "Accept header".
  * 
  * The header class sip_accept_class defines how a SIP
- * Accept header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_accept_t header structure.
+ * @ref sip_accept "Accept header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_accept_t header structure.
  *
  * @ingroup sip_accept
  */
@@ -676,17 +676,17 @@ SIP_DLL extern msg_hclass_t sip_accept_class[];
 enum { 
   /**@ingroup sip_accept_encoding @internal 
    *
-   * Hash of Accept-Encoding header. 
+   * Hash of @ref sip_accept_encoding "Accept-Encoding header".
    */
   sip_accept_encoding_hash = 35932 
 };
 
-/**Header class for SIP Accept-Encoding header.
+/**Header class for @ref sip_accept_encoding "Accept-Encoding header".
  * 
  * The header class sip_accept_encoding_class defines how a SIP
- * Accept-Encoding header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_accept_encoding_t header structure.
+ * @ref sip_accept_encoding "Accept-Encoding header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_accept_encoding_t header structure.
  *
  * @ingroup sip_accept_encoding
  */
@@ -697,17 +697,17 @@ SIP_DLL extern msg_hclass_t sip_accept_encoding_class[];
 enum { 
   /**@ingroup sip_accept_language @internal 
    *
-   * Hash of Accept-Language header. 
+   * Hash of @ref sip_accept_language "Accept-Language header".
    */
   sip_accept_language_hash = 23797 
 };
 
-/**Header class for SIP Accept-Language header.
+/**Header class for @ref sip_accept_language "Accept-Language header".
  * 
  * The header class sip_accept_language_class defines how a SIP
- * Accept-Language header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_accept_language_t header structure.
+ * @ref sip_accept_language "Accept-Language header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_accept_language_t header structure.
  *
  * @ingroup sip_accept_language
  */
@@ -718,17 +718,17 @@ SIP_DLL extern msg_hclass_t sip_accept_language_class[];
 enum { 
   /**@ingroup sip_allow @internal 
    *
-   * Hash of Allow header. 
+   * Hash of @ref sip_allow "Allow header".
    */
   sip_allow_hash = 44519 
 };
 
-/**Header class for SIP Allow header.
+/**Header class for @ref sip_allow "Allow header".
  * 
  * The header class sip_allow_class defines how a SIP
- * Allow header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_allow_t header structure.
+ * @ref sip_allow "Allow header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_allow_t header structure.
  *
  * @ingroup sip_allow
  */
@@ -739,17 +739,17 @@ SIP_DLL extern msg_hclass_t sip_allow_class[];
 enum { 
   /**@ingroup sip_require @internal 
    *
-   * Hash of Require header. 
+   * Hash of @ref sip_require "Require header".
    */
   sip_require_hash = 32097 
 };
 
-/**Header class for SIP Require header.
+/**Header class for @ref sip_require "Require header".
  * 
  * The header class sip_require_class defines how a SIP
- * Require header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_require_t header structure.
+ * @ref sip_require "Require header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_require_t header structure.
  *
  * @ingroup sip_require
  */
@@ -760,17 +760,17 @@ SIP_DLL extern msg_hclass_t sip_require_class[];
 enum { 
   /**@ingroup sip_supported @internal 
    *
-   * Hash of Supported header. 
+   * Hash of @ref sip_supported "Supported header".
    */
   sip_supported_hash = 28310 
 };
 
-/**Header class for SIP Supported header.
+/**Header class for @ref sip_supported "Supported header".
  * 
  * The header class sip_supported_class defines how a SIP
- * Supported header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_supported_t header structure.
+ * @ref sip_supported "Supported header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_supported_t header structure.
  *
  * @ingroup sip_supported
  */
@@ -781,17 +781,17 @@ SIP_DLL extern msg_hclass_t sip_supported_class[];
 enum { 
   /**@ingroup sip_unsupported @internal 
    *
-   * Hash of Unsupported header. 
+   * Hash of @ref sip_unsupported "Unsupported header".
    */
   sip_unsupported_hash = 37557 
 };
 
-/**Header class for SIP Unsupported header.
+/**Header class for @ref sip_unsupported "Unsupported header".
  * 
  * The header class sip_unsupported_class defines how a SIP
- * Unsupported header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_unsupported_t header structure.
+ * @ref sip_unsupported "Unsupported header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_unsupported_t header structure.
  *
  * @ingroup sip_unsupported
  */
@@ -802,17 +802,17 @@ SIP_DLL extern msg_hclass_t sip_unsupported_class[];
 enum { 
   /**@ingroup sip_event @internal 
    *
-   * Hash of Event header. 
+   * Hash of @ref sip_event "Event header".
    */
   sip_event_hash = 8274 
 };
 
-/**Header class for SIP Event header.
+/**Header class for @ref sip_event "Event header".
  * 
  * The header class sip_event_class defines how a SIP
- * Event header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_event_t header structure.
+ * @ref sip_event "Event header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_event_t header structure.
  *
  * @ingroup sip_event
  */
@@ -823,17 +823,17 @@ SIP_DLL extern msg_hclass_t sip_event_class[];
 enum { 
   /**@ingroup sip_allow_events @internal 
    *
-   * Hash of Allow-Events header. 
+   * Hash of @ref sip_allow_events "Allow-Events header".
    */
   sip_allow_events_hash = 31165 
 };
 
-/**Header class for SIP Allow-Events header.
+/**Header class for @ref sip_allow_events "Allow-Events header".
  * 
  * The header class sip_allow_events_class defines how a SIP
- * Allow-Events header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_allow_events_t header structure.
+ * @ref sip_allow_events "Allow-Events header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_allow_events_t header structure.
  *
  * @ingroup sip_allow_events
  */
@@ -844,17 +844,17 @@ SIP_DLL extern msg_hclass_t sip_allow_events_class[];
 enum { 
   /**@ingroup sip_subscription_state @internal 
    *
-   * Hash of Subscription-State header. 
+   * Hash of @ref sip_subscription_state "Subscription-State header".
    */
   sip_subscription_state_hash = 30595 
 };
 
-/**Header class for SIP Subscription-State header.
+/**Header class for @ref sip_subscription_state "Subscription-State header".
  * 
  * The header class sip_subscription_state_class defines how a SIP
- * Subscription-State header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_subscription_state_t header structure.
+ * @ref sip_subscription_state "Subscription-State header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_subscription_state_t header structure.
  *
  * @ingroup sip_subscription_state
  */
@@ -865,17 +865,17 @@ SIP_DLL extern msg_hclass_t sip_subscription_state_class[];
 enum { 
   /**@ingroup sip_proxy_authenticate @internal 
    *
-   * Hash of Proxy-Authenticate header. 
+   * Hash of @ref sip_proxy_authenticate "Proxy-Authenticate header".
    */
   sip_proxy_authenticate_hash = 57658 
 };
 
-/**Header class for SIP Proxy-Authenticate header.
+/**Header class for @ref sip_proxy_authenticate "Proxy-Authenticate header".
  * 
  * The header class sip_proxy_authenticate_class defines how a SIP
- * Proxy-Authenticate header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_proxy_authenticate_t header structure.
+ * @ref sip_proxy_authenticate "Proxy-Authenticate header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_proxy_authenticate_t header structure.
  *
  * @ingroup sip_proxy_authenticate
  */
@@ -886,17 +886,17 @@ SIP_DLL extern msg_hclass_t sip_proxy_authenticate_class[];
 enum { 
   /**@ingroup sip_proxy_authentication_info @internal 
    *
-   * Hash of Proxy-Authentication-Info header. 
+   * Hash of @ref sip_proxy_authentication_info "Proxy-Authentication-Info header".
    */
   sip_proxy_authentication_info_hash = 52344 
 };
 
-/**Header class for SIP Proxy-Authentication-Info header.
+/**Header class for @ref sip_proxy_authentication_info "Proxy-Authentication-Info header".
  * 
  * The header class sip_proxy_authentication_info_class defines how a SIP
- * Proxy-Authentication-Info header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_proxy_authentication_info_t header structure.
+ * @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_proxy_authentication_info_t header structure.
  *
  * @ingroup sip_proxy_authentication_info
  */
@@ -907,17 +907,17 @@ SIP_DLL extern msg_hclass_t sip_proxy_authentication_info_class[];
 enum { 
   /**@ingroup sip_proxy_authorization @internal 
    *
-   * Hash of Proxy-Authorization header. 
+   * Hash of @ref sip_proxy_authorization "Proxy-Authorization header".
    */
   sip_proxy_authorization_hash = 21244 
 };
 
-/**Header class for SIP Proxy-Authorization header.
+/**Header class for @ref sip_proxy_authorization "Proxy-Authorization header".
  * 
  * The header class sip_proxy_authorization_class defines how a SIP
- * Proxy-Authorization header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_proxy_authorization_t header structure.
+ * @ref sip_proxy_authorization "Proxy-Authorization header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_proxy_authorization_t header structure.
  *
  * @ingroup sip_proxy_authorization
  */
@@ -928,17 +928,17 @@ SIP_DLL extern msg_hclass_t sip_proxy_authorization_class[];
 enum { 
   /**@ingroup sip_authorization @internal 
    *
-   * Hash of Authorization header. 
+   * Hash of @ref sip_authorization "Authorization header".
    */
   sip_authorization_hash = 36397 
 };
 
-/**Header class for SIP Authorization header.
+/**Header class for @ref sip_authorization "Authorization header".
  * 
  * The header class sip_authorization_class defines how a SIP
- * Authorization header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_authorization_t header structure.
+ * @ref sip_authorization "Authorization header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_authorization_t header structure.
  *
  * @ingroup sip_authorization
  */
@@ -949,17 +949,17 @@ SIP_DLL extern msg_hclass_t sip_authorization_class[];
 enum { 
   /**@ingroup sip_www_authenticate @internal 
    *
-   * Hash of WWW-Authenticate header. 
+   * Hash of @ref sip_www_authenticate "WWW-Authenticate header".
    */
   sip_www_authenticate_hash = 16217 
 };
 
-/**Header class for SIP WWW-Authenticate header.
+/**Header class for @ref sip_www_authenticate "WWW-Authenticate header".
  * 
  * The header class sip_www_authenticate_class defines how a SIP
- * WWW-Authenticate header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_www_authenticate_t header structure.
+ * @ref sip_www_authenticate "WWW-Authenticate header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_www_authenticate_t header structure.
  *
  * @ingroup sip_www_authenticate
  */
@@ -970,17 +970,17 @@ SIP_DLL extern msg_hclass_t sip_www_authenticate_class[];
 enum { 
   /**@ingroup sip_authentication_info @internal 
    *
-   * Hash of Authentication-Info header. 
+   * Hash of @ref sip_authentication_info "Authentication-Info header".
    */
   sip_authentication_info_hash = 20849 
 };
 
-/**Header class for SIP Authentication-Info header.
+/**Header class for @ref sip_authentication_info "Authentication-Info header".
  * 
  * The header class sip_authentication_info_class defines how a SIP
- * Authentication-Info header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_authentication_info_t header structure.
+ * @ref sip_authentication_info "Authentication-Info header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_authentication_info_t header structure.
  *
  * @ingroup sip_authentication_info
  */
@@ -991,17 +991,17 @@ SIP_DLL extern msg_hclass_t sip_authentication_info_class[];
 enum { 
   /**@ingroup sip_error_info @internal 
    *
-   * Hash of Error-Info header. 
+   * Hash of @ref sip_error_info "Error-Info header".
    */
   sip_error_info_hash = 5263 
 };
 
-/**Header class for SIP Error-Info header.
+/**Header class for @ref sip_error_info "Error-Info header".
  * 
  * The header class sip_error_info_class defines how a SIP
- * Error-Info header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_error_info_t header structure.
+ * @ref sip_error_info "Error-Info header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_error_info_t header structure.
  *
  * @ingroup sip_error_info
  */
@@ -1012,17 +1012,17 @@ SIP_DLL extern msg_hclass_t sip_error_info_class[];
 enum { 
   /**@ingroup sip_warning @internal 
    *
-   * Hash of Warning header. 
+   * Hash of @ref sip_warning "Warning header".
    */
   sip_warning_hash = 4130 
 };
 
-/**Header class for SIP Warning header.
+/**Header class for @ref sip_warning "Warning header".
  * 
  * The header class sip_warning_class defines how a SIP
- * Warning header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_warning_t header structure.
+ * @ref sip_warning "Warning header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_warning_t header structure.
  *
  * @ingroup sip_warning
  */
@@ -1033,17 +1033,17 @@ SIP_DLL extern msg_hclass_t sip_warning_class[];
 enum { 
   /**@ingroup sip_refer_to @internal 
    *
-   * Hash of Refer-To header. 
+   * Hash of @ref sip_refer_to "Refer-To header".
    */
   sip_refer_to_hash = 52604 
 };
 
-/**Header class for SIP Refer-To header.
+/**Header class for @ref sip_refer_to "Refer-To header".
  * 
  * The header class sip_refer_to_class defines how a SIP
- * Refer-To header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_refer_to_t header structure.
+ * @ref sip_refer_to "Refer-To header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_refer_to_t header structure.
  *
  * @ingroup sip_refer_to
  */
@@ -1054,17 +1054,17 @@ SIP_DLL extern msg_hclass_t sip_refer_to_class[];
 enum { 
   /**@ingroup sip_referred_by @internal 
    *
-   * Hash of Referred-By header. 
+   * Hash of @ref sip_referred_by "Referred-By header".
    */
   sip_referred_by_hash = 11403 
 };
 
-/**Header class for SIP Referred-By header.
+/**Header class for @ref sip_referred_by "Referred-By header".
  * 
  * The header class sip_referred_by_class defines how a SIP
- * Referred-By header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_referred_by_t header structure.
+ * @ref sip_referred_by "Referred-By header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_referred_by_t header structure.
  *
  * @ingroup sip_referred_by
  */
@@ -1075,17 +1075,17 @@ SIP_DLL extern msg_hclass_t sip_referred_by_class[];
 enum { 
   /**@ingroup sip_replaces @internal 
    *
-   * Hash of Replaces header. 
+   * Hash of @ref sip_replaces "Replaces header".
    */
   sip_replaces_hash = 58083 
 };
 
-/**Header class for SIP Replaces header.
+/**Header class for @ref sip_replaces "Replaces header".
  * 
  * The header class sip_replaces_class defines how a SIP
- * Replaces header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_replaces_t header structure.
+ * @ref sip_replaces "Replaces header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_replaces_t header structure.
  *
  * @ingroup sip_replaces
  */
@@ -1096,17 +1096,17 @@ SIP_DLL extern msg_hclass_t sip_replaces_class[];
 enum { 
   /**@ingroup sip_session_expires @internal 
    *
-   * Hash of Session-Expires header. 
+   * Hash of @ref sip_session_expires "Session-Expires header".
    */
   sip_session_expires_hash = 61197 
 };
 
-/**Header class for SIP Session-Expires header.
+/**Header class for @ref sip_session_expires "Session-Expires header".
  * 
  * The header class sip_session_expires_class defines how a SIP
- * Session-Expires header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_session_expires_t header structure.
+ * @ref sip_session_expires "Session-Expires header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_session_expires_t header structure.
  *
  * @ingroup sip_session_expires
  */
@@ -1117,17 +1117,17 @@ SIP_DLL extern msg_hclass_t sip_session_expires_class[];
 enum { 
   /**@ingroup sip_min_se @internal 
    *
-   * Hash of Min-SE header. 
+   * Hash of @ref sip_min_se "Min-SE header".
    */
   sip_min_se_hash = 11565 
 };
 
-/**Header class for SIP Min-SE header.
+/**Header class for @ref sip_min_se "Min-SE header".
  * 
  * The header class sip_min_se_class defines how a SIP
- * Min-SE header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_min_se_t header structure.
+ * @ref sip_min_se "Min-SE header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_min_se_t header structure.
  *
  * @ingroup sip_min_se
  */
@@ -1138,17 +1138,17 @@ SIP_DLL extern msg_hclass_t sip_min_se_class[];
 enum { 
   /**@ingroup sip_path @internal 
    *
-   * Hash of Path header. 
+   * Hash of @ref sip_path "Path header".
    */
   sip_path_hash = 5705 
 };
 
-/**Header class for SIP Path header.
+/**Header class for @ref sip_path "Path header".
  * 
  * The header class sip_path_class defines how a SIP
- * Path header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_path_t header structure.
+ * @ref sip_path "Path header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_path_t header structure.
  *
  * @ingroup sip_path
  */
@@ -1159,17 +1159,17 @@ SIP_DLL extern msg_hclass_t sip_path_class[];
 enum { 
   /**@ingroup sip_service_route @internal 
    *
-   * Hash of Service-Route header. 
+   * Hash of @ref sip_service_route "Service-Route header".
    */
   sip_service_route_hash = 21825 
 };
 
-/**Header class for SIP Service-Route header.
+/**Header class for @ref sip_service_route "Service-Route header".
  * 
  * The header class sip_service_route_class defines how a SIP
- * Service-Route header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_service_route_t header structure.
+ * @ref sip_service_route "Service-Route header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_service_route_t header structure.
  *
  * @ingroup sip_service_route
  */
@@ -1180,17 +1180,17 @@ SIP_DLL extern msg_hclass_t sip_service_route_class[];
 enum { 
   /**@ingroup sip_reason @internal 
    *
-   * Hash of Reason header. 
+   * Hash of @ref sip_reason "Reason header".
    */
   sip_reason_hash = 13856 
 };
 
-/**Header class for SIP Reason header.
+/**Header class for @ref sip_reason "Reason header".
  * 
  * The header class sip_reason_class defines how a SIP
- * Reason header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_reason_t header structure.
+ * @ref sip_reason "Reason header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_reason_t header structure.
  *
  * @ingroup sip_reason
  */
@@ -1201,17 +1201,17 @@ SIP_DLL extern msg_hclass_t sip_reason_class[];
 enum { 
   /**@ingroup sip_security_client @internal 
    *
-   * Hash of Security-Client header. 
+   * Hash of @ref sip_security_client "Security-Client header".
    */
   sip_security_client_hash = 572 
 };
 
-/**Header class for SIP Security-Client header.
+/**Header class for @ref sip_security_client "Security-Client header".
  * 
  * The header class sip_security_client_class defines how a SIP
- * Security-Client header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_security_client_t header structure.
+ * @ref sip_security_client "Security-Client header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_security_client_t header structure.
  *
  * @ingroup sip_security_client
  */
@@ -1222,17 +1222,17 @@ SIP_DLL extern msg_hclass_t sip_security_client_class[];
 enum { 
   /**@ingroup sip_security_server @internal 
    *
-   * Hash of Security-Server header. 
+   * Hash of @ref sip_security_server "Security-Server header".
    */
   sip_security_server_hash = 20148 
 };
 
-/**Header class for SIP Security-Server header.
+/**Header class for @ref sip_security_server "Security-Server header".
  * 
  * The header class sip_security_server_class defines how a SIP
- * Security-Server header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_security_server_t header structure.
+ * @ref sip_security_server "Security-Server header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_security_server_t header structure.
  *
  * @ingroup sip_security_server
  */
@@ -1243,17 +1243,17 @@ SIP_DLL extern msg_hclass_t sip_security_server_class[];
 enum { 
   /**@ingroup sip_security_verify @internal 
    *
-   * Hash of Security-Verify header. 
+   * Hash of @ref sip_security_verify "Security-Verify header".
    */
   sip_security_verify_hash = 29234 
 };
 
-/**Header class for SIP Security-Verify header.
+/**Header class for @ref sip_security_verify "Security-Verify header".
  * 
  * The header class sip_security_verify_class defines how a SIP
- * Security-Verify header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_security_verify_t header structure.
+ * @ref sip_security_verify "Security-Verify header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_security_verify_t header structure.
  *
  * @ingroup sip_security_verify
  */
@@ -1264,17 +1264,17 @@ SIP_DLL extern msg_hclass_t sip_security_verify_class[];
 enum { 
   /**@ingroup sip_privacy @internal 
    *
-   * Hash of Privacy header. 
+   * Hash of @ref sip_privacy "Privacy header".
    */
   sip_privacy_hash = 13834 
 };
 
-/**Header class for SIP Privacy header.
+/**Header class for @ref sip_privacy "Privacy header".
  * 
  * The header class sip_privacy_class defines how a SIP
- * Privacy header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_privacy_t header structure.
+ * @ref sip_privacy "Privacy header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_privacy_t header structure.
  *
  * @ingroup sip_privacy
  */
@@ -1285,17 +1285,17 @@ SIP_DLL extern msg_hclass_t sip_privacy_class[];
 enum { 
   /**@ingroup sip_etag @internal 
    *
-   * Hash of SIP-ETag header. 
+   * Hash of @ref sip_etag "SIP-ETag header".
    */
   sip_etag_hash = 64478 
 };
 
-/**Header class for SIP SIP-ETag header.
+/**Header class for @ref sip_etag "SIP-ETag header".
  * 
  * The header class sip_etag_class defines how a SIP
- * SIP-ETag header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_etag_t header structure.
+ * @ref sip_etag "SIP-ETag header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_etag_t header structure.
  *
  * @ingroup sip_etag
  */
@@ -1306,17 +1306,17 @@ SIP_DLL extern msg_hclass_t sip_etag_class[];
 enum { 
   /**@ingroup sip_if_match @internal 
    *
-   * Hash of SIP-If-Match header. 
+   * Hash of @ref sip_if_match "SIP-If-Match header".
    */
   sip_if_match_hash = 26974 
 };
 
-/**Header class for SIP SIP-If-Match header.
+/**Header class for @ref sip_if_match "SIP-If-Match header".
  * 
  * The header class sip_if_match_class defines how a SIP
- * SIP-If-Match header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_if_match_t header structure.
+ * @ref sip_if_match "SIP-If-Match header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_if_match_t header structure.
  *
  * @ingroup sip_if_match
  */
@@ -1327,17 +1327,17 @@ SIP_DLL extern msg_hclass_t sip_if_match_class[];
 enum { 
   /**@ingroup sip_mime_version @internal 
    *
-   * Hash of MIME-Version header. 
+   * Hash of @ref sip_mime_version "MIME-Version header".
    */
   sip_mime_version_hash = 49047 
 };
 
-/**Header class for SIP MIME-Version header.
+/**Header class for @ref sip_mime_version "MIME-Version header".
  * 
  * The header class sip_mime_version_class defines how a SIP
- * MIME-Version header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_mime_version_t header structure.
+ * @ref sip_mime_version "MIME-Version header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_mime_version_t header structure.
  *
  * @ingroup sip_mime_version
  */
@@ -1348,17 +1348,17 @@ SIP_DLL extern msg_hclass_t sip_mime_version_class[];
 enum { 
   /**@ingroup sip_content_type @internal 
    *
-   * Hash of Content-Type header. 
+   * Hash of @ref sip_content_type "Content-Type header".
    */
   sip_content_type_hash = 51226 
 };
 
-/**Header class for SIP Content-Type header.
+/**Header class for @ref sip_content_type "Content-Type header".
  * 
  * The header class sip_content_type_class defines how a SIP
- * Content-Type header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_content_type_t header structure.
+ * @ref sip_content_type "Content-Type header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_content_type_t header structure.
  *
  * @ingroup sip_content_type
  */
@@ -1369,17 +1369,17 @@ SIP_DLL extern msg_hclass_t sip_content_type_class[];
 enum { 
   /**@ingroup sip_content_encoding @internal 
    *
-   * Hash of Content-Encoding header. 
+   * Hash of @ref sip_content_encoding "Content-Encoding header".
    */
   sip_content_encoding_hash = 8707 
 };
 
-/**Header class for SIP Content-Encoding header.
+/**Header class for @ref sip_content_encoding "Content-Encoding header".
  * 
  * The header class sip_content_encoding_class defines how a SIP
- * Content-Encoding header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_content_encoding_t header structure.
+ * @ref sip_content_encoding "Content-Encoding header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_content_encoding_t header structure.
  *
  * @ingroup sip_content_encoding
  */
@@ -1390,17 +1390,17 @@ SIP_DLL extern msg_hclass_t sip_content_encoding_class[];
 enum { 
   /**@ingroup sip_content_language @internal 
    *
-   * Hash of Content-Language header. 
+   * Hash of @ref sip_content_language "Content-Language header".
    */
   sip_content_language_hash = 62108 
 };
 
-/**Header class for SIP Content-Language header.
+/**Header class for @ref sip_content_language "Content-Language header".
  * 
  * The header class sip_content_language_class defines how a SIP
- * Content-Language header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_content_language_t header structure.
+ * @ref sip_content_language "Content-Language header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_content_language_t header structure.
  *
  * @ingroup sip_content_language
  */
@@ -1411,17 +1411,17 @@ SIP_DLL extern msg_hclass_t sip_content_language_class[];
 enum { 
   /**@ingroup sip_content_disposition @internal 
    *
-   * Hash of Content-Disposition header. 
+   * Hash of @ref sip_content_disposition "Content-Disposition header".
    */
   sip_content_disposition_hash = 16333 
 };
 
-/**Header class for SIP Content-Disposition header.
+/**Header class for @ref sip_content_disposition "Content-Disposition header".
  * 
  * The header class sip_content_disposition_class defines how a SIP
- * Content-Disposition header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_content_disposition_t header structure.
+ * @ref sip_content_disposition "Content-Disposition header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_content_disposition_t header structure.
  *
  * @ingroup sip_content_disposition
  */
@@ -1432,17 +1432,17 @@ SIP_DLL extern msg_hclass_t sip_content_disposition_class[];
 enum { 
   /**@ingroup sip_content_length @internal 
    *
-   * Hash of Content-Length header. 
+   * Hash of @ref sip_content_length "Content-Length header".
    */
   sip_content_length_hash = 8402 
 };
 
-/**Header class for SIP Content-Length header.
+/**Header class for @ref sip_content_length "Content-Length header".
  * 
  * The header class sip_content_length_class defines how a SIP
- * Content-Length header is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_content_length_t header structure.
+ * @ref sip_content_length "Content-Length header" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_content_length_t header structure.
  *
  * @ingroup sip_content_length
  */
@@ -1453,17 +1453,17 @@ SIP_DLL extern msg_hclass_t sip_content_length_class[];
 enum { 
   /**@ingroup sip_unknown @internal 
    *
-   * Hash of unknown headers. 
+   * Hash of @ref sip_unknown "unknown headers".
    */
   sip_unknown_hash = -3 
 };
 
-/**Header class for SIP unknown headers.
+/**Header class for @ref sip_unknown "unknown headers".
  * 
  * The header class sip_unknown_class defines how a SIP
- * unknown headers is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_unknown_t header structure.
+ * @ref sip_unknown "unknown headers" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_unknown_t header structure.
  *
  * @ingroup sip_unknown
  */
@@ -1474,17 +1474,17 @@ SIP_DLL extern msg_hclass_t sip_unknown_class[];
 enum { 
   /**@ingroup sip_error @internal 
    *
-   * Hash of erroneous headers. 
+   * Hash of @ref sip_error "erroneous headers".
    */
   sip_error_hash = -4 
 };
 
-/**Header class for SIP erroneous headers.
+/**Header class for @ref sip_error "erroneous headers".
  * 
  * The header class sip_error_class defines how a SIP
- * erroneous headers is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_error_t header structure.
+ * @ref sip_error "erroneous headers" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_error_t header structure.
  *
  * @ingroup sip_error
  */
@@ -1495,17 +1495,17 @@ SIP_DLL extern msg_hclass_t sip_error_class[];
 enum { 
   /**@ingroup sip_separator @internal 
    *
-   * Hash of separator line between headers and payload. 
+   * Hash of @ref sip_separator "separator line between headers and payload".
    */
   sip_separator_hash = -5 
 };
 
-/**Header class for SIP separator line between headers and payload.
+/**Header class for @ref sip_separator "separator line between headers and payload".
  * 
  * The header class sip_separator_class defines how a SIP
- * separator line between headers and payload is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_separator_t header structure.
+ * @ref sip_separator "separator line between headers and payload" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_separator_t header structure.
  *
  * @ingroup sip_separator
  */
@@ -1516,17 +1516,17 @@ SIP_DLL extern msg_hclass_t sip_separator_class[];
 enum { 
   /**@ingroup sip_payload @internal 
    *
-   * Hash of message payload. 
+   * Hash of @ref sip_payload "message payload".
    */
   sip_payload_hash = -6 
 };
 
-/**Header class for SIP message payload.
+/**Header class for @ref sip_payload "message payload".
  * 
  * The header class sip_payload_class defines how a SIP
- * message payload is parsed and printed.  It also
- * contains methods used by SIP parser and other functions
- * to manipulate the sip_payload_t header structure.
+ * @ref sip_payload "message payload" is parsed and printed.
+ * It also contains methods used by SIP parser and other functions to
+ * manipulate the #sip_payload_t header structure.
  *
  * @ingroup sip_payload
  */

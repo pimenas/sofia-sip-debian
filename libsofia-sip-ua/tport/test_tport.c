@@ -261,6 +261,8 @@ static int test_msg_md5(tp_test_t *tt, msg_t *msg)
   END();
 }
 
+#define TPORT_TEST_VERSION MSG_TEST_VERSION_CURRENT
+
 static int new_test_msg(tp_test_t *tt, msg_t **retval, 
 			char const *ident,
 			int N, int len)
@@ -290,7 +292,7 @@ static int new_test_msg(tp_test_t *tt, msg_t **retval,
 
   TEST(msg_maxsize(msg, 1024 + N * len), 0);
 
-  TEST_1(rq = msg_request_make(home, "DO im:foo@faa MSG/1.0"));
+  TEST_1(rq = msg_request_make(home, "DO im:foo@faa " TPORT_TEST_VERSION));
   TEST(msg_header_insert(msg, (void *)tst, (msg_header_t *)rq), 0);
 
   TEST_1(u = msg_unknown_make(home, "Foo: faa"));
@@ -322,7 +324,7 @@ static int new_test_msg(tp_test_t *tt, msg_t **retval,
     su_md5_update(md5sum, payload->pl_data, payload->pl_len);
   }
 
-  TEST_1(l = msg_content_length_format(home, "%u", N * payload->pl_len));
+  TEST_1(l = msg_content_length_format(home, MOD_ZU, (size_t)(N * payload->pl_len)));
   TEST(msg_header_insert(msg, (void *)tst, (msg_header_t *)l), 0);
 
   su_md5_digest(md5sum, digest);
@@ -387,7 +389,7 @@ static void tp_test_error(tp_test_t *tt,
 }
 
 msg_t *tp_test_msg(tp_test_t *tt, int flags,
-		   char const data[], unsigned size,
+		   char const data[], usize_t size,
 		   tport_t const *tp, 
 		   tp_client_t *tpc)
 {
@@ -464,7 +466,7 @@ static int init_test(tp_test_t *tt)
 #endif
   tp_name_t const *tpn;
   tport_t *tp;
-  int idle;
+  unsigned idle;
 
   BEGIN();
 
@@ -559,7 +561,7 @@ static int init_test(tp_test_t *tt)
     *rname = *myname;
 
     memset(su, 0, sulen = sizeof(su->su_sin));
-    s = socket(su->su_family = AF_INET, SOCK_STREAM, 0); TEST_1(s != -1);
+    s = su_socket(su->su_family = AF_INET, SOCK_STREAM, 0); TEST_1(s != -1);
     TEST_1(bind(s, &su->su_sa, sulen) != -1);
     TEST_1(listen(s, 5) != -1);
     TEST_1(getsockname(s, &su->su_sa, &sulen) != -1);
@@ -723,7 +725,7 @@ static int udp_test(tp_test_t *tt)
   TEST_1(tst = msg_test_public(msg));
   TEST_1(home = msg_home(msg));
 
-  TEST_1(rq = msg_request_make(home, "DO im:foo@faa MSG/1.0"));
+  TEST_1(rq = msg_request_make(home, "DO im:foo@faa " TPORT_TEST_VERSION));
   TEST(msg_header_insert(msg, (void *)tst, (msg_header_t *)rq), 0);
 
   TEST_1(u = msg_unknown_make(home, "Foo: faa"));
@@ -732,7 +734,7 @@ static int udp_test(tp_test_t *tt)
   TEST_1(pl = msg_payload_make(home, payload));
   TEST(msg_header_insert(msg, (void *)tst, (msg_header_t *)pl), 0);
 
-  TEST_1(l = msg_content_length_format(home, "%u", pl->pl_len));
+  TEST_1(l = msg_content_length_format(home, MOD_ZU, (size_t)pl->pl_len));
   TEST(msg_header_insert(msg, (void *)tst, (msg_header_t *)l), 0);
 
   TEST_1(md5 = msg_content_md5_make(home, "R6nitdrtJFpxYzrPaSXfrA=="));
@@ -798,7 +800,7 @@ static int tcp_test(tp_test_t *tt)
   for (i = 1; i < TPORT_QUEUESIZE; i++) {
     snprintf(ident, sizeof ident, "tcp-%u", i);
 
-    TEST(new_test_msg(tt, &msg, ident, 1, 1024), 0);
+    TEST(new_test_msg(tt, &msg, ident, 1, 64 * 1024), 0);
     TEST_1(tp = tport_tsend(tt->tt_tports, msg, tt->tt_tcp_name, TAG_END()));
     TEST_S(tport_name(tp)->tpn_ident, "client");
     TEST(tport_incref(tp), tp0); tport_decref(&tp);
@@ -817,10 +819,12 @@ static int tcp_test(tp_test_t *tt)
   test_check_md5(tt, tt->tt_rmsg);
   msg_destroy(tt->tt_rmsg), tt->tt_rmsg = NULL;
 
-  snprintf(ident, sizeof ident, "tcp-%u", tt->tt_received);
-  TEST(tport_test_run(tt, 5), 1);
-  TEST_1(!check_msg(tt, tt->tt_rmsg, ident));
-  msg_destroy(tt->tt_rmsg), tt->tt_rmsg = NULL;
+  if (tt->tt_received < TPORT_QUEUESIZE) { /* We have not received it all */
+    snprintf(ident, sizeof ident, "tcp-%u", tt->tt_received);
+    TEST(tport_test_run(tt, 5), 1);
+    TEST_1(!check_msg(tt, tt->tt_rmsg, ident));
+    msg_destroy(tt->tt_rmsg), tt->tt_rmsg = NULL;
+  }
 
   /* This uses a new connection */
   TEST_1(!new_test_msg(tt, &msg, "tcp-no-reuse", 1, 1024));

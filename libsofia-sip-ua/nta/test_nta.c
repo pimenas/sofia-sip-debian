@@ -58,6 +58,7 @@ typedef struct agent_t agent_t;
 #include <sofia-sip/sresolv.h>
 #include <sofia-sip/su_log.h>
 #include <sofia-sip/sofia_features.h>
+#include <sofia-sip/hostdomain.h>
 
 #include <sofia-sip/string0.h>
 
@@ -152,12 +153,12 @@ struct agent_t {
 
   /* Dummy servers */
   char const     *ag_sink_port;
-  int             ag_sink_socket;
-  int             ag_down_socket;
+  su_socket_t     ag_sink_socket, ag_down_socket;
 };
 
 static int test_init(agent_t *ag, char const *resolv_conf);
 static int test_deinit(agent_t *ag);
+static int test_bad_messages(agent_t *ag);
 static int test_routing(agent_t *ag);
 static int test_tports(agent_t *ag);
 static int test_resolv(agent_t *ag, char const *resolv_conf);
@@ -423,8 +424,9 @@ int test_init(agent_t *ag, char const *resolv_conf)
 {
   char const *contact = "sip:*:*;comp=sigcomp";
   su_sockaddr_t su;
-  socklen_t sulen;
-  int s, af, sulen0;
+  socklen_t sulen, sulen0;
+  su_socket_t s; 
+  int af;
 
   BEGIN();
 
@@ -452,7 +454,7 @@ int test_init(agent_t *ag, char const *resolv_conf)
     contact = getenv("SIPCONTACT");
 
   /* Sink server */
-  s = socket(af, SOCK_DGRAM, 0); TEST_1(s != -1);
+  s = socket(af, SOCK_DGRAM, 0); TEST_1(s != INVALID_SOCKET);
   memset(&su, 0, sulen = sulen0);
   su.su_family = af;
   if (getenv("sink")) {
@@ -465,7 +467,7 @@ int test_init(agent_t *ag, char const *resolv_conf)
   ag->ag_sink_socket = s;
 
   /* Down server */
-  s = socket(af, SOCK_STREAM, 0); TEST_1(s != -1);
+  s = socket(af, SOCK_STREAM, 0); TEST_1(s != INVALID_SOCKET);
   memset(&su, 0, sulen = sulen0);
   su.su_family = af;
   if (getenv("down")) {
@@ -486,12 +488,6 @@ int test_init(agent_t *ag, char const *resolv_conf)
 					 NTATAG_USE_SRV(0),
 					 NTATAG_PRELOAD(2048),
 					 TAG_END()));
-  /* Create a default leg */
-  TEST_1(ag->ag_default_leg = nta_leg_tcreate(ag->ag_agent, 
-					     leg_callback_200,
-					     ag,
-					     NTATAG_NO_DIALOG(1),
-					     TAG_END()));
 
   {
     /* Initialize our headers */
@@ -561,8 +557,9 @@ int test_init(agent_t *ag, char const *resolv_conf)
 			      NTATAG_UA(1), 
 			      NTATAG_USE_NAPTR(1),
 			      NTATAG_USE_SRV(1),
+			      NTATAG_MAX_FORWARDS(20),
 			      TAG_END()),
-	 5);
+	 6);
 
     TEST(nta_agent_set_params(ag->ag_agent, 
 			      NTATAG_ALIASES(ag->ag_aliases),
@@ -620,6 +617,145 @@ int test_deinit(agent_t *ag)
   END();
 }  
 
+static
+int readfile(FILE *f, void **contents)
+{
+  /* Read in whole (binary!) file */
+  char *buffer = NULL;
+  long size;
+  int len = -1;
+  
+  /* Read whole file in */
+  if (fseek(f, 0, SEEK_END) < 0 ||
+      (size = ftell(f)) < 0 ||
+      fseek(f, 0, SEEK_SET) < 0 ||
+      (long)(len = size) != size) {
+    fprintf(stderr, "%s: unable to determine file size (%s)\n", 
+	    __func__, strerror(errno));
+    return -1;
+  }
+
+  if (!(buffer = malloc(len + 2)) ||
+      fread(buffer, 1, len, f) != len) {
+    fprintf(stderr, "%s: unable to read file (%s)\n", __func__, strerror(errno));
+    if (buffer)
+      free(buffer);
+    return -1;
+  }
+
+  buffer[len] = '\0';
+
+  *contents = buffer;
+
+  return len;
+}
+
+#if HAVE_DIRENT_H
+#include <dirent.h>
+#endif 
+
+static int test_bad_messages(agent_t *ag)
+{
+#if HAVE_DIRENT_H
+  DIR *dir;
+  struct dirent *d;
+  char name[PATH_MAX + 1] = "../sip/tests/";
+  size_t offset;
+  char const *host, *port;
+  su_addrinfo_t *ai,  hints[1];
+  su_socket_t s;
+  su_sockaddr_t su[1];
+  socklen_t sulen;
+  char via[64];
+  size_t vlen;
+  int i;
+
+  dir = opendir(name);
+  if (dir == NULL && getenv("srcdir")) {
+    strncpy(name, getenv("srcdir"), PATH_MAX);
+    strncat(name, "/../sip/tests/", PATH_MAX);
+    dir = opendir(name);
+  }
+
+  if (dir == NULL) {
+    fprintf(stderr, "test_nta: cannot find sip torture messages\n"); 
+    fprintf(stderr, "test_nta: tried %s\n", name); 
+    return 0;
+  }
+
+  offset = strlen(name);
+
+  BEGIN();
+
+  TEST_1(ag->ag_default_leg = nta_leg_tcreate(ag->ag_agent, 
+					      leg_callback_500,
+					      ag,
+					      NTATAG_NO_DIALOG(1),
+					      TAG_END()));
+
+  host = ag->ag_contact->m_url->url_host;
+  if (host_is_ip6_reference(host)) {
+    host = strcpy(via, host + 1);
+    via[strlen(via) - 1] = '\0';
+  }
+  port = url_port(ag->ag_contact->m_url);
+
+  memset(hints, 0, sizeof hints);
+  hints->ai_socktype = SOCK_DGRAM;
+  hints->ai_protocol = IPPROTO_UDP;
+  
+  TEST(su_getaddrinfo(host, port, hints, &ai), 0); TEST_1(ai);
+  s = su_socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol); TEST_1(s != -1);
+  memset(su, 0, sulen = sizeof su); 
+  su->su_len = sizeof su; su->su_family = ai->ai_family;
+  TEST_1(bind(s, &su->su_sa, sulen) == 0);
+  TEST_1(getsockname(s, &su->su_sa, &sulen) == 0);
+  sprintf(via, "v: SIP/2.0/UDP is.invalid:%u\r\n", ntohs(su->su_port));
+  vlen = strlen(via);
+
+  for (d = readdir(dir); d; d = readdir(dir)) {
+    size_t len = strlen(d->d_name);
+    FILE *f;
+    int blen, n;
+    void *buffer; char *r;
+
+    if (len < strlen(".txt"))
+      continue;
+    if (strcmp(d->d_name + len - strlen(".txt"), ".txt"))
+      continue;
+    strncpy(name + offset, d->d_name, PATH_MAX - offset);
+    TEST_1(f = fopen(name, "rb"));
+    TEST_1((blen = readfile(f, &buffer)) > 0);
+    r = buffer;
+
+    if (strncmp(r, "JUNK ", 5) == 0) {
+      TEST(sendto(s, r, blen, 0, ai->ai_addr, ai->ai_addrlen), blen);
+    }
+    else if (strncmp(r, "INVITE ", 7) != 0) {
+      su_iovec_t vec[3];
+      n = strcspn(r, "\r\n"); n += strspn(r + n, "\r\n");
+      vec[0].siv_base = r, vec[0].siv_len = n;
+      vec[1].siv_base = via, vec[1].siv_len = vlen;
+      vec[2].siv_base = r + n, vec[2].siv_len = blen - n;
+      TEST(su_vsend(s, vec, 3, 0, (void *)ai->ai_addr, ai->ai_addrlen),
+	   blen + vlen);
+    }
+    free(buffer);
+    su_root_step(ag->ag_root, 1);
+  }
+
+  su_close(s);
+
+  for (i = 0; i < 20; i++)
+    su_root_step(ag->ag_root, 1);
+
+  nta_leg_destroy(ag->ag_default_leg), ag->ag_default_leg = NULL;
+
+  END();
+#else
+  return 0;
+#endif /* HAVE_DIRENT_H */
+}
 
 static unsigned char const code[] = 
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -663,6 +799,14 @@ int test_tports(agent_t *ag)
   url->url_params = "transport=tcp";
 
   url->url_params = "transport=udp";
+
+  /* Create a new default leg */
+  nta_leg_destroy(ag->ag_default_leg), ag->ag_default_leg = NULL;
+  TEST_1(ag->ag_default_leg = nta_leg_tcreate(ag->ag_agent, 
+					     leg_callback_200,
+					     ag,
+					     NTATAG_NO_DIALOG(1),
+					     TAG_END()));
 
   TEST_1(nta_agent_add_tport(ag->ag_agent, (url_string_t *)url, 
 			     TAG_END()) == 0);
@@ -2273,6 +2417,7 @@ int test_call(agent_t *ag)
   sip_content_type_t *c = ag->ag_content_type;
   sip_payload_t      *sdp = ag->ag_payload;
   nta_leg_t *old_leg;
+  sip_replaces_t *r1, *r2;
 
   BEGIN();
 
@@ -2317,6 +2462,13 @@ int test_call(agent_t *ag)
   TEST(ag->ag_orq, NULL);
   TEST(ag->ag_latest_leg, ag->ag_server_leg);
   TEST_1(ag->ag_bob_leg != NULL);
+
+  TEST_1(r1 = nta_leg_make_replaces(ag->ag_alice_leg, ag->ag_home, 0));
+  TEST_1(r2 = sip_replaces_format(ag->ag_home, "%s;from-tag=%s;to-tag=%s",
+				  r1->rp_call_id, r1->rp_to_tag, r1->rp_from_tag));
+
+  TEST(ag->ag_alice_leg, nta_leg_by_replaces(ag->ag_agent, r2));
+  TEST(ag->ag_bob_leg, nta_leg_by_replaces(ag->ag_agent, r1));
 
   /* Re-INVITE from Bob to Alice.
    *
@@ -2992,6 +3144,7 @@ int main(int argc, char *argv[])
 
   retval |= test_init(ag, argv[i]); SINGLE_FAILURE_CHECK();
   if (retval == 0) {
+    retval |= test_bad_messages(ag); SINGLE_FAILURE_CHECK();
     retval |= test_tports(ag); SINGLE_FAILURE_CHECK();
     retval |= test_resolv(ag, argv[i]); SINGLE_FAILURE_CHECK();
     retval |= test_routing(ag); SINGLE_FAILURE_CHECK();

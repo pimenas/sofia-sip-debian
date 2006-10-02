@@ -22,7 +22,7 @@
  *
  */
 
-/**@CFILE tport_connect.c Transport using HTTP CONNECT.
+/**@CFILE tport_type_tcp.c TCP Transport
  *
  * See tport.docs for more detailed description of tport interface.
  *
@@ -108,7 +108,7 @@ int tport_tcp_init_primary(tport_primary_t *pri,
 
   socket = su_socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 
-  if (socket == SOCKET_ERROR)
+  if (socket == INVALID_SOCKET)
     return *return_culprit = "socket", -1;
 
   tport_tcp_setsndbuf(socket, 64 * 1024);
@@ -131,7 +131,7 @@ int tport_stream_init_primary(tport_primary_t *pri,
   su_setreuseaddr(socket, 1);
 #endif
 
-  if (tport_bind_socket(socket, ai, return_culprit) == SOCKET_ERROR)
+  if (tport_bind_socket(socket, ai, return_culprit) == -1)
     return -1;
 
   if (listen(socket, pri->pri_params->tpp_qsize) == SOCKET_ERROR)
@@ -215,7 +215,8 @@ static int tport_tcp_setsndbuf(int socket, int atleast)
 int tport_recv_stream(tport_t *self)
 {
   msg_t *msg;
-  int n, N, veclen, err;
+  ssize_t n, N, veclen;
+  int err;
   msg_iovec_t iovec[msg_n_fragments] = {{ 0 }};
 
   N = su_getmsgsize(self->tp_socket);
@@ -232,12 +233,12 @@ int tport_recv_stream(tport_t *self)
   }
 
   veclen = tport_recv_iovec(self, &self->tp_msg, iovec, N, 0);
-  if (veclen < 0)
+  if (veclen == -1)
     return -1;
 
   msg = self->tp_msg;
 
-  msg_set_address(msg, self->tp_addr, self->tp_addrlen);
+  msg_set_address(msg, self->tp_addr, (socklen_t)(self->tp_addrlen));
 
   n = su_vrecv(self->tp_socket, iovec, veclen, 0, NULL, NULL);
   if (n == SOCKET_ERROR)
@@ -255,11 +256,11 @@ int tport_recv_stream(tport_t *self)
   return 1;
 }
 
-int tport_send_stream(tport_t const *self, msg_t *msg, 
-		      msg_iovec_t iov[], 
-		      int iovused)
+ssize_t tport_send_stream(tport_t const *self, msg_t *msg, 
+			  msg_iovec_t iov[], 
+			  size_t iovused)
 {
-#if __sun__			/* XXX - there must be better way... */
+#if __sun__			/* XXX - there must be a better way... */
   if (iovused > 16)
     iovused = 16;
 #endif

@@ -42,6 +42,7 @@
 
 #include "sofia-sip/nua_glib.h"
 #include "nua_glib_priv.h"
+#include "nua_glib_op.h"
 #include "nua_glib_marshal.h"
 
 /*=============== Class and Object init ===============*/
@@ -72,6 +73,7 @@ enum
   NGSIG_PUBLISH_ANSWERED,
   NGSIG_INVITE_ANSWERED,
   NGSIG_BYE_ANSWERED,
+  NGSIG_CANCEL_ANSWERED,
   NGSIG_MESSAGE_ANSWERED,
   NGSIG_INFO_ANSWERED,
   NGSIG_REFER_ANSWERED,
@@ -84,6 +86,8 @@ enum
 
   NGSIG_LAST_SIGNAL
 };
+
+/*=============== Static variables ===============*/
 
 static guint signals[NGSIG_LAST_SIGNAL] = {0};
 
@@ -98,17 +102,155 @@ enum
   LAST_PROPERTY
 };
 
-void final_shutdown(NuaGlib *self)
-{
-  g_object_unref(self);
-}
-
 static GObjectClass *parent_class=NULL;  
+
+/*=============== Private function declarations ===============*/
 
 static int sof_init(NuaGlibPrivate *priv, const char *contact);
 static void priv_submit_authlist(NuaGlibOp *op);
 static void priv_oper_handle_auth (NuaGlib *self, NuaGlibOp *op, sip_t const *sip, tagi_t *tags);
 static void priv_oper_check_response_for_auth(NuaGlib *self, NuaGlibOp *op, int status, sip_t const *sip, tagi_t *tags);
+static void sof_callback(nua_event_t event,
+		  int status, char const *phrase,
+		  nua_t *nua, NuaGlib *self,
+		  nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		  tagi_t tags[]);
+
+static void sof_r_register(int status, char const *phrase,
+		      nua_t *nua, NuaGlib *self,
+		      nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		      tagi_t tags[]);
+
+static void sof_r_unregister(int status, char const *phrase,
+		      nua_t *nua, NuaGlib *self,
+		      nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		      tagi_t tags[]);
+
+static void sof_r_publish(int status, char const *phrase,
+		   nua_t *nua, NuaGlib *self,
+		   nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		   tagi_t tags[]);
+
+static void sof_r_invite(int status, char const *phrase,
+		  nua_t *nua, NuaGlib *self,
+		  nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		  tagi_t tags[]);
+static void sof_i_fork(int status, char const *phrase,
+		nua_t *nua, NuaGlib *self,
+		nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		tagi_t tags[]);
+
+static void sof_i_invite(nua_t *nua, NuaGlib *self,
+			 nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+			 tagi_t tags[]);
+
+static void sof_i_state(int status, char const *phrase, 
+			nua_t *nua, NuaGlib *self,
+			nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+			tagi_t tags[]);
+
+static void sof_i_active(nua_t *nua, NuaGlib *self,
+		    nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		    tagi_t tags[]);
+
+static void sof_i_terminated(int status, char const *phrase, 
+		      nua_t *nua, NuaGlib *self,
+		      nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		      tagi_t tags[]);
+
+static void sof_i_prack(nua_t *nua, NuaGlib *self,
+		 nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		 tagi_t tags[]);
+
+static void sof_r_bye(int status, char const *phrase, 
+		      nua_t *nua, NuaGlib *self,
+		      nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		      tagi_t tags[]);
+
+static void sof_i_bye(nua_t *nua, NuaGlib *self,
+		 nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		 tagi_t tags[]);
+
+static void sof_i_cancel(nua_t *nua, NuaGlib *self,
+		    nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		    tagi_t tags[]);
+
+static void sof_r_cancel(int status, char const *phrase, 
+			 nua_t *nua, NuaGlib *self,
+			 nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+			 tagi_t tags[]);
+
+static void sof_r_message(int status, char const *phrase,
+		   nua_t *nua, NuaGlib *self,
+		   nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		   tagi_t tags[]);
+
+static void sof_i_message(nua_t *nua, NuaGlib *self,
+		   nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		   tagi_t tags[]);
+
+static void sof_r_info(int status, char const *phrase,
+		nua_t *nua, NuaGlib *self,
+		nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		tagi_t tags[]);
+
+static void sof_i_info(nua_t *nua, NuaGlib *self,
+		nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		tagi_t tags[]);
+
+static void sof_r_refer(int status, char const *phrase,
+		   nua_t *nua, NuaGlib *self,
+		   nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		   tagi_t tags[]);
+
+static void sof_i_refer(nua_t *nua, NuaGlib *self,
+		   nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		   tagi_t tags[]);
+
+static void sof_r_subscribe(int status, char const *phrase,
+		     nua_t *nua, NuaGlib *self,
+		     nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		     tagi_t tags[]);
+
+static void sof_r_unsubscribe(int status, char const *phrase,
+		       nua_t *nua, NuaGlib *self,
+		       nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		       tagi_t tags[]);
+
+static void sof_r_notify(int status, char const *phrase,
+		   nua_t *nua, NuaGlib *self,
+		   nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		   tagi_t tags[]);
+
+static void sof_i_notify(nua_t *nua, NuaGlib *self,
+		    nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		    tagi_t tags[]);
+
+static void sof_r_options(int status, char const *phrase,
+		   nua_t *nua, NuaGlib *self,
+		   nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		   tagi_t tags[]);
+
+static void sof_r_shutdown(int status, char const *phrase, 
+		    nua_t *nua, NuaGlib *self,
+		    nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		    tagi_t tags[]);
+
+static void sof_r_get_params(int status, char const *phrase,
+		      nua_t *nua, NuaGlib *self,
+		      nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		      tagi_t tags[]);
+
+static void sof_i_error(nua_t *nua, NuaGlib *self, nua_handle_t *nh, NuaGlibOp *op, 
+		 int status, char const *phrase,
+		 tagi_t tags[]);
+
+/*=============== Function definitions ===============*/
+
+void final_shutdown(NuaGlib *self)
+{
+  g_object_unref(self);
+}
 
 static GObject *
 nua_glib_constructor (GType                  type,
@@ -118,6 +260,7 @@ nua_glib_constructor (GType                  type,
   GObject *obj;
   int res = 0;
   GSource *gsource;
+  NuaGlib *self;
 
   {
     /* Invoke parent constructor.
@@ -132,7 +275,7 @@ nua_glib_constructor (GType                  type,
                                      construct_properties);
   }
   
-  NuaGlib *self = NUA_GLIB(obj);
+  self = NUA_GLIB(obj);
 
   /* create a su event loop and connect it to glib */
   self->priv->root = su_root_source_create(self);
@@ -201,7 +344,8 @@ nua_glib_dispose(GObject *obj)
     self->priv->init = FALSE;
     /*now hold a ref to ourselves that we drop when distruction is complete*/
     g_object_ref (obj);
-  /* TODO:some start/stop nua funtions to do su_init/de_init?  su_deinit();*/
+
+    /* XXX: some start/stop nua funtions to do su_init/de_init?  su_deinit();*/
   }
 
   /* Chain up to the parent class */
@@ -418,13 +562,17 @@ nua_glib_class_init (NuaGlibClass *nua_glib_class)
   /**
    * NuaGlib::incoming-invite:
    * @nua_glib: the object that received the signal
-   * @op: pointer to the operation created to represent this call
+   * @op: pointer to the operation created to represent this 
+   *      call (also contains the sender information)
    * @display: the display name of the invite recipient
    * @url: the url of the invite recipient
    * @subject: the subject of the invite (can be NULL)
    *
    * Emitted when an call invite is received
    * Should be answered with nua_glib_answer or nua_glib_decline
+   *
+   * XXX: a bit ugly that sender information is carried in 'op', while
+   *      recipient display name and URI are as arguments
    */
   signals[NGSIG_INCOMING_INVITE] =
    g_signal_new("incoming-invite",
@@ -567,12 +715,16 @@ nua_glib_class_init (NuaGlibClass *nua_glib_class)
   /**
    * NuaGlib::incoming-message:
    * @nua_glib: the object that received the signal
-   * @op: pointer to the operation created to represent this call
+   * @op: pointer to the operation created to represent this 
+   *      call (also contains the sender information)
    * @display: the display name of the invite recipient
    * @url: the url of the invite recipient
    * @subject: the subject of the invite (can be NULL)
    *
    * Emitted when a message is received
+   *
+   * XXX: a bit ugly that sender information is carried in 'op', while
+   *      recipient display name and URI are as arguments
    */
   signals[NGSIG_INCOMING_MESSAGE] =
    g_signal_new("incoming-message",
@@ -585,12 +737,16 @@ nua_glib_class_init (NuaGlibClass *nua_glib_class)
   /**
    * NuaGlib::incoming-info:
    * @nua_glib: the object that received the signal
-   * @op: pointer to the operation created to represent this call
+   * @op: pointer to the operation created to represent this 
+   *      call (also contains the sender information)
    * @display_name: the display name of the info sender
    * @address: the address of the info sender
    * @subject: the subject of the invite (can be NULL)
    *
    * Emitted when an INFO message is received
+   *
+   * XXX: a bit ugly that sender information is carried in 'op', while
+   *      recipient display name and URI are as arguments
    */
   signals[NGSIG_INCOMING_INFO] =
    g_signal_new("incoming-info",
@@ -750,6 +906,22 @@ nua_glib_class_init (NuaGlibClass *nua_glib_class)
     G_TYPE_NONE, 3, G_TYPE_POINTER, G_TYPE_INT, G_TYPE_STRING);
 
   /**
+   * NuaGlib::cancel-answered:
+   * @nua_glib: the object that received the signal
+   * @op: pointer to the operation representing the existing call
+   * @status: SIP status of CANCEL answer (see SIP RFC)
+   * @phrase: Reason for CANCEL answer 
+   *
+   */
+  signals[NGSIG_CANCEL_ANSWERED] =
+   g_signal_new("cancel-answered",
+    G_OBJECT_CLASS_TYPE (nua_glib_class),
+    G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+    0, NULL, NULL,
+    nua_glib_marshal_VOID__POINTER_INT_STRING,
+    G_TYPE_NONE, 3, G_TYPE_POINTER, G_TYPE_INT, G_TYPE_STRING);
+
+  /**
    * NuaGlib::message-answered:
    * @nua_glib: the object that received the signal
    * @op: pointer to the operation representing the existing call
@@ -788,6 +960,8 @@ nua_glib_class_init (NuaGlibClass *nua_glib_class)
    * @status: SIP status of REFER answer (see SIP RFC)
    * @phrase: Reason for REFER answer 
    *
+   * XXX: should we pass the even header as param (see nua_refer()
+   * documentation and SIPTAG_EVENT())
    */
   signals[NGSIG_REFER_ANSWERED] =
    g_signal_new("refer-answered",
@@ -853,6 +1027,7 @@ nua_glib_class_init (NuaGlibClass *nua_glib_class)
    * @status: SIP status of options answer (see SIP RFC)
    * @phrase: Reason for options answer 
    *
+   * XXX: not OPTIONS response payload is not delivered to the application
    */
   signals[NGSIG_OPTIONS_ANSWERED] =
    g_signal_new("options-answered",
@@ -976,6 +1151,10 @@ sof_callback(nua_event_t event,
     sof_i_bye(nua, self, nh, op, sip, tags);
     return;
 
+  case nua_r_cancel:
+    sof_r_cancel(status, phrase, nua, self, nh, op, sip, tags);
+    return;
+
   case nua_r_message:
     sof_r_message(status, phrase, nua, self, nh, op, sip, tags);
     return;
@@ -1039,176 +1218,15 @@ sof_callback(nua_event_t event,
     g_warning("%s: unknown event %d\n", self->priv->name, event);
 
   tl_print(stderr, "", tags);
+
+  if (nua_glib_op_find_by_handle(self, nh) == NULL) {
+    /* note: unknown handle, not associated to any existing call,
+     *       message, registration, etc, so it can be safely destroyed */
+    nua_handle_destroy(nh);
+  }
 }
 
 /* ====================================================================== */
-static inline
-void oper_assign(NuaGlibOp *op, sip_method_t method, char const *name);
-
-static void nua_glib_op_destroy(NuaGlib *self, NuaGlibOp *op);
-
-static NuaGlibOp *
-nua_glib_op_create(NuaGlib *self, 
-                     sip_method_t method,
-                     char const *name,
-                     const char *address,
-                     tag_type_t tag, tag_value_t value, ...)
-{
-  NuaGlibOp *op, *old;
-
-  ta_list ta;
-   
-  enter;
-
-  for (old = self->priv->operations; old; old = old->op_next)
-    if (!old->op_persistent)
-      break;
-
-  if (address) {
-    int have_url = 1;
-    sip_to_t *to;
-
-    to = sip_to_make(self->priv->home, address);
-
-    if (to == NULL) {
-      /*TODO, error returns*/
-      g_warning("%s: %s: invalid address: %s\n", self->priv->name, name, address);
-      return NULL;
-    }
-
-    /* Try to make sense out of the URL */
-    if (url_sanitize(to->a_url) < 0) {
-      /*TODO, error returns*/
-      g_warning("%s: %s: invalid address\n", self->priv->name, name);
-      return NULL;
-    }
-
-    if (!(op = su_zalloc(self->priv->home, sizeof(*op)))) {
-      /*TODO, error returns*/
-      g_warning("%s: %s: cannot create handle\n", self->priv->name, name);
-      return NULL;
-    }
-
-    op->op_parent = self;
-    op->op_next = self->priv->operations;
-    op->op_prev_state = -1;
-    self->priv->operations = op;      
-
-    if (method == sip_method_register)
-      have_url = 0;
-    
-    ta_start(ta, tag, value); 
-     
-    op->op_handle = nua_handle(self->priv->nua, op, 
-                               TAG_IF(have_url, NUTAG_URL(to->a_url)), 
-                               SIPTAG_TO(to),
-                               ta_tags(ta));
-
-    ta_end(ta);  
-     
-    op->op_ident = sip_header_as_string(self->priv->home, (sip_header_t *)to);
-
-    oper_assign(op, method, name);
-    
-    if (!op->op_persistent) {
-      NuaGlibOp *old_next;
-      for (; old; old = old_next) {      /* Clean old handles */
-        old_next = old->op_next;
-        if (!old->op_persistent && !old->op_callstate)
-          nua_glib_op_destroy(self, old);
-      }
-    }
-    
-    su_free(self->priv->home, to);
-  }
-  else if (method || name) 
-    oper_assign(op = old, method, name);
-  else
-    return old;
-
-  if (!op) {
-    if (address)
-      /*TODO, error returns*/
-      g_warning("%s: %s: invalid destination\n", self->priv->name, name);
-    else
-      /*TODO, error returns*/
-      g_warning("%s: %s: no destination\n", self->priv->name, name);
-    return NULL;
-  }
-
-  return op;
-}
-
-static NuaGlibOp *
-nua_glib_op_create2(NuaGlib *self, 
-                      sip_method_t method,
-                      char const *name,
-                      nua_handle_t *nh,
-                      sip_from_t const *from)
-{
-  NuaGlibOp *op;
-
-  enter;
-
-  if ((op = su_zalloc(self->priv->home, sizeof(*op)))) {
-    op->op_parent = self;
-    op->op_next = self->priv->operations;
-    self->priv->operations = op;      
-
-    oper_assign(op, method, name);
-    nua_handle_bind(op->op_handle = nh, op);
-    op->op_ident = sip_header_as_string(self->priv->home, (sip_header_t*)from);
-  }
-  else {
-    SU_DEBUG_1(("%s: cannot create operation object for %s\n", 
-		self->priv->name, name));
-  }
-
-  return op;
-}
-
-/** Delete operation and attached handles and identities */
-static void 
-nua_glib_op_destroy(NuaGlib *self, NuaGlibOp *op)
-{
-  NuaGlibOp **prev;
-
-  if (!op)
-    return;
-
-  g_assert(op->data == NULL);
-
-  /* Remove from queue */
-  for (prev = &self->priv->operations; 
-       *prev && *prev != op; 
-       prev = &(*prev)->op_next)
-    ;
-  if (*prev)
-    *prev = op->op_next, op->op_next = NULL;
-
-  if (op->op_authlist)
-    nua_glib_auth_clear(self, op);
-
-  if (op->op_handle)
-    nua_handle_destroy(op->op_handle), op->op_handle = NULL;
-
-  su_free(self->priv->home, op);
-}
-
-/* ====================================================================== */
-static void 
-oper_assign(NuaGlibOp *op, sip_method_t method, char const *name)
-{
-  if (!op)
-    return;
-
-  op->op_method = method, op->op_method_name = name;
-
-  op->op_persistent = 
-    method == sip_method_subscribe ||
-    method == sip_method_register ||
-    method == sip_method_publish;
-}
 
 /**
  * Helper function called from all response callback handler.
@@ -1225,7 +1243,7 @@ static void priv_oper_check_response_for_auth(NuaGlib *self, NuaGlibOp *op, int 
 	op->op_authstate != opa_auth_ok) {
       op->op_authstate = opa_auth_ok;
       SU_DEBUG_3(("%s: authorization of %s (%p) was succesful\n", 
-		  self->priv->name, op->op_method_name, op));
+		  self->priv->name, sip_method_name(op->op_method, "<NONE>"), op));
     }
   }
 }
@@ -1247,7 +1265,7 @@ static void priv_oper_handle_auth (NuaGlib *self, NuaGlibOp *op, sip_t const *si
           SIPTAG_PROXY_AUTHENTICATE_REF(pa),
           TAG_NULL());
 
-  SU_DEBUG_3(("%s: %s (%p) was unauthorized\n", self->priv->name, op->op_method_name, op));
+  SU_DEBUG_3(("%s: %s (%p) was unauthorized\n", self->priv->name, sip_method_name(op->op_method, "<NONE>"), op));
 
   /* step: the initial challenge */
   if (op->op_authstate == opa_none) {
@@ -1272,14 +1290,14 @@ static void priv_oper_handle_auth (NuaGlib *self, NuaGlibOp *op, sip_t const *si
   /* step: a new challenge, ask for matching credentials */
   else if (op->op_authstate == opa_try_derived) {
     g_message("Requesting for additional authentication credentials %s(%s)",
-	      self->priv->name, op->op_method_name);
+	      self->priv->name, sip_method_name(op->op_method, "<NONE>"));
     op->op_authstate = opa_auth_req;
-    g_signal_emit(self, signals[NGSIG_AUTH_REQUIRED], 0, op, op->op_method_name, realm);
+    g_signal_emit(self, signals[NGSIG_AUTH_REQUIRED], 0, op, sip_method_name(op->op_method, "<NONE>"), realm);
   }
   /* step: a new challenge, ask for matching credentials */
   else if (op->op_authstate == opa_auth_req) {
     g_message("Failed auth for %s by %s",
-         op->op_method_name, self->priv->name);
+	      sip_method_name(op->op_method, "<NONE>"), self->priv->name);
     op->op_authstate = opa_failed;
   }
 }
@@ -1293,12 +1311,14 @@ static void priv_oper_handle_auth (NuaGlib *self, NuaGlibOp *op, sip_t const *si
 NuaGlib* 
 nua_glib_op_owner(NuaGlibOp *op)
 {
+  g_assert(op);
   return op->op_parent;
 }
 
 sip_method_t
 nua_glib_op_method_type(NuaGlibOp *op)
 {
+  g_assert(op);
   return op->op_method;
 }
 /**
@@ -1315,6 +1335,7 @@ nua_glib_op_method_type(NuaGlibOp *op)
 void
 nua_glib_op_set_data(NuaGlibOp *op, gpointer data)
 {
+  g_assert(op);
   op->data = data;
 }
 
@@ -1328,6 +1349,7 @@ nua_glib_op_set_data(NuaGlibOp *op, gpointer data)
 gpointer
 nua_glib_op_get_data(NuaGlibOp *op)
 {
+  g_assert(op);
   return op->data ;
 }
 
@@ -1342,6 +1364,7 @@ nua_glib_op_get_data(NuaGlibOp *op)
 const gchar *
 nua_glib_op_get_identity(NuaGlibOp *op)
 {
+  g_assert(op);
   return op->op_ident;
 }
 
@@ -1359,17 +1382,20 @@ sof_i_error(nua_t *nua, NuaGlib *self, nua_handle_t *nh, NuaGlibOp *op,
  * @destination sip address to invite
  * @local_sdp an SDP blob describing local capabilites
  * 
- * Issue an INVITE
- * Return value: operation descriptor for this operation, NULL if failure
+ * Invites 'destination_uri' to a new call.
  *
+ * Incomplete sessions can be hung-up with nua_glib_cancel(). Complete or
+ * incomplete calls can be hung-up with nua_glib_bye()
+ *
+ * @see nua_invite() (libsofia-sip-ua/nua)
+ *
+ * Return value: operation descriptor for this operation, NULL if failure
  */
-
-NuaGlibOp *
-nua_glib_invite(NuaGlib *self, const char *destination, const char *local_sdp)
+NuaGlibOp *nua_glib_invite(NuaGlib *self, const char *destination_uri, const char *local_sdp)
 {
   NuaGlibOp *op;
 
-  op = nua_glib_op_create(self, SIP_METHOD_INVITE, destination, TAG_END());
+  op = nua_glib_op_create(self, sip_method_invite, destination_uri, TAG_END());
 
   /* SDP O/A note: 
    *  - pass media information to nua_invite() in the 
@@ -1385,9 +1411,9 @@ nua_glib_invite(NuaGlib *self, const char *destination, const char *local_sdp)
     op->op_callstate |= opc_sent;
     return op;
   }
+
   return NULL;
 }
-
 
 /*
  * invite response handler
@@ -1406,7 +1432,7 @@ sof_r_invite(int status, char const *phrase,
 }
 
 /*
- * incoming call-forked handler
+ * Stack callback: incoming call-forked
  *
  * Releases forked calls
  */
@@ -1431,7 +1457,7 @@ sof_i_fork(int status, char const *phrase,
 }
 
 /*
- * incoming invite handler
+ * Stack callback: incoming invite handler
  */
 static void 
 sof_i_invite(nua_t *nua, NuaGlib *self,
@@ -1442,20 +1468,20 @@ sof_i_invite(nua_t *nua, NuaGlib *self,
   sip_from_t const *from;
   sip_to_t const *to;
   sip_subject_t const *subject;
+  char *to_url;
 
-  g_return_if_fail(sip);
+  g_assert(sip);
 
   from = sip->sip_from;
   to = sip->sip_to;
   subject = sip->sip_subject;
-  char *url;
 
-  g_return_if_fail(from && to);
+  g_assert(from); g_assert(to);
 
   if (op) {
     op->op_callstate |= opc_recv;
   }
-  else if ((op = nua_glib_op_create2(self, SIP_METHOD_INVITE, nh, from))) {
+  else if ((op = nua_glib_op_create_with_handle(self, sip_method_invite, nh, from))) {
     op->op_callstate = opc_recv;
   }
   else {
@@ -1465,9 +1491,9 @@ sof_i_invite(nua_t *nua, NuaGlib *self,
 
   if (op) {
     if (op->op_callstate == opc_recv) {
-      url = url_as_string(self->priv->home, to->a_url);
-      g_signal_emit(self, signals[NGSIG_INCOMING_INVITE], 0, op, to->a_display, url, subject?subject->g_value:NULL); 
-      su_free(self->priv->home, url);
+      to_url = url_as_string(self->priv->home, to->a_url);
+      g_signal_emit(self, signals[NGSIG_INCOMING_INVITE], 0, op, to->a_display, to_url, subject?subject->g_value:NULL); 
+      su_free(self->priv->home, to_url);
     }
     else {
       g_signal_emit(self, signals[NGSIG_INCOMING_REINVITE], 0, op); 
@@ -1488,6 +1514,8 @@ nua_glib_redirect(NuaGlib *self,
                     const char *contact)
 
 {
+  g_assert(nua_glib_op_check(self, op));
+
   nua_respond(op->op_handle, SIP_302_MOVED_TEMPORARILY, 
               SIPTAG_CONTACT_STR(contact),
               TAG_END());
@@ -1500,14 +1528,15 @@ nua_glib_redirect(NuaGlib *self,
  * @phrase: Reponse text (default response phrase used if NULL)
  * @sdp: SDP description of local media capabilites
  *
- * Answer a call. 
+ * Answer a incoming call.
+ * 
+ * @see nua_respond() (libsofia-sip-ua/nua)
  */
-void 
-nua_glib_answer(NuaGlib *self, 
-                  NuaGlibOp *op,                         
-                  int status, 
-                  const char *phrase, 
-                  const char *sdp)
+void nua_glib_answer(NuaGlib *self, 
+		     NuaGlibOp *op,                         
+		     int status, 
+		     const char *phrase, 
+		     const char *sdp)
 {
   /* SDP O/A note: 
    *  - pass SDP information to nua_respond() in
@@ -1515,6 +1544,9 @@ nua_glib_answer(NuaGlib *self,
    *  - see also: sof_i_state() and nua_glib_invite()
    */ 
   
+  g_assert(self); g_assert(op);
+  g_assert(op->op_method == sip_method_invite);
+
   if (status >= 200 && status < 300)
     op->op_callstate |= opc_sent;
   else
@@ -1625,20 +1657,22 @@ sof_i_terminated(int status, char const *phrase,
     g_signal_emit(self, signals[NGSIG_CALL_TERMINATED], 0, op, status);
     op->op_callstate = 0;
     g_idle_add(idle_kill_op, op);
-    
   }
-
 }
 
 /**
  * nua_glib_bye:
  * @op the call to bye
  *
- * Initiate a BYE 
- * a bye-received signal will be emitted with the response to the bye
+ * Terminates the call 'op' with SIP BYE method. A 'bye-answered'
+ * signal will emitted with the response to the bye.
+ *
+ * @see nua_bye() (libsofia-sip-ua/nua)
  */
 void nua_glib_bye(NuaGlib *self, NuaGlibOp *op)
 {
+  g_assert(nua_glib_op_check(self, op));
+
   nua_bye(op->op_handle, TAG_END());
   op->op_callstate = 0;
 }
@@ -1667,11 +1701,15 @@ sof_i_bye(nua_t *nua, NuaGlib *self,
  * nua_glib_cancel:
  * @op the call to cancel
  *
- * Cancel a call
- * A cancel-received signal will be emitted with the response to the cancel 
+ * Cancel a request.
+ * A 'cancel-answered' signal will be emitted with the response to the
+ * cancel.
+ * 
+ * @see nua_cancel() (libsofia-sip-ua/nua) 
  */
 void nua_glib_cancel(NuaGlib *self, NuaGlibOp *op)
 {
+  g_assert(nua_glib_op_check(self, op));
   nua_cancel(op->op_handle, TAG_END());
 }
 
@@ -1684,18 +1722,29 @@ void sof_i_cancel(nua_t *nua, NuaGlib *self,
   g_signal_emit(self, signals[NGSIG_INCOMING_CANCEL], 0, op);
 }
 
+void sof_r_cancel(int status, char const *phrase, 
+		  nua_t *nua, NuaGlib *self,
+		  nua_handle_t *nh, NuaGlibOp *op, sip_t const *sip,
+		  tagi_t tags[])
+{
+  g_assert(op); g_assert(op->op_handle == nh);
+
+  g_signal_emit(self, signals[NGSIG_CANCEL_ANSWERED], 0, op, status, phrase);
+}
+
+
 /**
  * nua_glib_options:
  * @destination: URI to set options for
- * make an options request to the destination
+ * Makes a SIP OPTIONS request to the destination to query
+ * capabilities. The results are delivered with the 'options-answered' signal.
  *
  * Return value: operation created for request
  */
 NuaGlibOp *
-nua_glib_options(NuaGlib *self, const char *destination)
+nua_glib_options(NuaGlib *self, const char *destination_uri)
 {
-  NuaGlibOp *op = nua_glib_op_create(self, SIP_METHOD_OPTIONS, destination,
-                                   TAG_END());
+  NuaGlibOp *op = nua_glib_op_create(self, sip_method_options, destination_uri, TAG_END());
 
   if (op) {
     nua_options(op->op_handle, TAG_END());
@@ -1725,10 +1774,9 @@ sof_r_options(int status, char const *phrase,
  * Return value: operation created for the message, NULL cif failure
  */
 NuaGlibOp * 
-nua_glib_message(NuaGlib *self, const char *destination, const char *message)
+nua_glib_message(NuaGlib *self, const char *destination_uri, const char *message)
 {
-  NuaGlibOp *op = nua_glib_op_create(self, SIP_METHOD_MESSAGE, destination, 
-                                   TAG_END());
+  NuaGlibOp *op = nua_glib_op_create(self, sip_method_message, destination_uri, TAG_END());
 
   if (op) {
     nua_message(op->op_handle,
@@ -1764,9 +1812,9 @@ sof_i_message(nua_t *nua, NuaGlib *self,
   sip_to_t const *to;
   sip_subject_t const *subject;
   GString *message;
-  char *url;
+  char *to_url;
 
-  assert(sip);
+  g_assert(sip);
 
   from = sip->sip_from;
   to = sip->sip_to;
@@ -1774,27 +1822,27 @@ sof_i_message(nua_t *nua, NuaGlib *self,
 
   assert(from && to);
 
-  if (sip->sip_payload)
-    message=g_string_new_len(sip->sip_payload->pl_data, sip->sip_payload->pl_len);
+  if (sip->sip_payload && sip->sip_payload->pl_len > 0)
+    message = g_string_new_len(sip->sip_payload->pl_data, sip->sip_payload->pl_len);
   else
-    message=NULL;
-
+    message = NULL;
   
-  url = url_as_string(self->priv->home, to->a_url);
-  g_signal_emit(self, signals[NGSIG_INCOMING_MESSAGE], 0, op, to->a_display, url,
+  to_url = url_as_string(self->priv->home, to->a_url);
+
+  if (op == NULL)
+    op = nua_glib_op_create_with_handle(self, sip_method_message, nh, from);
+
+  g_signal_emit(self, signals[NGSIG_INCOMING_MESSAGE], 0, op, from->a_display, to_url,
 		subject ? subject->g_value : NULL,
 		message ? message->str : NULL); 
 
-  su_free(self->priv->home, url);
+  su_free(self->priv->home, to_url);
 
   if (message)
     g_string_free(message, TRUE);
 
   if (op == NULL)
-    op = nua_glib_op_create2(self, SIP_METHOD_MESSAGE, nh, from);
-  if (op == NULL)
     nua_handle_destroy(nh);
-
 }
 
 /**
@@ -1802,12 +1850,15 @@ sof_i_message(nua_t *nua, NuaGlib *self,
  * @op operation representing existing call to send INFO in
  * @message INFO message to send
  *
- * Send an INFO request to a destination on an existing call
+ * Sends on INFO request to recipient associated with call 'op'.
+ * INFO is used to send call related information like DTMF digit input
+ * events. See RFC 2976.
  */
 void
 nua_glib_info (NuaGlib *self, NuaGlibOp *op, const char *content_type,
                  const char *message)
 {
+  g_assert(nua_glib_op_check(self, op));
   nua_info(op->op_handle,
            SIPTAG_CONTENT_TYPE_STR(content_type),
            SIPTAG_PAYLOAD_STR(message),
@@ -1838,7 +1889,7 @@ sof_i_info(nua_t *nua, NuaGlib *self,
   sip_to_t const *to;
   sip_subject_t const *subject;
   GString *message;
-  char *url;
+  char *to_url;
 
   assert(sip);
 
@@ -1853,36 +1904,39 @@ sof_i_info(nua_t *nua, NuaGlib *self,
   else
     message=NULL;
 
-  url = url_as_string(self->priv->home, to->a_url);
-  g_signal_emit(self, signals[NGSIG_INCOMING_INFO], 0, op, to->a_display, url, subject?subject->g_value:NULL, message); 
-  su_free(self->priv->home, url);
+  to_url = url_as_string(self->priv->home, to->a_url);
+  g_signal_emit(self, signals[NGSIG_INCOMING_INFO], 0, op, to->a_display, to_url, subject?subject->g_value:NULL, message); 
+  su_free(self->priv->home, to_url);
   g_string_free(message, TRUE);
 
   if (op == NULL)
-    op = nua_glib_op_create2(self, SIP_METHOD_INFO, nh, from);
+    op = nua_glib_op_create_with_handle(self, sip_method_info, nh, from);
   if (op == NULL)
     nua_handle_destroy(nh);
 
 }
 
 /*=======================================*/
+
 /**
  * nua_glib_refer:
  * @op: operation representing existing call
  * @destination: destination to REFER them to
  *
- * refer the recipent of an existing call to a new address
+ * Sends a REFER request asking the recipient to transfer the call. The
+ * REFER request also establishes a subscription to the "refer" event.
+ * The "refer" event will have an "id" parameter, which has the value of
+ * CSeq number in the REFER request. After initiating the REFER request,
+ * the nua-glib engine will emit the 'refer-answered' signal with
+ * status 100.
  */
-void
-nua_glib_refer (NuaGlib *self, NuaGlibOp *op, const char* destination)
+void nua_glib_refer (NuaGlib *self, NuaGlibOp *op, const char* destination)
 {
-  /*TODO, here or elsewhere?
-    if (op == NULL) 
-    op = nua_glib_op_create(self, SIP_METHOD_REFER, destination, TAG_END());
-  */
+  g_assert(nua_glib_op_check(self, op));
+  
   nua_refer(op->op_handle,
-            SIPTAG_REFER_TO_STR(destination),
-            TAG_END());
+	    SIPTAG_REFER_TO_STR(destination),
+	    TAG_END());
 }
 
 
@@ -1913,6 +1967,8 @@ sof_i_refer (nua_t *nua, NuaGlib *self,
   sip_refer_to_t const *refer_to;
   NuaGlibOp *op2;
   char *refer_to_str;
+  char *to_url;
+  char *refer_url;
 
   assert(sip);
 
@@ -1922,22 +1978,22 @@ sof_i_refer (nua_t *nua, NuaGlib *self,
 
   assert(from && to);
 
-  char *url = url_as_string(self->priv->home, to->a_url);
-  char *refer_url = url_as_string(self->priv->home, refer_to->r_url);
+  to_url = url_as_string(self->priv->home, to->a_url);
+  refer_url = url_as_string(self->priv->home, refer_to->r_url);
 
-   if(refer_to->r_url->url_type == url_sip) {
+   if (refer_to->r_url->url_type == url_sip) {
       refer_to_str = sip_header_as_string(self->priv->home, (sip_header_t*)refer_to);
-      op2 = nua_glib_op_create(self, SIP_METHOD_INVITE, refer_to_str,
-                            NUTAG_NOTIFY_REFER(nh), TAG_END());
+      op2 = nua_glib_op_create(self, sip_method_invite, refer_to_str,
+			       NUTAG_NOTIFY_REFER(nh), TAG_END());
       su_free(self->priv->home, refer_to_str);
       
-      g_signal_emit(self, signals[NGSIG_INCOMING_REFER], 0, op, to->a_display, url,refer_url, op2);
+      g_signal_emit(self, signals[NGSIG_INCOMING_REFER], 0, op, to->a_display, to_url, refer_url, op2);
    }
    else {
-      g_signal_emit(self, signals[NGSIG_INCOMING_REFER], 0, op, to->a_display, url, refer_url, NULL);
+      g_signal_emit(self, signals[NGSIG_INCOMING_REFER], 0, op, to->a_display, to_url, refer_url, NULL);
    }
 
-  su_free(self->priv->home, url);
+  su_free(self->priv->home, to_url);
   su_free(self->priv->home, refer_url);
  }
 
@@ -1950,7 +2006,7 @@ sof_i_refer (nua_t *nua, NuaGlib *self,
 void 
 nua_glib_follow_refer(NuaGlib *self, NuaGlibOp *op)
 {
-
+  g_assert(nua_glib_op_check(self, op));
 }
 
 
@@ -1964,9 +2020,11 @@ nua_glib_follow_refer(NuaGlib *self, NuaGlibOp *op)
 void 
 nua_glib_hold(NuaGlib *self, NuaGlibOp *op, int hold)
 {
+  g_assert(nua_glib_op_check(self, op));
+
   nua_invite(op->op_handle, NUTAG_HOLD(hold), TAG_END());
       
-  op->op_callstate = opc_sent2;
+  op->op_callstate = opc_sent_hold;
 }
 
 /**
@@ -1988,7 +2046,7 @@ nua_glib_subscribe(NuaGlib *self, const char *uri, gboolean eventlist)
   if (eventlist)
     supported="eventlist";
   
-  op = nua_glib_op_create(self, SIP_METHOD_SUBSCRIBE, uri, TAG_END());
+  op = nua_glib_op_create(self, sip_method_subscribe, uri, TAG_END());
 
   if (op) {
     nua_subscribe(op->op_handle, 
@@ -2010,7 +2068,7 @@ nua_glib_subscribe(NuaGlib *self, const char *uri, gboolean eventlist)
 /**
  * nua_glib_watch:
  * @event string descriptor of event to watch for
- * TODO: needs some funky signal registering, i *think*
+ * XXX: needs some funky signal registering, i *think*
  *
  * Subscribe to watch
  * Returns: Operation representing this watch, NULL if failure
@@ -2025,7 +2083,7 @@ nua_glib_watch(NuaGlib *self, char *event)
   while (destination && *destination == ' ')
     *destination++ = '\0';
 
-  op = nua_glib_op_create(self, SIP_METHOD_SUBSCRIBE, destination, TAG_END());
+  op = nua_glib_op_create(self, sip_method_subscribe, destination, TAG_END());
 
   if (op) {
     nua_subscribe(op->op_handle, 
@@ -2063,6 +2121,8 @@ void
 nua_glib_notify(NuaGlib *self, NuaGlibOp* op)
 {
   SU_DEBUG_1(("%s: not follow refer, NOTIFY(503)\n", self->priv->name));
+
+  g_assert(nua_glib_op_check(self, op));
 
   nua_cancel(op->op_handle, TAG_END());
   nua_glib_op_destroy(self, op);
@@ -2159,7 +2219,7 @@ nua_glib_register(NuaGlib *self, const char *registrar)
   char *address;
   address = su_strdup(self->priv->home, self->priv->address);
 
-  if ((op = nua_glib_op_create(self, SIP_METHOD_REGISTER, address, TAG_END()))) {
+  if ((op = nua_glib_op_create(self, sip_method_register, address, TAG_END()))) {
     SU_DEBUG_3(("%s: REGISTER %s\n", self->priv->name, op->op_ident));
     nua_register(op->op_handle, 
 		 SIPTAG_FROM_STR(self->priv->address),
@@ -2213,7 +2273,7 @@ nua_glib_unregister_direct(NuaGlib *self, const char *registrar)
   NuaGlibOp *op;
   char *address = su_strdup(self->priv->home, self->priv->address);
 
-  op = nua_glib_op_create(self, SIP_METHOD_REGISTER, address, TAG_END());
+  op = nua_glib_op_create(self, sip_method_register, address, TAG_END());
   su_free(self->priv->home, address);
 
   if (op) {
@@ -2331,9 +2391,9 @@ nua_glib_publish(NuaGlib *self, const char *note)
 
   address = su_strdup(self->priv->home, self->priv->address);
 
-  if ((op = nua_glib_op_create(self, SIP_METHOD_PUBLISH, address, 
-                            SIPTAG_EVENT_STR("presence"),
-                            TAG_END()))) {
+  if ((op = nua_glib_op_create(self, sip_method_publish, address, 
+			       SIPTAG_EVENT_STR("presence"),
+			       TAG_END()))) {
     nua_publish(op->op_handle, 
                 SIPTAG_CONTENT_TYPE_STR("application/cpim-pidf+xml"),
                 SIPTAG_PAYLOAD(pl),
@@ -2371,9 +2431,9 @@ nua_glib_unpublish_direct(NuaGlib *self)
   char *address;
   address = su_strdup(self->priv->home, self->priv->address);
 
-  if ((op = nua_glib_op_create(self, SIP_METHOD_PUBLISH, address, 
-                            SIPTAG_EVENT_STR("presence"),
-                            TAG_END()))) {
+  if ((op = nua_glib_op_create(self, sip_method_publish, address, 
+			       SIPTAG_EVENT_STR("presence"),
+			       TAG_END()))) {
     nua_publish(op->op_handle, 
                 SIPTAG_EXPIRES_STR("0"),
                 TAG_END());

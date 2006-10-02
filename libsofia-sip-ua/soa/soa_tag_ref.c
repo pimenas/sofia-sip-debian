@@ -56,6 +56,9 @@ EXPORT tag_typedef_t soatag_address_ref =
 extern tag_typedef_t soatag_rtp_select;
 EXPORT tag_typedef_t soatag_rtp_select_ref = 
   REFTAG_TYPEDEF(soatag_rtp_select);
+extern tag_typedef_t soatag_audio_aux;
+EXPORT tag_typedef_t soatag_audio_aux_ref = 
+  REFTAG_TYPEDEF(soatag_audio_aux);
 extern tag_typedef_t soatag_rtp_sort;
 EXPORT tag_typedef_t soatag_rtp_sort_ref = 
   REFTAG_TYPEDEF(soatag_rtp_sort);
@@ -89,26 +92,27 @@ EXPORT tag_typedef_t soatag_hold_ref =
 
 EXPORT tag_type_t soa_tag_list[] =
 {
-  soatag_user_sdp,
+  soatag_hold,
+  soatag_rtp_mismatch,
   soatag_caps_sdp,
+  soatag_active_image,
+  soatag_user_sdp_str,
+  soatag_active_chat,
+  soatag_srtp_confidentiality,
+  soatag_address,
+  soatag_local_sdp,
+  soatag_active_audio,
   soatag_rtp_select,
   soatag_srtp_integrity,
-  soatag_remote_sdp_str,
-  soatag_local_sdp_str,
-  soatag_user_sdp_str,
-  soatag_caps_sdp_str,
-  soatag_af,
   soatag_rtp_sort,
-  soatag_rtp_mismatch,
-  soatag_srtp_confidentiality,
-  soatag_active_image,
-  soatag_active_chat,
-  soatag_active_audio,
+  soatag_remote_sdp_str,
   soatag_remote_sdp,
-  soatag_address,
-  soatag_active_video,
-  soatag_hold,
-  soatag_local_sdp,
+  soatag_caps_sdp_str,
+  soatag_audio_aux,
   soatag_srtp_enable,
+  soatag_active_video,
+  soatag_af,
+  soatag_user_sdp,
+  soatag_local_sdp_str,
   NULL
 };

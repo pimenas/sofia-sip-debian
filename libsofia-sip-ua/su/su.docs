@@ -1,6 +1,6 @@
 /* -*- C -*- */
 
-/**@mainpage Sofia OS Services and Utility Library
+/**@MODULEPAGE "su" - OS Services and Utilities
  *
  * @section su_meta Module Information
  *
@@ -9,7 +9,7 @@
  * 
  * @CONTACT Pekka Pessi <Pekka.Pessi@nokia.com>
  * 
- * @STATUS Core library
+ * @STATUS @SofiaSIP Core library
  * 
  * @LICENSE LGPL
  *
@@ -19,6 +19,7 @@
  *
  * - su_types.h - integral types
  * - su.h - @ref su_socket 
+ *   - su_localinfo.h - get list of local IP addresses
  * - su_wait.h - @ref su_wait 
  * - su_time.h - @ref su_time
  * - su_alloc.h - @ref su_alloc
@@ -111,8 +112,9 @@
  *
  * Hash tables.
  *
- * The hash table interface and implementation is defined in htable.h.
- * Example code and tests for the implementation is in htable_test.c.
+ * The hash table interface and implementation is defined in
+ * <sofia-sip/htable.h>. Example code and tests for the implementation is in
+ * test_htable.c.
  */
 
 

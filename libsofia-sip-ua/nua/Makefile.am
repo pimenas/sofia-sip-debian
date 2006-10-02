@@ -49,6 +49,7 @@ libnua_la_SOURCES = 	nua.c nua_stack.h nua_common.c nua_stack.c \
 			nua_params.c nua_params.h \
 			nua_register.c nua_session.c nua_options.c \
 			nua_message.c nua_publish.c nua_subnotref.c \
+			nua_notifier.c \
 			nua_event_server.c \
 			nua_tag.c nua_tag_ref.c
 
@@ -73,7 +74,15 @@ LDADD = 		libnua.la \
 
 test_nua_LDFLAGS = 	-static
 
-test_nua_SOURCES = 	test_nua.c test_proxy.h test_proxy.c \
+test_nua_SOURCES = 	test_nua.c test_nua.h test_ops.c \
+			test_init.c \
+			test_nua_api.c test_nua_params.c \
+			test_register.c test_basic_call.c \
+			test_call_reject.c test_cancel_bye.c \
+			test_call_hold.c test_session_timer.c \
+			test_refer.c test_100rel.c \
+			test_simple.c test_sip_events.c \
+			test_proxy.h test_proxy.c \
 			test_nat.h test_nat.c test_nat_tags.c
 
 # ----------------------------------------------------------------------

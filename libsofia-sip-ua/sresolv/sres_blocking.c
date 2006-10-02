@@ -54,6 +54,9 @@ typedef unsigned _int32 uint32_t;
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #define HAVE_SELECT 1
+#else
+#define SOCKET_ERROR   (-1)
+#define INVALID_SOCKET ((sres_socket_t)-1)
 #endif
 
 typedef struct sres_blocking_s sres_blocking_t;
@@ -80,7 +83,7 @@ struct sres_blocking_s
 #if HAVE_POLL
   struct pollfd    fds[SRES_MAX_NAMESERVERS];
 #elif HAVE_SELECT
-  struct { int fd; } fds[SRES_MAX_NAMESERVERS];
+  struct { sres_socket_t fd; } fds[SRES_MAX_NAMESERVERS];
 #else
 #error No wait mechanism!
 #endif
@@ -98,19 +101,19 @@ struct sres_blocking_context_s
 
 static
 int sres_blocking_update(sres_blocking_t *b,
-			 int new_socket,
-			 int old_socket)
+			 sres_socket_t new_socket,
+			 sres_socket_t old_socket)
 {
   int i, N = b->n_sockets;
 
   if (old_socket == new_socket) {
-    if (old_socket == -1) {
+    if (old_socket == INVALID_SOCKET) {
       free(b);      /* Destroy us */
     }
     return 0;
   }
 
-  if (old_socket != -1) {
+  if (old_socket != INVALID_SOCKET) {
     for (i = 0; i < N; i++) {
       if (b->fds[i].fd == old_socket)
 	break;
@@ -120,7 +123,7 @@ int sres_blocking_update(sres_blocking_t *b,
 
     N--;
     b->fds[i].fd = b->fds[N].fd;
-    b->fds[N].fd = -1;
+    b->fds[N].fd = INVALID_SOCKET;
 #if HAVE_POLL
     b->fds[i].events = b->fds[N].events;
     b->fds[N].events = 0;
@@ -129,7 +132,7 @@ int sres_blocking_update(sres_blocking_t *b,
     b->n_sockets = N;
   }
   
-  if (new_socket != -1) {
+  if (new_socket != INVALID_SOCKET) {
     if (N == SRES_MAX_NAMESERVERS)
       return -1;
     b->fds[N].fd = new_socket;
@@ -224,7 +227,7 @@ sres_blocking_t *sres_set_blocking(sres_resolver_t *res)
   b = calloc(1, sizeof *b);
 
   for (i = 0; i < SRES_MAX_NAMESERVERS; i++)
-    b->fds[i].fd = -1;
+    b->fds[i].fd = INVALID_SOCKET;
   
   if (!sres_resolver_set_async(res, sres_blocking_update, b, 0)) {
     free(b), b = NULL;

@@ -136,11 +136,11 @@ static inline int msg_is_status(msg_header_t const *h)
 /* Message buffer management */
 
 /** Allocate a buffer of @a size octets, with slack of #msg_min_size. */
-void *msg_buf_alloc(msg_t *msg, unsigned size)
+void *msg_buf_alloc(msg_t *msg, usize_t size)
 {
   struct msg_mbuffer_s *mb = msg->m_buffer;
-  unsigned room = mb->mb_size - mb->mb_commit - mb->mb_used;
-  int target_size;
+  size_t room = mb->mb_size - mb->mb_commit - mb->mb_used;
+  size_t target_size;
 
   if (mb->mb_data && room >= (unsigned)size)
     return mb->mb_data + mb->mb_used + mb->mb_commit;
@@ -152,10 +152,10 @@ void *msg_buf_alloc(msg_t *msg, unsigned size)
 }
 
 /** Allocate a buffer exactly of @a size octets, without any slack. */
-void *msg_buf_exact(msg_t *msg, unsigned size)
+void *msg_buf_exact(msg_t *msg, usize_t size)
 {
   struct msg_mbuffer_s *mb = msg->m_buffer;
-  unsigned room = mb->mb_size - mb->mb_commit - mb->mb_used;
+  size_t room = mb->mb_size - mb->mb_commit - mb->mb_used;
   char *buffer;
   int realloc;
 
@@ -193,7 +193,7 @@ void *msg_buf_exact(msg_t *msg, unsigned size)
 }
 
 /** Commit data into buffer. */
-unsigned msg_buf_commit(msg_t *msg, unsigned size, int eos)
+usize_t msg_buf_commit(msg_t *msg, usize_t size, int eos)
 {
   if (msg) {
     struct msg_mbuffer_s *mb = msg->m_buffer;
@@ -226,7 +226,7 @@ unsigned msg_buf_commit(msg_t *msg, unsigned size, int eos)
 }
 
 /** Get length of committed data */
-unsigned msg_buf_committed(msg_t const *msg)
+usize_t msg_buf_committed(msg_t const *msg)
 {
   if (msg)
     return msg->m_buffer->mb_commit;
@@ -242,7 +242,7 @@ void *msg_buf_committed_data(msg_t const *msg)
     : NULL;
 }
 
-unsigned msg_buf_size(msg_t const *msg)
+usize_t msg_buf_size(msg_t const *msg)
 {
   assert(msg);
   if (msg) {
@@ -254,7 +254,7 @@ unsigned msg_buf_size(msg_t const *msg)
 }
 
 static inline
-void msg_buf_used(msg_t *msg, unsigned used)
+void msg_buf_used(msg_t *msg, usize_t used)
 {
   msg->m_size += used;
   msg->m_buffer->mb_used += used;
@@ -265,7 +265,7 @@ void msg_buf_used(msg_t *msg, unsigned used)
 }
 
 /** Set buffer. */
-void msg_buf_set(msg_t *msg, void *b, unsigned size)
+void msg_buf_set(msg_t *msg, void *b, usize_t size)
 {
   if (msg) {
     struct msg_mbuffer_s *mb = msg->m_buffer;
@@ -308,38 +308,40 @@ void *msg_buf_move(msg_t *dst, msg_t const *src)
   return retval;
 }
 
-/** Obtain iovec for receiving the data.
+/**Obtain I/O vector for receiving the data.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
- * The function msg_recv_iovec() allocates buffers for receiving @a n bytes
- * of data available from network. It returns the buffers in the I/O vector
+ * Allocate buffers for receiving @a n bytes
+ * of data available from network. Function returns the buffers in the I/O vector
  * @a vec. The @a vec is allocated by the caller, the available length is
  * given as @a veclen. If the protocol is message-oriented like UDP or SCTP
  * and the available data ends at message boundary, the caller should set
  * the @a exact as 1. Otherwise some extra buffer (known as @em slack) is
  * allocated).
  *
- * Currently, the msg_recv_iovec() allocates buffers in at most two blocks,
- * so the caller should allocate at least two elements for the I/O vector @a
- * vec.
+ * Currently, the msg_recv_iovec() allocates receive buffers in at most two
+ * blocks, so the caller should allocate at least two elements for the I/O
+ * vector @a vec.
  *
- * @param msg     message object [IN]
- * @param vec     I/O vector [OUT]
- * @param veclen  available length of @a vec [IN]
- * @param n       number of available bytes [IN]
- * @param exact   true if data ends at message boundary [IN]
+ * @param[in]  msg     message object 
+ * @param[out] vec     I/O vector 
+ * @param[in]  veclen  available length of @a vec 
+ * @param[in]  n       number of possibly available bytes 
+ * @param[in]  exact   true if data ends at message boundary 
  *
  * @return
- * The function msg_recv_iovec() returns the length of I/O vector to
+ * The length of I/O vector to
  * receive data, 0 if there are not enough buffers, or -1 upon an error.
+ *
+ * @sa msg_iovec(), su_vrecv()
  */
-int msg_recv_iovec(msg_t *msg, msg_iovec_t vec[], int veclen,
-		   unsigned n, int exact)
+issize_t msg_recv_iovec(msg_t *msg, msg_iovec_t vec[], isize_t veclen,
+			usize_t n, int exact)
 {
-  int i = 0;
+  size_t i = 0;
+  size_t len = 0;
   msg_payload_t *chunk;
-  unsigned len = 0;
   char *buf;
 
   if (n == 0)
@@ -357,10 +359,15 @@ int msg_recv_iovec(msg_t *msg, msg_iovec_t vec[], int veclen,
     if (!buf)
       break;
 
+#if SU_HAVE_WINSOCK
+    /* WSABUF has u_long */
+    if (len > SU_IOVECLEN_MAX)
+      len = SU_IOVECLEN_MAX;
+#endif
     if (len > n)
       len = n;
     if (vec)
-      vec[i].mv_base = buf, vec[i].mv_len = len;
+      vec[i].mv_base = buf, vec[i].mv_len = (su_ioveclen_t)len;
     i++;
     if (len == n)
       return i;
@@ -396,7 +403,7 @@ int msg_recv_iovec(msg_t *msg, msg_iovec_t vec[], int veclen,
     return -1;
 
   if (vec)
-    vec[i].mv_base = buf, vec[i].mv_len = n;
+    vec[i].mv_base = buf, vec[i].mv_len = (su_ioveclen_t)n;
 
   if (chunk) {
     assert(chunk->pl_data == NULL); assert(chunk->pl_common->h_len == 0);
@@ -456,8 +463,11 @@ int msg_recv_iovec(msg_t *msg, msg_iovec_t vec[], int veclen,
 }
 
 
-/** Obtain a buffer for receiving data */
-int msg_recv_buffer(msg_t *msg, void **return_buffer)
+/** Obtain a buffer for receiving data.
+ *
+ * @relatesalso msg_s
+ */
+issize_t msg_recv_buffer(msg_t *msg, void **return_buffer)
 {
   void *buffer;
 
@@ -471,7 +481,7 @@ int msg_recv_buffer(msg_t *msg, void **return_buffer)
     msg_payload_t *pl;
 
     for (pl = msg->m_chunk; pl; pl = pl->pl_next) {
-      unsigned n = MSG_CHUNK_AVAIL(pl);
+      size_t n = MSG_CHUNK_AVAIL(pl);
       if (n) {
 	*return_buffer = MSG_CHUNK_BUFFER(pl);
 	return n;
@@ -497,7 +507,7 @@ int msg_recv_buffer(msg_t *msg, void **return_buffer)
 
 /**Commit @a n bytes of buffers.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * The function msg_recv_commit() is called after @a n bytes of data has
  * been received to the message buffers and the parser can extract the
@@ -514,7 +524,7 @@ int msg_recv_buffer(msg_t *msg, void **return_buffer)
  * @retval 0 when successful
  * @retval -1 upon an error.
  */
-int msg_recv_commit(msg_t *msg, unsigned n, int eos)
+isize_t msg_recv_commit(msg_t *msg, usize_t n, int eos)
 {
   msg_payload_t *pl;
 
@@ -522,7 +532,7 @@ int msg_recv_commit(msg_t *msg, unsigned n, int eos)
     msg->m_buffer->mb_eos = 1;
 
   for (pl = msg->m_chunk; pl; pl = pl->pl_next) {
-    unsigned len = MSG_CHUNK_AVAIL(pl);
+    size_t len = MSG_CHUNK_AVAIL(pl);
 
     if (n <= len)
       len = n;
@@ -543,7 +553,7 @@ int msg_recv_commit(msg_t *msg, unsigned n, int eos)
 
 /**Get a next message of the stream.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * When parsing a transport stream, only the first message in the stream is
  * created with msg_create(). The rest of the messages should be created
@@ -554,7 +564,7 @@ int msg_recv_commit(msg_t *msg, unsigned n, int eos)
 msg_t *msg_next(msg_t *msg)
 {
   msg_t *next;
-  unsigned n;
+  usize_t n;
 
   if (msg && msg->m_next) {
     next = msg->m_next;
@@ -574,7 +584,10 @@ msg_t *msg_next(msg_t *msg)
   return NULL;
 }
 
-/** Set next message of the stream */
+/** Set next message of the stream.
+ *
+ * @relatesalso msg_s
+ */
 int msg_set_next(msg_t *msg, msg_t *next)
 {
   if (!msg || (next && next->m_next))
@@ -588,11 +601,14 @@ int msg_set_next(msg_t *msg, msg_t *next)
   return 0;
 }
 
-/** Clear committed data */
+/** Clear committed data.
+ *
+ * @relatesalso msg_s
+ */
 void msg_clear_committed(msg_t *msg)
 {
   if (msg) {
-    unsigned n = msg_buf_committed(msg);
+    usize_t n = msg_buf_committed(msg);
 
     if (n)
       msg_buf_used(msg, n);
@@ -628,7 +644,7 @@ struct sigcomp_udvm *msg_get_udvm(msg_t *msg)
 
 /** Mark message as complete.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  */
 inline
 unsigned msg_mark_as_complete(msg_t *msg, unsigned mask)
@@ -644,7 +660,7 @@ unsigned msg_mark_as_complete(msg_t *msg, unsigned mask)
 
 /** Return true if message is complete.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  */
 int msg_is_complete(msg_t const *msg)
 {
@@ -653,7 +669,7 @@ int msg_is_complete(msg_t const *msg)
 
 /** Return true if message has parsing errors.
  *
- * @relates msg_s
+ * @relatesalso msg_s
 */
 int msg_has_error(msg_t const *msg)
 {
@@ -662,16 +678,16 @@ int msg_has_error(msg_t const *msg)
 
 /**Total size of message.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  */
-unsigned msg_size(msg_t const *msg)
+usize_t msg_size(msg_t const *msg)
 {
   return msg ? msg->m_size : 0;
 }
 
 /** Set the maximum size of a message.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * The function msg_maxsize() sets the maximum buffer size of a message. It
  * returns the previous maximum size. If the @a maxsize is 0, maximum size
@@ -680,9 +696,9 @@ unsigned msg_size(msg_t const *msg)
  * If the message size exceeds maxsize, msg_errno() returns ENOBUFS,
  * MSG_FLG_TOOLARGE and MSG_FLG_ERROR flags are set.
  */
-unsigned msg_maxsize(msg_t *msg, unsigned maxsize)
+usize_t msg_maxsize(msg_t *msg, usize_t maxsize)
 {
-  unsigned retval = 0;
+  usize_t retval = 0;
 
   if (msg) {
     retval = msg->m_maxsize;
@@ -695,12 +711,12 @@ unsigned msg_maxsize(msg_t *msg, unsigned maxsize)
 
 /**Set the size of next fragment.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * The function msg_streaming_size() sets the size of the message body for
  * streaming.
  */
-unsigned msg_streaming_size(msg_t *msg, unsigned ssize)
+int msg_streaming_size(msg_t *msg, usize_t ssize)
 {
   if (!msg)
     return -1;
@@ -712,7 +728,7 @@ unsigned msg_streaming_size(msg_t *msg, unsigned ssize)
 
 /**Allocate a list of external buffers.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * The function msg_buf_external() allocates at most msg_n_fragments
  * external buffers for the message body.
@@ -720,12 +736,12 @@ unsigned msg_streaming_size(msg_t *msg, unsigned ssize)
  * @return The function msg_buf_external() returns number of allocated
  * buffers, or -1 upon an error.
  */
-int msg_buf_external(msg_t *msg,
-		     unsigned N,
-		     unsigned blocksize)
+issize_t msg_buf_external(msg_t *msg,
+			  usize_t N,
+			  usize_t blocksize)
 {
   msg_buffer_t *ext, *b, **bb;
-  int i, I;
+  size_t i, I;
 
   assert(N <= 128 * 1024);
 
@@ -781,7 +797,6 @@ int msg_buf_external(msg_t *msg,
   }
 
   return -1;
-
 }
 
 int msg_unref_external(msg_t *msg, msg_buffer_t *b)
@@ -799,26 +814,28 @@ int msg_unref_external(msg_t *msg, msg_buffer_t *b)
 /* Parsing messages */
 
 static inline int extract_incomplete_chunks(msg_t *, int eos);
-static int extract_first(msg_t *, msg_pub_t *, char b[], int bsiz, int eos);
-static inline int extract_next(msg_t *, msg_pub_t *, char *, int, int, int);
-static int extract_header(msg_t *, msg_pub_t*,
-			  char b[], int bsiz, int eos, int copy);
+static issize_t extract_first(msg_t *, msg_pub_t *,
+			    char b[], isize_t bsiz, int eos);
+static inline issize_t extract_next(msg_t *, msg_pub_t *, char *, isize_t bsiz, 
+				  int eos, int copy);
+static issize_t extract_header(msg_t *, msg_pub_t*,
+			     char b[], isize_t bsiz, int eos, int copy);
 static msg_header_t *header_parse(msg_t *, msg_pub_t *, msg_href_t const *,
-				  char s[], int slen, int copy_buffer);
-static inline int
+				  char s[], isize_t slen, int copy_buffer);
+static inline issize_t
 extract_trailers(msg_t *msg, msg_pub_t *mo,
-		 char *b, int bsiz, int eos, int copy);
+		 char *b, isize_t bsiz, int eos, int copy);
 
-/** Calculate length of line ending (0, 1 or 2) */
+/** Calculate length of line ending (0, 1 or 2). @internal */
 #define CRLF_TEST(b) ((b)[0] == '\r' ? ((b)[1] == '\n') + 1 : (b)[0] =='\n')
 
 static inline void
-append_parsed(msg_t *msg, msg_pub_t *mo, msg_header_t **hh, msg_header_t *h,
+append_parsed(msg_t *msg, msg_pub_t *mo, msg_href_t const *hr, msg_header_t *h,
 	      int always_into_chain);
 
 /**Extract and parse a message from internal buffer.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * This function parses the internal buffer and adds the parsed fragments to
  * the message object. It marks the successfully parsed data as extracted.
@@ -834,7 +851,9 @@ int msg_extract(msg_t *msg)
   msg_pub_t *mo = msg_object(msg);
   msg_mclass_t const *mc;
   char *b;
-  int m, bsiz, eos;
+  ssize_t m;
+  size_t bsiz;
+  int eos;
 
   if (!msg || !msg->m_buffer->mb_data)
     return -1;
@@ -846,9 +865,9 @@ int msg_extract(msg_t *msg)
   eos = msg->m_buffer->mb_eos;
 
   if (msg->m_chunk) {
-    m = extract_incomplete_chunks(msg, eos);
-    if (m < 1 || MSG_IS_COMPLETE(mo))
-      return m;
+    int incomplete = extract_incomplete_chunks(msg, eos);
+    if (incomplete < 1 || MSG_IS_COMPLETE(mo))
+      return incomplete;
   }
 
   if (mo->msg_flags & MSG_FLG_TRAILERS)
@@ -890,7 +909,7 @@ int msg_extract(msg_t *msg)
     b += m;
     bsiz -= m;
 
-    msg_buf_used(msg, m);
+    msg_buf_used(msg, (size_t)m);
   }
 
   if (eos && bsiz == 0)
@@ -911,11 +930,12 @@ int msg_extract(msg_t *msg)
 }
 
 static
-int extract_first(msg_t *msg, msg_pub_t *mo, char b[], int bsiz, int eos)
+issize_t extract_first(msg_t *msg, msg_pub_t *mo, char b[], isize_t bsiz, int eos)
 {
   /* First line */
-  int k, l, m, n, crlf, xtra;
-  msg_header_t *h, **hh;
+  size_t k, l, m, n, xtra;
+  int crlf;
+  msg_header_t *h;
   msg_href_t const *hr;
   msg_mclass_t const *mc = msg->m_class;
 
@@ -962,9 +982,7 @@ int extract_first(msg_t *msg, msg_pub_t *mo, char b[], int bsiz, int eos)
 
   assert(hr->hr_offset);
 
-  hh = (msg_header_t**)((char *)mo + hr->hr_offset);
-
-  append_parsed(msg, mo, hh, h, 1);
+  append_parsed(msg, mo, hr, h, 1);
 
   mo->msg_flags |= MSG_FLG_HEADERS;
 
@@ -972,8 +990,9 @@ int extract_first(msg_t *msg, msg_pub_t *mo, char b[], int bsiz, int eos)
 }
 
 /* Extract header or message body */
-static inline int
-extract_next(msg_t *msg, msg_pub_t *mo, char *b, int bsiz, int eos, int copy)
+static inline issize_t
+extract_next(msg_t *msg, msg_pub_t *mo, char *b, isize_t bsiz, 
+	     int eos, int copy)
 {
   if (IS_CRLF(b[0]))
     return msg->m_class->mc_extract_body(msg, mo, b, bsiz, eos);
@@ -982,7 +1001,8 @@ extract_next(msg_t *msg, msg_pub_t *mo, char *b, int bsiz, int eos, int copy)
 }
 
 /** Extract a header. */
-int msg_extract_header(msg_t *msg, msg_pub_t *mo, char b[], int bsiz, int eos)
+issize_t msg_extract_header(msg_t *msg, msg_pub_t *mo, 
+			   char b[], isize_t bsiz, int eos)
 {
   return extract_header(msg, mo, b, bsiz, eos, 0);
 }
@@ -990,13 +1010,15 @@ int msg_extract_header(msg_t *msg, msg_pub_t *mo, char b[], int bsiz, int eos)
 /** Extract a header from buffer @a b.
  */
 static
-int
-extract_header(msg_t *msg, msg_pub_t *mo, char *b, int bsiz, int eos,
+issize_t
+extract_header(msg_t *msg, msg_pub_t *mo, char *b, isize_t bsiz, int eos,
 	       int copy_buffer)
 {
-  int len, n = 0, m, crlf = 0;
-  int name_len = 0, name_len_set = 0;
-  int error = 0, xtra;
+  size_t len, m;
+  size_t name_len = 0, xtra;
+  isize_t n = 0;
+  int crlf = 0, name_len_set = 0;
+  int error = 0;
   msg_header_t *h;
   msg_href_t const *hr;
   msg_mclass_t const *mc = msg->m_class;
@@ -1072,7 +1094,7 @@ extract_header(msg_t *msg, msg_pub_t *mo, char *b, int bsiz, int eos,
 static
 msg_header_t *header_parse(msg_t *msg, msg_pub_t *mo,
 			   msg_href_t const *hr,
-			   char s[], int slen,
+			   char s[], isize_t slen,
 			   int copy_buffer)
 {
   su_home_t *home = msg_home(msg);
@@ -1145,7 +1167,7 @@ msg_header_t *header_parse(msg_t *msg, msg_pub_t *mo,
     for (hh = &(*hh)->sh_next; *hh; *hh = (*hh)->sh_next)
       msg_chain_remove(msg, *hh);
   else if (h != *hh)
-    append_parsed(msg, mo, hh, h, 0);
+    append_parsed(msg, mo, hr, h, 0);
 
   return h;
 }
@@ -1155,8 +1177,8 @@ msg_header_t *msg_header_d(su_home_t *home, msg_t const *msg, char const *b)
 {
   msg_mclass_t const *mc = msg->m_class;
   msg_href_t const *hr = mc->mc_unknown;
-  int n;			/* Length of header contents */
-  int name_len, xtra;
+  isize_t n;			/* Length of header contents */
+  isize_t name_len, xtra;
   msg_header_t *h;
   char *bb;
 
@@ -1192,13 +1214,13 @@ msg_header_t *msg_header_d(su_home_t *home, msg_t const *msg, char const *b)
 }
 
 /** Extract a separator line */
-int msg_extract_separator(msg_t *msg, msg_pub_t *mo,
-			  char b[], int bsiz, int eos)
+issize_t msg_extract_separator(msg_t *msg, msg_pub_t *mo,
+			       char b[], isize_t bsiz, int eos)
 {
   msg_mclass_t const *mc = msg->m_class;
   msg_href_t const *hr = mc->mc_separator;
   int l = CRLF_TEST(b);  /* Separator length */
-  msg_header_t *h, **hh;
+  msg_header_t *h;
 
   /* Even if a single CR *may* be a payload separator we cannot be sure */
   if (l == 0 || (!eos && bsiz == 1 && b[0] == '\r'))
@@ -1212,9 +1234,7 @@ int msg_extract_separator(msg_t *msg, msg_pub_t *mo,
 
   h->sh_data = b, h->sh_len  = l;
 
-  hh = (msg_header_t **)((char *)mo + hr->hr_offset);
-
-  append_parsed(msg, mo, hh, h, 0);
+  append_parsed(msg, mo, hr, h, 0);
 
   return l;
 }
@@ -1223,15 +1243,15 @@ static inline msg_header_t **msg_chain_tail(msg_t const *msg);
 
 /** Extract a message body of @a body_len bytes.
   */
-int msg_extract_payload(msg_t *msg, msg_pub_t *mo,
-			msg_header_t **return_payload,
-			unsigned body_len,
-			char b[], int bsiz,
-			int eos)
+issize_t msg_extract_payload(msg_t *msg, msg_pub_t *mo,
+			     msg_header_t **return_payload,
+			     usize_t body_len,
+			     char b[], isize_t bsiz,
+			     int eos)
 {
   msg_mclass_t const *mc = msg->m_class;
   msg_href_t const *hr = mc->mc_payload;
-  msg_header_t *h, **hh, *h0;
+  msg_header_t *h, *h0;
   msg_payload_t *pl;
   char *x;
 
@@ -1250,8 +1270,7 @@ int msg_extract_payload(msg_t *msg, msg_pub_t *mo,
   if (!(h = msg_header_alloc(msg_home(msg), hr->hr_class, 0)))
     return -1;
 
-  hh = (msg_header_t **)((char *)mo + hr->hr_offset);
-  append_parsed(msg, mo, hh, h, 0);
+  append_parsed(msg, mo, hr, h, 0);
   pl = h->sh_payload;
   *return_payload = h;
 
@@ -1292,7 +1311,7 @@ int msg_extract_payload(msg_t *msg, msg_pub_t *mo,
 
   if (msg_get_flags(msg, MSG_FLG_CHUNKING)) {
     /* Application supports chunking, use multiple chunks for payload */
-    unsigned current, rest;
+    usize_t current, rest;
 
     current = msg->m_buffer->mb_size - msg->m_buffer->mb_used;
     rest = body_len - current;
@@ -1413,9 +1432,9 @@ int extract_incomplete_chunks(msg_t *msg, int eos)
 }
 
 /* Extract trailers */
-static inline int
+static inline issize_t
 extract_trailers(msg_t *msg, msg_pub_t *mo,
-		 char *b, int bsiz, int eos, int copy)
+		 char *b, isize_t bsiz, int eos, int copy)
 {
   if (IS_CRLF(b[0])) {
     msg_mark_as_complete(msg, MSG_FLG_COMPLETE);
@@ -1429,14 +1448,14 @@ extract_trailers(msg_t *msg, msg_pub_t *mo,
 /* Preparing (printing/encoding) a message structure for sending */
 
 /* Internal prototypes */
-static inline int
-msg_header_name_e(char b[], int bsiz, msg_header_t const *h, int flags);
-static int msg_header_prepare(msg_mclass_t const *, int flags,
-			      msg_header_t *h, char *b, int bsiz);
+static inline size_t
+msg_header_name_e(char b[], size_t bsiz, msg_header_t const *h, int flags);
+static size_t msg_header_prepare(msg_mclass_t const *, int flags,
+				 msg_header_t *h, char *b, size_t bsiz);
 
 /**Encode all message fragments.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * The function msg_prepare() prepares a message for sending. It encodes all
  * serialized fragments in the message. You have to call msg_serialize()
@@ -1498,13 +1517,14 @@ int msg_is_prepared(msg_t const *msg)
  * @return
  * The size of all the headers in chain, or -1 upon an error.
  */
-int msg_headers_prepare(msg_t *msg, msg_header_t *headers, int flags)
+issize_t msg_headers_prepare(msg_t *msg, msg_header_t *headers, int flags)
 {
   msg_mclass_t const *mc = msg->m_class;
   msg_header_t *h;
-  int n = 0, bsiz = 0, used = 0;
+  ssize_t n = 0;
+  size_t bsiz = 0, used = 0;
   char *b;
-  unsigned total = 0;
+  size_t total = 0;
 
   b = msg_buf_alloc(msg, msg_min_size);
   bsiz = msg_buf_size(msg);
@@ -1521,7 +1541,7 @@ int msg_headers_prepare(msg_t *msg, msg_header_t *headers, int flags)
 
     n = msg_header_prepare(mc, flags, h, b, bsiz - used);
 
-    if (n < 0) {
+    if (n == (ssize_t)-1) {
       errno = EINVAL;
       return -1;
     }
@@ -1547,14 +1567,14 @@ int msg_headers_prepare(msg_t *msg, msg_header_t *headers, int flags)
 
 /** Encode a header or a list of headers */
 static
-int msg_header_prepare(msg_mclass_t const *mc, int flags,
-		       msg_header_t *h, char *b, int bsiz)
+size_t msg_header_prepare(msg_mclass_t const *mc, int flags,
+			  msg_header_t *h, char *b, size_t bsiz)
 {
   msg_header_t *h0, *next;
   msg_hclass_t *hc;
   char const *s;
-  int n, m, middle = 0;
-  int compact, one_line_list, comma_list;
+  size_t n; ssize_t m;
+  int middle = 0, compact, one_line_list, comma_list;
 
   assert(h); assert(h->sh_class);
 
@@ -1633,9 +1653,9 @@ int msg_header_prepare(msg_mclass_t const *mc, int flags,
  * specify @c MSG_DO_COMPACT, the encoding is compact (short form with
  * minimal whitespace).
  */
-int msg_header_e(char b[], int bsiz, msg_header_t const *h, int flags)
+issize_t msg_header_e(char b[], isize_t bsiz, msg_header_t const *h, int flags)
 {
-  int n, m;
+  size_t n, m;
 
   assert(h); assert(h->sh_class);
 
@@ -1656,12 +1676,12 @@ int msg_header_e(char b[], int bsiz, msg_header_t const *h, int flags)
 
 /** Encode header name */
 static inline
-int
-msg_header_name_e(char b[], int bsiz, msg_header_t const *h, int flags)
+size_t
+msg_header_name_e(char b[], size_t bsiz, msg_header_t const *h, int flags)
 {
   int compact = MSG_IS_COMPACT(flags);
   char const *name;
-  int n, n2;
+  size_t n, n2;
 
   if (compact && h->sh_class->hc_short[0])
     name = h->sh_class->hc_short, n = 1;
@@ -1713,7 +1733,7 @@ static inline msg_header_t **msg_chain_tail(msg_t const *msg)
  * The msg_serialize() collects the headers and other message components in
  * the fragment chain. It should be called before msg_prepare().
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * @param msg pointer to message object
  * @param pub public message structure
@@ -1865,29 +1885,33 @@ msg_header_t **serialize_one(msg_t *msg, msg_header_t *h, msg_header_t **prev)
 
 /**Fill an I/O vector with message contents.
  *
- * The function msg_iovec() calculates number of entries in the I/O vector
+ * @relatesalso msg_s
+ *
+ * Calculate number of entries in the I/O vector
  * required to send a message @a msg. It also fills in the I/O vector array,
  * if it is provided by the caller and it is large enough.
  *
- * @param msg
- * @param vec
- * @param veclen
+ * @param msg   pointer to message object
+ * @param vec   I/O vector (may be NULL)
+ * @param veclen length of I/O vector in @a vec
  *
  * @return
- * The function msg_iovec() returns the number of entries in I/O
+ * Number of entries of I/O
  * vector required by @a msg, or 0 upon an error.
  *
  * @note The caller should check that the I/O vector @a vec has enough
  * entries. If the @a vec is too short, it should allocate big enough
  * vector and re-invoke msg_iovec().
+ *
+ * @sa msg_recv_iovec(), su_vsend()
  */
-int msg_iovec(msg_t *msg, msg_iovec_t vec[], int veclen)
+isize_t msg_iovec(msg_t *msg, msg_iovec_t vec[], isize_t veclen)
 {
-  int len = 0, n = 0;
+  size_t len = 0, n = 0;
   char const *p = NULL;
   msg_header_t *h;
 
-  unsigned total = 0;
+  size_t total = 0;
 
   if (veclen <= 0)
     veclen = 0;
@@ -1901,7 +1925,7 @@ int msg_iovec(msg_t *msg, msg_iovec_t vec[], int veclen)
 
       if (vec && n != veclen)
 	/* new iovec entry */
-	vec[n].mv_base = (void *)p, vec[n].mv_len  = len;
+	vec[n].mv_base = (void *)p, vec[n].mv_len = (su_ioveclen_t)len;
       else
 	vec = NULL;
 
@@ -1911,7 +1935,7 @@ int msg_iovec(msg_t *msg, msg_iovec_t vec[], int veclen)
       /* extend old entry */
       len = h->sh_len;
       if (vec)
-	vec[n-1].mv_len += len;
+	vec[n-1].mv_len += (su_ioveclen_t)len;
       p += len;
     }
 
@@ -1919,8 +1943,6 @@ int msg_iovec(msg_t *msg, msg_iovec_t vec[], int veclen)
   }
 
   msg->m_size = total;
-
-  assert(n > 0);
 
   return n;
 }
@@ -1930,8 +1952,8 @@ int msg_iovec(msg_t *msg, msg_iovec_t vec[], int veclen)
  * Headers are either inserted just before the payload, or after the first
  * line, depending on their type.
  *
- * @param msg  message object [IN]
- * @param pub  public message structure [IN/OUT]
+ * @param[in]     msg  message object 
+ * @param[in,out] pub  public message structure 
  * @param prepend if true, add before same type of headers (instead after them)
  * @param head head of chain
  * @param h    header to insert
@@ -2122,9 +2144,9 @@ int msg_chain_errors(msg_header_t const *h)
  */
 msg_header_t *msg_header_alloc(su_home_t *home,
 			       msg_hclass_t *hc,
-			       int extra)
+			       isize_t extra)
 {
-  int size = hc->hc_size;
+  isize_t size = hc->hc_size;
   msg_header_t *h = su_alloc(home, size + extra);
 
   if (h) {
@@ -2309,10 +2331,14 @@ msg_hclass_offset(msg_mclass_t const *mc, msg_pub_t const *mo, msg_hclass_t *hc)
 
 /** Append a parsed header object into the message structure */
 static inline void
-append_parsed(msg_t *msg, msg_pub_t *mo, msg_header_t **hh, msg_header_t *h,
+append_parsed(msg_t *msg, msg_pub_t *mo, msg_href_t const *hr, msg_header_t *h,
 	      int always_into_chain)
 {
-  assert(msg); assert(hh); assert(hh != (void *)mo);
+  msg_header_t **hh;
+
+  assert(msg); assert(hr->hr_offset);
+
+  hh = (msg_header_t **)((char *)mo + hr->hr_offset);
 
   if (msg->m_chain || always_into_chain)
     msg_insert_here_in_chain(msg, msg_chain_tail(msg), h);
@@ -2320,14 +2346,21 @@ append_parsed(msg_t *msg, msg_pub_t *mo, msg_header_t **hh, msg_header_t *h,
   if (*hh && msg_is_single(h)) {
     /* If there is multiple instances of single headers,
        put the extra headers into the list of erroneous headers */
-    hh = (msg_header_t**)&mo->msg_error;
-    /* Flag this as fatal error */
-    mo->msg_flags |= MSG_FLG_ERROR;
+    msg_error_t **e;
+
+    for (e = &mo->msg_error; *e; e = &(*e)->er_next)
+      ;
+    *e = (msg_error_t *)h;
+
+    msg->m_extract_err |= hr->hr_flags;
+    if (hr->hr_class->hc_critical)
+      mo->msg_flags |= MSG_FLG_ERROR;
+
+    return;
   }
 
   while (*hh)
     hh = &(*hh)->sh_next;
-
   *hh = h;
 }
 
@@ -2375,7 +2408,7 @@ int msg_header_add_dup(msg_t *msg,
 
     if (!*hh || hc->hc_kind != msg_kind_list) {
       int size = hc->hc_size;
-      int xtra = hc->hc_dxtra(src, size) - size;
+      isize_t xtra = hc->hc_dxtra(src, size) - size;
       char *end;
 
       if (!(h = msg_header_alloc(msg_home(msg), hc, xtra)))
@@ -2566,7 +2599,8 @@ int msg_header_add_str(msg_t *msg,
   s = su_strdup(msg_home(msg), str);
 
   if (s) {
-    int ssiz = strlen(s), used = 0, n = 1;
+    size_t ssiz = strlen(s), used = 0;
+    ssize_t n = 1;
 
     while (ssiz > used) {
       if (IS_CRLF(s[used]))
@@ -2603,7 +2637,8 @@ int msg_header_add_str(msg_t *msg,
  * inserted first and replaces the existing request (or status).  Other
  * headers are inserted after the request or status.
  *
- * If the header is a singleton, existing headers with the same class are
+ * If there can be only one header field of this type (hc_kind is
+ * msg_kind_single), existing header objects with the same class are
  * removed.
  *
  * @param msg message object owning the fragment chain

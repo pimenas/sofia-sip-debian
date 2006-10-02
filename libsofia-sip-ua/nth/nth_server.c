@@ -69,6 +69,10 @@ typedef struct server_s server_t;
 #endif
 #include <sofia-sip/htable.h>
 
+#ifndef UINT32_MAX
+#define UINT32_MAX (0xffffffffU)
+#endif
+
 enum { SERVER_TICK = 1000 };
 
 #define SERVER_VERSION "nth/" NTH_VERSION
@@ -153,9 +157,7 @@ struct nth_request_s
 #endif
 #include <sofia-sip/su_debug.h>
 
-/**@var NTH_DEBUG
- *
- * Environment variable determining the debug log level for @b nth
+/**Environment variable determining the debug log level for @b nth
  * module.
  *
  * The NTH_DEBUG environment variable is used to determine the debug
@@ -200,7 +202,7 @@ static nth_site_t **site_get_directory(nth_site_t **list, char const *path,
 static void server_tport_error(server_t *srv, tport_t *tport,
 			       int errcode, char const *remote);
 static msg_t *server_msg_create(server_t *srv, int flags, 
-				char const data[], unsigned dlen,
+				char const data[], usize_t dlen,
 				tport_t const *tp, tp_client_t *tpc);
 
 static void server_reply(server_t *srv, tport_t *tport, 
@@ -769,7 +771,7 @@ static void server_reply(server_t *srv, tport_t *tport,
 /** Create a new message for transport */
 static
 msg_t *server_msg_create(server_t *srv, int flags, 
-			 char const data[], unsigned dlen,
+			 char const data[], usize_t dlen,
 			 tport_t const *tp, tp_client_t *tpc)
 {
   msg_t *msg = msg_create(srv->srv_mclass, srv->srv_mflags | flags);
@@ -901,12 +903,15 @@ int nth_request_treply(nth_request_t *req,
   if (http->http_payload && !http->http_content_length) {
     http_content_length_t *l;
     http_payload_t *pl;
-    unsigned len = 0;
+    size_t len = 0;
     
     for (pl = http->http_payload; pl; pl = pl->pl_next)
       len += pl->pl_len;
 
-    l = http_content_length_create(msg_home(response), len);
+    if (len > UINT32_MAX)
+      goto fail;
+
+    l = http_content_length_create(msg_home(response), (uint32_t)len);
 
     msg_header_insert(response, (msg_pub_t *)http, (msg_header_t *)l);
   }
@@ -949,6 +954,7 @@ int nth_request_treply(nth_request_t *req,
 			TAG_IF(close, TPTAG_CLOSE_AFTER(1)),
 			ta_tags(ta));
 
+ fail:
   ta_end(ta);
   
   if (retval == 0)

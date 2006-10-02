@@ -81,7 +81,7 @@ SOFIA_BEGIN_DECLS
 
 #elif SU_HAVE_WINSOCK
 
-#define SU_WAIT_CMP(x, y) ((long)(x) - (long)(y))
+#define SU_WAIT_CMP(x, y) ((intptr_t)(x) - (intptr_t)(y))
 
 #define SU_WAIT_IN      (FD_READ)
 #define SU_WAIT_OUT     (FD_WRITE)
@@ -112,7 +112,13 @@ SOFIA_BEGIN_DECLS
 /* ---------------------------------------------------------------------- */
 /* Types */
 
-#if SU_HAVE_BSDSOCK
+#if 0
+typedef struct _pollfd {
+  su_socket_t fd;           /* file descriptor */
+  short events;     /* requested events */
+  short revents;    /* returned events */
+} su_wait_t;
+#elif SU_HAVE_BSDSOCK
 typedef struct pollfd su_wait_t;
 #elif SU_HAVE_WINSOCK
 typedef HANDLE su_wait_t;
@@ -133,7 +139,7 @@ typedef struct su_root_s su_root_t;
 /**Default type of application context for <a href="#su_root_t">su_root_t</a>.
  *
  * Application may define the typedef ::su_root_magic_t to appropriate type
- * by defining macro #SU_ROOT_MAGIC_T before including <su_wait.h>, for
+ * by defining macro SU_ROOT_MAGIC_T before including <su_wait.h>, for
  * example,
  * @code
  * #define SU_ROOT_MAGIC_T struct context
@@ -146,7 +152,7 @@ typedef struct su_root_s su_root_t;
 /** <a href="#su_root_t">Root context</a> pointer type.
  *
  * Application may define the typedef ::su_root_magic_t to appropriate type
- * by defining macro #SU_ROOT_MAGIC_T before including <su_wait.h>, for
+ * by defining macro SU_ROOT_MAGIC_T () before including <su_wait.h>, for
  * example,
  * @code
  * #define SU_ROOT_MAGIC_T struct context
@@ -160,7 +166,7 @@ typedef SU_ROOT_MAGIC_T su_root_magic_t;
  * @link ::su_wakeup_arg_t argument type @endlink.  
  *
  * The application can define the typedef ::su_wakeup_arg_t by defining
- * the #SU_WAKEUP_ARG_T before including <su_wait.h>, for example,
+ * the SU_WAKEUP_ARG_T () before including <su_wait.h>, for example,
  * @code
  * #define SU_WAKEUP_ARG_T struct transport
  * #include <su_wait.h>
@@ -172,7 +178,7 @@ typedef SU_ROOT_MAGIC_T su_root_magic_t;
 /** @link ::su_wakeup_f Wakeup callback @endlink argument type. 
  *
  * The application can define the typedef ::su_wakeup_arg_t by defining
- * the #SU_WAKEUP_ARG_T before including <su_wait.h>, for example,
+ * the SU_WAKEUP_ARG_T () before including <su_wait.h>, for example,
  * @code
  * #define SU_WAKEUP_ARG_T struct transport
  * #include <su_wait.h>
@@ -421,15 +427,15 @@ SOFIAPUBFUN int su_task_execute(su_task_r const task,
 /* Messages */
 SOFIAPUBFUN int su_msg_create(su_msg_r msg,
 			      su_task_r const to, su_task_r const from, 
-			      su_msg_f wakeup, int size);
+			      su_msg_f wakeup, isize_t size);
 SOFIAPUBFUN int su_msg_report(su_msg_r msg, su_msg_f report);
 SOFIAPUBFUN int su_msg_reply(su_msg_r reply, su_msg_r const msg,
-			     su_msg_f wakeup, int size);
+			     su_msg_f wakeup, isize_t size);
 SOFIAPUBFUN void su_msg_destroy(su_msg_r msg);
 SOFIAPUBFUN void su_msg_save(su_msg_r msg, su_msg_r msg0);
 SOFIAPUBFUN void su_msg_remove_refs(su_msg_cr msg);
 SOFIAPUBFUN su_msg_arg_t *su_msg_data(su_msg_cr msg);
-SOFIAPUBFUN int su_msg_size(su_msg_cr msg);
+SOFIAPUBFUN isize_t su_msg_size(su_msg_cr msg);
 SOFIAPUBFUN _su_task_r su_msg_from(su_msg_cr msg);
 SOFIAPUBFUN _su_task_r su_msg_to(su_msg_cr msg);
 SOFIAPUBFUN int su_msg_send(su_msg_r msg);

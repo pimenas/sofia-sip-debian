@@ -65,18 +65,9 @@ typedef unsigned _int32 uint32_t;
 #if HAVE_WINSOCK2_H
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#if HAVE_SIN6
-#include <tpipv6.h>
-#else
-#if !defined(__MINGW32__)
-struct sockaddr_storage {
-    short ss_family;
-    char ss_pad[126];
-};
+#ifndef IPPROTO_IPV6		/* socklen_t is used with @RFC2133 API */
+typedef int socklen_t;
 #endif
-#endif
-#else
-#define closesocket(s) close(s)
 #endif
 
 #include <time.h>
@@ -107,6 +98,67 @@ struct sockaddr_storage {
 #include <limits.h>
 
 #include <assert.h>
+
+#if HAVE_WINSOCK2_H
+/* Posix send() */
+static inline 
+ssize_t sres_send(sres_socket_t s, void *b, size_t length, int flags)
+{
+  if (length > INT_MAX)
+    length = INT_MAX;
+  return (ssize_t)send(s, b, (int)length, flags);
+}
+
+/* Posix recvfrom() */
+static inline 
+ssize_t sres_recvfrom(sres_socket_t s, void *buffer, size_t length, int flags,
+		      struct sockaddr *from, socklen_t *fromlen)
+{
+  int retval, ilen;
+
+  if (fromlen)
+    ilen = *fromlen;
+
+  if (length > INT_MAX)
+    length = INT_MAX;
+
+  retval = recvfrom(s, buffer, (int)length, flags, 
+		    (void *)from, fromlen ? &ilen : NULL);
+
+  if (fromlen)
+    *fromlen = ilen;
+
+  return (ssize_t)retval;
+}
+
+#if !defined(IPPROTO_IPV6)
+#if HAVE_SIN6
+#include <tpipv6.h>
+#else
+#if !defined(__MINGW32__)
+struct sockaddr_storage {
+    short ss_family;
+    char ss_pad[126];
+};
+#endif
+#endif
+#endif
+#else
+
+#define sres_send(s,b,len,flags) send((s),(b),(len),(flags))
+#define sres_recvfrom(s,b,len,flags,a,alen) \
+  recvfrom((s),(b),(len),(flags),(a),(alen))
+#define SOCKET_ERROR   (-1)
+#define INVALID_SOCKET ((sres_socket_t)-1)
+#endif
+
+
+#if !HAVE_INET_PTON
+int inet_pton(int af, char const *src, void *dst);
+#endif
+#if !HAVE_INET_NTOP
+const char *inet_ntop(int af, void const *src, char *dst, size_t size);
+#endif
 
 #if defined(va_copy)
 #elif defined(__va_copy)
@@ -142,7 +194,7 @@ enum edns {
 };
 
 struct sres_server {
-  int                     dns_socket;
+  sres_socket_t           dns_socket;
 
   char                    dns_name[48];     /**< Server name */
   struct sockaddr_storage dns_addr[1];  /**< Server node address */
@@ -156,7 +208,7 @@ struct sres_server {
   time_t                  dns_error;
 };
 
-HTABLE_DECLARE(sres_qtable, qt, sres_query_t);
+HTABLE_DECLARE_WITH(sres_qtable, qt, sres_query_t, unsigned, size_t);
 
 struct sres_resolver_s {
   su_home_t           res_home[1];
@@ -226,7 +278,7 @@ struct sres_config {
 };
 
 struct sres_query_s {
-  hash_value_t    q_hash;
+  unsigned        q_hash;
   sres_resolver_t*q_res;
   sres_answer_f  *q_callback;
   sres_context_t *q_context;
@@ -294,7 +346,7 @@ enum {
   SRES_HDR_RCODE = (15 << 0)	/* mask of return code */
 };
 
-HTABLE_PROTOS(sres_qtable, qt, sres_query_t);
+HTABLE_PROTOS_WITH(sres_qtable, qt, sres_query_t, unsigned, size_t);
 
 #define CHOME(cache) ((su_home_t *)(cache))
 
@@ -351,7 +403,8 @@ static void sres_servers_close(sres_resolver_t *res,
 
 static int sres_servers_count(sres_server_t * const *servers);
 
-static int sres_server_socket(sres_resolver_t *res, sres_server_t *dns);
+static sres_socket_t sres_server_socket(sres_resolver_t *res,
+					sres_server_t *dns);
 
 static sres_query_t * sres_query_alloc(sres_resolver_t *res,
 				       sres_answer_f *callback,
@@ -396,11 +449,12 @@ static void
 sres_resend_dns_query(sres_resolver_t *res, sres_query_t *q, int timeout);
 
 static 
-sres_server_t *sres_server_by_socket(sres_resolver_t const *ts, int socket);
+sres_server_t *sres_server_by_socket(sres_resolver_t const *ts,
+				     sres_socket_t socket);
 
 static
 int sres_resolver_report_error(sres_resolver_t *res, 
-			       int socket,
+			       sres_socket_t socket,
 			       int errcode,
 			       struct sockaddr_storage *remote,
 			       socklen_t remotelen, 
@@ -792,12 +846,40 @@ sres_resolver_get_async(sres_resolver_t const *res,
 
 /**Send a DNS query.
  *
- * Sends a DNS query with specified @a type and @a domain to the DNS server. 
- * The sres resolver takes care of retransmitting the query if
- * sres_resolver_timer() is called in regular intervals. It generates an
- * error record with nonzero status if no response is received.
+ * Sends a DNS query with specified @a type and @a domain to the DNS server.
+ * When an answer is received, the @a callback function is called with
+ * @a context and returned records as arguments.
  *
- * @sa sres_search(), sres_blocking_query(), sres_query_make()
+ * The sres resolver takes care of retransmitting the query if a root object
+ * is associate with the resolver or if sres_resolver_timer() is called in
+ * regular intervals. It generates an error record with nonzero status if no
+ * response is received.
+ *
+ * @param res pointer to resolver
+ * @param callback function called when query is answered or times out
+ * @param context pointer given as an extra argument to @a callback function
+ * @param type record type to query (see #sres_qtypes)
+ * @param domain name to query
+ *
+ * Query types also indicate the record type of the result.
+ * Any record can be queried with #sres_qtype_any.
+ * Well-known query types understood and decoded by @b sres include
+ * #sres_type_a, 
+ * #sres_type_aaaa,
+ * #sres_type_cname,
+ * #sres_type_ptr 
+ * #sres_type_soa, 
+ * #sres_type_aaaa, 
+ * #sres_type_srv, and
+ * #sres_type_naptr.
+ *
+ * Deprecated query type sres_type_a6 is also decoded.
+ *
+ * @note The domain name is not concatenated with the domains from seach
+ * path or with the local domain Use sres_search() in order to try domains
+ * in search path.
+ *
+ * @sa sres_search(), sres_blocking_query(), sres_cached_answers()
  *
  * @ERRORS
  * @ERROR EFAULT @a res or @a domain point outside the address space
@@ -843,11 +925,14 @@ sres_query(sres_resolver_t *res,
  *
  * Sends DNS queries with specified @a type and @a name to the DNS server. 
  * If the @a name does not contain enought dots, the search domains are
- * appended to the name and resulting domain name are also queried.
- *
- * The sres resolver takes care of retransmitting the queries if
- * sres_resolver_timer() is called in regular intervals. It generates an
- * error record with nonzero status if no response is received.
+ * appended to the name and resulting domain name are also queried. When
+ * answer to all the search domains is received, the @a callback function
+ * is called with @a context and combined records from answers as arguments.
+ * 
+ * The sres resolver takes care of retransmitting the queries if a root
+ * object is associate with the resolver or if sres_resolver_timer() is
+ * called in regular intervals. It generates an error record with nonzero
+ * status if no response is received.
  *
  * @param res pointer to resolver object
  * @param callback pointer to completion function
@@ -860,7 +945,7 @@ sres_query(sres_resolver_t *res,
  * @ERROR ENAMETOOLONG @a domain is longer than SRES_MAXDNAME
  * @ERROR ENOMEM memory exhausted
  *
- * @sa sres_query(), sres_blocking_search()
+ * @sa sres_query(), sres_blocking_search(), sres_search_cached_answers().
  */
 sres_query_t *
 sres_search(sres_resolver_t *res,
@@ -904,7 +989,8 @@ sres_search(sres_resolver_t *res,
     /* Create sub-query for each search domain */
     if (dots < res->res_config->c_opt.ndots) {
       sres_query_t *sub;
-      int i, subs, len;
+      int i, subs;
+      size_t len;
       char const **domains = res->res_config->c_search;
       char search[SRES_MAXDNAME + 1];
 
@@ -953,9 +1039,20 @@ sres_search(sres_resolver_t *res,
  *
  * Send a query to DNS server with specified @a type and domain name formed
  * from the socket address @a addr. The sres resolver takes care of
- * retransmitting the query if sres_resolver_timer() is called in regular
- * intervals. It generates an error record with nonzero status if no
- * response is received.
+ * retransmitting the query if a root object is associate with the resolver or
+ * if sres_resolver_timer() is called in regular intervals. It generates an
+ * error record with nonzero status if no response is received.
+ *
+ * @param res pointer to resolver
+ * @param callback function called when query is answered or times out
+ * @param context pointer given as an extra argument to @a callback function
+ * @param type record type to query (or sres_qtype_any for any record)
+ * @param addr socket address structure
+ * 
+ * The @a type should be #sres_type_ptr. The @a addr should contain either
+ * IPv4 (AF_INET) or IPv6 (AF_INET6) address.
+ *
+ * If the "options"
  */
 sres_query_t *
 sres_query_sockaddr(sres_resolver_t *res,
@@ -978,44 +1075,28 @@ sres_query_sockaddr(sres_resolver_t *res,
 
 /** Make a DNS query.
  *
- * Sends a DNS query with specified @a type and @a domain to the DNS server. 
- * The sres resolver takes care of retransmitting the query if
- * sres_resolver_timer() is called in regular intervals. It generates an
- * error record with nonzero status if no response is received.
- *
- * This function just makes sure that we have the @a socket is valid,
- * otherwise it behaves exactly like sres_query().
+ * @deprecated Use sres_query() instead.
  */
 sres_query_t *
 sres_query_make(sres_resolver_t *res,
 		sres_answer_f *callback,
 		sres_context_t *context,
-		int socket,
+		int dummy,
 		uint16_t type,
 		char const *domain)
 {
-  if (socket == -1)
-    return errno = EINVAL, NULL;
-
   return sres_query(res, callback, context, type, domain);
 }
 
 /** Make a reverse DNS query.
  *
- * Send a query to DNS server with specified @a type and domain name formed
- * from the socket address @a addr. The sres resolver takes care of
- * retransmitting the query if sres_resolver_timer() is called in regular
- * intervals. It generates an error record with nonzero status if no
- * response is received.
- *
- * This function just makes sure that we have the @a socket is valid,
- * otherwise it behaves exactly like sres_query_sockaddr().
+ * @deprecated Use sres_query_sockaddr() instead.
  */
 sres_query_t *
 sres_query_make_sockaddr(sres_resolver_t *res,
 			 sres_answer_f *callback,
 			 sres_context_t *context,
-			 int socket,
+			 int dummy,
 			 uint16_t type,
 			 struct sockaddr const *addr)
 {
@@ -1024,13 +1105,10 @@ sres_query_make_sockaddr(sres_resolver_t *res,
   if (!res || !addr)
     return su_seterrno(EFAULT), (void *)NULL;
 
-  if (socket == -1)
-    return errno = EINVAL, NULL;
-
   if (!sres_sockaddr2string(res, name, sizeof(name), addr))
     return NULL;
 
-  return sres_query_make(res, callback, context, socket, type, name);
+  return sres_query_make(res, callback, context, dummy, type, name);
 }
 
 
@@ -1449,7 +1527,7 @@ sres_resolver_destructor(void *arg)
     su_home_unref((su_home_t *)res->res_config->c_home);
 
   if (res->res_updcb)
-    res->res_updcb(res->res_async, -1, -1);
+    res->res_updcb(res->res_async, INVALID_SOCKET, INVALID_SOCKET);
 }
 
 /*
@@ -1459,7 +1537,8 @@ sres_resolver_destructor(void *arg)
 #define Q_PRIME 3571
 #define SRES_QUERY_HASH(q) ((q)->q_hash)
 
-HTABLE_BODIES(sres_qtable, qt, sres_query_t, SRES_QUERY_HASH);
+HTABLE_BODIES_WITH(sres_qtable, qt, sres_query_t, SRES_QUERY_HASH,
+		   unsigned, size_t);
 
 /** Allocate a query structure */
 static
@@ -1598,10 +1677,10 @@ sres_sockaddr2string(sres_resolver_t *res,
 #if HAVE_SIN6
   else if (addr->sa_family == AF_INET6) {
     struct sockaddr_in6 const *sin6 = (struct sockaddr_in6 *)addr;
-    int addrsize = sizeof(sin6->sin6_addr.s6_addr);
+    size_t addrsize = sizeof(sin6->sin6_addr.s6_addr);
     char *postfix;
-    int required;
-    int i;
+    size_t required;
+    size_t i;
 
     if (res->res_config->c_opt.ip6int)
       postfix = "ip6.int.";
@@ -1611,7 +1690,7 @@ sres_sockaddr2string(sres_resolver_t *res,
     required = addrsize * 4 + strlen(postfix);
 
     if (namelen <= required)
-      return required;
+      return (int)required;
 
     for (i = 0; i < addrsize; i++) {
       uint8_t byte = sin6->sin6_addr.s6_addr[addrsize - i - 1];
@@ -1627,7 +1706,7 @@ sres_sockaddr2string(sres_resolver_t *res,
     
     strcpy(name + 4 * i, postfix);
 
-    return required;
+    return (int)required;
   }
 #endif /* HAVE_SIN6 */
   else {
@@ -1766,12 +1845,8 @@ static int sres_parse_win32_reg_parse_dnsserver(sres_config_t *c, HKEY key, LPCT
 {
   su_home_t *home = c->c_home;
   su_strlst_t *reg_dns_list;
-  char *name_servers = su_alloc(home, QUERY_DATALEN);
-#if __MINGW32__
+  BYTE *name_servers = su_alloc(home, QUERY_DATALEN);
   DWORD name_servers_length = QUERY_DATALEN;
-#else
-  int name_servers_length = QUERY_DATALEN;
-#endif
   int ret, servers_added = 0;
 
   /* get name servers and ... */
@@ -1794,7 +1869,7 @@ static int sres_parse_win32_reg_parse_dnsserver(sres_config_t *c, HKEY key, LPCT
       int i;
 
       /* add to list */
-      reg_dns_list = su_strlst_split(home, name_servers, " ");
+      reg_dns_list = su_strlst_split(home, (char *)name_servers, " ");
 	    
       for(i = 0 ; i < su_strlst_len(reg_dns_list); i++) {
 	const char *item = su_strlst_item(reg_dns_list, i);
@@ -1813,8 +1888,6 @@ static int sres_parse_win32_reg_parse_dnsserver(sres_config_t *c, HKEY key, LPCT
   return servers_added;
 }
 
-#endif /* _WIN32 */
-
 /**
  * Discover system nameservers from Windows registry.
  *
@@ -1829,16 +1902,20 @@ static int sres_parse_win32_reg(sres_config_t *c)
 {
   int ret = -1;
 
-#ifdef _WIN32
-
 #define MAX_KEY_LEN           255
 #define MAX_VALUE_NAME_LEN    16383
 
   su_home_t *home = c->c_home;
-  HKEY key_handle, interface_key_handle;  
+  HKEY key_handle;  
+#if 0
+  HKEY interface_key_handle;  
   FILETIME ftime;
-  int index, i, found = 0;
+  int index, i;
+#endif
+  int found = 0;
   char *interface_guid = su_alloc(home, MAX_VALUE_NAME_LEN);
+
+#if 0
 #if __MINGW32__
   DWORD guid_size = QUERY_DATALEN;
 #else
@@ -1849,7 +1926,6 @@ static int sres_parse_win32_reg(sres_config_t *c)
    * - this is currently disabled 2006/Jun (the current check might insert
    *   multiple unnecessary nameservers to the search list) 
    */
-#if 0
   /* open the 'Interfaces' registry Key */
   if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
 		   "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", 
@@ -1879,7 +1955,7 @@ static int sres_parse_win32_reg(sres_config_t *c)
     }
     RegCloseKey(key_handle);
   }
-#endif /* if 0: interface-specific nameservers */
+#endif /* #if 0: interface-specific nameservers */
 
   /* step: if no interface-specific nameservers are found, 
    *       check for system-wide nameservers */
@@ -1903,10 +1979,10 @@ static int sres_parse_win32_reg(sres_config_t *c)
 
   su_free(home, interface_guid);
 
-#endif /* _WIN32 */
-
   return ret;
 }
+
+#endif /* _WIN32 */
 
 /** Parse /etc/resolv.conf file.
  *
@@ -1924,7 +2000,7 @@ sres_config_t *sres_parse_resolv_conf(sres_resolver_t *res,
 
   if (c) {
     FILE *f;
-    int i, success = 0;
+    int i;
     
     f = fopen(c->c_filename = res->res_cnffile, "r");
 
@@ -1932,13 +2008,16 @@ sres_config_t *sres_parse_resolv_conf(sres_resolver_t *res,
 
     if (f)
       fclose(f);
-    
+
+#if _WIN32    
+    /* note: no 127.0.0.1 on win32 systems */
     /* on win32, query the registry for nameservers */
     if (sres_parse_win32_reg(c) == 0) 
-      ++success;
-
-#ifndef _WIN32
-    /* note: no 127.0.0.1 on win32 systems */
+      /* success */;
+    else
+      /* now what? */;
+#else
+    /* Use local nameserver by default */
     if (c->c_nameservers[0] == NULL)
       sres_parse_nameserver(c, "127.0.0.1");
 #endif
@@ -1988,7 +2067,7 @@ int sres_parse_config(sres_config_t *c, FILE *f)
 
   if (f != NULL) {  
     for (line = 1; fgets(buf, sizeof(buf), f); line++) {
-      int len;
+      size_t len;
       char *value, *b;
 
       /* Skip whitespace at the beginning ...*/
@@ -2072,7 +2151,7 @@ sres_parse_options(sres_config_t *c, char const *value)
 
   while (value[0]) {
     char const *b;
-    int len, extra = 0;
+    size_t len, extra = 0;
     unsigned long n = 0;
 
     b = value; len = strcspn(value, " \t:");
@@ -2088,7 +2167,8 @@ sres_parse_options(sres_config_t *c, char const *value)
       value += strspn(value, " \t");
 
     if (n > 65536) {
-      SU_DEBUG_3(("sres: %s: invalid %*.s\n", c->c_filename, len + extra, b));
+      SU_DEBUG_3(("sres: %s: invalid %*.s\n", c->c_filename,
+		  (int)(len + extra), b));
       continue;
     }
 
@@ -2112,7 +2192,8 @@ sres_parse_options(sres_config_t *c, char const *value)
     else if (MATCH("no-edns0")) c->c_opt.edns = edns_not_supported;
     else if (MATCH("edns0")) c->c_opt.edns = edns0_configured;
     else {
-      SU_DEBUG_3(("sres: %s: unknown option %*.s\n", c->c_filename, len + extra, b));
+      SU_DEBUG_3(("sres: %s: unknown option %*.s\n",
+		  c->c_filename, (int)(len + extra), b));
     }
   }
 
@@ -2235,7 +2316,7 @@ sres_server_t **sres_servers_new(sres_resolver_t *res,
   servers = su_zalloc(res->res_home, size); if (!servers) return servers;
   dns = (void *)(servers + N + 1);
   for (i = 0; i < N; i++) {
-    dns->dns_socket = -1;
+    dns->dns_socket = INVALID_SOCKET;
     ns = c->c_nameservers[i];
     memcpy(dns->dns_addr, ns->ns_addr, dns->dns_addrlen = ns->ns_addrlen);
     inet_ntop(dns->dns_addr->ss_family, SS_ADDR(dns->dns_addr), 
@@ -2262,8 +2343,8 @@ void sres_servers_close(sres_resolver_t *res,
 
     if (servers[i]->dns_socket != -1) {
       if (res->res_updcb)
-	res->res_updcb(res->res_async, -1, servers[i]->dns_socket);
-      closesocket(servers[i]->dns_socket);
+	res->res_updcb(res->res_async, INVALID_SOCKET, servers[i]->dns_socket);
+      close(servers[i]->dns_socket);
     }
   }
 }
@@ -2285,10 +2366,10 @@ int sres_servers_count(sres_server_t *const *servers)
 }
 
 static
-int sres_server_socket(sres_resolver_t *res, sres_server_t *dns)
+sres_socket_t sres_server_socket(sres_resolver_t *res, sres_server_t *dns)
 {
   int family = dns->dns_addr->ss_family;
-  int s;
+  sres_socket_t s;
 
   if (dns->dns_socket != -1)
     return dns->dns_socket;
@@ -2339,18 +2420,18 @@ int sres_server_socket(sres_resolver_t *res, sres_server_t *dns)
     SU_DEBUG_1(("%s: %s: %s: %s%s%s:%u\n", "sres_server_socket", "connect",
 		su_strerror(su_errno()), lb, ipaddr, rb,
 		ntohs(((struct sockaddr_in *)dns->dns_addr)->sin_port)));
-    closesocket(s);
+    close(s);
     dns->dns_error = time(NULL);
-    return -1;
+    return INVALID_SOCKET;
   }
   
   if (res->res_updcb) {
-    if (res->res_updcb(res->res_async, s, -1) < 0) {
+    if (res->res_updcb(res->res_async, s, INVALID_SOCKET) < 0) {
       SU_DEBUG_1(("%s: %s: %s\n", "sres_server_socket", "update callback",
 		  su_strerror(su_errno())));
-      closesocket(s);
+      close(s);
       dns->dns_error = time(NULL);
-      return -1;
+      return INVALID_SOCKET;
     }
   }
 
@@ -2369,8 +2450,9 @@ sres_send_dns_query(sres_resolver_t *res,
 {                        
   sres_message_t m[1];
   uint8_t i, i0, N = res->res_n_servers;
-  int s, transient, error = 0;
-  unsigned size, no_edns_size, edns_size;
+  sres_socket_t s;
+  int transient, error = 0;
+  ssize_t size, no_edns_size, edns_size;
   uint16_t id = q->q_id;
   uint16_t type = q->q_type;
   char const *domain = q->q_name;
@@ -2390,8 +2472,9 @@ sres_send_dns_query(sres_resolver_t *res,
   memset(m, 0, offsetof(sres_message_t, m_data[sizeof m->m_packet.mp_header]));
 
   /* Create a DNS message */
-  m->m_size = sizeof(m->m_data);
-  m->m_offset = size = sizeof(m->m_packet.mp_header);
+  size = sizeof(m->m_packet.mp_header);
+  m->m_size = (uint16_t)sizeof(m->m_data);
+  m->m_offset = (uint16_t)size;
   
   m->m_id = id;
   m->m_flags = htons(SRES_HDR_QUERY | SRES_HDR_RD);
@@ -2440,7 +2523,7 @@ sres_send_dns_query(sres_resolver_t *res,
     s = sres_server_socket(res, dns);
 
     /* Send the DNS message via the UDP socket */
-    if (s != -1 && send(s, m->m_data, size, 0) == size)
+    if (s != INVALID_SOCKET && sres_send(s, m->m_data, size, 0) == size)
       break;
 
     error = su_errno();
@@ -2601,7 +2684,7 @@ sres_query_report_error(sres_query_t *q,
  */
 void sres_resolver_timer(sres_resolver_t *res, int dummy)
 {
-  int i;
+  size_t i;
   sres_query_t *q;
   time_t now, retry_time;
 
@@ -2623,7 +2706,7 @@ void sres_resolver_timer(sres_resolver_t *res, int dummy)
 	continue;
       
       /* Exponential backoff */
-      retry_time = q->q_timestamp + (1 << q->q_retry_count);
+      retry_time = q->q_timestamp + ((time_t)1 << q->q_retry_count);
       
       if (now < retry_time)
 	continue;
@@ -2683,7 +2766,7 @@ sres_resend_dns_query(sres_resolver_t *res, sres_query_t *q, int timeout)
 /** Get a server by socket */
 static 
 sres_server_t *
-sres_server_by_socket(sres_resolver_t const *res, int socket)
+sres_server_by_socket(sres_resolver_t const *res, sres_socket_t socket)
 {
   int i;
 
@@ -2718,7 +2801,7 @@ sres_canonize_sockaddr(struct sockaddr_storage *from, socklen_t *fromlen)
       memcpy(&sin->sin_addr, ip6->s6_addr + 12, sizeof sin->sin_addr);
       sin->sin_family = AF_INET;
       *fromlen = sizeof (*sin);
-#if SA_LEN
+#if HAVE_SA_LEN
       sin->sin_len = sizeof (*sin);
 #endif
     }
@@ -2742,7 +2825,9 @@ sres_canonize_sockaddr(struct sockaddr_storage *from, socklen_t *fromlen)
 #endif
 
 static
-int sres_no_update(sres_async_t *async, int new_socket, int old_socket)
+int sres_no_update(sres_async_t *async,
+		   sres_socket_t new_socket,
+		   sres_socket_t old_socket)
 {
   return 0;
 }
@@ -2750,10 +2835,11 @@ int sres_no_update(sres_async_t *async, int new_socket, int old_socket)
 /** Create connected sockets for resolver.
  */
 int sres_resolver_sockets(sres_resolver_t *res,
-			  int *return_sockets, 
+			  sres_socket_t *return_sockets, 
 			  int n)
 {
-  int s = -1, i, retval;
+  sres_socket_t s = INVALID_SOCKET;
+  int i, retval;
 
   if (!sres_resolver_set_async(res, sres_no_update,
 			       (sres_async_t *)-1, 1))
@@ -2768,6 +2854,7 @@ int sres_resolver_sockets(sres_resolver_t *res,
     sres_server_t *dns = res->res_servers[i];
 
     s = sres_server_socket(res, dns);
+
     return_sockets[i++] = s;
   }
 
@@ -2779,7 +2866,7 @@ int sres_resolver_sockets(sres_resolver_t *res,
 static
 sres_server_t *
 sres_server_by_sockaddr(sres_resolver_t const *res, 
-			void const *from, int fromlen)
+			void const *from, socklen_t fromlen)
 {
   int i;
 
@@ -2921,7 +3008,7 @@ int sres_resolver_error(sres_resolver_t *res, int socket)
 int sres_resolver_error(sres_resolver_t *res, int socket)
 {
   int errcode = 0;
-  int errorlen = sizeof(errcode);
+  socklen_t errorlen = sizeof(errcode);
 
   SU_DEBUG_9(("%s(%p, %u) called\n", "sres_resolver_error", res, socket));
 
@@ -2936,7 +3023,7 @@ int sres_resolver_error(sres_resolver_t *res, int socket)
 static
 int 
 sres_resolver_report_error(sres_resolver_t *res,
-			   int socket,
+			   sres_socket_t socket,
 			   int errcode,
 			   struct sockaddr_storage *remote,
 			   socklen_t remotelen, 
@@ -2973,7 +3060,7 @@ sres_resolver_report_error(sres_resolver_t *res,
     /* Report error to queries */
     sres_server_t *dns;
     sres_query_t *q;
-    int i;
+    size_t i;
 
     dns = sres_server_by_socket(res, socket);
 
@@ -3004,7 +3091,8 @@ sres_resolver_report_error(sres_resolver_t *res,
 int 
 sres_resolver_receive(sres_resolver_t *res, int socket)
 {
-  int num_bytes, error;
+  ssize_t num_bytes;
+  int error;
   sres_message_t m[1];
 
   sres_query_t *query = NULL;
@@ -3018,19 +3106,22 @@ sres_resolver_receive(sres_resolver_t *res, int socket)
 
   memset(m, 0, offsetof(sres_message_t, m_data)); 
   
-  num_bytes = recvfrom(socket, m->m_data, sizeof (m->m_data), 0,
-		       (void *)from, &fromlen);
+  num_bytes = sres_recvfrom(socket, m->m_data, sizeof (m->m_data), 0,
+			    (void *)from, &fromlen);
 
   if (num_bytes <= 0) {
     SU_DEBUG_5(("%s: %s\n", "sres_resolver_receive", su_strerror(su_errno())));
     return 0;
   }
 
+  if (num_bytes > 65535)
+    num_bytes = 65535;
+
   dns = sres_server_by_socket(res, socket);
   if (!dns)
     return 0;
 
-  m->m_size = num_bytes;
+  m->m_size = (uint16_t)num_bytes;
 
   /* Decode the received message and get the matching query object */
   error = sres_decode_msg(res, m, &query, &reply);
@@ -3113,8 +3204,8 @@ sres_decode_msg(sres_resolver_t *res,
   sres_query_t *query = NULL, **hq;
   su_home_t *chome = CHOME(res->res_cache);
   hash_value_t hash;
-  int i, err;
-  unsigned total, errorcount = 0;
+  int err;
+  unsigned i, total, errorcount = 0;
 
   assert(res && m && return_answers);
 
@@ -3638,7 +3729,7 @@ m_put_domain(sres_message_t *m,
 	     char const *topdomain)
 {
   char const *label;
-  uint16_t llen;
+  size_t llen;
 
   if (m->m_error)
     return top;
@@ -3661,9 +3752,9 @@ m_put_domain(sres_message_t *m,
       return 0;
     }
 
-    m->m_data[m->m_offset++] = llen;
+    m->m_data[m->m_offset++] = (uint8_t)llen;
     memcpy(m->m_data + m->m_offset, label, llen);
-    m->m_offset += llen;
+    m->m_offset += (uint8_t)llen;
 
     if (label[llen] == '\0')
       break;
