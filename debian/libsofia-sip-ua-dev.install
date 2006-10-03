@@ -107,7 +107,8 @@ usr/include/*/*/url.h
 usr/include/*/*/url_tag_class.h
 usr/include/*/*/url_tag.h
 
-
+usr/share/sofia-sip/msg_parser.awk
+usr/share/sofia-sip/tag_dll.awk
 
 usr/lib/libsofia-sip-ua.a
 usr/lib/libsofia-sip-ua.so

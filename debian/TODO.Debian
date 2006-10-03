@@ -1,8 +1,10 @@
+1) todo list for next upstream release (1.12.4) 
 
-1) Write manpages for: sip-dig, stunc
+   a) to libsofia-sip-ua-dev.install:
 
-	- man pages will be included in 1.12.1 upstream release
+   +usr/include/*/*/su_os_nw.h
 
-2) Resolve the current legal issues: http://lists.debian.org/debian-legal/2006/06/msg00301.html
+2) generic concerns
 
-	- remaining issues solved in 1.12.1 upstream release
+   should we give some recommendations for embedded
+   systems (like rm -rf /usr/share/doc) in README.Debian ?

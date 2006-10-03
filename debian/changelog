@@ -1,3 +1,24 @@
+sofia-sip (1.12.3-1) unstable; urgency=low
+
+  [ George Danchev ]
+  * Reuse CDBS version resolving (thanks to Jonas Smedegaard)
+  * control: XS-X-VCS-Svn: svn.debian.org/svn/pkg-voip/sofia-sip
+  * changelog: converted from ISO-8859-1 to UTF-8
+
+  [ Rémi Denis-Courmont ]
+  * Added explicit dependency between libsofia-sip-ua-glib0 and libsofia-sip-ua0.
+  * Modified rules to list installed files missing from packages.
+
+  [ Kai Vehmanen ]
+  * Updated to new upstream release (skipped 1.12.2).
+  * Removed the rfc*.txt removal rules as the new upstream package no longer
+    includes these files. Now using the upstream tarball.
+
+  [ Mark Purcell ]
+  * Section: libdevel per override disparities
+
+ -- Mark Purcell <msp@debian.org>  Wed,  4 Oct 2006 07:00:07 +1000
+
 sofia-sip (1.12.1.dfsg-1) unstable; urgency=low
 
   * New upstream version

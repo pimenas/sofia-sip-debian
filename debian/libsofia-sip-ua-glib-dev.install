@@ -1,4 +1,5 @@
 usr/include/*/*/su_source.h
+usr/include/*/*/su_glib.h
 usr/include/*/*/nua_glib.h
 usr/lib/libsofia-sip-ua-glib.a
 usr/lib/libsofia-sip-ua-glib.so
