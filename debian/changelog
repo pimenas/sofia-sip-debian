@@ -1,3 +1,19 @@
+sofia-sip (1.12.3-2) unstable; urgency=low
+
+  [ Rémi Denis-Courmont ]
+  * Added dependency to autotools-dev so that CDBS can update config.{guess,sub},
+    and to libc headers
+  * Fine-tuned libsofia-sip-ua-glib-dev dependencies.
+  * Added '-z defs' linker flag to verify no undefined symbols go unnoticed.
+  * Added '--as-needed' linker flag to remove extraneous .so's from list of
+    needed libraries.
+
+  [ Kai Vehmanen ]
+  * Added libssl as a build dependency. Without this, some builds will
+    have ssl disabled in the resulting packages.
+
+ -- Mark Purcell <msp@debian.org>  Mon,  9 Oct 2006 23:56:27 +1000
+
 sofia-sip (1.12.3-1) unstable; urgency=low
 
   [ George Danchev ]
