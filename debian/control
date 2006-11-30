@@ -3,14 +3,14 @@ Section: net
 Priority: optional
 Maintainer: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
 Uploaders: George Danchev <danchev@spnet.net>, Kai Vehmanen <kai.vehmanen@nokia.com>, Kilian Krause <kilian@debian.org>, Mark Purcell <msp@debian.org>
-Build-Depends: debhelper (>= 4.2.0), cdbs, pkg-config, libglib2.0-dev, libssl-dev, doxygen, graphviz, autotools-dev
+Build-Depends: debhelper (>= 4.2.0), cdbs, pkg-config, libglib2.0-dev, libssl-dev, doxygen, graphviz, autotools-dev, dpkg-dev (>= 1.13.19)
 Standards-Version: 3.7.2
 XS-X-Vcs-Svn: svn.debian.org/svn/pkg-voip/sofia-sip
 
 Package: sofia-sip-bin
 Architecture: any
 Section: net
-Depends: libsofia-sip-ua0 (= ${Source-Version})
+Depends: libsofia-sip-ua0 (= ${binary:Version})
 Suggests: sofia-sip-doc
 Description: Sofia-SIP library utilities
  Sofia-SIP is an open-source SIP User-Agent library, compliant 
@@ -48,7 +48,7 @@ Description: Sofia-SIP library runtime
 Package: libsofia-sip-ua-dev
 Architecture: any
 Section: libdevel
-Depends: libsofia-sip-ua0 (= ${Source-Version}), libc6-dev | libc-dev
+Depends: libsofia-sip-ua0 (= ${binary:Version}), libc6-dev | libc-dev
 Suggests: sofia-sip-doc
 Description: Sofia-SIP library development files
  Sofia-SIP is an open-source SIP User-Agent library, compliant 
@@ -65,7 +65,7 @@ Description: Sofia-SIP library development files
 Package: libsofia-sip-ua-glib0
 Architecture: any
 Section: libs
-Depends: ${shlibs:Depends}, ${misc:Depends}, libsofia-sip-ua0 (= ${Source-Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libsofia-sip-ua0 (= ${binary:Version})
 Suggests: sofia-sip-doc
 Description: Sofia-SIP library glib/gobject interfaces runtime
  Sofia-SIP is an open-source SIP User-Agent library, compliant 
@@ -79,7 +79,7 @@ Description: Sofia-SIP library glib/gobject interfaces runtime
 Package: libsofia-sip-ua-glib-dev
 Architecture: any
 Section: libdevel
-Depends: libsofia-sip-ua-glib0 (= ${Source-Version}), libsofia-sip-ua-dev, libglib2.0-dev
+Depends: libsofia-sip-ua-glib0 (= ${binary:Version}), libsofia-sip-ua-dev, libglib2.0-dev
 Suggests: sofia-sip-doc
 Description: Sofia-SIP library glib/gobject interface development files
  Sofia-SIP is an open-source SIP User-Agent library, compliant 

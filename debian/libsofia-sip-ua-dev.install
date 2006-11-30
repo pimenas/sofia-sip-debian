@@ -86,6 +86,7 @@ usr/include/*/*/su.h
 usr/include/*/*/su_localinfo.h
 usr/include/*/*/su_log.h
 usr/include/*/*/su_md5.h
+usr/include/*/*/su_os_nw.h
 usr/include/*/*/su_strlst.h
 usr/include/*/*/su_tagarg.h
 usr/include/*/*/su_tag_class.h

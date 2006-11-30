@@ -1,8 +1,6 @@
-1) todo list for next upstream release (1.12.4) 
+1) todo list for next upstream release (1.12.5) 
 
-   a) to libsofia-sip-ua-dev.install:
-
-   +usr/include/*/*/su_os_nw.h
+   none
 
 2) generic concerns
 

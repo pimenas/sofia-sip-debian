@@ -1,3 +1,12 @@
+sofia-sip (1.12.4-1) unstable; urgency=high
+
+  [ Kai Vehmanen ]
+  * New upstream release (Closes: #398687).
+    For more details read
+    http://sourceforge.net/mailarchive/forum.php?thread_id=31138253&forum_id=45790
+
+ -- Kilian Krause <kilian@debian.org>  Thu, 30 Nov 2006 17:54:09 +0100
+
 sofia-sip (1.12.3-2) unstable; urgency=low
 
   [ Rémi Denis-Courmont ]
@@ -11,6 +20,9 @@ sofia-sip (1.12.3-2) unstable; urgency=low
   [ Kai Vehmanen ]
   * Added libssl as a build dependency. Without this, some builds will
     have ssl disabled in the resulting packages.
+
+  [ George Danchev ]
+  * Use new variables for binNMU-safety (as of dpkg-dev >= 1.13.19)
 
  -- Mark Purcell <msp@debian.org>  Mon,  9 Oct 2006 23:56:27 +1000
 
