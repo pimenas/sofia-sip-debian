@@ -260,7 +260,8 @@ int nua_stack_event(nua_t *nua, nua_handle_t *nh, msg_t *msg,
     return event;
   }
 
-  if ((event > nua_r_method && event <= nua_r_ack) 
+  if ((event > nua_r_authenticate && event <= nua_r_ack)
+      || event < nua_i_error
       || (nh && !nh->nh_valid)
       || (nua->nua_shutdown && event != nua_r_shutdown)) {
     if (msg)
@@ -289,7 +290,8 @@ int nua_stack_event(nua_t *nua, nua_handle_t *nh, msg_t *msg,
     e->e_nh = nh ? nua_handle_ref(nh) : nua->nua_dhandle;
     e->e_status = status;
     e->e_phrase = strcpy(end, phrase ? phrase : "");
-    e->e_msg = msg;
+    if (msg)
+      e->e_msg = msg, su_home_threadsafe(msg_home(msg));
 
     if (su_msg_send(sumsg) != 0)
       nua_handle_unref(nh);
@@ -468,10 +470,11 @@ void nua_stack_timer(nua_t *nua, su_timer_t *t, su_timer_arg_t *a)
 static
 int nh_call_pending(nua_handle_t *nh, sip_time_t now)
 {
+  nua_dialog_state_t *ds = nh->nh_ds;
   nua_dialog_usage_t *du;
   sip_time_t next = now + NUA_STACK_TIMER_INTERVAL / 1000;
 
-  for (du = nh->nh_ds->ds_usage; du; du = du->du_next) {
+  for (du = ds->ds_usage; du; du = du->du_next) {
     if (now == 0)
       break;
     if (du->du_refresh && du->du_refresh < next)
@@ -486,7 +489,7 @@ int nh_call_pending(nua_handle_t *nh, sip_time_t now)
   while (du) {
     nua_dialog_usage_t *du_next = du->du_next;
 
-    nua_dialog_usage_refresh(nh, du, now);
+    nua_dialog_usage_refresh(nh, ds, du, now);
 
     if (du_next == NULL)
       break;
@@ -511,6 +514,50 @@ int nh_call_pending(nua_handle_t *nh, sip_time_t now)
 
 /* ====================================================================== */
 
+/**Shutdown a @nua stack.
+ *
+ * When the @nua stack is shutdown, ongoing calls are released,
+ * registrations unregistered, publications un-PUBLISHed and subscriptions
+ * terminated. If the stack cannot terminate everything within 30 seconds,
+ * it sends the #nua_r_shutdown event with status 500.
+ *
+ * @param nua         Pointer to @nua stack object
+ *
+ * @return
+ *     nothing
+ *
+ * @par Related tags:
+ *     none
+ *
+ * @par Events:
+ *     #nua_r_shutdown
+ *
+ * @sa #nua_r_shutdown, nua_destroy(), nua_create(), nua_bye(),
+ * nua_unregister(), nua_unpublish(), nua_unsubscribe(), nua_notify(),
+ * nua_handle_destroy(), nua_handle_unref()
+ */
+
+/** @NUA_EVENT nua_r_shutdown
+ *
+ * Answer to nua_shutdown().
+ *
+ * Status codes
+ * - 100 shutdown started
+ * - 101 shutdown in progress (sent when shutdown has been progressed)
+ * - 200 shutdown was successful
+ * - 500 shutdown timeout after 30 sec
+ *
+ * @param status shutdown status code
+ * @param nh     NULL
+ * @param hmagic NULL
+ * @param sip    NULL
+ * @param tags   empty
+ *
+ * @sa nua_shutdown(), nua_destroy()
+ *
+ * @END_NUA_EVENT
+ */
+
 /** @internal Shut down stack. */
 void nua_stack_shutdown(nua_t *nua)
 {
@@ -519,7 +566,6 @@ void nua_stack_shutdown(nua_t *nua)
   sip_time_t now = sip_now();
   int status;
   char const *phrase;
-  struct nua_session_state *ss;
 
   enter;
 
@@ -527,13 +573,23 @@ void nua_stack_shutdown(nua_t *nua)
     nua->nua_shutdown = now;
 
   for (nh = nua->nua_handles; nh; nh = nh_next) {
+    nua_dialog_state_t *ds = nh->nh_ds;
+    nua_server_request_t *sr, *sr_next;
+
     nh_next = nh->nh_next;
 
-    ss = nh->nh_ss;
+    for (sr = ds->ds_sr; sr; sr = sr_next) {
+      sr_next = sr->sr_next;
 
-    if (ss->ss_srequest->sr_respond) {
-      ss->ss_srequest->sr_respond(nua, nh, SIP_410_GONE, NULL);
-      busy++;
+      if (sr->sr_respond) {
+	SR_STATUS1(sr, SIP_410_GONE);
+	sr->sr_usage = NULL;
+	sr->sr_respond(sr, NULL);
+	sr->sr_respond = NULL;
+	busy++;
+      }
+	
+      nua_server_request_destroy(sr);
     }
 
     busy += nh_call_pending(nh, 0);
@@ -542,7 +598,7 @@ void nua_stack_shutdown(nua_t *nua)
       soa_destroy(nh->nh_soa), nh->nh_soa = NULL;
     }
 
-    if (nh->nh_cr->cr_orq || nh->nh_ss->ss_crequest->cr_orq)
+    if (nua_client_request_pending(ds->ds_cr))
       busy++;
 
     if (nh_notifier_shutdown(nh, NULL, NEATAG_REASON("noresource"), TAG_END()))
@@ -661,44 +717,17 @@ void nh_destroy(nua_t *nua, nua_handle_t *nh)
   if (nh->nh_notifier)
     nea_server_destroy(nh->nh_notifier), nh->nh_notifier = NULL;
 
-  nua_creq_deinit(nh->nh_cr, NULL);
+  nua_creq_deinit(nh->nh_ds->ds_cr, NULL);
 
-  if (nh->nh_ss) {
-    nua_creq_deinit(nh->nh_ss->ss_crequest, NULL);
-    if (nh->nh_ss->ss_srequest->sr_irq) {
-      nta_incoming_destroy(nh->nh_ss->ss_srequest->sr_irq);
-      nh->nh_ss->ss_srequest->sr_irq = NULL;
-    }
-  }
+  nua_dialog_deinit(nh, nh->nh_ds);
 
   if (nh->nh_soa)
     soa_destroy(nh->nh_soa), nh->nh_soa = NULL;
-
-  nua_dialog_deinit(nh, nh->nh_ds);
 
   if (nh_is_inserted(nh))
     nh_remove(nua, nh);
 
   nua_handle_unref(nh);		/* Remove stack reference */
-}
-
-void nua_creq_deinit(struct nua_client_request *cr, nta_outgoing_t *orq)
-{
-  if (orq == NULL || orq == cr->cr_orq) {
-    cr->cr_retry_count = 0;
-    cr->cr_offer_sent = cr->cr_answer_recv = 0;
-
-    if (cr->cr_msg)
-      msg_destroy(cr->cr_msg);
-    cr->cr_msg = NULL;
-
-    if (cr->cr_orq)
-      nta_outgoing_destroy(cr->cr_orq);
-    cr->cr_orq = NULL;
-  }
-  else {
-    nta_outgoing_destroy(orq);
-  }
 }
 
 /* ======================================================================== */
@@ -710,8 +739,6 @@ void nua_creq_deinit(struct nua_client_request *cr, nta_outgoing_t *orq)
  * @retval 0 when successful
  */
 int nua_stack_init_handle(nua_t *nua, nua_handle_t *nh,
-			  enum nh_kind kind,
-			  char const *default_allow,
 			  tag_type_t tag, tag_value_t value, ...)
 {
   ta_list ta;
@@ -719,19 +746,6 @@ int nua_stack_init_handle(nua_t *nua, nua_handle_t *nh,
 
   if (nh == NULL)
     return -1;
-
-  if (kind && !nh_is_special(nh) && !nh->nh_has_invite) {
-    switch (kind) {
-    case nh_has_invite:    nh->nh_has_invite = 1;    break;
-    case nh_has_subscribe: nh->nh_has_subscribe = 1; break;
-    case nh_has_notify:    nh->nh_has_notify = 1;    break;
-    case nh_has_register:  nh->nh_has_register = 1;  break;
-    case nh_has_streaming: nh->nh_has_streaming = 1; break;
-    case nh_has_nothing:
-    default:
-      break;
-    }
-  }
 
   assert(nh != nua->nua_dhandle);
 
@@ -752,10 +766,6 @@ int nua_stack_init_handle(nua_t *nua, nua_handle_t *nh,
   if (nh->nh_tags)
     nh_authorize(nh, TAG_NEXT(nh->nh_tags));
 
-  nh->nh_ss->ss_min_se = NH_PGET(nh, min_se);
-  nh->nh_ss->ss_session_timer = NH_PGET(nh, session_timer);
-  nh->nh_ss->ss_refresher = NH_PGET(nh, refresher);
-
   nh->nh_init = 1;
 
   return 0;
@@ -765,12 +775,10 @@ int nua_stack_init_handle(nua_t *nua, nua_handle_t *nh,
 nua_handle_t *nua_stack_incoming_handle(nua_t *nua,
 					nta_incoming_t *irq,
 					sip_t const *sip,
-					enum nh_kind kind,
 					int create_dialog)
 {
   nua_handle_t *nh;
   url_t const *url;
-  char const *default_allow = NULL; /* XXX - should be argument? */
   sip_to_t to[1];
   sip_from_t from[1];
 
@@ -794,8 +802,7 @@ nua_handle_t *nua_stack_incoming_handle(nua_t *nua,
 		 SIPTAG_FROM(from), /* Remote AoR */
 		 TAG_END());
 
-  if (nua_stack_init_handle(nh->nh_nua, nh, kind, default_allow,
-			    TAG_END()) < 0)
+  if (nua_stack_init_handle(nh->nh_nua, nh, TAG_END()) < 0)
     nh_destroy(nua, nh), nh = NULL;
 
   if (nh && create_dialog) {
@@ -818,6 +825,61 @@ nua_handle_t *nua_stack_incoming_handle(nua_t *nua,
     nua_dialog_uas_route(nh, nh->nh_ds, sip, 1);
 
   return nh;
+}
+
+
+/** Set flags and special event on handle.
+ *
+ * @retval 0 when successful
+ * @retval -1 upon an error
+ */
+int nua_stack_set_handle_special(nua_handle_t *nh,
+				 enum nh_kind kind,
+				 nua_event_t special)
+{
+  if (nh == NULL)
+    return -1;
+
+  if (special && nh->nh_special && nh->nh_special != special)
+    return -1;
+
+  if (!nh_is_special(nh) && !nh->nh_has_invite) {
+    switch (kind) {
+    case nh_has_invite:    nh->nh_has_invite = 1;    break;
+    case nh_has_subscribe: nh->nh_has_subscribe = 1; break;
+    case nh_has_notify:    nh->nh_has_notify = 1;    break;
+    case nh_has_register:  nh->nh_has_register = 1;  break;
+    case nh_has_nothing:
+    default:
+      break;
+    }
+
+    if (special)
+      nh->nh_special = special;
+  }
+
+  return 0;
+}
+
+sip_replaces_t *nua_stack_handle_make_replaces(nua_handle_t *nh, 
+					       su_home_t *home,
+					       int early_only)
+{
+  if (nh && nh->nh_ds && nh->nh_ds->ds_leg)
+    return nta_leg_make_replaces(nh->nh_ds->ds_leg, home, early_only);
+  else
+    return NULL;
+}
+
+nua_handle_t *nua_stack_handle_by_replaces(nua_t *nua,
+					   sip_replaces_t const *r)
+{
+  if (nua) {
+    nta_leg_t *leg = nta_leg_by_replaces(nua->nua_nta, r);
+    if (leg)
+      return nta_leg_magic(leg, nua_stack_process_request);
+  }
+  return NULL;
 }
 
 
@@ -877,6 +939,18 @@ int nh_challenge(nua_handle_t *nh, sip_t const *sip)
   return server + proxy;
 }
 
+#include <sofia-sip/su_tag_inline.h>
+
+/** Check if tag list has contact */
+int nua_tagis_have_contact_tag(tagi_t const *t)
+{
+  for (; t && t->t_tag; t = t_next(t))
+    if (t->t_tag == siptag_contact ||
+	t->t_tag == siptag_contact_str)
+      return 1;
+  return 0;
+}
+
 /**@internal
  * Create a request message.
  *
@@ -890,7 +964,7 @@ int nh_challenge(nua_handle_t *nh, sip_t const *sip)
  */
 msg_t *nua_creq_msg(nua_t *nua,
 		    nua_handle_t *nh,
-		    struct nua_client_request *cr,
+		    nua_client_request_t *cr,
 		    int restart,
 		    sip_method_t method, char const *name,
 		    tag_type_t tag, tag_value_t value, ...)
@@ -901,7 +975,7 @@ msg_t *nua_creq_msg(nua_t *nua,
   ta_list ta;
   url_string_t const *url = NULL;
   long seq = -1;
-  int copy = 1, use_dialog = 0, add_contact = 0, add_service_route;
+  int copy = 1;
 
   /* If restarting, use existing message */
   if (restart) {
@@ -993,11 +1067,27 @@ msg_t *nua_creq_msg(nua_t *nua,
   }
 	  
   {
-    tl_gets(ta_args(ta),
-	    NUTAG_URL_REF(url),
-	    NUTAG_USE_DIALOG_REF(use_dialog),
-	    NUTAG_ADD_CONTACT_REF(add_contact),
-	    TAG_END());
+    int add_contact = 0, use_dialog = 0, add_service_route, has_contact = 0;
+    tagi_t const *t;
+
+    for (t = ta_args(ta); t; t = t_next(t)) {
+      if (t->t_tag == siptag_contact ||
+	  t->t_tag == siptag_contact_str)
+	has_contact = 1;
+      else if (t->t_tag == nutag_url)
+	url = (url_string_t const *)t->t_value;
+      else if (t->t_tag == nutag_method && method == sip_method_unknown)
+	name = (char const *)t->t_value;
+      else if (t->t_tag == nutag_use_dialog)
+	use_dialog = t->t_value != 0;
+      else if (t->t_tag == _nutag_add_contact)
+	add_contact = t->t_value != 0;
+    }
+
+    if (!restart)
+      cr->cr_has_contact = has_contact;
+
+    if (has_contact) add_contact = 0;
 
     if (method == sip_method_register && url == NULL)
       url = (url_string_t const *)NH_PGET(nh, registrar);
@@ -1097,10 +1187,8 @@ msg_t *nua_creq_msg(nua_t *nua,
      */
     if (!add_contact ||
 	sip->sip_contact ||
-	tl_find(nh->nh_tags, siptag_contact) ||
-	tl_find(nh->nh_tags, siptag_contact_str) ||
-	tl_find(ta_args(ta), siptag_contact) ||
-	tl_find(ta_args(ta), siptag_contact_str))
+	nua_tagis_have_contact_tag(nh->nh_tags) ||
+	nua_tagis_have_contact_tag(ta_args(ta)))
       add_contact = 0;
 
     /**For the initial requests, @ServiceRoute set received from the registrar
@@ -1161,6 +1249,58 @@ msg_t *nua_creq_msg(nua_t *nua,
   return NULL;
 }
 
+/* ---------------------------------------------------------------------- */
+nua_client_request_t *
+nua_client_request_pending(nua_client_request_t const *cr)
+{
+  for (;cr;cr = cr->cr_next)
+    if (cr->cr_orq)
+      return (nua_client_request_t *)cr;
+
+  return NULL;
+}
+
+nua_client_request_t *
+nua_client_request_restarting(nua_client_request_t const *cr)
+{
+  for (;cr;cr = cr->cr_next)
+    if (cr->cr_restart)
+      return (nua_client_request_t *)cr;
+
+  return NULL;
+}
+
+nua_client_request_t *
+nua_client_request_by_orq(nua_client_request_t const *cr,
+			  nta_outgoing_t const *orq)
+{
+  for (;cr;cr = cr->cr_next)
+    if (cr->cr_orq == orq)
+      return (nua_client_request_t *)cr;
+
+  return NULL;
+}
+
+void nua_creq_deinit(nua_client_request_t *cr, nta_outgoing_t *orq)
+{
+  if (orq == NULL || orq == cr->cr_orq) {
+    cr->cr_retry_count = 0;
+    cr->cr_offer_sent = cr->cr_answer_recv = 0;
+
+    if (cr->cr_msg)
+      msg_destroy(cr->cr_msg);
+    cr->cr_msg = NULL;
+
+    if (cr->cr_orq)
+      nta_outgoing_destroy(cr->cr_orq);
+    cr->cr_orq = NULL;
+  }
+  else {
+    nta_outgoing_destroy(orq);
+  }
+}
+
+
 /**@internal
  * Get remote contact header for @a irq */
 static inline
@@ -1181,13 +1321,6 @@ sip_contact_t const *incoming_contact(nta_incoming_t *irq)
 
 /**@internal
  * Create a response message.
- *
- * @param nua
- * @param nh
- * @param irq
- * @param status
- * @param phrase
- * @param tag, value, ... list of tag-value pairs
  */
 msg_t *nh_make_response(nua_t *nua,
 			nua_handle_t *nh,
@@ -1224,6 +1357,13 @@ msg_t *nh_make_response(nua_t *nua,
   else if (!sip->sip_allow && NH_PGET(nh, allow) &&
 	   sip_add_dup(msg, sip, (sip_header_t*)NH_PGET(nh, allow)) < 0)
     msg_destroy(msg);
+  else if (!sip->sip_allow_events && 
+	   (sip->sip_cseq && 
+	    (sip->sip_cseq->cs_method == sip_method_publish ||
+	     sip->sip_cseq->cs_method == sip_method_subscribe)) &&
+	   NH_PGET(nh, allow_events) &&
+	   sip_add_dup(msg, sip, (sip_header_t*)NH_PGET(nh, allow_events)) < 0)
+    msg_destroy(msg);
   else if (!sip->sip_contact &&
 	   (t = tl_find(ta_args(ta), _nutag_add_contact)) &&
 	   t->t_value && 
@@ -1250,13 +1390,6 @@ int nua_stack_process_unknown(nua_t *nua,
   return 501;
 }
 
-int
-nua_stack_method(nua_t *nua, nua_handle_t *nh, nua_event_t e,
-		 tagi_t const *tags)
-{
-  return UA_EVENT1(e, SIP_501_NOT_IMPLEMENTED);
-}
-
 /**@internal
  * Relay response message to the application.
  *
@@ -1264,7 +1397,7 @@ nua_stack_method(nua_t *nua, nua_handle_t *nh, nua_event_t e,
  * release the handle with nh_destroy().
  */
 int nua_stack_process_response(nua_handle_t *nh,
-			       struct nua_client_request *cr,
+			       nua_client_request_t *cr,
 			       nta_outgoing_t *orq,
 			       sip_t const *sip,
 			       tag_type_t tag, tag_value_t value, ...)
@@ -1283,10 +1416,10 @@ int nua_stack_process_response(nua_handle_t *nh,
   else
     final = status >= 200;
 
-  if (final) {
+  if (final && cr) {
     nua_creq_deinit(cr, orq);
 
-    if (cr->cr_usage && nh->nh_cr == cr) {
+    if (cr->cr_usage && nh->nh_ds->ds_cr == cr) {
       if ((status >= 300 && !cr->cr_usage->du_ready) ||
 	  cr->cr_usage->du_terminating)
 	nua_dialog_usage_remove(nh, nh->nh_ds, cr->cr_usage);
@@ -1325,7 +1458,7 @@ int can_redirect(sip_contact_t const *m, sip_method_t method)
 }
 
 int nua_creq_restart_with(nua_handle_t *nh,
-			  struct nua_client_request *cr,
+			  nua_client_request_t *cr,
 			  nta_outgoing_t *orq,
 			  int status, char const *phrase,
 			  nua_creq_restart_f *f,
@@ -1351,7 +1484,7 @@ int nua_creq_restart_with(nua_handle_t *nh,
 
 /** @internal Save operation until it can be restarted */
 int nua_creq_save_restart(nua_handle_t *nh,
-			  struct nua_client_request *cr,
+			  nua_client_request_t *cr,
 			  nta_outgoing_t *orq,
 			  int status, char const *phrase,
 			  nua_creq_restart_f *restart_function)
@@ -1377,7 +1510,7 @@ int nua_creq_save_restart(nua_handle_t *nh,
  *
  */
 int nua_creq_check_restart(nua_handle_t *nh,
-			   struct nua_client_request *cr,
+			   nua_client_request_t *cr,
 			   nta_outgoing_t *orq,
 			   sip_t const *sip,
 			   nua_creq_restart_f *restart_function)
@@ -1461,21 +1594,6 @@ int nua_creq_check_restart(nua_handle_t *nh,
       SU_DEBUG_5(("nua(%p): auc_authorization failed\n", nh));
     }
   }
-#if HAVE_SOFIA_SMIME
-  else if (status == 493)     /* try detached signature */
-    ;
-#endif
-  else if (status == 422 && method == sip_method_invite) {
-    if (sip->sip_min_se && nh->nh_ss->ss_min_se < sip->sip_min_se->min_delta)
-      nh->nh_ss->ss_min_se = sip->sip_min_se->min_delta;
-    if (nh->nh_ss->ss_min_se > nh->nh_ss->ss_session_timer)
-      nh->nh_ss->ss_session_timer = nh->nh_ss->ss_min_se;
-
-    return
-      nua_creq_restart_with(nh, cr, orq,
-			    100, "Re-Negotiating Session Timer",
-			    restart_function, TAG_END());
-  }
 
   /* This was final response that cannot be restarted. */
   if (removed)
@@ -1495,7 +1613,7 @@ int nua_creq_check_restart(nua_handle_t *nh,
 
 /** @internal Restart a request */
 int nua_creq_restart(nua_handle_t *nh,
-		     struct nua_client_request *cr,
+		     nua_client_request_t *cr,
 		     nta_response_f *cb,
 		     tagi_t *tags)
 {
@@ -1523,6 +1641,35 @@ int nua_creq_restart(nua_handle_t *nh,
 /* ======================================================================== */
 /* Authentication */
 
+/** @NUA_EVENT nua_r_authenticate
+ *
+ * Response to nua_authenticate(). Under normal operation, this event is
+ * never sent but rather the unauthenticated operation is completed. 
+ * However, if there is no operation to authentication or if there is an
+ * authentication error the #nua_r_authenticate event is sent to the
+ * application with the status code as follows:
+ * - <i>202 No operation to restart</i>:\n
+ *   The authenticator associated with the handle was updated, but there was
+ *   no operation to retry with the new credentials.
+ * - <i>900 Cannot add credentials</i>:\n
+ *   There was internal problem updating authenticator.
+ * - <i>904 No matching challenge</i>:\n
+ *   There was no challenge matching with the credentials provided by
+ *   nua_authenticate(), e.g., their realm did not match with the one 
+ *   received with the challenge.
+ * 
+ * @param status status code from authentication 
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle authenticated
+ * @param hmagic application context associated with the handle
+ * @param sip    NULL
+ * @param tags   empty
+ * 
+ * @sa nua_terminate(), nua_handle_destroy()
+ *
+ * @END_NUA_EVENT
+ */
+
 void
 nua_stack_authenticate(nua_t *nua, nua_handle_t *nh, nua_event_t e,
 		       tagi_t const *tags)
@@ -1530,27 +1677,29 @@ nua_stack_authenticate(nua_t *nua, nua_handle_t *nh, nua_event_t e,
   int status = nh_authorize(nh, TAG_NEXT(tags));
 
   if (status > 0) {
+    nua_client_request_t *cr;
     nua_creq_restart_f *restart = NULL;
 
-    nua_stack_event(nua, nh, NULL, e, SIP_200_OK, TAG_END());
+    cr = nua_client_request_restarting(nh->nh_ds->ds_cr);
 
-    if (nh->nh_cr->cr_restart) {
-      restart = nh->nh_cr->cr_restart;
-      nh->nh_cr->cr_restart = NULL;
-    }
-    else if (nh->nh_ss->ss_crequest->cr_restart) {
-      restart = nh->nh_ss->ss_crequest->cr_restart;
-      nh->nh_ss->ss_crequest->cr_restart = NULL;
-    }
+    if (cr) 
+      restart = cr->cr_restart, cr->cr_restart = NULL;
 
-    if (restart)
+    if (restart) {
+      /* nua_stack_event(nua, nh, NULL, e, SIP_200_OK, TAG_END()); */
       restart(nh, (tagi_t *)tags);	/* Restart operation */
+    }
+    else {
+      nua_stack_event(nua, nh, NULL, e, 
+		      202, "No operation to restart",
+		      TAG_END());
+    }
   }
   else if (status < 0) {
-    nua_stack_event(nua, nh, NULL, e, 500, "Cannot add credentials", TAG_END());
+    nua_stack_event(nua, nh, NULL, e, 900, "Cannot add credentials", TAG_END());
   }
   else {
-    nua_stack_event(nua, nh, NULL, e, 404, "No matching challenge", TAG_END());
+    nua_stack_event(nua, nh, NULL, e, 904, "No matching challenge", TAG_END());
   }
 }
 
@@ -1648,6 +1797,9 @@ int nua_stack_process_request(nua_handle_t *nh,
   case sip_method_subscribe:
     return nua_stack_process_subscribe(nua, nh, irq, sip);
 
+  case sip_method_register:
+    return nua_stack_process_register(nua, nh, irq, sip);
+
   case sip_method_options:
     return nua_stack_process_options(nua, nh, irq, sip);
 
@@ -1665,49 +1817,298 @@ int nua_stack_process_request(nua_handle_t *nh,
     /* Send nua_i_error ? */
     return 481;
 
+  case sip_method_unknown:
+    return nua_stack_process_method(nua, nh, irq, sip);
+
   default:
     return nua_stack_process_unknown(nua, nh, irq, sip);
   }
 }
 
-void
-nua_stack_respond(nua_t *nua, nua_handle_t *nh,
-	   int status, char const *phrase, tagi_t const *tags)
+nua_server_request_t *nua_server_request(nua_t *nua,
+					 nua_handle_t *nh,
+					 nta_incoming_t *irq,
+					 sip_t const *sip,
+					 nua_server_request_t *sr,
+					 size_t size,
+					 nua_server_respond_f *respond,
+					 int create_dialog)
 {
-  struct nua_session_state *ss = nh->nh_ss;
-  nua_server_request_t *sr = ss->ss_srequest;
+  int initial = 1, final = 200;
 
-  if (sr->sr_respond) {
-    sr->sr_respond(nua, nh, status, phrase, tags);
+  assert(nua && irq && sip && sr);
+
+  initial = nh == NULL || nh == nua->nua_dhandle;
+
+  /* INVITE server request is not finalized after 2XX response */
+  if (sip->sip_request->rq_method == sip_method_invite)
+    final = 300;
+
+  /* Create handle if request does not fail */
+  if (sr->sr_status >= 300)
+    ;
+  else if (initial) {
+    if (!(nh = nua_stack_incoming_handle(nua, irq, sip, create_dialog)))
+      SR_STATUS1(sr, SIP_500_INTERNAL_SERVER_ERROR);
   }
-#if 0
-  else if (nta_incoming_status(nh->nh_irq) < 200) {
-    int add_contact = 0;
-    sip_contact_t *m;
-
-    if (nta_incoming_url(nh->nh_irq)->url_type == url_sips &&
-	nua->nua_sips_contact)
-      m = nua->nua_sips_contact;
-    else
-      m = nua->nua_contact;
-
-    SU_DEBUG_1(("nua: anonymous response %u %s\n", status, phrase));
-
-    tl_gets(tags, NUTAG_ADD_CONTACT_REF(add_contact), TAG_END());
-    nta_incoming_treply(nh->nh_irq, status, phrase,
-			TAG_IF(add_contact, SIPTAG_CONTACT(m)),
-			TAG_NEXT(tags));
-    if (status >= 200)
-      nta_incoming_destroy(nh->nh_irq), nh->nh_irq = NULL;
+  else if (create_dialog) {
+    nua_dialog_store_peer_info(nh, nh->nh_ds, sip);
+    nua_dialog_uas_route(nh, nh->nh_ds, sip, 1);
   }
-#endif
 
-  else if (ss->ss_srequest->sr_irq) {
-    nua_stack_event(nua, nh, NULL, nua_i_error,
-		    500, "Already Sent Final Response", TAG_END());
+  if (nh == NULL)
+    nh = nua->nua_dhandle;
+
+  if (sr->sr_status < final) {
+    nua_server_request_t *sr0 = sr;
+
+    if (size < (sizeof *sr))
+      size = sizeof *sr;
+
+    sr = su_zalloc(nh->nh_home, size);
+
+    if (sr) {
+      if ((sr->sr_next = nh->nh_ds->ds_sr))
+	*(sr->sr_prev = sr->sr_next->sr_prev) = sr,
+	  sr->sr_next->sr_prev = &sr->sr_next;
+      else
+	*(sr->sr_prev = &nh->nh_ds->ds_sr) = sr;
+      SR_STATUS(sr, sr0->sr_status, sr0->sr_phrase);
+    }
+    else {
+      sr = sr0;
+      SR_STATUS1(sr, SIP_500_INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  sr->sr_owner = nh;
+  sr->sr_method = sip->sip_request->rq_method;
+  sr->sr_respond = respond;
+  sr->sr_irq = irq;
+  sr->sr_initial = initial;
+
+  return sr;
+}		 
+
+void nua_server_request_destroy(nua_server_request_t *sr)
+{
+  if (sr->sr_irq)
+    nta_incoming_destroy(sr->sr_irq), sr->sr_irq = NULL;
+
+  sr->sr_msg = NULL;
+
+  if (sr->sr_prev) {
+    if ((*sr->sr_prev = sr->sr_next))
+      sr->sr_next->sr_prev = sr->sr_prev;
+
+    if (sr->sr_owner)
+      su_free(sr->sr_owner->nh_home, sr);
+  }
+}
+
+/** Send server event (nua_i_*) to the application. */
+int nua_stack_server_event(nua_t *nua,
+			   nua_server_request_t *sr,
+			   nua_event_t event,
+			   tag_type_t tag, tag_value_t value, ...)
+{
+  nua_handle_t *nh = sr->sr_owner; 
+  int status, final = 0;
+
+  if (nh == NULL) nh = nua->nua_dhandle;
+
+  if (sr->sr_status > 100)
+    /* Note that this may change the sr->sr_status */
+    final = sr->sr_respond(sr, NULL);
+
+  status = sr->sr_status;
+
+  if (status >= 200)
+    sr->sr_respond = NULL;
+  
+  if (status < 300 || !sr->sr_initial) {
+    ta_list ta;
+    msg_t *request;
+
+    ta_start(ta, tag, value);
+
+    assert(sr->sr_owner);
+    request = nta_incoming_getrequest(sr->sr_irq);
+    nua_stack_event(nua, sr->sr_owner, request, event, 
+		    sr->sr_status, sr->sr_phrase, 
+		    ta_tags(ta));
+    ta_end(ta);
+
+    if (final)
+      nua_server_request_destroy(sr);
+    else if (sr->sr_status < 200)
+      sr->sr_msg = request;
   }
   else {
-    nua_stack_event(nua, nh, NULL, nua_i_error,
-		    500, "Responding to a Non-Existing Request", TAG_END());
+    nh = sr->sr_owner;
+
+    nua_server_request_destroy(sr);
+
+    if (nh && nh != nua->nua_dhandle)
+      nh_destroy(nua, nh);
   }
+
+  return 0;
+}
+
+/** Respond to a request. */
+int nua_server_respond(nua_server_request_t *sr,
+		       int status, char const *phrase,
+		       tag_type_t tag, tag_value_t value, ...)
+{
+  ta_list ta;
+  int final;
+
+  assert(sr && sr->sr_respond);
+  SR_STATUS(sr, status, phrase);
+
+  ta_start(ta, tag, value);
+  final = sr->sr_respond(sr, ta_args(ta));
+  ta_end(ta);
+
+  if (final) {
+    nua_server_request_destroy(sr);    
+    return final;
+  }
+
+  if (sr->sr_status >= 200)
+    sr->sr_respond = NULL;
+
+  return 0;
+}
+
+msg_t *nua_server_response(nua_server_request_t *sr,
+			   int status, char const *phrase,
+			   tag_type_t tag, tag_value_t value, ...)
+{
+  msg_t *msg;
+  ta_list(ta);
+
+  assert(sr && sr->sr_owner && sr->sr_owner->nh_nua);
+
+  ta_start(ta, tag, value);
+
+  msg = nh_make_response(sr->sr_owner->nh_nua, sr->sr_owner, sr->sr_irq,
+			 sr->sr_status, sr->sr_phrase,
+			 ta_tags(ta));
+  
+  ta_end(ta);
+
+  return msg;
+}
+
+int nua_default_respond(nua_server_request_t *sr,
+			tagi_t const *tags)
+{
+  msg_t *m;
+
+  assert(sr && sr->sr_owner && sr->sr_owner->nh_nua);
+
+  m = nh_make_response(sr->sr_owner->nh_nua, sr->sr_owner, 
+		       sr->sr_irq,
+		       sr->sr_status, sr->sr_phrase,
+		       TAG_NEXT(tags));
+
+  if (m) {
+    if (nta_incoming_mreply(sr->sr_irq, m) < 0)
+      SR_STATUS1(sr, SIP_500_INTERNAL_SERVER_ERROR);      
+  }
+  
+  return sr->sr_status >= 200 ? sr->sr_status : 0;
+}
+
+/** Respond to an request with given status. 
+ *
+ * When nua protocol engine receives an incoming SIP request, it can either
+ * respond to the request automatically or let it up to application to
+ * respond to the request. The automatic answer is sent if the request fails
+ * because of method, SIP extension or, in some times, MIME content
+ * negotiation fails.
+ *
+ * When responding to an incoming INVITE request, the nua_respond() can be
+ * called without NUTAG_WITH() (or NUTAG_WITH_CURRENT() or
+ * NUTAG_WITH_SAVED()). Otherwise, NUTAG_WITH() will contain an indication
+ * of the request being responded.
+ *
+ * In order to simplify the application, most requests are responded
+ * automatically. The set of requests always responded by the stack include
+ * BYE, CANCEL and NOTIFY. The application can add methods that it likes to
+ * handle by itself with NUTAG_APPL_METHOD(). The default set of
+ * NUTAG_APPL_METHOD() include INVITE, PUBLISH, REGISTER and SUBSCRIBE. Note
+ * that unless the method is also added to the set of allowed methods with
+ * NUTAG_ALLOW(), the stack will respond to the incoming methods with <i>405
+ * Not Allowed</i>.
+ *
+ * Note that certain methods are rejected outside a SIP session (created
+ * with INVITE transaction). They include BYE, UPDATE, PRACK and INFO.
+ *
+ * @param nh              Pointer to operation handle
+ * @param status          SIP response status (see RFCs of SIP)
+ * @param phrase          free text (default response phrase used if NULL)
+ * @param tag, value, ... List of tagged parameters
+ *
+ * @return 
+ *    nothing
+ *
+ * @par Related Tags:
+ *    NUTAG_WITH(), NUTAG_WITH_CURRENT(), NUTAG_WITH_SAVED() \n
+ *    NUTAG_EARLY_ANSWER() \n
+ *    SOATAG_ADDRESS() \n
+ *    SOATAG_AF() \n
+ *    SOATAG_HOLD() \n
+ *    Tags in <sip_tag.h>.
+ *
+ * @par Events:
+ *    #nua_i_state \n
+ *    #nua_i_media_error \n
+ *    #nua_i_error \n
+ *    #nua_i_active \n
+ *    #nua_i_terminated \n
+ *
+ * @sa #nua_i_invite, #nua_i_register, #nua_i_subscribe, #nua_i_publish
+ */
+void
+nua_stack_respond(nua_t *nua, nua_handle_t *nh,
+		  int status, char const *phrase, tagi_t const *tags)
+{
+  nua_server_request_t *sr;
+  tagi_t const *t;
+  msg_t const *request = NULL;
+
+  t = tl_find_last(tags, nutag_with);
+
+  if (t)
+    request = (msg_t const *)t->t_value;
+
+  for (sr = nh->nh_ds->ds_sr; sr; sr = sr->sr_next) {
+    if (request && sr->sr_msg == request)
+      break;
+    /* nua_respond() to INVITE can be used without NUTAG_WITH() */
+    if (!t && sr->sr_method == sip_method_invite && sr->sr_respond)
+      break;
+  }
+  
+  if (sr && sr->sr_respond) {
+    int final;
+    SR_STATUS(sr, status, phrase);
+    final = sr->sr_respond(sr, tags);
+    if (final)
+      nua_server_request_destroy(sr);    
+    else if (sr->sr_status >= 200)
+      sr->sr_respond = NULL;
+    return;
+  }
+  else if (sr) {
+    nua_stack_event(nua, nh, NULL, nua_i_error,
+		    500, "Already Sent Final Response", TAG_END());
+    return;
+  }
+
+  nua_stack_event(nua, nh, NULL, nua_i_error,
+		  500, "Responding to a Non-Existing Request", TAG_END());
 }

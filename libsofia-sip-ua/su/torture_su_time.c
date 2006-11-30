@@ -1,7 +1,7 @@
 /*
  * This file is part of the Sofia-SIP package
  *
- * Copyright (C) 2005 Nokia Corporation.
+ * Copyright (C) 2005,2006 Nokia Corporation.
  *
  * Contact: Pekka Pessi <pekka.pessi@nokia.com>
  *
@@ -29,6 +29,7 @@
  * Tests for su_time functions.
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
+ * @author Kai Vehmanen <first.surname@nokia.com>
  * 
  * @date Created: Fri May 10 16:08:18 2002 ppessi
  */
@@ -38,6 +39,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include <limits.h>
+#include <stdlib.h>
 
 #include <sofia-sip/su_time.h>
 
@@ -147,7 +150,7 @@ int test2(int flags)
   const uint64_t granularity = 10000000U;
   const uint64_t ntp_epoch = 
     (uint64_t)(141427) * (24 * 60 * 60L) * granularity;
-  int i;
+  isize_t i;
 
   BEGIN();
 
@@ -165,7 +168,7 @@ int test2(int flags)
   TEST(g1->s.clock_seq_hi_and_reserved & 0xc0, 0x80);
 
   TEST(i = su_guid_sprintf(buf, sizeof(buf), g1), su_guid_strlen);
-  TEST(strlen(buf), i);
+  TEST_SIZE(strlen(buf), i);
 
   tv0.tv_usec++;
   su_guid_generate(g1);
@@ -191,6 +194,25 @@ int test2(int flags)
 
 int test3(int flags)
 {
+  su_time_t a = { ULONG_MAX , ULONG_MAX };
+  su_time_t b = { 0 , 0 };
+  su_time_t c = { ULONG_MAX , ULONG_MAX - 1 };
+
   BEGIN();
+
+  TEST_1(su_time_cmp(a, b) > 0);
+  TEST_1(su_time_cmp(a, a) == 0);
+  TEST_1(su_time_cmp(b, a) < 0);
+  TEST_1(su_time_cmp(a, c) > 0);
+  TEST_1(su_time_cmp(c, c) == 0);
+  TEST_1(su_time_cmp(c, a) < 0);
+
+  TEST_1(SU_TIME_CMP(a, b) > 0);
+  TEST_1(SU_TIME_CMP(a, a) == 0);
+  TEST_1(SU_TIME_CMP(b, a) < 0);
+  TEST_1(SU_TIME_CMP(a, c) > 0);
+  TEST_1(SU_TIME_CMP(c, c) == 0);
+  TEST_1(SU_TIME_CMP(c, a) < 0);
+
   END();
 }

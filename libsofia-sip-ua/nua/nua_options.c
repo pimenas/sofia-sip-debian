@@ -23,7 +23,9 @@
  */
 
 /**@CFILE nua_options.c
- * @brief Implementation of OPTIONS method
+ * @brief Implementation of OPTIONS client.
+ *
+ * OPTIONS server is in nua_session.c.
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
  *
@@ -48,8 +50,24 @@
 
 #include "nua_stack.h"
 
-/* ======================================================================== */
-/* OPTIONS */
+/**@fn void nua_options(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...);
+ *
+ * Query capabilities from server with OPTIONS request.
+ *
+ * @param nh              Pointer to operation handle
+ * @param tag, value, ... List of tagged parameters
+ *
+ * @return 
+ *    nothing
+ *
+ * @par Related Tags:
+ *    Tags in <sip_tag.h>
+ *
+ * @par Events:
+ *    #nua_r_options
+ *
+ * @sa #nua_i_options, @RFC3261 section 10
+ */
 
 static int process_response_to_options(nua_handle_t *nh,
 				       nta_outgoing_t *orq,
@@ -58,7 +76,7 @@ static int process_response_to_options(nua_handle_t *nh,
 int
 nua_stack_options(nua_t *nua, nua_handle_t *nh, nua_event_t e, tagi_t const *tags)
 {
-  struct nua_client_request *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   msg_t *msg;
 
   if (nh_is_special(nh)) {
@@ -68,7 +86,7 @@ nua_stack_options(nua_t *nua, nua_handle_t *nh, nua_event_t e, tagi_t const *tag
     return UA_EVENT2(e, 900, "Request already in progress");
   }
 
-  nua_stack_init_handle(nua, nh, nh_has_nothing, NULL, TAG_NEXT(tags));
+  nua_stack_init_handle(nua, nh, TAG_NEXT(tags));
 
   msg = nua_creq_msg(nua, nh, cr, cr->cr_retry_count,
 			 SIP_METHOD_OPTIONS, 
@@ -88,66 +106,35 @@ nua_stack_options(nua_t *nua, nua_handle_t *nh, nua_event_t e, tagi_t const *tag
 
 void restart_options(nua_handle_t *nh, tagi_t *tags)
 {
-  nua_creq_restart(nh, nh->nh_cr, process_response_to_options, tags);
+  nua_creq_restart(nh, nh->nh_ds->ds_cr, process_response_to_options, tags);
 }
+
+/** @NUA_EVENT nua_r_options
+ *
+ * Answer to outgoing OPTIONS.
+ *
+ * @param status response status code
+ *               (if the request is retried the @a status is 100 and the @a
+ *               sip->sip_status->st_status contain the real status code
+ *               from the response message, e.g., 302, 401, or 407)
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the incoming OPTIONS request
+ * @param hmagic application context associated with the handle
+ * @param sip    response to OPTIONS request or NULL upon an error
+ *               (status code is in @a status and 
+ *                descriptive message in @a phrase parameters)
+ * @param tags   empty
+ *
+ * @sa nua_options(), @RFC3261 section 11, #nua_i_options
+ *
+ * @END_NUA_EVENT
+ */
 
 static int process_response_to_options(nua_handle_t *nh,
 				       nta_outgoing_t *orq,
 				       sip_t const *sip)
 {
-  if (nua_creq_check_restart(nh, nh->nh_cr, orq, sip, restart_options))
+  if (nua_creq_check_restart(nh, nh->nh_ds->ds_cr, orq, sip, restart_options))
     return 0;
-  return nua_stack_process_response(nh, nh->nh_cr, orq, sip, TAG_END());
-}
-
-int nua_stack_process_options(nua_t *nua,
-			      nua_handle_t *nh,
-			      nta_incoming_t *irq,
-			      sip_t const *sip)
-{
-  msg_t *msg;
-
-  int status; char const *phrase;
-
-  /* Hook to outbound */
-  status = nua_registration_process_request(nua->nua_registrations, irq, sip);
-  if (status)
-    return status;
-
-  SET_STATUS1(SIP_200_OK);
-
-  if (nh == NULL)
-    nh = nua->nua_dhandle;
-
-  msg = nh_make_response(nua, nh, irq, status, phrase,
-			 SIPTAG_ALLOW(NH_PGET(nh, allow)),
-			 SIPTAG_SUPPORTED(NH_PGET(nh, supported)),
-			 TAG_IF(NH_PGET(nh, path_enable),
-				SIPTAG_SUPPORTED_STR("path")),
-			 SIPTAG_ACCEPT_STR(SDP_MIME_TYPE),
-			 TAG_END());
-
-  if (msg) {
-    su_home_t home[1] = { SU_HOME_INIT(home) };
-#if 0				/* XXX */
-    sdp_session_t *sdp;
-    sip_t *sip = sip_object(msg);
-
-    if ((sdp = nmedia_describe(nua, nh->nh_nm, nh, home))) {
-      nh_sdp_insert(nh, home, msg, sip, sdp);
-    }
-#endif
-
-    nta_incoming_mreply(irq, msg);
-
-    su_home_deinit(home);
-  }
-  else
-    SET_STATUS1(SIP_500_INTERNAL_SERVER_ERROR);
-
-  msg = nta_incoming_getrequest(irq);
-
-  nua_stack_event(nh->nh_nua, nh, msg, nua_i_options, status, phrase, TAG_END());
-
-  return status;
+  return nua_stack_process_response(nh, nh->nh_ds->ds_cr, orq, sip, TAG_END());
 }

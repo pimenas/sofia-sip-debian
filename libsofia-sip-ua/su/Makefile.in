@@ -34,7 +34,7 @@
 
 
 
-SOURCES = $(libsu_la_SOURCES) $(EXTRA_libsu_la_SOURCES) addrinfo.c localinfo.c su_proxy.c test_htable.c test_memmem.c test_poll.c test_su.c torture_rbtree.c torture_su.c torture_su_alloc.c torture_su_bm.c torture_su_port.c torture_su_root.c torture_su_tag.c torture_su_time.c torture_su_timer.c
+SOURCES = $(libsu_la_SOURCES) $(EXTRA_libsu_la_SOURCES) addrinfo.c localinfo.c su_proxy.c test_htable.c test_memmem.c test_poll.c test_su.c test_su_osx.c torture_rbtree.c torture_su.c torture_su_alloc.c torture_su_bm.c torture_su_port.c torture_su_root.c torture_su_root_osx.c torture_su_tag.c torture_su_time.c torture_su_timer.c
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -66,10 +66,10 @@ check_PROGRAMS = torture_su$(EXEEXT) torture_su_port$(EXEEXT) \
 	torture_rbtree$(EXEEXT) test_memmem$(EXEEXT) \
 	torture_su_bm$(EXEEXT) torture_su_root$(EXEEXT) \
 	torture_su_timer$(EXEEXT) test_su$(EXEEXT) su_proxy$(EXEEXT) \
-	test_poll$(EXEEXT)
-DIST_COMMON = $(dist_pkgdata_SCRIPTS) $(nobase_include_sofia_HEADERS) \
-	$(srcdir)/../sofia.am $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in ChangeLog
+	test_poll$(EXEEXT) $(am__EXEEXT_1)
+DIST_COMMON = $(am__nobase_include_sofia_HEADERS_DIST) \
+	$(dist_pkgdata_SCRIPTS) $(srcdir)/../sofia.am \
+	$(srcdir)/Makefile.am $(srcdir)/Makefile.in ChangeLog
 subdir = libsofia-sip-ua/su
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/sac-general.m4 \
@@ -84,18 +84,28 @@ CONFIG_HEADER = $(top_builddir)/config.h \
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 am__DEPENDENCIES_1 =
+am__libsu_la_SOURCES_DIST = su.c su_errno.c su_addrinfo.c su_alloc.c \
+	su_alloc_lock.c su_strdup.c su_sprintf.c su_strlst.c \
+	su_vector.c su_time.c su_time0.c su_wait.c su_root.c \
+	su_timer.c su_port.c su_port.h su_localinfo.c su_os_nw.c \
+	su_taglist.c su_tag.c su_tag_io.c su_log.c su_global_log.c \
+	su_default_log.c su_module_debug.h su_md5.c su_uniqueid.c \
+	su_bm.c su_osx_runloop.c
+@COREFOUNDATION_TRUE@am__objects_1 = su_osx_runloop.lo
 am_libsu_la_OBJECTS = su.lo su_errno.lo su_addrinfo.lo su_alloc.lo \
 	su_alloc_lock.lo su_strdup.lo su_sprintf.lo su_strlst.lo \
 	su_vector.lo su_time.lo su_time0.lo su_wait.lo su_root.lo \
 	su_timer.lo su_port.lo su_localinfo.lo su_os_nw.lo \
 	su_taglist.lo su_tag.lo su_tag_io.lo su_log.lo \
 	su_global_log.lo su_default_log.lo su_md5.lo su_uniqueid.lo \
-	su_bm.lo
+	su_bm.lo $(am__objects_1)
 libsu_la_OBJECTS = $(am_libsu_la_OBJECTS)
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pkgdatadir)" \
 	"$(DESTDIR)$(include_sofiadir)" \
 	"$(DESTDIR)$(include_sofiadir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
+@COREFOUNDATION_TRUE@am__EXEEXT_1 = torture_su_root_osx$(EXEEXT) \
+@COREFOUNDATION_TRUE@	test_su_osx$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 addrinfo_SOURCES = addrinfo.c
 addrinfo_OBJECTS = addrinfo.$(OBJEXT)
@@ -125,6 +135,10 @@ test_su_SOURCES = test_su.c
 test_su_OBJECTS = test_su.$(OBJEXT)
 test_su_LDADD = $(LDADD)
 test_su_DEPENDENCIES = libsu.la
+test_su_osx_SOURCES = test_su_osx.c
+test_su_osx_OBJECTS = test_su_osx.$(OBJEXT)
+test_su_osx_LDADD = $(LDADD)
+test_su_osx_DEPENDENCIES = libsu.la
 torture_rbtree_SOURCES = torture_rbtree.c
 torture_rbtree_OBJECTS = torture_rbtree.$(OBJEXT)
 torture_rbtree_LDADD = $(LDADD)
@@ -149,6 +163,10 @@ torture_su_root_SOURCES = torture_su_root.c
 torture_su_root_OBJECTS = torture_su_root.$(OBJEXT)
 torture_su_root_LDADD = $(LDADD)
 torture_su_root_DEPENDENCIES = libsu.la
+torture_su_root_osx_SOURCES = torture_su_root_osx.c
+torture_su_root_osx_OBJECTS = torture_su_root_osx.$(OBJEXT)
+torture_su_root_osx_LDADD = $(LDADD)
+torture_su_root_osx_DEPENDENCIES = libsu.la
 torture_su_tag_SOURCES = torture_su_tag.c
 torture_su_tag_OBJECTS = torture_su_tag.$(OBJEXT)
 torture_su_tag_LDADD = $(LDADD)
@@ -176,15 +194,29 @@ LINK = $(LIBTOOL) --mode=link --tag=CC $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libsu_la_SOURCES) $(EXTRA_libsu_la_SOURCES) addrinfo.c \
 	localinfo.c su_proxy.c test_htable.c test_memmem.c test_poll.c \
-	test_su.c torture_rbtree.c torture_su.c torture_su_alloc.c \
-	torture_su_bm.c torture_su_port.c torture_su_root.c \
-	torture_su_tag.c torture_su_time.c torture_su_timer.c
-DIST_SOURCES = $(libsu_la_SOURCES) $(EXTRA_libsu_la_SOURCES) \
-	addrinfo.c localinfo.c su_proxy.c test_htable.c test_memmem.c \
-	test_poll.c test_su.c torture_rbtree.c torture_su.c \
+	test_su.c test_su_osx.c torture_rbtree.c torture_su.c \
 	torture_su_alloc.c torture_su_bm.c torture_su_port.c \
-	torture_su_root.c torture_su_tag.c torture_su_time.c \
-	torture_su_timer.c
+	torture_su_root.c torture_su_root_osx.c torture_su_tag.c \
+	torture_su_time.c torture_su_timer.c
+DIST_SOURCES = $(am__libsu_la_SOURCES_DIST) $(EXTRA_libsu_la_SOURCES) \
+	addrinfo.c localinfo.c su_proxy.c test_htable.c test_memmem.c \
+	test_poll.c test_su.c test_su_osx.c torture_rbtree.c \
+	torture_su.c torture_su_alloc.c torture_su_bm.c \
+	torture_su_port.c torture_su_root.c torture_su_root_osx.c \
+	torture_su_tag.c torture_su_time.c torture_su_timer.c
+am__nobase_include_sofia_HEADERS_DIST = sofia-sip/su_types.h \
+	sofia-sip/su.h sofia-sip/su_errno.h sofia-sip/su_addrinfo.h \
+	sofia-sip/su_localinfo.h sofia-sip/su_wait.h \
+	sofia-sip/su_alloc.h sofia-sip/su_alloc_stat.h \
+	sofia-sip/su_strlst.h sofia-sip/su_vector.h \
+	sofia-sip/su_time.h sofia-sip/su_tag.h \
+	sofia-sip/su_tag_class.h sofia-sip/su_tagarg.h \
+	sofia-sip/su_tag_io.h sofia-sip/su_tag_inline.h \
+	sofia-sip/htable.h sofia-sip/htable2.h sofia-sip/rbtree.h \
+	sofia-sip/su_debug.h sofia-sip/su_log.h sofia-sip/su_config.h \
+	sofia-sip/su_md5.h sofia-sip/su_uniqueid.h sofia-sip/su_bm.h \
+	sofia-sip/tstdef.h sofia-sip/su_os_nw.h \
+	sofia-sip/su_osx_runloop.h
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -210,6 +242,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -292,6 +326,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -348,6 +383,20 @@ target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
 noinst_LTLIBRARIES = libsu.la
+@COREFOUNDATION_FALSE@OSXSOURCES = 
+@COREFOUNDATION_TRUE@OSXSOURCES = \
+@COREFOUNDATION_TRUE@	su_osx_runloop.c
+
+@COREFOUNDATION_FALSE@OSXHEADERS = 
+@COREFOUNDATION_TRUE@OSXHEADERS = \
+@COREFOUNDATION_TRUE@	sofia-sip/su_osx_runloop.h
+
+@COREFOUNDATION_TRUE@OSXPROGS = \
+@COREFOUNDATION_TRUE@	torture_su_root_osx test_su_osx
+
+@COREFOUNDATION_TRUE@OSXTESTS = \
+@COREFOUNDATION_TRUE@	torture_su_root_osx run_test_su_osx
+
 
 # ----------------------------------------------------------------------
 # Tests
@@ -356,7 +405,8 @@ TESTS = torture_su torture_su_port \
 			test_htable torture_rbtree \
 			test_memmem torture_su_bm \
 			torture_su_root torture_su_timer \
-			run_addrinfo run_localinfo run_test_su
+			run_addrinfo run_localinfo run_test_su \
+			$(OSXTESTS)
 
 
 # ----------------------------------------------------------------------
@@ -376,7 +426,8 @@ nobase_include_sofia_HEADERS = \
 			sofia-sip/su_log.h \
 			sofia-sip/su_config.h sofia-sip/su_md5.h \
 			sofia-sip/su_uniqueid.h sofia-sip/su_bm.h \
-			sofia-sip/tstdef.h
+			sofia-sip/tstdef.h sofia-sip/su_os_nw.h \
+			$(OSXHEADERS)
 
 nobase_nodist_include_sofia_HEADERS = sofia-sip/su_configure.h
 libsu_la_SOURCES = \
@@ -386,10 +437,10 @@ libsu_la_SOURCES = \
 	su_time.c su_time0.c \
 	su_wait.c su_root.c su_timer.c su_port.c su_port.h \
 	su_localinfo.c \
-	su_os_nw.c sofia-sip/su_os_nw.h \
+	su_os_nw.c \
 	su_taglist.c su_tag.c su_tag_io.c \
 	su_log.c su_global_log.c su_default_log.c su_module_debug.h \
-	su_md5.c su_uniqueid.c su_bm.c
+	su_md5.c su_uniqueid.c su_bm.c $(OSXSOURCES)
 
 EXTRA_libsu_la_SOURCES = \
 			memmem.c strtoull.c strcasestr.c \
@@ -401,7 +452,6 @@ libsu_la_LIBADD = $(REPLACE_LIBADD)
 libsu_la_DEPENDENCIES = $(REPLACE_LIBADD)
 COVERAGE_INPUT = $(libsu_la_SOURCES) $(include_sofia_HEADERS)
 LDADD = libsu.la
-@NDEBUG_TRUE@AM_CFLAGS = -DNDEBUG
 
 # ----------------------------------------------------------------------
 # Install and distribution rules
@@ -413,6 +463,8 @@ dist_pkgdata_SCRIPTS = tag_dll.awk
 # ----------------------------------------------------------------------
 # Automake options
 AUTOMAKE_OPTIONS = foreign
+AM_CFLAGS = $(SOFIA_CFLAGS)
+DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
 TAG_AWK = $(top_srcdir)/libsofia-sip-ua/su/tag_dll.awk
@@ -538,6 +590,9 @@ test_poll$(EXEEXT): $(test_poll_OBJECTS) $(test_poll_DEPENDENCIES)
 test_su$(EXEEXT): $(test_su_OBJECTS) $(test_su_DEPENDENCIES) 
 	@rm -f test_su$(EXEEXT)
 	$(LINK) $(test_su_LDFLAGS) $(test_su_OBJECTS) $(test_su_LDADD) $(LIBS)
+test_su_osx$(EXEEXT): $(test_su_osx_OBJECTS) $(test_su_osx_DEPENDENCIES) 
+	@rm -f test_su_osx$(EXEEXT)
+	$(LINK) $(test_su_osx_LDFLAGS) $(test_su_osx_OBJECTS) $(test_su_osx_LDADD) $(LIBS)
 torture_rbtree$(EXEEXT): $(torture_rbtree_OBJECTS) $(torture_rbtree_DEPENDENCIES) 
 	@rm -f torture_rbtree$(EXEEXT)
 	$(LINK) $(torture_rbtree_LDFLAGS) $(torture_rbtree_OBJECTS) $(torture_rbtree_LDADD) $(LIBS)
@@ -556,6 +611,9 @@ torture_su_port$(EXEEXT): $(torture_su_port_OBJECTS) $(torture_su_port_DEPENDENC
 torture_su_root$(EXEEXT): $(torture_su_root_OBJECTS) $(torture_su_root_DEPENDENCIES) 
 	@rm -f torture_su_root$(EXEEXT)
 	$(LINK) $(torture_su_root_LDFLAGS) $(torture_su_root_OBJECTS) $(torture_su_root_LDADD) $(LIBS)
+torture_su_root_osx$(EXEEXT): $(torture_su_root_osx_OBJECTS) $(torture_su_root_osx_DEPENDENCIES) 
+	@rm -f torture_su_root_osx$(EXEEXT)
+	$(LINK) $(torture_su_root_osx_LDFLAGS) $(torture_su_root_osx_OBJECTS) $(torture_su_root_osx_LDADD) $(LIBS)
 torture_su_tag$(EXEEXT): $(torture_su_tag_OBJECTS) $(torture_su_tag_DEPENDENCIES) 
 	@rm -f torture_su_tag$(EXEEXT)
 	$(LINK) $(torture_su_tag_LDFLAGS) $(torture_su_tag_OBJECTS) $(torture_su_tag_LDADD) $(LIBS)
@@ -614,6 +672,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_log.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_md5.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_os_nw.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_osx_runloop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_port.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_proxy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_root.Plo@am__quote@
@@ -634,12 +693,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_memmem.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_poll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_su.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_su_osx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_rbtree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su_alloc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su_bm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su_port.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su_root.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su_root_osx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su_tag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su_time.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su_timer.Po@am__quote@
@@ -894,6 +955,7 @@ clean-generic:
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

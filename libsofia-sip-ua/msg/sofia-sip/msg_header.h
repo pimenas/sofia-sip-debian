@@ -128,6 +128,10 @@ SOFIAPUBFUN int msg_header_add_str(msg_t *msg,
 				   msg_pub_t *pub,
 				   char const *str);
 
+SOFIAPUBFUN int msg_header_parse_str(msg_t *msg,
+				     msg_pub_t *pub,
+				     char *s);
+
 SOFIAPUBFUN int msg_header_add_dup_as(msg_t *msg,
 				      msg_pub_t *pub,
 				      msg_hclass_t *hc,
@@ -221,6 +225,13 @@ SOFIAPUBFUN int msg_header_add_param(su_home_t *, msg_common_t *h,
 SOFIAPUBFUN int msg_header_replace_param(su_home_t *, msg_common_t *h,
 					 char const *param);
 SOFIAPUBFUN int msg_header_remove_param(msg_common_t *h, char const *name);
+
+SOFIAPUBFUN char const *msg_header_find_item(msg_common_t const *h,
+					     char const *item);
+
+SOFIAPUBFUN int msg_header_replace_item(su_home_t *, msg_common_t *h,
+					char const *item);
+SOFIAPUBFUN int msg_header_remove_item(msg_common_t *h, char const *name);
 
 /** Append a list of constant items to a list. */
 SOFIAPUBFUN int msg_list_append_items(su_home_t *home, msg_list_t *k,

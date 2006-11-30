@@ -63,7 +63,7 @@ AC_DEFUN([SAC_CANONICAL_SYSTEM_CACHE_CHECK], [
 
 dnl Get host, target and build variables filled with appropriate info.
 
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET([])
 
 dnl Check to assure the cached information is valid.
 
@@ -84,22 +84,10 @@ dnl SOSXXX: AC_PATH_ADJUST
 ])
 
 dnl ======================================================================
-dnl Check if ranlib is needed
-dnl ======================================================================
-AC_DEFUN([AX_PROG_RANLIB], [
-AC_REQUIRE([SAC_CANONICAL_SYSTEM_CACHE_CHECK])
-if test -z "$no_ranlib"; then
-  AC_CHECK_TOOL([RANLIB], ranlib, ranlib)
-else
-  AC_SUBST([RANLIB], [":"])
-fi
-])
-
-dnl ======================================================================
 dnl Find C compiler
 dnl ======================================================================
 
-AC_DEFUN([AX_TOOL_CC], [
+AC_DEFUN([SAC_TOOL_CC], [
 AC_REQUIRE([SAC_CANONICAL_SYSTEM_CACHE_CHECK])
 AC_BEFORE([$0], [AC_PROG_CPP])dnl
 
@@ -131,8 +119,9 @@ AC_CACHE_CHECK([for maximum warnings compiler flag],
 		esac 
   ;;
 esac])
-CFLAGS="$CFLAGS $ac_cv_cwflag"
 AC_SUBST([CWFLAG], [$ac_cv_cwflag])
+SOFIA_CFLAGS="$SOFIA_CFLAGS $ac_cv_cwflag"
+AC_SUBST([SOFIA_CFLAGS])
 
 #
 # GCoverage
@@ -144,7 +133,7 @@ AC_ARG_ENABLE(coverage,
 if test X$enable_coverage != Xno ; then
 case "${CC-cc}" in
   *gcc*) 
-	CFLAGS="$CFLAGS -fprofile-arcs -ftest-coverage" 
+	SOFIA_CFLAGS="$SOFIA_CFLAGS -fprofile-arcs -ftest-coverage" 
 	;;
   *) AC_MSG_ERROR([--enable-coverage requires gcc])
 esac
@@ -175,10 +164,9 @@ dnl ======================================================================
 AC_DEFUN([AC_SYS_SA_LEN], [
 AC_CACHE_CHECK([for sa_len],
   ac_cv_sa_len,
-[AC_TRY_COMPILE([#include <sys/types.h>
-#include <sys/socket.h>], [
- struct sockaddr t;t.sa_len = 0;],
-  ac_cv_sa_len=yes,ac_cv_sa_len=no)])
+[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+#include <sys/socket.h>]], [[
+ struct sockaddr t;t.sa_len = 0;]])],[ac_cv_sa_len=yes],[ac_cv_sa_len=no])])
 if test "$ac_cv_sa_len" = yes ;then
 	AC_DEFINE([HAVE_SA_LEN], 1, 
 		[Define to 1 if you have sa_len in struct sockaddr])
@@ -192,11 +180,11 @@ AC_DEFUN([AC_FLAG_MSG_NOSIGNAL], [
 AC_REQUIRE([AC_PROG_CC])
 AC_CACHE_CHECK([for MSG_NOSIGNAL], 
   ac_cv_flag_msg_nosignal, [
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
-#include <sys/socket.h>], [
+#include <sys/socket.h>]], [[
   int flags = MSG_NOSIGNAL;
-], ac_cv_flag_msg_nosignal=yes, ac_cv_flag_msg_nosignal=no)])
+]])],[ac_cv_flag_msg_nosignal=yes],[ac_cv_flag_msg_nosignal=no])])
 if test "$ac_cv_flag_msg_nosignal" = yes ; then
 	AC_DEFINE([HAVE_MSG_NOSIGNAL], 1,
 		[Define to 1 if you have MSG_NOSIGNAL flag for send()]) 
@@ -210,11 +198,11 @@ AC_DEFUN([AC_SYS_MSG_ERRQUEUE], [
 AC_REQUIRE([AC_PROG_CC])
 AC_CACHE_CHECK([for MSG_ERRQUEUE], 
   ac_cv_flag_msg_errqueue, [
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
-#include <sys/socket.h>], [
+#include <sys/socket.h>]], [[
   int flags = MSG_ERRQUEUE;
-], ac_cv_flag_msg_errqueue=yes, ac_cv_flag_msg_errqueue=no)])
+]])],[ac_cv_flag_msg_errqueue=yes],[ac_cv_flag_msg_errqueue=no])])
 if test "$ac_cv_flag_msg_errqueue" = yes; then
 	AC_DEFINE([HAVE_MSG_ERRQUEUE], 1,
 		[Define to 1 if you have MSG_ERRQUEUE flag for send()]) 
@@ -228,16 +216,15 @@ AC_DEFUN([AC_SYS_IP_RECVERR], [
 AC_REQUIRE([AC_PROG_CC])
 AC_CACHE_CHECK([for IP_RECVERR], 
   ac_cv_sys_ip_recverr, [
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-], [
+]], [[
   int one = 1;
   int s = 0;
   setsockopt(s, SOL_IP, IP_RECVERR, &one, sizeof(one));
-], ac_cv_sys_ip_recverr=yes,
-ac_cv_sys_ip_recverr=no)])
+]])],[ac_cv_sys_ip_recverr=yes],[ac_cv_sys_ip_recverr=no])])
 if test "$ac_cv_sys_ip_recverr" = yes ; then
 	AC_DEFINE([HAVE_IP_RECVERR], 1, 
 		[Define to 1 if you have IP_RECVERR in <netinet/in.h>])
@@ -251,71 +238,20 @@ AC_DEFUN([AC_SYS_IPV6_RECVERR], [
 AC_REQUIRE([AC_PROG_CC])
 AC_CACHE_CHECK([for IPV6_RECVERR], 
   ac_cv_sys_ipv6_recverr, [
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-], [
+]], [[
   int one = 1;
   int s = 0;
   setsockopt(s, SOL_IPV6, IPV6_RECVERR, &one, sizeof(one));
-], ac_cv_sys_ipv6_recverr=yes, ac_cv_sys_ipv6_recverr=no)])
+]])],[ac_cv_sys_ipv6_recverr=yes],[ac_cv_sys_ipv6_recverr=no])])
 if test "$ac_cv_sys_ipv6_recverr" = yes ; then
 	AC_DEFINE([HAVE_IPV6_RECVERR], 1,
 		[Define to 1 if you have IPV6_RECVERR in <netinet/in6.h>])
 fi
 ])dnl
-
-dnl ======================================================================
-dnl Version of AC_CHECK_HEADER with a list of alternative locations
-dnl ======================================================================
-dnl AX_CHECK_HEADER_IN(HEADER-FILE, 
-dnl         LIST-OF-PATHS, [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-AC_DEFUN([AX_CHECK_HEADER_IN], [
-ax_safe=`echo "$1" | sed 'y%./+-%__p_%'`
-AC_MSG_CHECKING([for $1])
-AC_CACHE_VAL(ax_cv_header_$ax_safe,
-   [eval ax_cv_header_$ax_safe="no"
-    for ax_path in yes $2
-    do
-	old_CPPFLAGS="$CPPFLAGS"
-       	test "$ax_path" != "yes" && CPPFLAGS="-I$ax_path $CPPFLAGS"
-      	AC_TRY_CPP([#include <$1>], 
-	 [eval ax_cv_header_$ax_safe="$ax_path";
-	  CPPFLAGS="$old_CPPFLAGS";
-          break],
-	 CPPFLAGS="$old_CPPFLAGS"
-	 )
-   done
-])
-
-if eval "test \"`echo '$ax_cv_header_'$ax_safe`\" != no"; then
-   if eval 'test "$ax_cv_header_'$ax_safe'" != "yes"'
-   then
-     eval ax_path='"$ax_cv_header_'$ax_safe'"'
-     CPPFLAGS="-I$ax_path $CPPFLAGS"
-   else
-     unset ax_path
-   fi 
-   AC_MSG_RESULT([yes${ax_path+ (in $ax_path)}])
-   ifelse([$3], , :, [$3])
-else
-   AC_MSG_RESULT(no)
-   ifelse([$4], , , [$4])dnl
-fi
-])
-
-dnl AX_CHECK_HEADERS_IN(HEADER-FILE..., 
-dnl                 LIST-OF-PATHS [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
-AC_DEFUN([AX_CHECK_HEADERS_IN],
-[for ax_hdr in $1
-do
-AX_CHECK_HEADER_IN($ax_hdr, $2,
-[ ax_tr_hdr=HAVE_`echo $ax_hdr | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
-  AC_DEFINE_UNQUOTED($ax_tr_hdr, 1, [Define to 1 if you have the <$ax_hdr> header file])
-  $3], $4)dnl
-done
-])
 
 dnl ======================================================================
 dnl @synopsis AC_C_VAR_FUNC
@@ -340,10 +276,8 @@ dnl ======================================================================
 AC_DEFUN([AC_C_VAR_FUNC],
 [AC_REQUIRE([AC_PROG_CC])
 AC_CACHE_CHECK(whether $CC recognizes __func__, ac_cv_c_var_func,
-AC_TRY_COMPILE(,
-[char *s = __func__;
-],
-ac_cv_c_var_func=yes, ac_cv_c_var_func=no))
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[char *s = __func__;
+]])],[ac_cv_c_var_func=yes],[ac_cv_c_var_func=no]))
 if test $ac_cv_c_var_func = "yes"; then
 AC_DEFINE([HAVE_FUNC], 1, [Define to 1 if the C compiler supports __func__]) 
 fi
@@ -352,10 +286,9 @@ fi
 AC_DEFUN([AC_C_MACRO_FUNCTION],
 [AC_REQUIRE([AC_PROG_CC])
 AC_CACHE_CHECK(whether $CC recognizes __FUNCTION__, ac_cv_c_macro_function,
-AC_TRY_COMPILE(,
-[
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
 char *s = __FUNCTION__;
-], ac_cv_c_macro_function=yes, ac_cv_c_macro_function=no))
+]])],[ac_cv_c_macro_function=yes],[ac_cv_c_macro_function=no]))
 if test $ac_cv_c_macro_function = "yes"; then
 AC_DEFINE([HAVE_FUNCTION], 1, [Define to 1 if the C compiler supports __FUNCTION__]) 
 fi
@@ -377,12 +310,10 @@ dnl ======================================================================
 AC_DEFUN([AC_C_KEYWORD_STRUCT], [
 AC_REQUIRE([AC_PROG_CC])
 AC_CACHE_CHECK(whether $CC recognizes field names in struct initialization, ac_cv_c_keyword_struct,
-AC_TRY_COMPILE(,
-[
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
   struct { int foo; char *bar; } test = { foo: 1, bar: "bar" };
   return 0;
-],
-ac_cv_c_keyword_struct=yes, ac_cv_c_keyword_struct=no))
+]])],[ac_cv_c_keyword_struct=yes],[ac_cv_c_keyword_struct=no]))
 if test $ac_cv_c_keyword_struct = "yes"; then
 AC_DEFINE([HAVE_STRUCT_KEYWORDS], 1, [
 Define to 1 if your CC supports C99 struct initialization]) 
@@ -408,10 +339,12 @@ dnl ======================================================================
 dnl SAC_ENABLE_NDEBUG
 dnl ======================================================================
 AC_DEFUN([SAC_ENABLE_NDEBUG],[
+AC_REQUIRE([SAC_TOOL_CC])
 AC_ARG_ENABLE(ndebug,
 [  --enable-ndebug             compile with NDEBUG (disabled)],
  , enable_ndebug=no)
 AM_CONDITIONAL(NDEBUG, test x$enable_ndebug = yes)
+SOFIA_CFLAGS="$SOFIA_CFLAGS -DNDEBUG"
 ])
 
 dnl ======================================================================

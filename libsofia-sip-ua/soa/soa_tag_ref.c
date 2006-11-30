@@ -21,6 +21,9 @@
 #include <stddef.h>
 
 #undef TAG_NAMESPACE
+#define TAG_NAMESPACE soa_tag_namespace
+
+#undef TAG_NAMESPACE
 #define TAG_NAMESPACE "soa"
 
 extern tag_typedef_t soatag_caps_sdp;

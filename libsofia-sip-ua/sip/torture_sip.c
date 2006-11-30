@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 /* Avoid casting sip_t to msg_pub_t and sip_header_t to msg_header_t */
 #define MSG_PUB_T       struct sip_s
@@ -70,6 +71,83 @@ char const *name = "torture_sip.c";
 msg_mclass_t *test_mclass = NULL;
 
 static msg_t *read_message(int flags, char const string[]);
+
+int test_url_headers(void)
+{
+  BEGIN();
+  su_home_t *home;
+  char *s, *d;
+  tagi_t *t;
+  url_t *url;
+  sip_from_t const *f;
+  sip_accept_t const *ac;
+  sip_payload_t const *body;
+
+  TEST_1(home = su_home_new(sizeof *home));
+
+  s = sip_headers_as_url_query
+    (home,
+     SIPTAG_SUBJECT_STR(";"),
+     TAG_END());
+
+  TEST_1(s);
+  TEST_S(s, "subject=;");
+
+  s = sip_headers_as_url_query
+    (home,
+     SIPTAG_TO_STR("\"Joe\" <sip:joe@example.com>;tag=foofaa"),
+     SIPTAG_SUBJECT_STR("foo"),
+     TAG_END());
+
+  TEST_1(s);
+  TEST_S(s, "to=%22Joe%22%20%3Csip%3Ajoe@example.com%3E;tag%3Dfoofaa"
+	 "&subject=foo");
+
+  url = url_format(home, "sip:test@example.net?%s", s); TEST_1(url);
+
+  TEST_S(url->url_headers, s);
+
+  s = sip_headers_as_url_query
+    (home,
+     SIPTAG_FROM_STR("<sip:joe@example.com>"),
+     SIPTAG_ACCEPT_STR(""),
+     SIPTAG_PAYLOAD_STR("hello"),
+     SIPTAG_ACCEPT_STR(""),
+     TAG_END());
+
+  TEST_S(s, "from=%3Csip%3Ajoe@example.com%3E"
+	 "&accept="
+	 "&body=hello"
+	 "&accept=");
+
+  d = url_query_as_header_string(home, s);
+  TEST_S(d, "from:<sip:joe@example.com>\n"
+	 "accept:\n"
+	 "accept:\n"
+	 "\n"
+	 "hello");
+
+  t = sip_url_query_as_taglist(home, s, NULL); TEST_1(t);
+
+  TEST_P(t[0].t_tag, siptag_from);    TEST_1(f = (void *)t[0].t_value);
+  TEST_P(t[1].t_tag, siptag_accept);  TEST_1(ac = (void *)t[1].t_value);
+  TEST_P(t[2].t_tag, siptag_payload); TEST_1(body = (void *)t[2].t_value);
+  TEST_P(t[3].t_tag, siptag_accept); 
+
+  s = "xyzzy=foo";
+
+  t = sip_url_query_as_taglist(home, s, NULL); TEST_1(t);
+
+  TEST_P(t[0].t_tag, siptag_header_str);
+  TEST_1(d = (void *)t[0].t_value);
+  TEST_S(d, "foo");
+
+  TEST_1(!sip_headers_as_url_query(home, SIPTAG_SEPARATOR_STR(""), TAG_END()));
+
+  TEST_VOID(su_home_unref(home));
+
+  END();
+}
 
 int test_manipulation(void)
 {
@@ -132,7 +210,7 @@ int test_methods(void)
     char const *result = NULL;
 
     TEST(sip_version_d(&s, &result), 0);
-    TEST(s, end);
+    TEST_P(s, end);
     TEST_S(result, "protocol/version");
   }
 
@@ -147,27 +225,27 @@ int test_methods(void)
     char const *result = NULL;
 
     s = udp; end = s + strlen(s);
-    TEST(sip_transport_d(&s, &result), 0); TEST(s, end);
+    TEST_SIZE(sip_transport_d(&s, &result), 0); TEST_P(s, end);
     TEST_S(result, sip_transport_udp);
 
     s = tcp; end = s + strlen(s);
-    TEST(sip_transport_d(&s, &result), 0); TEST(s, end);
+    TEST_SIZE(sip_transport_d(&s, &result), 0); TEST_P(s, end);
     TEST_S(result, sip_transport_tcp);
 
     s = tls; end = s + strlen(s);
-    TEST(sip_transport_d(&s, &result), 0); TEST(s, end);
+    TEST_SIZE(sip_transport_d(&s, &result), 0); TEST_P(s, end);
     TEST_S(result, sip_transport_tls);
 
     s = sctp; end = s + strlen(s);
-    TEST(sip_transport_d(&s, &result), 0); TEST(s, end);
+    TEST_SIZE(sip_transport_d(&s, &result), 0); TEST_P(s, end);
     TEST_S(result, sip_transport_sctp);
 
     s = dtls; end = s + strlen(s);
-    TEST(sip_transport_d(&s, &result), 0); TEST(s, end);
+    TEST_SIZE(sip_transport_d(&s, &result), 0); TEST_P(s, end);
     TEST_S(result, "SIP/2.0/TLS-UDP");
 
     s = tls_sctp; end = s + strlen(s);
-    TEST(sip_transport_d(&s, &result), 0); TEST(s, end);
+    TEST_SIZE(sip_transport_d(&s, &result), 0); TEST_P(s, end);
     TEST_S(result, "SIP/2.0/TLS-SCTP");
   }
   END();
@@ -283,22 +361,22 @@ int test_basic(void)
     s = strcpy(buf, na);
 
     TEST_1(sip_name_addr_d(home, &s, &display, url, &params, &comment) >= 0);
-    TEST(s, buf + strlen(na));
+    TEST_P(s, buf + strlen(na));
     TEST_1(display);
     TEST(url->url_type, url_tel);
     TEST_1(params);
     TEST_1(comment);
 
-    TEST(sip_name_addr_e(ebuf, sizeof(ebuf), 0, display, 0, url, 
-			 params, comment), 
-	 strlen(na) - 1);
+    TEST_SIZE(sip_name_addr_e(ebuf, sizeof(ebuf), 0, display, 0, url, 
+			      params, comment), 
+	      strlen(na) - 1);
     TEST_1(strncmp(na, ebuf, strlen(na) - 1) == 0);
 
     s = strcpy(buf, na2);
 
     TEST_1(sip_name_addr_d(home, &s, &display, url, &params, &comment) >= 0);
     TEST_S(s, "");
-    TEST(s, buf + strlen(na2));
+    TEST_P(s, buf + strlen(na2));
     TEST_1(!display);
     TEST(url->url_type, url_tel);
     TEST_1(params);
@@ -317,7 +395,7 @@ int test_basic(void)
     TEST_1(sip_from_tag(home, f, "jxahudsf") == -1);
     while (f->a_params && f->a_params[0])
       msg_header_remove_param(f->a_common, f->a_params[0]);
-    TEST(f->a_tag, NULL);
+    TEST_P(f->a_tag, NULL);
     TEST_1(sip_from_add_param(home, f, "test=1") == 0);
     TEST_1(sip_from_tag(home, f, "jxahudsf") == 0);
     TEST_S(f->a_tag, "jxahudsf");
@@ -342,9 +420,9 @@ int test_basic(void)
     TEST_S(t2->a_tag, "bar");
 
     TEST(msg_header_remove_param(t->a_common, "tag"), 1);
-    TEST(t->a_tag, NULL);
+    TEST_P(t->a_tag, NULL);
     TEST_1(sip_to_add_param(home, t, "tst=1") == 0);
-    TEST(t->a_tag, NULL);
+    TEST_P(t->a_tag, NULL);
 
     su_free(home, t);
   }
@@ -467,7 +545,7 @@ int test_basic(void)
     TEST_S(ra->af_duration, "13");
     TEST_S(ra->af_comment, "foo");
     TEST(msg_header_remove_param(ra->af_common, "duration"), 1);
-    TEST(ra->af_duration, NULL);
+    TEST_P(ra->af_duration, NULL);
 
     s = sip_header_as_string(home, (void*)ra);
     TEST_S(s, "50 (foo)");
@@ -559,15 +637,15 @@ int test_basic(void)
     TEST(msg_header_add_param(home, v->v_common, "rport"), 0);
     TEST_S(v->v_rport, "");
     TEST(msg_header_remove_param(v->v_common, "comp"), 1);
-    TEST(v->v_comp, NULL);
+    TEST_P(v->v_comp, NULL);
     TEST(msg_header_remove_param(v->v_common, "ttl"), 1);
-    TEST(v->v_ttl, NULL);
+    TEST_P(v->v_ttl, NULL);
     TEST(msg_header_remove_param(v->v_common, "maddr"), 1);
-    TEST(v->v_maddr, NULL);
+    TEST_P(v->v_maddr, NULL);
     TEST(msg_header_remove_param(v->v_common, "rport"), 1);
-    TEST(v->v_rport, NULL);
+    TEST_P(v->v_rport, NULL);
     TEST(msg_header_remove_param(v->v_common, "branch"), 1);
-    TEST(v->v_branch, NULL);
+    TEST_P(v->v_branch, NULL);
 
     TEST_1(sip_via_add_param(home, v, "video=FALSE") == 0);
     TEST_1(sip_via_add_param(home, v, NULL) == -1);
@@ -601,7 +679,7 @@ int test_basic(void)
     TEST_1(ci->ci_purpose != ci0->ci_purpose);
 
     TEST(msg_header_remove_param(ci->ci_common, "purpose"), 1);
-    TEST(ci->ci_purpose, NULL);
+    TEST_P(ci->ci_purpose, NULL);
 
     su_free(home, ci);
     su_free(home, ci0);
@@ -647,7 +725,7 @@ int test_sip_msg_class(msg_mclass_t const *mc)
 
     /* Short form */
     if (hc->hc_short[0])
-      TEST(mc->mc_short[hc->hc_short[0] - 'a'].hr_class, hc);
+      TEST_P(mc->mc_short[hc->hc_short[0] - 'a'].hr_class, hc);
 
     /* Long form */
     j = msg_header_name_hash(hc->hc_name, NULL);
@@ -764,7 +842,7 @@ static int test_encoding(void)
 
     TEST_1(h1 = msg_header_dup(home, h));
     n = msg_header_e(b, sizeof b, h1, 0);
-    TEST(n, h->sh_len);
+    TEST_SIZE(n, h->sh_len);
     TEST_M(b, h->sh_data, n);
     su_free(home, h1);
   }
@@ -824,7 +902,7 @@ static int test_encoding(void)
 
     TEST_1(h1 = sip_header_dup(home, h));
     n = sip_header_e(b, sizeof b, h1, 0);
-    TEST(n, h->sh_len);
+    TEST_SIZE(n, h->sh_len);
     TEST_M(b, h->sh_data, n);
     su_free(home, h1);
   }
@@ -837,8 +915,6 @@ static int test_encoding(void)
 
   su_home_check(home);
   su_home_zap(home);
-
-  home = su_home_new(sizeof *home); TEST_1(home);
 
   msg = read_message(0, 
 		     "SIP/2.0 200 Ok\r\n"
@@ -880,13 +956,13 @@ static int test_encoding(void)
   TEST_M(c->h_data, "v:SIP/2.0/UDP 135.180.130.133,SIP/2.0/UDP 135.180.130.130:5060\r\n", c->h_len);
 
   TEST_1(c = sip->sip_via->v_next->v_common);
-  TEST(c->h_len, 0); TEST_1(c->h_data);
+  TEST_SIZE(c->h_len, 0); TEST_1(c->h_data);
 
   TEST_1(c = sip->sip_record_route->r_common);
   TEST_M(c->h_data, "Record-Route:<sip:135.180.130.133;lr>,<sip:135.180.130.130;lr>\r\n", c->h_len);
 
   TEST_1(c = sip->sip_record_route->r_next->r_common);
-  TEST(c->h_len, 0); TEST_1(c->h_data);
+  TEST_SIZE(c->h_len, 0); TEST_1(c->h_data);
 
   TEST_1(c = sip->sip_content_length->l_common);
   TEST_M(c->h_data, "l:0\r\n", c->h_len);
@@ -934,14 +1010,14 @@ int tag_test(void)
   xtra += XTRA(xtra, via); 
   xtra += SU_ALIGN(xtra) + sizeof(*url) + url_xtra(url);
 
-  TEST(tl_len(lst), 5 * sizeof(tagi_t));
-  TEST(tl_xtra(lst, 0), xtra);
+  TEST_SIZE(tl_len(lst), 5 * sizeof(tagi_t));
+  TEST_SIZE(tl_xtra(lst, 0), xtra);
 
   dup = tl_adup(NULL, lst);
 
   TEST(dup != NULL, 1);
-  TEST(tl_len(dup), 5 * sizeof(tagi_t));
-  TEST(tl_xtra(dup, 0), xtra);
+  TEST_SIZE(tl_len(dup), 5 * sizeof(tagi_t));
+  TEST_SIZE(tl_xtra(dup, 0), xtra);
 
   if (tstflags & tst_verbatim)
     tl_print(stdout, "dup:\n", dup);
@@ -980,7 +1056,7 @@ static int parser_tag_test(void)
 
   BEGIN();
 
-  home = su_home_create();
+  home = su_home_new(sizeof *home);
 
   msg = read_message(MSG_DO_EXTRACT_COPY, 
 "SIP/2.0 401 Unauthorized\r\n"
@@ -1003,7 +1079,7 @@ static int parser_tag_test(void)
   sip = sip_object(msg);
 
   TEST_1(home && msg && sip);
-  TEST(sip->sip_size, sizeof *sip);
+  TEST_SIZE(sip->sip_size, sizeof *sip);
 
   TEST_1(sip_is_status((sip_header_t *)sip->sip_status));
   TEST_1(sip_is_via((sip_header_t *)sip->sip_via));
@@ -1020,7 +1096,7 @@ static int parser_tag_test(void)
 
   TEST_1(sip_is_content_length((sip_header_t *)sip->sip_content_length));
 
-  TEST(sip->sip_content_length->l_common->h_succ, sip->sip_separator);
+  TEST_P(sip->sip_content_length->l_common->h_succ, sip->sip_separator);
 
   lst = tl_list(SIPTAG_VIA(sip->sip_via), 
 		SIPTAG_RECORD_ROUTE(sip->sip_record_route), 
@@ -1053,38 +1129,38 @@ static int parser_tag_test(void)
   TEST_1(lst && filter1 && filter2 && filter3 && filter4);
 
   b1 = tl_afilter(home, filter1, lst);
-  TEST(tl_len(b1), 2 * sizeof(tagi_t));
+  TEST_SIZE(tl_len(b1), 2 * sizeof(tagi_t));
   TEST_1(((sip_via_t *)b1->t_value)->v_next);
   xtra = sip_header_size((sip_header_t *)sip->sip_via);
   xtra += SU_ALIGN(xtra);
   xtra += sip_header_size((sip_header_t *)sip->sip_via->v_next);
-  TEST(tl_xtra(b1, 0), xtra);
+  TEST_SIZE(tl_xtra(b1, 0), xtra);
 
   dup = tl_adup(home, lst);
 
-  TEST(tl_len(dup), tl_len(lst));
-  TEST(tl_xtra(dup, 0), tl_xtra(lst, 0));
+  TEST_SIZE(tl_len(dup), tl_len(lst));
+  TEST_SIZE(tl_xtra(dup, 0), tl_xtra(lst, 0));
 
   tl_vfree(lst);
 
   lst = tl_list(SIPTAG_SIP(sip), TAG_NULL());
 
   b2 = tl_afilter(home, filter2, lst);
-  TEST(tl_len(b2), 4 * sizeof(tagi_t));
+  TEST_SIZE(tl_len(b2), 4 * sizeof(tagi_t));
   xtra = 0;
   xtra += XTRA(xtra, sip->sip_call_id);
   xtra += XTRA(xtra, sip->sip_from);
   xtra += XTRA(xtra, sip->sip_cseq);
-  TEST(tl_xtra(b2, 0), xtra);
+  TEST_SIZE(tl_xtra(b2, 0), xtra);
 
   b3 = tl_afilter(home, filter3, lst);
 
-  TEST(tl_len(b3), 3 * sizeof(tagi_t));
-  TEST(tl_xtra(b3, 0), 
-       sizeof(sip_content_length_t) + sizeof(sip_cseq_t));
+  TEST_SIZE(tl_len(b3), 3 * sizeof(tagi_t));
+  TEST_SIZE(tl_xtra(b3, 0), 
+	    sizeof(sip_content_length_t) + sizeof(sip_cseq_t));
 
   b4 = tl_afilter(home, filter4, lst);
-  TEST(tl_len(b4), 11 * sizeof(tagi_t));
+  TEST_SIZE(tl_len(b4), 11 * sizeof(tagi_t));
   xtra = 0;
   xtra += XTRA(xtra, sip->sip_status); 
   xtra += XTRA(xtra, sip->sip_via); 
@@ -1097,7 +1173,7 @@ static int parser_tag_test(void)
   xtra += XTRA(xtra, sip->sip_www_authenticate); 
   xtra += XTRA(xtra, sip->sip_proxy_authenticate); 
   xtra += XTRA(xtra, sip->sip_content_length); 
-  TEST(tl_xtra(b4, 0), xtra);
+  TEST_SIZE(tl_xtra(b4, 0), xtra);
 
   tl_vfree(filter1); tl_vfree(filter2); tl_vfree(filter3); tl_vfree(filter4);
   tl_vfree(lst);
@@ -1112,7 +1188,7 @@ static int parser_tag_test(void)
 
   su_home_check(home);
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   msg_destroy(msg);
 
@@ -1265,7 +1341,7 @@ static int parser_test(void)
 
   BEGIN();
 
-  home = su_home_create();
+  home = su_home_new(sizeof *home);
 
   msg = read_message(MSG_DO_EXTRACT_COPY, 
     "INVITE sip:John_Smith@tct.hut.fi SIP/2.0\r\n"
@@ -1324,46 +1400,53 @@ static int parser_test(void)
   #define msg_header_offset(msg, sip, h) \
     _msg_header_offset(msg, (msg_pub_t *)sip, (msg_header_t *)h)
 
-  TEST(msg_header_offset(msg, sip, sip_request), &sip->sip_request);
-  TEST(msg_header_offset(msg, sip, sip_status), &sip->sip_status);
-  TEST(msg_header_offset(msg, sip, sip_unknown), &sip->sip_unknown);
-  TEST(msg_header_offset(msg, sip, sip_separator), &sip->sip_separator);
-  TEST(msg_header_offset(msg, sip, sip_payload), &sip->sip_payload);
-  TEST(msg_header_offset(msg, sip, sip_via), &sip->sip_via);
-  TEST(msg_header_offset(msg, sip, sip_route), &sip->sip_route);
-  TEST(msg_header_offset(msg, sip, sip_record_route), &sip->sip_record_route);
-  TEST(msg_header_offset(msg, sip, sip_max_forwards), &sip->sip_max_forwards);
-  TEST(msg_header_offset(msg, sip, sip_from), &sip->sip_from);
-  TEST(msg_header_offset(msg, sip, sip_to), &sip->sip_to);
-  TEST(msg_header_offset(msg, sip, sip_call_id), &sip->sip_call_id);
-  TEST(msg_header_offset(msg, sip, sip_cseq), &sip->sip_cseq);
-  TEST(msg_header_offset(msg, sip, sip_contact), &sip->sip_contact);
+  TEST_P(msg_header_offset(msg, sip, sip_request), &sip->sip_request);
+  TEST_P(msg_header_offset(msg, sip, sip_status), &sip->sip_status);
+  TEST_P(msg_header_offset(msg, sip, sip_unknown), &sip->sip_unknown);
+  TEST_P(msg_header_offset(msg, sip, sip_separator), &sip->sip_separator);
+  TEST_P(msg_header_offset(msg, sip, sip_payload), &sip->sip_payload);
+  TEST_P(msg_header_offset(msg, sip, sip_via), &sip->sip_via);
+  TEST_P(msg_header_offset(msg, sip, sip_route), &sip->sip_route);
+  TEST_P(msg_header_offset(msg, sip, sip_record_route),
+	 &sip->sip_record_route);
+  TEST_P(msg_header_offset(msg, sip, sip_max_forwards),
+	 &sip->sip_max_forwards);
+  TEST_P(msg_header_offset(msg, sip, sip_from), &sip->sip_from);
+  TEST_P(msg_header_offset(msg, sip, sip_to), &sip->sip_to);
+  TEST_P(msg_header_offset(msg, sip, sip_call_id), &sip->sip_call_id);
+  TEST_P(msg_header_offset(msg, sip, sip_cseq), &sip->sip_cseq);
+  TEST_P(msg_header_offset(msg, sip, sip_contact), &sip->sip_contact);
 						
-  TEST(msg_header_offset(msg, sip, sip_expires), &sip->sip_expires);
-  TEST(msg_header_offset(msg, sip, sip_date), &sip->sip_date);
-  TEST(msg_header_offset(msg, sip, sip_retry_after), &sip->sip_retry_after);
-  TEST(msg_header_offset(msg, sip, sip_timestamp), &sip->sip_timestamp);
-  TEST(msg_header_offset(msg, sip, sip_subject), &sip->sip_subject);
-  TEST(msg_header_offset(msg, sip, sip_priority), &sip->sip_priority);
+  TEST_P(msg_header_offset(msg, sip, sip_expires), &sip->sip_expires);
+  TEST_P(msg_header_offset(msg, sip, sip_date), &sip->sip_date);
+  TEST_P(msg_header_offset(msg, sip, sip_retry_after), &sip->sip_retry_after);
+  TEST_P(msg_header_offset(msg, sip, sip_timestamp), &sip->sip_timestamp);
+  TEST_P(msg_header_offset(msg, sip, sip_subject), &sip->sip_subject);
+  TEST_P(msg_header_offset(msg, sip, sip_priority), &sip->sip_priority);
 		           		
-  TEST(msg_header_offset(msg, sip, sip_call_info), &sip->sip_call_info);
-  TEST(msg_header_offset(msg, sip, sip_organization), &sip->sip_organization);
-  TEST(msg_header_offset(msg, sip, sip_server), &sip->sip_server);
-  TEST(msg_header_offset(msg, sip, sip_user_agent), &sip->sip_user_agent);
-  TEST(msg_header_offset(msg, sip, sip_in_reply_to), &sip->sip_in_reply_to);
+  TEST_P(msg_header_offset(msg, sip, sip_call_info), &sip->sip_call_info);
+  TEST_P(msg_header_offset(msg, sip, sip_organization),
+	 &sip->sip_organization);
+  TEST_P(msg_header_offset(msg, sip, sip_server), &sip->sip_server);
+  TEST_P(msg_header_offset(msg, sip, sip_user_agent), &sip->sip_user_agent);
+  TEST_P(msg_header_offset(msg, sip, sip_in_reply_to), &sip->sip_in_reply_to);
 		           		
-  TEST(msg_header_offset(msg, sip, sip_accept), &sip->sip_accept);
-  TEST(msg_header_offset(msg, sip, sip_accept_encoding), &sip->sip_accept_encoding);
-  TEST(msg_header_offset(msg, sip, sip_accept_language), &sip->sip_accept_language);
+  TEST_P(msg_header_offset(msg, sip, sip_accept), &sip->sip_accept);
+  TEST_P(msg_header_offset(msg, sip, sip_accept_encoding),
+	 &sip->sip_accept_encoding);
+  TEST_P(msg_header_offset(msg, sip, sip_accept_language),
+	 &sip->sip_accept_language);
 
-  TEST(msg_header_offset(msg, sip, sip_session_expires), &sip->sip_session_expires);
-  TEST(msg_header_offset(msg, sip, sip_min_se), &sip->sip_min_se);   
+  TEST_P(msg_header_offset(msg, sip, sip_session_expires),
+	 &sip->sip_session_expires);
+  TEST_P(msg_header_offset(msg, sip, sip_min_se), &sip->sip_min_se);   
    
-  TEST(msg_header_offset(msg, sip, sip_allow), &sip->sip_allow);
-  TEST(msg_header_offset(msg, sip, sip_require), &sip->sip_require);
-  TEST(msg_header_offset(msg, sip, sip_proxy_require), &sip->sip_proxy_require);
-  TEST(msg_header_offset(msg, sip, sip_supported), &sip->sip_supported);
-  TEST(msg_header_offset(msg, sip, sip_unsupported), &sip->sip_unsupported);
+  TEST_P(msg_header_offset(msg, sip, sip_allow), &sip->sip_allow);
+  TEST_P(msg_header_offset(msg, sip, sip_require), &sip->sip_require);
+  TEST_P(msg_header_offset(msg, sip, sip_proxy_require),
+	 &sip->sip_proxy_require);
+  TEST_P(msg_header_offset(msg, sip, sip_supported), &sip->sip_supported);
+  TEST_P(msg_header_offset(msg, sip, sip_unsupported), &sip->sip_unsupported);
 #if SIP_HAVE_ENCRYPTION
   TEST(msg_header_offset(msg, sip, sip_encryption), &sip->sip_encryption);
 #endif
@@ -1371,103 +1454,111 @@ static int parser_test(void)
   TEST(msg_header_offset(msg, sip, sip_response_key), &sip->sip_response_key);
 #endif
 
-  TEST(msg_header_offset(msg, sip, sip_proxy_authenticate), &sip->sip_proxy_authenticate);
-  TEST(msg_header_offset(msg, sip, sip_proxy_authorization), &sip->sip_proxy_authorization);
-  TEST(msg_header_offset(msg, sip, sip_authorization), &sip->sip_authorization);
-  TEST(msg_header_offset(msg, sip, sip_www_authenticate), &sip->sip_www_authenticate);
-  TEST(msg_header_offset(msg, sip, sip_error_info), &sip->sip_error_info);
-  TEST(msg_header_offset(msg, sip, sip_warning), &sip->sip_warning);
+  TEST_P(msg_header_offset(msg, sip, sip_proxy_authenticate),
+	 &sip->sip_proxy_authenticate);
+  TEST_P(msg_header_offset(msg, sip, sip_proxy_authorization),
+	 &sip->sip_proxy_authorization);
+  TEST_P(msg_header_offset(msg, sip, sip_authorization),
+	 &sip->sip_authorization);
+  TEST_P(msg_header_offset(msg, sip, sip_www_authenticate),
+	 &sip->sip_www_authenticate);
+  TEST_P(msg_header_offset(msg, sip, sip_error_info), &sip->sip_error_info);
+  TEST_P(msg_header_offset(msg, sip, sip_warning), &sip->sip_warning);
 		       
-  TEST(msg_header_offset(msg, sip, sip_mime_version), &sip->sip_mime_version);
-  TEST(msg_header_offset(msg, sip, sip_content_type), &sip->sip_content_type);
-  TEST(msg_header_offset(msg, sip, sip_content_encoding), &sip->sip_content_encoding);
-  TEST(msg_header_offset(msg, sip, sip_content_disposition), &sip->sip_content_disposition);
-  TEST(msg_header_offset(msg, sip, sip_content_length), &sip->sip_content_length);
+  TEST_P(msg_header_offset(msg, sip, sip_mime_version), &sip->sip_mime_version);
+  TEST_P(msg_header_offset(msg, sip, sip_content_type), &sip->sip_content_type);
+  TEST_P(msg_header_offset(msg, sip, sip_content_encoding),
+	 &sip->sip_content_encoding);
+  TEST_P(msg_header_offset(msg, sip, sip_content_disposition),
+	 &sip->sip_content_disposition);
+  TEST_P(msg_header_offset(msg, sip, sip_content_length),
+	 &sip->sip_content_length);
 
-  TEST(sip_request_class->hc_params, 0);
-  TEST(sip_status_class->hc_params, 0);
-  TEST(sip_unknown_class->hc_params, 0);
-  TEST(sip_separator_class->hc_params, 0);
-  TEST(sip_payload_class->hc_params, 0);
-  TEST(sip_via_class->hc_params, offsetof(sip_via_t, v_params));
-  TEST(sip_route_class->hc_params, offsetof(sip_route_t, r_params));
-  TEST(sip_record_route_class->hc_params, 
-       offsetof(sip_record_route_t, r_params));
+  TEST_SIZE(sip_request_class->hc_params, 0);
+  TEST_SIZE(sip_status_class->hc_params, 0);
+  TEST_SIZE(sip_unknown_class->hc_params, 0);
+  TEST_SIZE(sip_separator_class->hc_params, 0);
+  TEST_SIZE(sip_payload_class->hc_params, 0);
+  TEST_SIZE(sip_via_class->hc_params, offsetof(sip_via_t, v_params));
+  TEST_SIZE(sip_route_class->hc_params, offsetof(sip_route_t, r_params));
+  TEST_SIZE(sip_record_route_class->hc_params, 
+	    offsetof(sip_record_route_t, r_params));
 
-  TEST(sip_max_forwards_class->hc_params, 0);
-  TEST(sip_from_class->hc_params, offsetof(sip_from_t, a_params));
-  TEST(sip_to_class->hc_params, offsetof(sip_to_t, a_params));
-  TEST(sip_call_id_class->hc_params, 0);
-  TEST(sip_cseq_class->hc_params, 0);
-  TEST(sip_contact_class->hc_params, offsetof(sip_contact_t, m_params));
+  TEST_SIZE(sip_max_forwards_class->hc_params, 0);
+  TEST_SIZE(sip_from_class->hc_params, offsetof(sip_from_t, a_params));
+  TEST_SIZE(sip_to_class->hc_params, offsetof(sip_to_t, a_params));
+  TEST_SIZE(sip_call_id_class->hc_params, 0);
+  TEST_SIZE(sip_cseq_class->hc_params, 0);
+  TEST_SIZE(sip_contact_class->hc_params, offsetof(sip_contact_t, m_params));
 						
-  TEST(sip_expires_class->hc_params, 0);
-  TEST(sip_date_class->hc_params, 0);
-  TEST(sip_retry_after_class->hc_params, 
-       offsetof(sip_retry_after_t, af_params));
-  TEST(sip_timestamp_class->hc_params, 0);
-  TEST(sip_subject_class->hc_params, 0);
-  TEST(sip_priority_class->hc_params, 0);
+  TEST_SIZE(sip_expires_class->hc_params, 0);
+  TEST_SIZE(sip_date_class->hc_params, 0);
+  TEST_SIZE(sip_retry_after_class->hc_params, 
+	    offsetof(sip_retry_after_t, af_params));
+  TEST_SIZE(sip_timestamp_class->hc_params, 0);
+  TEST_SIZE(sip_subject_class->hc_params, 0);
+  TEST_SIZE(sip_priority_class->hc_params, 0);
 		           		
-  TEST(sip_call_info_class->hc_params, 
-       offsetof(sip_call_info_t, ci_params));
-  TEST(sip_organization_class->hc_params, 0);
-  TEST(sip_server_class->hc_params, 0);
-  TEST(sip_user_agent_class->hc_params, 0);
+  TEST_SIZE(sip_call_info_class->hc_params, 
+	    offsetof(sip_call_info_t, ci_params));
+  TEST_SIZE(sip_organization_class->hc_params, 0);
+  TEST_SIZE(sip_server_class->hc_params, 0);
+  TEST_SIZE(sip_user_agent_class->hc_params, 0);
 
-  TEST(sip_in_reply_to_class->hc_params, 
-       offsetof(sip_in_reply_to_t, k_items));
-  TEST(sip_accept_class->hc_params, offsetof(sip_accept_t, ac_params));
-  TEST(sip_accept_encoding_class->hc_params, 
-       offsetof(sip_accept_encoding_t, aa_params));
-  TEST(sip_accept_language_class->hc_params, 
-       offsetof(sip_accept_language_t, aa_params));
+  TEST_SIZE(sip_in_reply_to_class->hc_params, 
+	    offsetof(sip_in_reply_to_t, k_items));
+  TEST_SIZE(sip_accept_class->hc_params, offsetof(sip_accept_t, ac_params));
+  TEST_SIZE(sip_accept_encoding_class->hc_params, 
+	    offsetof(sip_accept_encoding_t, aa_params));
+  TEST_SIZE(sip_accept_language_class->hc_params, 
+	    offsetof(sip_accept_language_t, aa_params));
    
-  TEST(sip_session_expires_class->hc_params, offsetof(sip_session_expires_t, x_params));
-  TEST(sip_min_se_class->hc_params, offsetof(sip_min_se_t, min_params));
+  TEST_SIZE(sip_session_expires_class->hc_params,
+	    offsetof(sip_session_expires_t, x_params));
+  TEST_SIZE(sip_min_se_class->hc_params, offsetof(sip_min_se_t, min_params));
 
-  TEST(sip_allow_class->hc_params, offsetof(sip_allow_t, k_items));
-  TEST(sip_require_class->hc_params, offsetof(sip_require_t, k_items));
-  TEST(sip_proxy_require_class->hc_params, 
-       offsetof(sip_proxy_require_t, k_items));
-  TEST(sip_supported_class->hc_params, 
-       offsetof(sip_supported_t, k_items));
-  TEST(sip_unsupported_class->hc_params, 
-       offsetof(sip_unsupported_t, k_items));
+  TEST_SIZE(sip_allow_class->hc_params, offsetof(sip_allow_t, k_items));
+  TEST_SIZE(sip_require_class->hc_params, offsetof(sip_require_t, k_items));
+  TEST_SIZE(sip_proxy_require_class->hc_params, 
+	    offsetof(sip_proxy_require_t, k_items));
+  TEST_SIZE(sip_supported_class->hc_params, 
+	    offsetof(sip_supported_t, k_items));
+  TEST_SIZE(sip_unsupported_class->hc_params, 
+	    offsetof(sip_unsupported_t, k_items));
 
 #if SIP_HAVE_ENCRYPTION
-  TEST(sip_encryption_class->hc_params, 
-     offsetof(sip_encryption_t, au_params));
+  TEST_SIZE(sip_encryption_class->hc_params, 
+	    offsetof(sip_encryption_t, au_params));
 #endif
 #if SIP_HAVE_RESPONSE_KEY
-  TEST(sip_response_key_class->hc_params, 
-       offsetof(sip_response_key_t, au_params));
+  TEST_SIZE(sip_response_key_class->hc_params, 
+	    offsetof(sip_response_key_t, au_params));
 #endif
-  TEST(sip_proxy_authenticate_class->hc_params,  
-       offsetof(sip_proxy_authenticate_t, au_params));
-  TEST(sip_proxy_authorization_class->hc_params,  
-       offsetof(sip_proxy_authorization_t, au_params));
-  TEST(sip_authorization_class->hc_params,  
-       offsetof(sip_authorization_t, au_params));
-  TEST(sip_www_authenticate_class->hc_params,  
-       offsetof(sip_www_authenticate_t, au_params));
+  TEST_SIZE(sip_proxy_authenticate_class->hc_params,  
+	    offsetof(sip_proxy_authenticate_t, au_params));
+  TEST_SIZE(sip_proxy_authorization_class->hc_params,  
+	    offsetof(sip_proxy_authorization_t, au_params));
+  TEST_SIZE(sip_authorization_class->hc_params,  
+	    offsetof(sip_authorization_t, au_params));
+  TEST_SIZE(sip_www_authenticate_class->hc_params,  
+	    offsetof(sip_www_authenticate_t, au_params));
 
-  TEST(sip_error_info_class->hc_params, 
-       offsetof(sip_error_info_t, ei_params));
-  TEST(sip_warning_class->hc_params, 0);
+  TEST_SIZE(sip_error_info_class->hc_params, 
+	    offsetof(sip_error_info_t, ei_params));
+  TEST_SIZE(sip_warning_class->hc_params, 0);
 		       
-  TEST(sip_mime_version_class->hc_params, 0);
-  TEST(sip_content_type_class->hc_params, 
-       offsetof(sip_content_type_t, c_params));
-  TEST(sip_content_encoding_class->hc_params, 
-       offsetof(sip_content_encoding_t, k_items));
-  TEST(sip_content_disposition_class->hc_params, 
-       offsetof(sip_content_disposition_t, cd_params));
-  TEST(sip_content_length_class->hc_params, 0);
+  TEST_SIZE(sip_mime_version_class->hc_params, 0);
+  TEST_SIZE(sip_content_type_class->hc_params, 
+	    offsetof(sip_content_type_t, c_params));
+  TEST_SIZE(sip_content_encoding_class->hc_params, 
+	    offsetof(sip_content_encoding_t, k_items));
+  TEST_SIZE(sip_content_disposition_class->hc_params, 
+	    offsetof(sip_content_disposition_t, cd_params));
+  TEST_SIZE(sip_content_length_class->hc_params, 0);
 
   msg_destroy(msg);
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   END();
 }
@@ -1503,11 +1594,12 @@ static int sip_header_test(void)
   su_home_t *home;
   void const *x;
   sip_via_t *v, *v0;
-  tagi_t const *tl, *tl0;
+  tagi_t const *tl;
+  tagi_t *tl0;
 
   BEGIN();
 
-  home = su_home_create();
+  home = su_home_new(sizeof *home);
 
   TEST_1(msg = read_message(MSG_DO_EXTRACT_COPY, 
     "MESSAGE sip:John_Smith@tct.hut.fi SIP/2.0\r\n"
@@ -1596,7 +1688,7 @@ static int sip_header_test(void)
 
   TEST(sip_add_dup(msg, sip, (sip_header_t *)sip->sip_max_forwards), 0);
   /* Max-Forwards is last header? */
-  TEST(sip->sip_max_forwards, sip->sip_content_type->c_common->h_succ);
+  TEST_P(sip->sip_max_forwards, sip->sip_content_type->c_common->h_succ);
 
   TEST(sip_to_tag(home, sip->sip_to, sip->sip_to->a_tag), 0);
   TEST(sip_to_tag(home, sip->sip_to, "tag=deadbeef"), 0);
@@ -1636,21 +1728,23 @@ static int sip_header_test(void)
 			    TAG_END()));
   /* sip_add_tagis should stop after SIPTAG_END() */
   TEST(sip_add_tagis(msg, sip, &tl), 0);
-  TEST(tl, tl0 + 2);
+  TEST_P(tl, tl0 + 2);
 
-  TEST(sip_timestamp_make(home, "+1"), NULL);
-  TEST(sip_timestamp_make(home, "1.0e6 13.0"), NULL);
+  tl_free(tl0);
+
+  TEST_P(sip_timestamp_make(home, "+1"), NULL);
+  TEST_P(sip_timestamp_make(home, "1.0e6 13.0"), NULL);
   TEST_1(sip_timestamp_make(home, "1.0 .001"));
-  TEST(sip_timestamp_make(home, ".0001 13.0"), NULL);
+  TEST_P(sip_timestamp_make(home, ".0001 13.0"), NULL);
 
   TEST_1(x = sip->sip_path);
   TEST_1(sip_add_make(msg, sip, sip_path_class, "<sip:135.180.130.133>") == 0);
-  TEST(x, sip->sip_path->r_next);
+  TEST_P(x, sip->sip_path->r_next);
 
   TEST_1(x = sip->sip_service_route);
   TEST_1(sip_add_make(msg, sip, sip_service_route_class, 
 		      "<sip:135.180.130.133>") == 0);
-  TEST(x, sip->sip_service_route);
+  TEST_P(x, sip->sip_service_route);
   TEST_1(sip->sip_service_route->r_next);
 
   /* Detect parsing errors */
@@ -1659,7 +1753,7 @@ static int sip_header_test(void)
   
   msg_destroy(msg), msg = NULL;
 
-  su_home_destroy(home), su_free(NULL, home), home = NULL;
+  su_home_unref(home), home = NULL;
 
   END();
 }
@@ -1672,7 +1766,7 @@ static int test_bad_packet(void)
 
   BEGIN();
 
-  home = su_home_create();
+  home = su_home_new(sizeof *home);
 
   TEST_1(msg = read_message(MSG_DO_EXTRACT_COPY, 
     "MESSAGE <sip:John_Smith@tct.hut.fi> SIP/2.0\r\n"
@@ -1699,7 +1793,7 @@ static int test_bad_packet(void)
 
   TEST(sip->sip_request->rq_url->url_type, url_invalid);
 
-  su_home_destroy(home), su_free(NULL, home), home = NULL;
+  su_home_unref(home), home = NULL;
 
   msg_destroy(msg), msg = NULL;
 
@@ -1715,7 +1809,7 @@ static int test_sip_list_header(void)
 
   BEGIN();
 
-  home = su_home_create();
+  home = su_home_new(sizeof *home);
 
   TEST_1(msg = read_message(0, 
     "MESSAGE sip:John_Smith@tct.hut.fi SIP/2.0\r\n"
@@ -1748,7 +1842,7 @@ static int test_sip_list_header(void)
   TEST_1(a = sip_allow_make(home, ""));
   TEST_S(sip_header_as_string(home, (void *)a), "");
 
-  su_home_destroy(home), su_free(NULL, home), home = NULL;
+  su_home_unref(home), home = NULL;
 
   END();
 }
@@ -1772,7 +1866,7 @@ static int test_prack(void)
   TEST(rseq->rs_response, 3);
 
   TEST_1(rack0 = sip_rack_dup(home, rack));
-  TEST(rack0->ra_method_name, rack->ra_method_name);
+  TEST_P(rack0->ra_method_name, rack->ra_method_name);
   TEST_1(rseq0 = sip_rseq_dup(home, rseq));
   
   TEST_1(rack = sip_rack_make(home, "4\r\n\t5\r\n\tEXTRA"));
@@ -1787,7 +1881,7 @@ static int test_prack(void)
   TEST_1(rack0->ra_method_name != rack->ra_method_name);
   TEST_1(rseq0 = sip_rseq_dup(home, rseq));
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
   
   END();
 }
@@ -1838,7 +1932,7 @@ static int test_accept(void)
   TEST_1(aa = sip_accept_language_make(home, ""));
   TEST_S(aa->aa_value, ""); TEST_1(!aa->aa_next);
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   END();
 }
@@ -1861,7 +1955,7 @@ static int test_content_disposition(void)
   TEST_1(cd->cd_required);
   TEST_1(!cd->cd_optional);
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
   END();
 }
 
@@ -1893,7 +1987,7 @@ int test_retry_after(void)
 
   TEST_S(buf, "1800 (foo) ;duration=3600");
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   END();
 }
@@ -1914,7 +2008,7 @@ int test_session_expires(void)
   TEST_S(x->x_params[0], "refresher=uas");
   TEST_S(x->x_refresher, "uas");
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   END();
 }
@@ -1945,7 +2039,7 @@ int test_min_se(void)
   TEST_1(min0->min_params);
   TEST_S(min0->min_params[0], "foo=bar");
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   END();
 }
@@ -1961,7 +2055,52 @@ int test_refer(void)
 
   BEGIN();
 
+  char const m[] = 
+    "REFER sip:10.3.3.104 SIP/2.0\r\n"
+    "Via: SIP/2.0/UDP 10.3.3.8;branch=z9hG4bKb8389b4c1BA8899\r\n"
+    "From: \"Anthony Minessale\" <sip:polycom500@10.3.3.104>;tag=5AA04E0-66CFC37F\r\n"
+    "To: <sip:3001@10.3.3.104>;user=phone;tag=j6Fg9y7t8KNrF\r\n"
+    "CSeq: 4 REFER\r\n"
+    "Call-ID: a14822a4-5932e3ea-d7f37191@10.3.3.8\r\n"
+    "Contact: <sip:polycom500@10.3.3.8>\r\n"
+    "User-Agent: PolycomSoundPointIP-SPIP_500-UA/1.4.1\r\n"
+    "Refer-To: <sip:2000@10.3.3.104?Replaces=7d84c014-321368da-efa90f41%40"
+      "10.3.3.8%3Bto-tag%3DpaNKgBB9vQe3D%3Bfrom-tag%3D93AC8D50-7CF6DAAF>\r\n"
+    "Referred-By: \"Anthony Minessale\" <sip:polycom500@10.3.3.104>\r\n"
+    "Max-Forwards: 70\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n";
+  msg_t *msg;
+  sip_t *sip;
+  msg_iovec_t *iovec;
+  isize_t veclen, i, size;
+  char *back;
+
   TEST_1(home = su_home_create());
+
+  msg = read_message(0, m); TEST_1(msg); TEST_1(sip = sip_object(msg));
+  TEST_1(sip->sip_refer_to);
+  TEST_S(sip->sip_refer_to->r_url->url_headers,
+	 "Replaces=7d84c014-321368da-efa90f41%40"
+	 "10.3.3.8%3Bto-tag%3DpaNKgBB9vQe3D%3Bfrom-tag%3D93AC8D50-7CF6DAAF");
+  TEST_SIZE(msg_prepare(msg), strlen(m));
+  TEST_1(veclen = msg_iovec(msg, NULL, ISIZE_MAX));
+  TEST_1(iovec = su_zalloc(msg_home(home), veclen * (sizeof iovec[0])));
+  TEST_SIZE(msg_iovec(msg, iovec, veclen), veclen);
+  
+  for (i = 0, size = 0; i < veclen; i++)
+    size += iovec[i].mv_len;
+  
+  TEST_1(back = su_zalloc(msg_home(msg), size + 1));
+
+  for (i = 0, size = 0; i < veclen; i++) {
+    memcpy(back + size, iovec[i].mv_base, iovec[i].mv_len);
+    size += iovec[i].mv_len;
+  }
+  back[size] = '\0';
+  
+  TEST_S(back, m);
+
   TEST_1(r = r0 = sip_refer_to_make(home, "http://example.com;foo=bar"));
   TEST(r->r_url->url_type, url_http);
   TEST_1(r->r_params);
@@ -1974,11 +2113,11 @@ int test_refer(void)
   TEST_1(r = r0 = sip_refer_to_make(home, s0 = "<http://example.com>"));
   TEST_S(r->r_display, "");
   TEST(r->r_url->url_type, url_http);
-  TEST(r->r_params, NULL);
+  TEST_P(r->r_params, NULL);
   r = sip_refer_to_dup(home, r0);
   TEST_S(r->r_display, "");
   TEST(r->r_url->url_type, url_http);
-  TEST(r->r_params, NULL);
+  TEST_P(r->r_params, NULL);
   TEST_S(sip_header_as_string(home, (sip_header_t*)r), s0);
 
   TEST_1(r = r0 = sip_refer_to_make(home, 
@@ -1987,23 +2126,38 @@ int test_refer(void)
   TEST(r->r_url->url_type, url_http);
   TEST_1(r->r_params);
   TEST_S(r->r_params[0], "foo=bar");
-  TEST(r->r_params[1], NULL);
+  TEST_P(r->r_params[1], NULL);
   r = sip_refer_to_dup(home, r0);
   TEST(r->r_url->url_type, url_http);
   TEST_1(r->r_params);
   TEST_S(r->r_params[0], "foo=bar");
-  TEST(r->r_params[1], NULL);
+  TEST_P(r->r_params[1], NULL);
 
-  /* XXX */
+  /* Test bad replaces without <> */
+  {
+    char const s[] =
+      "sip:2000@10.3.3.104?Replaces=7d84c014-321368da-efa90f41%4010.3.3.8"
+      "%3Bto-tag%3DpaNKgBB9vQe3D%3Bfrom-tag%3D93AC8D50-7CF6DAAF" "\r\n";
+    char *str;
 
-  su_home_destroy(home), su_free(NULL, home);
+    TEST_1(r = r0 = sip_refer_to_make(home, s));
+    msg_fragment_clear(r->r_common);
+    TEST_1(str = sip_header_as_string(home, (void *)r));
+    TEST_S(str, 
+	   "<"
+	   "sip:2000@10.3.3.104?Replaces=7d84c014-321368da-efa90f41%4010.3.3.8"
+	   "%3Bto-tag%3DpaNKgBB9vQe3D%3Bfrom-tag%3D93AC8D50-7CF6DAAF"
+	   ">");
+  }
+
+  su_home_unref(home);
     
   TEST_1(home = su_home_create());
   TEST_1(b = b0 = sip_referred_by_make(home, 
 				      "sip:joe@example.edu;param=value"));
-  TEST(b->b_display, NULL);
+  TEST_P(b->b_display, NULL);
   TEST_1(b->b_params);
-  TEST(b->b_cid, NULL);
+  TEST_P(b->b_cid, NULL);
 
   TEST_1(b = sip_referred_by_make(home, 
 				  "John Doe <sip:joe@example.edu>"
@@ -2024,7 +2178,7 @@ int test_refer(void)
   TEST(msg_header_replace_param(home, b->b_common, "cid=cid:8u432658725"), 1);
   TEST_S(b->b_cid, "cid:8u432658725");
   TEST(msg_header_remove_param(b->b_common, "cid"), 1);
-  TEST(b->b_cid, NULL);
+  TEST_P(b->b_cid, NULL);
   
   /* XXX */
 #define WORD ALPHA DIGIT "-.!%*_+`'~()<>:\\\"/[]?{}"
@@ -2048,11 +2202,11 @@ int test_refer(void)
   TEST(msg_header_replace_param(home, rp->rp_common, "early-only"), 1);
   TEST(rp->rp_early_only, 1);
   TEST(msg_header_remove_param(rp->rp_common, "from-tag"), 1);
-  TEST(rp->rp_from_tag, NULL);
+  TEST_P(rp->rp_from_tag, NULL);
   TEST(msg_header_remove_param(rp->rp_common, "to-tag"), 1);
-  TEST(rp->rp_to_tag, NULL);
+  TEST_P(rp->rp_to_tag, NULL);
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   END();
 }
@@ -2081,7 +2235,7 @@ static int test_features(void)
   TEST_1(u->k_items); 
   TEST_S(u->k_items[0], "bar");  
   TEST_S(u->k_items[1], "dig");  
-  TEST(u->k_items[2], NULL);  
+  TEST_P(u->k_items[2], NULL);  
 
   TEST_1(u1 = sip_has_unsupported(home, s, r));
   TEST_1(u1->k_items); TEST_S(u1->k_items[0], "dig"); TEST_1(!u1->k_items[1]);
@@ -2095,7 +2249,7 @@ static int test_features(void)
   TEST_1(sip_has_supported(NULL, NULL));
   TEST_1(!sip_has_supported(NULL, "foo"));
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
   END();
 }
 
@@ -2139,7 +2293,7 @@ static int test_events(void)
   TEST(msg_header_remove_param(o->o_common, "ix=0"), 0);
   TEST_S(o->o_id, "1");
   TEST(msg_header_remove_param(o->o_common, "id"), 1);
-  TEST(o->o_id, NULL);
+  TEST_P(o->o_id, NULL);
   TEST(msg_header_replace_param(home, o->o_common, "id=32"), 0);
   TEST_S(o->o_id, "32");
 
@@ -2148,7 +2302,7 @@ static int test_events(void)
   TEST_S(ae->k_items[0], "presence");
   TEST_S(ae->k_items[1], "presence.winfo");
   TEST_S(ae->k_items[2], "foo");
-  TEST(ae->k_items[3], 0);
+  TEST_P(ae->k_items[3], 0);
   TEST(sip_allow_events_add(home, ae, "event3"), 0);
   TEST_S(ae->k_items[3], "event3");
   TEST(sip_allow_events_add(home, ae, "event4"), 0);
@@ -2172,7 +2326,7 @@ static int test_events(void)
   TEST(msg_header_remove_param(ss->ss_common, "reasom"), 0);
   TEST_S(ss->ss_reason, "TimeOut");
   TEST(msg_header_remove_param(ss->ss_common, "reason"), 1);
-  TEST(ss->ss_reason, NULL);
+  TEST_P(ss->ss_reason, NULL);
   TEST(msg_header_replace_param(home, ss->ss_common, "expires=200"), 0);
   TEST(msg_header_replace_param(home, ss->ss_common, "retry-after=10"), 0);
   TEST_S(ss->ss_expires, "200");
@@ -2186,12 +2340,12 @@ static int test_events(void)
   TEST_1((ss = 
 	  sip_subscription_state_make(home, "terminated;retry-after=3600")));
   TEST_S(ss->ss_substate, "terminated");
-  TEST(ss->ss_expires, NULL);
+  TEST_P(ss->ss_expires, NULL);
   TEST_S(ss->ss_retry_after, "3600");
 
   TEST_1((ss = sip_subscription_state_dup(home, ss)));
   TEST_S(ss->ss_substate, "terminated");
-  TEST(ss->ss_expires, NULL);
+  TEST_P(ss->ss_expires, NULL);
   TEST_S(ss->ss_retry_after, "3600");
 
   msg = read_message(MSG_DO_EXTRACT_COPY, 
@@ -2219,7 +2373,7 @@ static int test_events(void)
   TEST_S(sip->sip_event->o_id, "1");
   TEST_1(sip->sip_allow_events);
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
   msg_destroy(msg), msg = NULL;
 
   END();
@@ -2242,12 +2396,12 @@ static int test_route(void)
   TEST_1(rr->r_params);
 
   TEST_1((r0 = sip_record_route_make(home, "<sip:0@foo.bar:555;lr>")));
-  TEST(r0->r_params, NULL);
+  TEST_P(r0->r_params, NULL);
   TEST_1(r0->r_url->url_params);
 
   TEST_1((r1 = sip_record_route_make(home, "<sip:1@foo.bar:666"
 				    ";maddr=127.0.0.1>")));
-  TEST(r1->r_params, NULL);
+  TEST_P(r1->r_params, NULL);
   TEST_1(r1->r_url->url_params);
 
   TEST_1((rr = sip_record_route_create(home, r0->r_url, r1->r_url)));
@@ -2280,7 +2434,7 @@ static int test_route(void)
   su_free(home, sr);
   su_free(home, sr0);
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   END();
 }
@@ -2298,7 +2452,7 @@ int test_request_disposition(void)
   TEST_1(rd = sip_request_disposition_make(home, "proxy, recurse, parallel"));
   TEST_S(rd->rd_items[1], "recurse");
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   END();
 }
@@ -2376,12 +2530,12 @@ int test_caller_prefs(void)
 
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_literal);
-  TEST(sp->sp_literal.spl_length, 5);
+  TEST_SIZE(sp->sp_literal.spl_length, 5);
   TEST_M(sp->sp_literal.spl_value, "oukki", 5); TEST_1(negate);
   
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_literal);
-  TEST(sp->sp_literal.spl_length, 6);
+  TEST_SIZE(sp->sp_literal.spl_length, 6);
   TEST_M(sp->sp_literal.spl_value, "doukki", 6); TEST_1(!negate);
 
   TEST_1(!sip_prefs_parse(sp, &s, &negate));
@@ -2393,12 +2547,12 @@ int test_caller_prefs(void)
 
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_string);
-  TEST(sp->sp_string.sps_length, 5);
+  TEST_SIZE(sp->sp_string.sps_length, 5);
   TEST_M(sp->sp_string.sps_value, "oukki", 5); TEST_1(negate);
   
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_string);
-  TEST(sp->sp_string.sps_length, 10);
+  TEST_SIZE(sp->sp_string.sps_length, 10);
   TEST_M(sp->sp_string.sps_value, "douK\\\"ki  ", 10); TEST_1(!negate);
   
   TEST_1(!sip_prefs_parse(sp, &s, &negate));
@@ -2410,8 +2564,8 @@ int test_caller_prefs(void)
 
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_range);
-  TEST(sp->sp_range.spr_lower, 6.0);
-  TEST(sp->sp_range.spr_upper, 6.0);
+  TEST_D(sp->sp_range.spr_lower, 6.0);
+  TEST_D(sp->sp_range.spr_upper, 6.0);
   TEST_1(sip_prefs_match(sp, sp));
   TEST_1(negate);
 
@@ -2419,8 +2573,8 @@ int test_caller_prefs(void)
     
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_range);
-  TEST(sp->sp_range.spr_lower, DBL_MIN);
-  TEST(sp->sp_range.spr_upper, 3.0);
+  TEST_D(sp->sp_range.spr_lower, DBL_MIN);
+  TEST_D(sp->sp_range.spr_upper, 3.0);
   TEST_1(sip_prefs_match(sp, sp));
   TEST_1(!negate);
 
@@ -2428,7 +2582,7 @@ int test_caller_prefs(void)
 
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_range);
-  TEST(sp->sp_range.spr_lower, 6.0);
+  TEST_D(sp->sp_range.spr_lower, 6.0);
   TEST_D(sp->sp_range.spr_upper, DBL_MAX);
   TEST_1(sip_prefs_match(sp, sp));
   TEST_1(!negate);
@@ -2437,8 +2591,8 @@ int test_caller_prefs(void)
 
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_range);
-  TEST(sp->sp_range.spr_lower, DBL_MIN);
-  TEST(sp->sp_range.spr_upper, 6.0);
+  TEST_D(sp->sp_range.spr_lower, DBL_MIN);
+  TEST_D(sp->sp_range.spr_upper, 6.0);
   TEST_1(sip_prefs_match(sp, sp));
   TEST_1(negate);
 
@@ -2446,8 +2600,8 @@ int test_caller_prefs(void)
 
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_range);
-  TEST(sp->sp_range.spr_lower, 1.0);
-  TEST(sp->sp_range.spr_upper, 6.5);
+  TEST_D(sp->sp_range.spr_lower, 1.0);
+  TEST_D(sp->sp_range.spr_upper, 6.5);
   TEST_1(sip_prefs_match(sp, sp));
   TEST_1(!negate);
 
@@ -2544,7 +2698,7 @@ int test_caller_prefs(void)
   TEST_1(ac = sip_accept_contact_make(home, "*;type=\"<video/H263>\";video"));
   TEST_S(ac->cp_params[0], "type=\"<video/H263>\"");
   TEST_S(ac->cp_params[1], "video");
-  TEST(ac->cp_params[2], NULL);
+  TEST_P(ac->cp_params[2], NULL);
 
   TEST_1(sip_contact_accept(m0, ac, &S, &N, &error)); TEST(S, 2); TEST(N, 2);
   TEST_1(!sip_contact_accept(m1, ac, &S, &N, &error));
@@ -2553,7 +2707,7 @@ int test_caller_prefs(void)
   TEST_1(ac = sip_accept_contact_make(home, "sip:127.0.0.1:5060;video;audio"));
   TEST_S(ac->cp_params[0], "video");
   TEST_S(ac->cp_params[1], "audio");
-  TEST(ac->cp_params[2], NULL);
+  TEST_P(ac->cp_params[2], NULL);
 
   TEST_1(sip_contact_accept(m0, ac, &S, &N, &error)); TEST(S, 2); TEST(N, 2);
   TEST_1(!sip_contact_accept(m1, ac, &S, &N, &error));
@@ -2564,28 +2718,28 @@ int test_caller_prefs(void)
 				      "<sip:127.0.0.1:5060>;video;audio"));
   TEST_S(ac->cp_params[0], "video");
   TEST_S(ac->cp_params[1], "audio");
-  TEST(ac->cp_params[2], NULL);
+  TEST_P(ac->cp_params[2], NULL);
 
   TEST_1(ac = sip_accept_contact_make(home, 
 				      "video;audio;explicit"));
   TEST_S(ac->cp_params[0], "video");
   TEST_S(ac->cp_params[1], "audio");
   TEST_S(ac->cp_params[2], "explicit");
-  TEST(ac->cp_params[3], NULL);
+  TEST_P(ac->cp_params[3], NULL);
 
   TEST_1(ac = sip_accept_contact_make(home, 
 				      "video = foo ;audio;explicit"));
   TEST_S(ac->cp_params[0], "video=foo");
   TEST_S(ac->cp_params[1], "audio");
   TEST_S(ac->cp_params[2], "explicit");
-  TEST(ac->cp_params[3], NULL);
+  TEST_P(ac->cp_params[3], NULL);
 
   TEST_1(ac = sip_accept_contact_make(home, 
 				      "video = \"bar\" ;audio;explicit"));
   TEST_S(ac->cp_params[0], "video=\"bar\"");
   TEST_S(ac->cp_params[1], "audio");
   TEST_S(ac->cp_params[2], "explicit");
-  TEST(ac->cp_params[3], NULL);
+  TEST_P(ac->cp_params[3], NULL);
   
   TEST_1(cp = sip_accept_contact_make(home, 
 				     "*;audio;video;require;explicit;q=1.0,"
@@ -2599,7 +2753,7 @@ int test_caller_prefs(void)
   TEST_S(ac->cp_params[2], "require");
   TEST_S(ac->cp_params[3], "explicit");
   TEST_S(ac->cp_params[4], "q=1.0");
-  TEST(ac->cp_params[5], NULL);
+  TEST_P(ac->cp_params[5], NULL);
 
   /* TEST_S(ac->cp_q, "1.0"); */
   TEST(ac->cp_require, 1);
@@ -2615,7 +2769,7 @@ int test_caller_prefs(void)
   TEST_S(ac->cp_params[0], "audio");
   TEST_S(ac->cp_params[1], "require");
   TEST_S(ac->cp_params[2], "q=0.8");
-  TEST(ac->cp_params[3], NULL);
+  TEST_P(ac->cp_params[3], NULL);
 
   TEST(ac->cp_explicit, 0);
 
@@ -2623,7 +2777,7 @@ int test_caller_prefs(void)
   TEST_1(sip_contact_accept(m1, ac, &S, &N, &error)); TEST(S, 1); TEST(N, 1);
   TEST_1(!sip_contact_accept(m2, ac, &S, &N, &error));
 
-  TEST(ac->cp_next, NULL);
+  TEST_P(ac->cp_next, NULL);
 
   TEST_1(rejc = sip_reject_contact_make(home, 
 					"*;type=\"<video/H263>\";video=TRUE"));
@@ -2651,10 +2805,12 @@ int test_caller_prefs(void)
   m1 = sip_contact_immunize(home, m); TEST_1(m1);
   TEST_1(sip_contact_immune(m1));
 
-  TEST_S(m->m_params[0], "+test"); TEST_S(m->m_params[1], "+audio");
-  TEST(m->m_params[2], NULL);
+  TEST_S(m->m_params[0], "+test");
+  TEST_S(m->m_params[1], "+audio");
+  TEST_P(m->m_params[2], NULL);
 
-  TEST_S(m1->m_params[0], "+audio"); TEST(m1->m_params[1], NULL);
+  TEST_S(m1->m_params[0], "+audio");
+  TEST_P(m1->m_params[1], NULL);
 
   TEST_1(ac = sip_accept_contact_make(home, "*;q=0.9;require;explicit"));
   /* TEST_S(ac->cp_q, "0.9"); */
@@ -2782,9 +2938,9 @@ static int test_reason(void)
   TEST(msg_header_replace_param(home, re->re_common, "text=\"foo\""), 1);
   TEST_S(re->re_text, "\"foo\"");
   TEST(msg_header_remove_param(re->re_common, "cause=444"), 1);
-  TEST(re->re_cause, NULL);
+  TEST_P(re->re_cause, NULL);
   TEST(msg_header_remove_param(re->re_common, "text=\"bar\""), 1);
-  TEST(re->re_text, NULL);
+  TEST_P(re->re_text, NULL);
   TEST(msg_header_remove_param(re->re_common, "cause=444"), 0);
   TEST(msg_header_remove_param(re->re_common, "text=\"bar\""), 0);
 
@@ -2802,7 +2958,7 @@ static int test_reason(void)
   /* extra semicolon after parameters */
   TEST_1(!sip_reason_make(home, "SIP ;cause=200;text=\"Ok\";"));
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
   msg_destroy(msg), msg = NULL;
 
   END();
@@ -2835,7 +2991,7 @@ static int test_warning(void)
   TEST_S(sip_header_as_string(home, (sip_header_t *)w), 
 	 "399 [::1]:39999 \"foo\\\" bar\"");
 
-  su_home_destroy(home), su_free(NULL, home);
+  su_home_unref(home);
 
   END();
 }
@@ -3013,7 +3169,8 @@ int main(int argc, char *argv[])
 
   if (!test_mclass)
     test_mclass = msg_mclass_clone(sip_default_mclass(), 0, 0);
-  
+
+  retval |= test_url_headers(); fflush(stdout);
   retval |= test_manipulation(); fflush(stdout);
   retval |= test_methods(); fflush(stdout);
   retval |= test_basic(); fflush(stdout);

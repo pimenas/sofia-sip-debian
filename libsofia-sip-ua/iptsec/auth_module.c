@@ -278,6 +278,11 @@ void auth_mod_unref(auth_mod_t *am)
   auth_mod_destroy(am);
 }
 
+/** Get authenticatin module name. @NEW_1_12_4. */
+char const *auth_mod_name(auth_mod_t *am)
+{
+  return am ? am->am_scheme->asch_method : "<nil>";
+}
 
 /** Initialize a auth_status_t stucture.
  *
@@ -317,6 +322,7 @@ auth_status_t *auth_status_init_with(void *p,
 }
 
 /** Allocate a new auth_status_t structure. @relates auth_status_t */
+
 auth_status_t *auth_status_new(su_home_t *home)
 {
   auth_status_t *as = su_home_clone(home, (sizeof *as));

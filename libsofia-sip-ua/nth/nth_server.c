@@ -40,6 +40,7 @@
 #include <assert.h>
 
 #include <sofia-sip/string0.h>
+#include <sofia-sip/hostdomain.h>
 
 #if !defined(EALREADY) && defined(_WIN32)
 #define EALREADY WSAEALREADY
@@ -60,14 +61,16 @@ typedef struct server_s server_t;
 #include <sofia-sip/msg_addr.h>
 #include <sofia-sip/su_tagarg.h>
 
+#include <sofia-sip/hostdomain.h>
+
 /* We are customer of tport_t */
 #define TP_STACK_T   server_t
 #define TP_MAGIC_T   void
                                      
-#ifndef TPORT_H                 
 #include <sofia-sip/tport.h>
-#endif
 #include <sofia-sip/htable.h>
+
+#include <sofia-sip/auth_module.h>
 
 #ifndef UINT32_MAX
 #define UINT32_MAX (0xffffffffU)
@@ -112,11 +115,12 @@ struct server_s
 
 struct nth_site_s 
 {
-  nth_site_t          *site_next;
-  nth_site_t         **site_prev;
+  nth_site_t          *site_next, **site_prev;
+
   nth_site_t          *site_kids;
 
   server_t            *site_server;
+  auth_mod_t          *site_auth;
 
   url_t               *site_url;
   char const          *site_path;
@@ -125,7 +129,14 @@ struct nth_site_s
   nth_request_f       *site_callback;
   nth_site_magic_t    *site_magic;
 
+  su_time_t            site_access; /**< Last request served */
+
+  /** Host header must match with server name */
   unsigned             site_strict : 1;
+  /** Site can have kids */
+  unsigned             site_isdir : 1;
+  /** Site does not have domain name */
+  unsigned             site_wildcard : 1;
 };
 
 struct nth_request_s
@@ -140,6 +151,8 @@ struct nth_request_s
   tport_t              *req_tport;
   msg_t		       *req_request;
   msg_t                *req_response;
+
+  auth_status_t        *req_as;
 
   unsigned short      	req_status;
   unsigned              req_close : 1; /**< Client asked for close */
@@ -197,8 +210,9 @@ static inline uint32_t server_now(server_t const *srv);
 static void server_request(server_t *srv, tport_t *tport, msg_t *msg,
 				    void *arg, su_time_t now);
 static nth_site_t **site_get_host(nth_site_t **, char const *host, char const *port);
-static nth_site_t **site_get_directory(nth_site_t **list, char const *path,
-				       char const **res);
+static nth_site_t **site_get_rslot(nth_site_t *parent, char *path,
+				   char **return_rest);
+static nth_site_t *site_get_subdir(nth_site_t *parent, char const *path, char const **res);
 static void server_tport_error(server_t *srv, tport_t *tport,
 			       int errcode, char const *remote);
 static msg_t *server_msg_create(server_t *srv, int flags, 
@@ -225,8 +239,29 @@ void nth_site_request(server_t *srv,
 /** Create a http site object. 
  *
  * The function nth_site_create() allocates and initializes a web site
- * object. A web site object can be either a primary http server, a virtual
- * http server or a site within a server 
+ * object. A web site object can be either 
+ * - a primary http server (@a parent is NULL),
+ * - a virtual http server (@a address contains hostpart), or 
+ * - a site within a server 
+ *   (@a address does not have hostpart, only path part).
+ *
+ * @param parent pointer to parent site
+ *               (NULL when creating a primary server object)
+ * @param callback pointer to callback function called when
+ *                 a request is received
+ * @param magic    application context included in callback parameters
+ * @param address  absolute or relative URI specifying the address of
+ *                 site
+ * @param tag, value, ... list of tagged parameters
+ *
+ * @TAGS
+ * If the @a parent is NULL, the list of tagged parameters must contain
+ * NTHTAG_ROOT() used to create the server engine. Tags supported when @a
+ * parent is NULL are NTHTAG_ROOT(), NTHTAG_MCLASS(), TPTAG_REUSE(),
+ * HTTPTAG_SERVER(), and HTTPTAG_SERVER_STR(). All the tags are passed to
+ * tport_tcreate() and tport_tbind(), too.
+ *
+ * @since Support for multiple sites was added to @VERSION_1_12_4
  */
 nth_site_t *nth_site_create(nth_site_t *parent,  
 			    nth_request_f *callback,
@@ -235,108 +270,196 @@ nth_site_t *nth_site_create(nth_site_t *parent,
 			    tag_type_t tag, tag_value_t value,
 			    ...)
 {
-  nth_site_t *site = NULL, **prev;
-  url_t *url;
-  server_t *srv;
+  nth_site_t *site = NULL, **prev = NULL;
+  su_home_t home[SU_HOME_AUTO_SIZE(256)];
+  url_t *url, url0[1];
+  server_t *srv = NULL;
   ta_list ta;
-  su_home_t temphome[1] = { SU_HOME_INIT(temphome) };
-  char const *path = NULL;
-  size_t len = 0;
+  char *path = NULL;
+  size_t usize;
+  int is_host, is_path, wildcard = 0;
 
-  url = url_hdup(temphome, address->us_url);
+  su_home_auto(home, sizeof home);
+
+  if (parent && url_is_string(address)) {
+    char const *s = (char const *)address;
+    size_t sep = strcspn(s, "/:");
+
+    if (parent->site_path) {
+      /* subpath */
+      url_init(url0, parent->site_url->url_type);
+      url0->url_path = s;
+      address = (url_string_t*)url0;
+    }
+    else if (s[sep] == ':')
+      /* absolute URL with scheme */;
+    else if (s[sep] == '\0' && strchr(s, '.') && host_is_valid(s)) {
+      /* looks like a domain name */;
+      url_init(url0, parent->site_url->url_type);
+      url0->url_host = s;
+      address = (url_string_t*)url0;
+    }
+    else {
+      /* looks like a path */
+      url_init(url0, parent->site_url->url_type);
+      url0->url_path = s;
+      address = (url_string_t*)url0;
+    }
+  }
+
+  url = url_hdup(home, address->us_url);
 
   if (!url || !callback)
     return NULL;
+  
+  is_host = url->url_host != NULL;
+  is_path = url->url_path != NULL;
 
-  if (url->url_host && url->url_path) {
+  if (is_host && is_path) {
     SU_DEBUG_3(("nth_site_create(): virtual host and path simultanously\n"));
-    su_home_deinit(temphome);
     errno = EINVAL;
-    return NULL;
+    goto error;
   }
 
-  if (!parent && url->url_path) {
-    SU_DEBUG_3(("nth_site_create(): no virtual host\n"));
-    su_home_deinit(temphome);
+  if (!parent && !is_host) {
+    SU_DEBUG_3(("nth_site_create(): host is required\n"));
     errno = EINVAL;
-    return NULL;
+    goto error;
   }
+
+  if (parent) {
+    if (!parent->site_isdir) {
+      SU_DEBUG_3(("nth_site_create(): invalid parent resource \n"));
+      errno = EINVAL;
+      goto error;
+    }
+      
+    srv = parent->site_server; assert(srv);
+    if (is_host) {
+      prev = site_get_host(&srv->srv_sites, url->url_host, url->url_port);
+
+      if (prev == NULL) {
+	SU_DEBUG_3(("nth_site_create(): host %s:%s already exists\n",
+		    url->url_host, url->url_port ? url->url_port : ""));
+	errno = EEXIST;
+	goto error;
+      }
+    } 
+    else {
+      size_t i, j;
+
+      path = (char *)url->url_path;
+      while (path[0] == '/')
+	path++;
+
+      /* Remove duplicate // */
+      for (i = j = 0; path[i];) {
+	while (path[i] == '/' && path[i + 1] == '/')
+	  i++;
+	path[j++] = path[i++];
+      }
+      path[j] = path[i];
+
+      url = url0, *url = *parent->site_url;
+
+      if (url->url_path) {
+	url->url_path = su_strcat(home, url->url_path, path);
+	if (!url->url_path)
+	  goto error;
+	path = (char *)url->url_path + strlen(parent->site_url->url_path);
+      }
+      else
+	url->url_path = path;
+
+      prev = site_get_rslot(parent, path, &path);
+
+      if (!prev || path[0] == '\0') {
+	SU_DEBUG_3(("nth_site_create(): directory \"%s\" already exists\n", 
+		    url->url_path));
+	errno = EEXIST;
+	goto error;
+      }
+    }
+  }
+
+  if (!parent) {
+    if (strcmp(url->url_host, "*") == 0 ||
+	host_cmp(url->url_host, "0.0.0.0") == 0 ||
+	host_cmp(url->url_host, "::") == 0)
+      wildcard = 1, url->url_host = "*";
+  }
+
+  usize = sizeof(*url) + url_xtra(url);
 
   ta_start(ta, tag, value);
 
-  if (parent) {
-    srv = parent->site_server; assert(srv);
-    if (url->url_host)
-      prev = site_get_host(&srv->srv_sites, url->url_host, url->url_port);
-    else {
-      len = strlen(url->url_path);
-      if (len > 1 && url->url_path[len - 1] == '/')
-	((char *)url->url_path)[len - 1] = '\0';
-      prev = site_get_directory(&parent, url->url_path, &path);
-    }
-  }
-  else {
+  if (!parent) {
     srv = server_create(url, ta_tags(ta));
     prev = &srv->srv_sites;
   }
 
-  if (url->url_path) {
-    assert(path);
+  if (srv && (site = su_zalloc(srv->srv_home, (sizeof *site) + usize))) {
+    site->site_url = (url_t *)(site + 1);
+    url_dup((void *)(site->site_url + 1), usize - sizeof(*url), 
+	    site->site_url, url);
 
-    len = strlen(path);
-    if (len == 0) {
-      SU_DEBUG_3(("nth_site_create(): directory \"%s\" already exists\n", 
-		  url->url_path));
-      su_home_deinit(temphome);
-      ta_end(ta);
-      errno = EALREADY;
-      return NULL;
-    }
-  }
-
-  if (srv && (site = su_zalloc(srv->srv_home, sizeof *site))) {
-    if (*prev) {
-      /* The existing node should will be kid */
-      site->site_next = (*prev)->site_next;
+    assert(prev);
+    if ((site->site_next = *prev))
       site->site_next->site_prev = &site->site_next;
-      site->site_kids = *prev;
-      (*prev)->site_prev = NULL;
-      (*prev)->site_next = NULL;
-    }
     *prev = site, site->site_prev = prev;
     site->site_server = srv;
-    site->site_url = url_hdup(srv->srv_home, url);
+
     if (path) {
+      size_t path_len;
+
       site->site_path = site->site_url->url_path + (path - url->url_path);
-      site->site_path_len = len;
-    } else {
+      path_len = strlen(site->site_path); assert(path_len > 0);
+      if (path_len > 0 && site->site_path[path_len - 1] == '/')
+	path_len--, site->site_isdir = 1;
+      site->site_path_len = path_len;
+    }
+    else {
+      site->site_isdir = is_host;
       site->site_path = "";
       site->site_path_len = 0;
     }
+
+    site->site_wildcard = wildcard;
     site->site_callback = callback;
     site->site_magic = magic;
+    
+    if (parent)
+      site->site_auth = parent->site_auth;
+
     nth_site_set_params(site, ta_tags(ta));
   }
 
-  su_home_deinit(temphome);
   ta_end(ta);
 
+ error:
+  su_home_deinit(home);
   return site;
 }
 
 void nth_site_destroy(nth_site_t *site)
 {
-  if (site == NULL) {
-  }
-  else if (site->site_server->srv_sites == site) {
+  if (site == NULL)
+    return;
+
+  if (site->site_auth)
+    auth_mod_unref(site->site_auth), site->site_auth = NULL;
+
+  if (site->site_server->srv_sites == site) {
     server_destroy(site->site_server);
   }
 }
+
 
 nth_site_magic_t *nth_site_magic(nth_site_t const *site)
 {
   return site ? site->site_magic : NULL;
 }
+
 
 void nth_site_bind(nth_site_t *site, 
 		   nth_request_f *callback, 
@@ -346,12 +469,27 @@ void nth_site_bind(nth_site_t *site,
     site->site_callback = callback;
     site->site_magic = magic;
   }
-
 }
 
+
+/** Get the site URL. @NEW_1_12_4. */
+url_t const *nth_site_url(nth_site_t const *site)
+{
+  return site ? site->site_url : NULL;
+}
+
+/** Return server name and version */
 char const *nth_site_server_version(void)
 {
   return "nth/" NTH_VERSION;
+}
+
+/** Get the time last time served. @NEW_1_12_4. */
+su_time_t nth_site_access_time(nth_site_t const *site)
+{
+  su_time_t const never = { 0, 0 };
+
+  return site ? site->site_access : never;
 }
 
 int nth_site_set_params(nth_site_t *site,
@@ -364,12 +502,14 @@ int nth_site_set_params(nth_site_t *site,
   int master;
   msg_mclass_t const *mclass;
   int mflags;
+  auth_mod_t *am;
 
   if (site == NULL)
     return (errno = EINVAL), -1;
 
   server = site->site_server;
   master = site == server->srv_sites;
+  am = site->site_auth;
 
   mclass = server->srv_mclass;
   mflags = server->srv_mflags;
@@ -379,6 +519,7 @@ int nth_site_set_params(nth_site_t *site,
   n = tl_gets(ta_args(ta),
 	      TAG_IF(master, NTHTAG_MCLASS_REF(mclass)),
 	      TAG_IF(master, NTHTAG_MFLAGS_REF(mflags)),
+	      NTHTAG_AUTH_MODULE_REF(am),
 	      TAG_END());
   
   if (n > 0) {
@@ -387,6 +528,7 @@ int nth_site_set_params(nth_site_t *site,
     else
       server->srv_mclass = http_default_mclass();
     server->srv_mflags = mflags;
+    auth_mod_ref(am), auth_mod_unref(site->site_auth), site->site_auth = am;
   }
 
   ta_end(ta);
@@ -453,7 +595,7 @@ nth_site_t **site_get_host(nth_site_t **list, char const *host, char const *port
   assert(host);
 
   for (; (site = *list); list = &site->site_next) {
-    if (strcasecmp(host, site->site_url->url_host) == 0 &&
+    if (host_cmp(host, site->site_url->url_host) == 0 &&
 	str0cmp(port, site->site_url->url_port) == 0) {
       break;
     }
@@ -462,29 +604,82 @@ nth_site_t **site_get_host(nth_site_t **list, char const *host, char const *port
   return list;
 }
 
+/** Find a place to insert site from the hierarchy.
+ *
+ * A resource can be either a 'dir' (name ends with '/') or 'file'.
+ * When a resource
+ */
 static
-nth_site_t **site_get_directory(nth_site_t **list, char const *path, char const **res)
+nth_site_t **site_get_rslot(nth_site_t *parent, char *path, 
+			    char **return_rest)
 {
   nth_site_t *site, **prev;
+  size_t len;
+  int cmp;
 
   assert(path);
 
-  if (path[0] == '/')
-    while (path[1] == '/')
-      path++;
+  if (path[0] == '\0')
+    return errno = EEXIST, NULL;
 
-  if (path[0] && (path[0] != '/' || path[1]))
-    for (prev = &(*list)->site_kids; (site = *prev); prev = &site->site_next) {
-      size_t len = site->site_path_len;
-      if (strncmp(path, site->site_path, len) == 0) {
-	return site_get_directory(prev, path + len, res);
-      }
+  for (prev = &parent->site_kids; (site = *prev); prev = &site->site_next) {
+    cmp = strncmp(path, site->site_path, len = site->site_path_len);
+    if (cmp > 0)
+      break;
+    if (cmp < 0)
+      continue;
+    if (path[len] == '\0') {
+      if (site->site_isdir)
+	return *return_rest = path, prev; 
+      return errno = EEXIST, NULL;
     }
+    if (path[len] != '/' || site->site_path[len] != '/')
+      continue;
 
-  if (res)
-    *res = path;
+    while (path[++len] == '/')
+      ;
 
-  return list;
+    return site_get_rslot(site, path + len, return_rest);
+  }
+
+  *return_rest = path;
+
+  return prev;
+}
+
+static char const site_nodir_match[] = "";
+
+/** Find a subdir from site hierarchy */
+static
+nth_site_t *site_get_subdir(nth_site_t *parent,
+			    char const *path,
+			    char const **return_rest)
+{
+  nth_site_t *site;
+  size_t len;
+  int cmp;
+
+  assert(path);
+
+  while (path[0] == '/')	/* Skip multiple slashes */
+    path++;
+
+  if (path[0] == '\0')
+    return *return_rest = path, parent;
+  
+  for (site = parent->site_kids; site; site = site->site_next) {
+    cmp = strncmp(path, site->site_path, len = site->site_path_len);
+    if (cmp > 0)
+      break;
+    if (cmp < 0)
+      continue;
+    if (path[len] == '\0')
+      return *return_rest = site_nodir_match, site;
+    if (site->site_path[len] == '/' && path[len] == '/')
+      return site_get_subdir(site, path + len + 1, return_rest);
+  }
+
+  return *return_rest = path, parent;
 }
 
 
@@ -584,8 +779,11 @@ void server_destroy(server_t *srv)
 static inline
 int server_timer_init(server_t *srv)
 {
-  srv->srv_timer = su_timer_create(su_root_task(srv->srv_root), SERVER_TICK);
-  return su_timer_set(srv->srv_timer, server_timer, srv);
+  if (0) {
+    srv->srv_timer = su_timer_create(su_root_task(srv->srv_root), SERVER_TICK);
+    return su_timer_set(srv->srv_timer, server_timer, srv);
+  }
+  return 0;
 }
 
 /**
@@ -615,7 +813,6 @@ uint32_t server_now(server_t const *srv)
     return su_time_ms(su_now());
 }
 
-
 /** Process incoming request message */
 static
 void server_request(server_t *srv,
@@ -624,11 +821,11 @@ void server_request(server_t *srv,
 		    void *arg,
 		    su_time_t now)
 {
-  nth_site_t *site = NULL;
+  nth_site_t *site = NULL, *subsite = NULL;
   msg_t *response;
   http_t *http = http_object(request);
   http_host_t *h;
-  char const *host, *port, *path;
+  char const *host, *port, *path, *subpath = NULL;
 
   /* Disable streaming */
   if (msg_is_streaming(request)) {
@@ -681,7 +878,44 @@ void server_request(server_t *srv,
   if (path == NULL)
     path = "";
 
-  if (site)
+  if (path[0])
+    subsite = site_get_subdir(site, path, &subpath);
+
+  if (subsite)
+    subsite->site_access = now;
+  else
+    site->site_access = now;
+
+  if (subsite && subsite->site_isdir && subpath == site_nodir_match) {
+    /* Answer with 301 */
+    http_location_t loc[1];
+    http_location_init(loc);
+
+    *loc->loc_url = *site->site_url;
+
+    if (site->site_wildcard) {
+      if (http->http_host) {
+	loc->loc_url->url_host = http->http_host->h_host;
+	loc->loc_url->url_port = http->http_host->h_port;
+      }
+      else {
+	tp_name_t const *tpn = tport_name(tport); assert(tpn);
+	loc->loc_url->url_host = tpn->tpn_canon;
+	if (strcmp(url_port_default(loc->loc_url->url_type), tpn->tpn_port))
+	  loc->loc_url->url_port = tpn->tpn_port;
+      }
+    }
+
+    loc->loc_url->url_root = 1;
+    loc->loc_url->url_path = subsite->site_url->url_path;
+
+    msg_header_add_dup(response, NULL, (msg_header_t *)loc);
+
+    server_reply(srv, tport, request, response, HTTP_301_MOVED_PERMANENTLY);
+  }
+  else if (subsite)
+    nth_site_request(srv, subsite, tport, request, http, subpath, response);
+  else if (site)
     nth_site_request(srv, site, tport, request, http, path, response);
   else
     /* Answer with 404 */
@@ -783,6 +1017,16 @@ msg_t *server_msg_create(server_t *srv, int flags,
  * 6) Server transactions 
  */
 
+struct auth_info
+{
+  nth_site_t *site;
+  nth_request_t *req;
+  http_t const *http;
+  char const *path;
+};
+
+static void nth_authentication_result(void *ai0, auth_status_t *as);
+
 static
 void nth_site_request(server_t *srv,
 		      nth_site_t *site,
@@ -792,14 +1036,25 @@ void nth_site_request(server_t *srv,
 		      char const *path,
 		      msg_t *response)
 {
-  nth_request_t *req = su_zalloc(srv->srv_home, sizeof *req);
+  auth_mod_t *am = site->site_auth;
+  nth_request_t *req;
+  auth_status_t *as;
+  struct auth_info *ai;
+  size_t size = (am ? (sizeof *as) + (sizeof *ai) : 0) + (sizeof *req);
   int status;
 
+  req = su_zalloc(srv->srv_home, size);
+  
   if (req == NULL) {
     server_reply(srv, tport, request, response, HTTP_500_INTERNAL_SERVER);
     return;
   }
   
+  if (am)
+    as = auth_status_init(req + 1, sizeof *as), ai = (void *)(as + 1);
+  else
+    as = NULL, ai = NULL;
+
   req->req_server = srv;
   req->req_method = http->http_request->rq_method;
   req->req_method_name = http->http_request->rq_method_name;
@@ -816,6 +1071,48 @@ void nth_site_request(server_t *srv,
     || http->http_request->rq_version != http_version_1_1
     || (http->http_connection && 
 	msg_params_find(http->http_connection->k_items, "close"));
+
+  if (am) {
+    static auth_challenger_t const http_server_challenger[] = 
+      {{ HTTP_401_UNAUTHORIZED, http_www_authenticate_class }};
+
+    req->req_as = as;
+
+    as->as_method = http->http_request->rq_method_name;
+    as->as_uri = path;
+    
+    if (http->http_payload) {
+      as->as_body = http->http_payload->pl_data;
+      as->as_bodylen = http->http_payload->pl_len;
+    }
+
+    auth_mod_check_client(am, as, 
+			  http->http_authorization,
+			  http_server_challenger);
+
+    if (as->as_status == 100) {
+      /* Stall transport - do not read more requests */
+      if (tport_queuelen(tport) * 2 >= srv->srv_queuesize)
+	tport_stall(tport);
+
+      as->as_callback = nth_authentication_result;
+      as->as_magic = ai;
+      ai->site = site;
+      ai->req = req;
+      ai->http = http;
+      ai->path = path;
+      return;
+    }
+    else if (as->as_status) {
+      assert(as->as_status >= 200);
+      nth_request_treply(req, as->as_status, as->as_phrase,
+			 HTTPTAG_HEADER((http_header_t *)as->as_response),
+			 HTTPTAG_HEADER((http_header_t *)as->as_info),
+			 TAG_END());
+      nth_request_destroy(req);
+      return;
+    }
+  }
 
   req->req_in_callback = 1;
   status = site->site_callback(site->site_magic, site, req, http, path);
@@ -838,6 +1135,39 @@ void nth_site_request(server_t *srv,
     nth_request_destroy(req);
 }
 
+static void nth_authentication_result(void *ai0, auth_status_t *as)
+{
+  struct auth_info *ai = ai0;
+  nth_request_t *req = ai->req;
+  int status;
+
+  if (as->as_status != 0) {
+    assert(as->as_status >= 300);
+    nth_request_treply(req, status = as->as_status, as->as_phrase, 
+		       HTTPTAG_HEADER((http_header_t *)as->as_response), 
+		       TAG_END());
+  }
+  else {
+    req->req_in_callback = 1;
+    status = ai->site->site_callback(ai->site->site_magic, 
+				     ai->site,
+				     ai->req,
+				     ai->http,
+				     ai->path);
+    req->req_in_callback = 0;
+
+    if (status != 0 && (status < 100 || status >= 600))
+      status = 500;
+
+    if (status != 0 && req->req_status < 200) {
+      nth_request_treply(req, status, NULL, TAG_END());
+    }
+  }
+
+  if (status >= 200 || req->req_destroyed)
+    nth_request_destroy(req);
+}
+
 void nth_request_destroy(nth_request_t *req)
 {
   if (req == NULL)
@@ -851,15 +1181,44 @@ void nth_request_destroy(nth_request_t *req)
   if (req->req_in_callback) 
     return;
 
-  tport_decref(&req->req_tport);
+  if (req->req_as)
+    su_home_deinit(req->req_as->as_home);
+
+  tport_decref(&req->req_tport), req->req_tport = NULL;
   msg_destroy(req->req_request), req->req_request = NULL;
   msg_destroy(req->req_response), req->req_response = NULL;
   su_free(req->req_server->srv_home, req);
 }
 
+/** Return request authentication status.
+ *
+ * @param req pointer to HTTP request object
+ * 
+ * @retval Status code
+ *
+ * @since New in @VERSION_1_12_4
+ */
 int nth_request_status(nth_request_t const *req)
 {
   return req ? req->req_status : 400;
+}
+
+/** Return request authentication status.
+ *
+ * @param req pointer to HTTP request object
+ * 
+ * @retval Pointer to authentication status struct
+ *
+ * @note The authentication status struct is freed when the #nth_request_t
+ * object is destroyed.
+ *
+ * @since New in @VERSION_1_12_4
+ *
+ * @sa AUTH
+ */
+auth_status_t *nth_request_auth(nth_request_t const *req)
+{
+  return req ? req->req_as : NULL;
 }
 
 http_method_t nth_request_method(nth_request_t const *req)
@@ -886,7 +1245,8 @@ int nth_request_treply(nth_request_t *req,
   int retval = -1;
   int req_close, close;
   ta_list ta;
-  
+  http_header_t const *as_info = NULL;
+
   if (req == NULL || status < 100 || status >= 600) {
     return -1;
   }
@@ -894,10 +1254,14 @@ int nth_request_treply(nth_request_t *req,
   response = req->req_response;
   http = http_object(response);
 
+  if (status >= 200 && req->req_as)
+    as_info = (http_header_t const *)req->req_as->as_info;
+
   ta_start(ta, tag, value);
 
   http_add_tl(response, http,
 	      HTTPTAG_SERVER(req->req_server->srv_server),
+	      HTTPTAG_HEADER(as_info), 
 	      ta_tags(ta));
 
   if (http->http_payload && !http->http_content_length) {

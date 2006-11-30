@@ -28,7 +28,7 @@
 # ---------------------------------------------------
 
 
-SOURCES = $(libnth_la_SOURCES) http-client.c http-server.c nth_test.c
+SOURCES = $(libnth_la_SOURCES) http-client.c http-server.c test_nth.c
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -53,7 +53,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-check_PROGRAMS = nth_test$(EXEEXT) http-client$(EXEEXT) \
+check_PROGRAMS = test_nth$(EXEEXT) http-client$(EXEEXT) \
 	http-server$(EXEEXT)
 DIST_COMMON = $(nobase_include_sofia_HEADERS) $(srcdir)/../sofia.am \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in ChangeLog
@@ -90,10 +90,10 @@ http_server_DEPENDENCIES = libnth.la ../iptsec/libiptsec.la \
 	../tport/libtport.la ../stun/libstun.la \
 	../sresolv/libsresolv.la ../url/liburl.la ../msg/libmsg.la \
 	../bnf/libbnf.la ../su/libsu.la
-nth_test_SOURCES = nth_test.c
-nth_test_OBJECTS = nth_test.$(OBJEXT)
-nth_test_LDADD = $(LDADD)
-nth_test_DEPENDENCIES = libnth.la ../iptsec/libiptsec.la \
+test_nth_SOURCES = test_nth.c
+test_nth_OBJECTS = test_nth.$(OBJEXT)
+test_nth_LDADD = $(LDADD)
+test_nth_DEPENDENCIES = libnth.la ../iptsec/libiptsec.la \
 	../ipt/libipt.la ../http/libhttp.la ../sresolv/libsresolv.la \
 	../tport/libtport.la ../stun/libstun.la \
 	../sresolv/libsresolv.la ../url/liburl.la ../msg/libmsg.la \
@@ -109,9 +109,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile --tag=CC $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link --tag=CC $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libnth_la_SOURCES) http-client.c http-server.c nth_test.c
+SOURCES = $(libnth_la_SOURCES) http-client.c http-server.c test_nth.c
 DIST_SOURCES = $(libnth_la_SOURCES) http-client.c http-server.c \
-	nth_test.c
+	test_nth.c
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -136,6 +136,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -218,6 +220,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -276,6 +279,7 @@ target_vendor = @target_vendor@
 INCLUDES = -I$(srcdir)/../ipt -I../ipt \
 		-I$(srcdir)/../iptsec -I../iptsec \
 		-I$(srcdir)/../msg -I../msg \
+		-I$(srcdir)/../bnf -I../bnf \
 		-I$(srcdir)/../http -I../http \
 		-I$(srcdir)/../sresolv -I../sresolv \
 		-I$(srcdir)/../tport -I../tport \
@@ -286,7 +290,7 @@ INCLUDES = -I$(srcdir)/../ipt -I../ipt \
 # ----------------------------------------------------------------------
 # Build targets
 noinst_LTLIBRARIES = libnth.la
-TESTS = nth_test
+TESTS = test_nth
 
 # ----------------------------------------------------------------------
 # Rules for building the targets
@@ -309,13 +313,15 @@ LDADD = libnth.la \
 			../bnf/libbnf.la \
 			../su/libsu.la
 
-nth_test_LDFLAGS = -static
+test_nth_LDFLAGS = -static
 
 # ----------------------------------------------------------------------
 # Install and distribution rules
 EXTRA_DIST = Doxyfile nth.docs $(BUILT_SOURCES) \
 			agent.pem cafile.pem
 
+AM_CFLAGS = $(SOFIA_CFLAGS)
+DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
 TAG_AWK = $(top_srcdir)/libsofia-sip-ua/su/tag_dll.awk
@@ -398,9 +404,9 @@ http-client$(EXEEXT): $(http_client_OBJECTS) $(http_client_DEPENDENCIES)
 http-server$(EXEEXT): $(http_server_OBJECTS) $(http_server_DEPENDENCIES) 
 	@rm -f http-server$(EXEEXT)
 	$(LINK) $(http_server_LDFLAGS) $(http_server_OBJECTS) $(http_server_LDADD) $(LIBS)
-nth_test$(EXEEXT): $(nth_test_OBJECTS) $(nth_test_DEPENDENCIES) 
-	@rm -f nth_test$(EXEEXT)
-	$(LINK) $(nth_test_LDFLAGS) $(nth_test_OBJECTS) $(nth_test_LDADD) $(LIBS)
+test_nth$(EXEEXT): $(test_nth_OBJECTS) $(test_nth_DEPENDENCIES) 
+	@rm -f test_nth$(EXEEXT)
+	$(LINK) $(test_nth_LDFLAGS) $(test_nth_OBJECTS) $(test_nth_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -414,7 +420,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nth_server.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nth_tag.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nth_tag_ref.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nth_test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nth.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -647,6 +653,7 @@ clean-generic:
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

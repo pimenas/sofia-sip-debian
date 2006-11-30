@@ -16,12 +16,26 @@ noinst_LTLIBRARIES = 	libsu.la
 
 bin_PROGRAMS = 		addrinfo localinfo 
 
+if COREFOUNDATION
+OSXSOURCES = \
+	su_osx_runloop.c
+OSXHEADERS = \
+	sofia-sip/su_osx_runloop.h
+OSXPROGS = \
+	torture_su_root_osx test_su_osx
+OSXTESTS = \
+	torture_su_root_osx run_test_su_osx
+else
+OSXSOURCES =
+OSXHEADERS =
+endif
+
 check_PROGRAMS = 	torture_su torture_su_port \
 			torture_su_alloc torture_su_time torture_su_tag \
 			test_htable torture_rbtree \
 			test_memmem torture_su_bm \
 			torture_su_root torture_su_timer \
-			test_su su_proxy test_poll
+			test_su su_proxy test_poll $(OSXPROGS)
 
 # ----------------------------------------------------------------------
 # Tests
@@ -31,7 +45,8 @@ TESTS = 		torture_su torture_su_port \
 			test_htable torture_rbtree \
 			test_memmem torture_su_bm \
 			torture_su_root torture_su_timer \
-			run_addrinfo run_localinfo run_test_su
+			run_addrinfo run_localinfo run_test_su \
+			$(OSXTESTS)
 
 # ----------------------------------------------------------------------
 # Rules for building the targets
@@ -52,7 +67,8 @@ nobase_include_sofia_HEADERS = \
 			sofia-sip/su_log.h \
 			sofia-sip/su_config.h sofia-sip/su_md5.h \
 			sofia-sip/su_uniqueid.h sofia-sip/su_bm.h \
-			sofia-sip/tstdef.h
+			sofia-sip/tstdef.h sofia-sip/su_os_nw.h \
+			$(OSXHEADERS)
 
 nobase_nodist_include_sofia_HEADERS = sofia-sip/su_configure.h
 
@@ -63,10 +79,11 @@ libsu_la_SOURCES = \
 	su_time.c su_time0.c \
 	su_wait.c su_root.c su_timer.c su_port.c su_port.h \
 	su_localinfo.c \
-	su_os_nw.c sofia-sip/su_os_nw.h \
+	su_os_nw.c \
 	su_taglist.c su_tag.c su_tag_io.c \
 	su_log.c su_global_log.c su_default_log.c su_module_debug.h \
-	su_md5.c su_uniqueid.c su_bm.c
+	su_md5.c su_uniqueid.c su_bm.c $(OSXSOURCES)
+
 
 EXTRA_libsu_la_SOURCES = \
 			memmem.c strtoull.c strcasestr.c \
@@ -80,10 +97,6 @@ libsu_la_DEPENDENCIES = $(REPLACE_LIBADD)
 COVERAGE_INPUT = 	$(libsu_la_SOURCES) $(include_sofia_HEADERS)
 
 LDADD = 		libsu.la
-
-if NDEBUG
-AM_CFLAGS = -DNDEBUG
-endif
 
 # ----------------------------------------------------------------------
 # Install and distribution rules

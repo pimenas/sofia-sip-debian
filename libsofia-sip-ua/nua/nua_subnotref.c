@@ -25,7 +25,10 @@
 /**@CFILE nua_subnotref.c
  * @brief Subscriber (event watcher)
  *
- * This module implements SUBSCRIBE UAC, NOTIFY UAS, REFER UAC.
+ * This file contains implementation SUBSCRIBE UAC, NOTIFY UAS, REFER UAC.
+ * The implementation of SUBSCRIBE UAS, NOTIFY UAC and REFER UAS is in
+ * nua_notifier.c.
+ * Alternative implementation using nea is in nua_event_server.c.
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
  *
@@ -72,9 +75,11 @@ static void nua_subscribe_usage_remove(nua_handle_t *nh,
 				       nua_dialog_state_t *ds,
 				       nua_dialog_usage_t *du);
 static void nua_subscribe_usage_refresh(nua_handle_t *,
+					nua_dialog_state_t *,
 					nua_dialog_usage_t *,
 					sip_time_t);
 static int nua_subscribe_usage_shutdown(nua_handle_t *,
+					nua_dialog_state_t *,
 					nua_dialog_usage_t *);
 
 static nua_usage_class const nua_subscribe_usage[1] = {
@@ -115,32 +120,76 @@ void nua_subscribe_usage_remove(nua_handle_t *nh,
 /* ====================================================================== */
 /* SUBSCRIBE */
 
+/** Subscribe to a SIP event. 
+ *
+ * Subscribe a SIP event using the SIP SUBSCRIBE request. If the 
+ * SUBSCRBE is successful a subscription state is established and 
+ * the subscription is refreshed regularly. The refresh requests will
+ * generate #nua_r_subscribe events.
+ *
+ * @param nh              Pointer to operation handle
+ * @param tag, value, ... List of tagged parameters
+ *
+ * @return 
+ *    nothing
+ *
+ * @par Related Tags:
+ *    NUTAG_URL()
+ *    Tags in <sip_tag.h>
+ *
+ * @par Events:
+ *    #nua_r_subscribe \n
+ *    #nua_i_notify
+ *
+ * @sa NUTAG_SUBSTATE(), @RFC3265
+ */
+
+/** Unsubscribe an event. 
+ *
+ * Unsubscribe an active or pending subscription with SUBSCRIBE request 
+ * containing Expires: header with value 0. The dialog associated with 
+ * subscription will be destroyed if there is no other subscriptions or 
+ * call using this dialog.
+ *
+ * @param nh              Pointer to operation handle
+ * @param tag, value, ... List of tagged parameters
+ *
+ * @return 
+ *    nothing
+ *
+ * @par Related Tags:
+ *    SIPTAG_EVENT() or SIPTAG_EVENT_STR() \n
+ *    Tags in <sip_tag.h> except SIPTAG_EXPIRES() or SIPTAG_EXPIRES_STR()
+ *
+ * @par Events:
+ *    #nua_r_unsubscribe 
+ *
+ * @sa NUTAG_SUBSTATE(), @RFC3265
+ */
+
 static int process_response_to_subscribe(nua_handle_t *nh,
 					 nta_outgoing_t *orq,
 					 sip_t const *sip);
+
 
 int
 nua_stack_subscribe(nua_t *nua, nua_handle_t *nh, nua_event_t e,
 		    tagi_t const *tags)
 {
-  nua_client_request_t *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   nua_dialog_usage_t *du = NULL;
   struct event_usage *eu;
   msg_t *msg;
   sip_t *sip;
 
-  if (nh->nh_special && nh->nh_special != nua_r_subscribe)
+  if (nua_stack_set_handle_special(nh, nh_has_subscribe, nua_r_subscribe) < 0)
     return UA_EVENT3(e, 500, "Invalid handle for SUBSCRIBE", 
 		     NUTAG_SUBSTATE(nua_substate_terminated));
   else if (cr->cr_orq)
     return UA_EVENT2(e, 900, "Request already in progress");
 
   /* Initialize allow and auth */
-  nua_stack_init_handle(nua, nh, nh_has_subscribe, "NOTIFY", TAG_NEXT(tags));
-
-  if (nh->nh_has_subscribe)
-    /* We can re-use existing INVITE handle */
-    nh->nh_special = nua_r_subscribe;
+  nua_stack_init_handle(nua, nh, TAG_NEXT(tags));
 
   msg = nua_creq_msg(nua, nh, cr, 0,
 		     SIP_METHOD_SUBSCRIBE,
@@ -217,7 +266,7 @@ nua_stack_subscribe(nua_t *nua, nua_handle_t *nh, nua_event_t e,
 		     NUTAG_SUBSTATE(substate), TAG_END());
   }
 
-  nua_dialog_usage_no_refresh(du); /* during SUBSCRIBE transaction */
+  nua_dialog_usage_reset_refresh(du); /* during SUBSCRIBE transaction */
   du->du_terminating = e != nua_r_subscribe; /* Unsubscribe or destroy */
 
   if (du->du_terminating)
@@ -245,14 +294,59 @@ nua_stack_subscribe(nua_t *nua, nua_handle_t *nh, nua_event_t e,
 
 static void restart_subscribe(nua_handle_t *nh, tagi_t *tags)
 {
-  nua_creq_restart(nh, nh->nh_cr, process_response_to_subscribe, tags);
+  nua_creq_restart(nh, nh->nh_ds->ds_cr, process_response_to_subscribe, tags);
 }
+
+/** @NUA_EVENT nua_r_subscribe
+ *
+ * Response to an outgoing SUBSCRIBE request.
+ *
+ * The SUBSCRIBE request may have been sent explicitly by nua_subscribe() or
+ * implicitly by NUA state machine.
+ *
+ * @param status response status code
+ *               (if the request is retried, @a status is 100, the @a
+ *               sip->sip_status->st_status contain the real status code
+ *               from the response message, e.g., 302, 401, or 407)
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the subscription
+ * @param hmagic application context associated with the handle
+ * @param sip    response to SUBSCRIBE request or NULL upon an error
+ *               (status code is in @a status and 
+ *                descriptive message in @a phrase parameters)
+ * @param tags   NUTAG_SUBSTATE()
+ *
+ * @sa nua_subscribe(), @RFC3265
+ *
+ * @END_NUA_EVENT
+ */
+
+/** @NUA_EVENT nua_r_unsubscribe
+ *
+ * Response to an outgoing un-SUBSCRIBE.
+ *
+ * @param status response status code
+ *               (if the request is retried, @a status is 100, the @a
+ *               sip->sip_status->st_status contain the real status code
+ *               from the response message, e.g., 302, 401, or 407)
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the subscription
+ * @param hmagic application context associated with the handle
+ * @param sip    response to SUBSCRIBE request or NULL upon an error
+ *               (status code is in @a status and 
+ *                descriptive message in @a phrase parameters)
+ * @param tags   NUTAG_SUBSTATE()
+ *
+ * @sa nua_unsubscribe(), @RFC3265
+ *
+ * @END_NUA_EVENT
+ */
 
 static int process_response_to_subscribe(nua_handle_t *nh,
 					 nta_outgoing_t *orq,
 					 sip_t const *sip)
 {
-  nua_client_request_t *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   nua_dialog_usage_t *du = cr->cr_usage; 
   struct event_usage *eu = nua_dialog_usage_private(du);
   int status = sip ? sip->sip_status->st_status : 408;
@@ -274,7 +368,7 @@ static int process_response_to_subscribe(nua_handle_t *nh,
     du->du_ready = 1;
     substate = eu->eu_substate;
     
-    if (cr->cr_event == nua_r_unsubscribe)
+    if (du->du_terminating)
       delta = 0;
     else
       /* If there is no expires header,
@@ -303,7 +397,13 @@ static int process_response_to_subscribe(nua_handle_t *nh,
 
       eu->eu_final_wait = 1;
 
+      /* Do not remove usage in nua_stack_process_response  */
+      cr->cr_usage = NULL;	
+
       nua_dialog_usage_refresh_range(du, delta, delta);
+    }
+    else {
+      eu->eu_substate = substate = nua_substate_terminated;
     }
   }
   else /* if (status >= 300) */ {
@@ -345,11 +445,12 @@ static int process_response_to_subscribe(nua_handle_t *nh,
 
 /** Refresh subscription */
 static void nua_subscribe_usage_refresh(nua_handle_t *nh,
+					nua_dialog_state_t *ds,
 					nua_dialog_usage_t *du,
 					sip_time_t now)
 {
   nua_t *nua = nh->nh_nua;
-  nua_client_request_t *cr = nh->nh_cr;
+  nua_client_request_t *cr = ds->ds_cr;
   struct event_usage *eu = nua_dialog_usage_private(du);
   msg_t *msg;
 
@@ -370,7 +471,7 @@ static void nua_subscribe_usage_refresh(nua_handle_t *nh,
 		    SIPTAG_EVENT(o),
 		    TAG_END());
 
-    nua_dialog_usage_remove(nh, nh->nh_ds, du);
+    nua_dialog_usage_remove(nh, ds, du);
 
     return;
   }
@@ -420,14 +521,15 @@ static void nua_subscribe_usage_refresh(nua_handle_t *nh,
 
 /** Terminate subscription */
 static int nua_subscribe_usage_shutdown(nua_handle_t *nh,
+					nua_dialog_state_t *ds,
 					nua_dialog_usage_t *du)
 {
   nua_t *nua = nh->nh_nua;
-  nua_client_request_t *cr = nh->nh_cr;
+  nua_client_request_t *cr = ds->ds_cr;
   struct event_usage *eu = nua_dialog_usage_private(du);
   msg_t *msg;
 
-  assert(eu);
+  assert(eu); (void)eu;
 
   if (du->du_terminating)
     return 100;			/* ...in progress */
@@ -459,13 +561,29 @@ static int nua_subscribe_usage_shutdown(nua_handle_t *nh,
   }
 
   /* Too bad. */
-  nua_dialog_usage_remove(nh, nh->nh_ds, du);
+  nua_dialog_usage_remove(nh, ds, du);
   msg_destroy(msg);
   return 200;
 }
 
 /* ======================================================================== */
 /* NOTIFY server */
+
+/** @NUA_EVENT nua_i_notify
+ *
+ * Event for incoming NOTIFY request.
+ *
+ * @param status statuscode of response sent automatically by stack
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the subscription
+ * @param hmagic application context associated with the handle
+ * @param sip    incoming NOTIFY request
+ * @param tags   NUTAG_SUBSTATE() indicating the subscription state
+ *
+ * @sa nua_subscribe(), nua_unsubscribe(), @RFC3265, #nua_i_subscribe
+ * 
+ * @END_NUA_EVENT
+ */
 
 /** @internal Process incoming NOTIFY. */
 int nua_stack_process_notify(nua_t *nua,
@@ -522,6 +640,7 @@ int nua_stack_process_notify(nua_t *nua,
   }
 
   eu = nua_dialog_usage_private(du); assert(eu);
+  eu->eu_notified++;
 
   if (!sip->sip_event->o_id) {
     eu->eu_no_id = 1;
@@ -605,10 +724,10 @@ int nua_stack_process_notify(nua_t *nua,
 	      nh, what, why ? why : ""));
 
   if (eu->eu_substate == nua_substate_terminated) {
-    if (du != nh->nh_cr->cr_usage)
+    if (du != nh->nh_ds->ds_cr->cr_usage)
       nua_dialog_usage_remove(nh, nh->nh_ds, du);
     else
-      nua_dialog_usage_no_refresh(du);
+      nua_dialog_usage_reset_refresh(du);
   }
   else if (eu->eu_substate == nua_substate_embryonic) {
     if (retry >= 0) {
@@ -616,13 +735,13 @@ int nua_stack_process_notify(nua_t *nua,
       nua_dialog_remove(nh, nh->nh_ds, du); /* tear down */
       nua_dialog_usage_refresh_range(du, retry, retry + 5);
     }
-    else if (du != nh->nh_cr->cr_usage)
+    else if (du != nh->nh_ds->ds_cr->cr_usage)
       nua_dialog_usage_remove(nh, nh->nh_ds, du);
     else
-      nua_dialog_usage_no_refresh(du);
+      nua_dialog_usage_reset_refresh(du);
   }
   else if (du->du_terminating) {
-    nua_dialog_usage_no_refresh(du);
+    nua_dialog_usage_reset_refresh(du);
   }
   else {
     sip_time_t delta;
@@ -641,6 +760,48 @@ int nua_stack_process_notify(nua_t *nua,
 /* ======================================================================== */
 /* REFER */
 
+/** Transfer a call. 
+ * 
+ * Send a REFER request asking the recipient to transfer the call. 
+ *
+ * The REFER request also establishes an implied subscription to the "refer"
+ * event. The "refer" event can have an "id" parameter, which has the value
+ * of CSeq number in the REFER request. After initiating the REFER request,
+ * the nua engine sends application a #nua_r_refer event with status 100 and
+ * tag NUTAG_REFER_EVENT() containing a matching event header with id
+ * parameter.
+ *
+ * Note that the @Event header in the locally generated #nua_r_refer event
+ * contains the @a id parameter. The @a id parameter contains the @CSeq
+ * number of the REFER request, and it may get incremented if the request is
+ * retried because it got challenged or redirected. In that case, the
+ * application gets a new #nua_r_refer event with status 100 and tag
+ * NUTAG_REFER_EVENT(). Also the recipient of the REFER request may or may
+ * not include the @a id parameter with the @Event header in the NOTIFY
+ * requests messages which it sends to the sender of the REFER request.
+ *
+ * Therefore the application is not able to modify the state of the implied
+ * subscription before receiving the first NOTIFY request.
+ *
+ * @param nh              Pointer to operation handle
+ * @param tag, value, ... List of tagged parameters
+ *
+ * @return 
+ *    nothing
+ *
+ * @par Related Tags:
+ *    NUTAG_URL() \n
+ *    Tags of nua_set_hparams() \n
+ *    Tags in <sip_tag.h>
+ *
+ * @par Events:
+ *    #nua_r_refer \n
+ *    #nua_i_notify
+ *
+ * @sa #nua_r_refer, NUTAG_SUBSTATE(), NUTAG_REFER_EVENT(),#nua_i_refer,
+ * @RFC3515, @ReferTo, @RFC3892, @ReferredBy
+ */
+
 static int process_response_to_refer(nua_handle_t *nh,
 				     nta_outgoing_t *orq,
 				     sip_t const *sip);
@@ -649,22 +810,18 @@ int
 nua_stack_refer(nua_t *nua, nua_handle_t *nh, nua_event_t e, tagi_t const *tags)
 {
   nua_dialog_usage_t *du = NULL;
-  struct nua_client_request *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   msg_t *msg;
   sip_t *sip;
   sip_referred_by_t by[1];
   sip_event_t *event = NULL;
 
-  if (nh_is_special(nh) && !nua_handle_has_subscribe(nh)) {
+  if (nua_stack_set_handle_special(nh, nh_has_subscribe, nua_r_subscribe) < 0)
     return UA_EVENT2(e, 900, "Invalid handle for REFER");
-  }
-  else if (cr->cr_orq) {
+  else if (cr->cr_orq)
     return UA_EVENT2(e, 900, "Request already in progress");
-  }
 
-  nua_stack_init_handle(nua, nh, nh_has_subscribe, "NOTIFY", TAG_NEXT(tags));
-  if (nh->nh_has_subscribe)
-    nh->nh_special = nua_r_subscribe;
+  nua_stack_init_handle(nua, nh, TAG_NEXT(tags));
 
   sip_referred_by_init(by);
   by->b_display = nua->nua_from->a_display;
@@ -717,14 +874,37 @@ nua_stack_refer(nua_t *nua, nua_handle_t *nh, nua_event_t e, tagi_t const *tags)
 
 void restart_refer(nua_handle_t *nh, tagi_t *tags)
 {
-  nua_stack_refer(nh->nh_nua, nh, nh->nh_cr->cr_event, tags);
+  nua_stack_refer(nh->nh_nua, nh, nh->nh_ds->ds_cr->cr_event, tags);
 }
+
+/**@NUA_EVENT nua_r_refer
+ *
+ * @brief Response to outgoing REFER.
+ *
+ * @param status response status code
+ *               (if the request is retried, @a status is 100, the @a
+ *               sip->sip_status->st_status contain the real status code
+ *               from the response message, e.g., 302, 401, or 407)
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the REFER request
+ * @param hmagic application context associated with the handle
+ * @param sip    response to REFER request or NULL upon an error
+ *               (status code is in @a status and 
+ *                descriptive message in @a phrase parameters)
+ * @param tags    NUTAG_REFER_EVENT() \n
+ *                NUTAG_SUBSTATE()
+ *
+ * @sa nua_refer(), NUTAG_SUBSTATE(), #nua_i_refer,
+ * @RFC3515, @ReferTo, @RFC3892, @ReferredBy
+ *
+ * @END_NUA_EVENT
+ */
 
 static int process_response_to_refer(nua_handle_t *nh,
 				     nta_outgoing_t *orq,
 				     sip_t const *sip)
 {
-  struct nua_client_request *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   int status = sip ? sip->sip_status->st_status : 408;
 
   if (status < 200)

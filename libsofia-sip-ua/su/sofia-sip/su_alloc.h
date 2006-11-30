@@ -60,14 +60,23 @@ struct su_home_s {
   su_alock_t *suh_lock;
 };
 
-#define SU_HOME_INIT(obj) { 0 }
+#define SU_HOME_INIT(obj) { 0, NULL, NULL }
 
 SU_DLL void *su_home_new(isize_t size)
      __attribute__((__malloc__));
 SU_DLL void *su_home_ref(su_home_t const *);
 SU_DLL int su_home_unref(su_home_t *);
 
+SU_DLL size_t su_home_refcount(su_home_t *home);
+
+SU_DLL int su_home_destructor(su_home_t *, void (*)(void *));
+
 SU_DLL int su_home_desctructor(su_home_t *, void (*)(void *));
+#ifndef su_home_desctructor
+/* This has typo in before 1.12.4 */
+#define su_home_desctructor(home, destructor) \
+        su_home_destructor((home), (destructor))
+#endif
 
 SU_DLL void *su_home_clone(su_home_t *parent, isize_t size)
      __attribute__((__malloc__));
@@ -106,6 +115,7 @@ SU_DLL void *su_salloc(su_home_t *h, isize_t size)
      __attribute__((__malloc__));
 SU_DLL void *su_realloc(su_home_t *h, void *data, isize_t size)
      __attribute__((__malloc__));
+SU_DLL int su_in_home(su_home_t *h, void const *data);
 
 SU_DLL char *su_strdup(su_home_t *home, char const *s)
      __attribute__((__malloc__));

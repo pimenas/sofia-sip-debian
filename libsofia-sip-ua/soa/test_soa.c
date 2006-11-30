@@ -53,6 +53,7 @@ struct context;
 #include <sofia-sip/sdp.h>
 
 #include <sofia-sip/su_log.h>
+#include <sofia-sip/sip_tag.h>
 
 extern su_log_t soa_log[];
 
@@ -158,6 +159,33 @@ int test_api_errors(struct context *ctx)
   END();
 }
 
+int test_soa_tags(struct context *ctx)
+{
+  BEGIN();
+  
+  su_home_t home[1] = { SU_HOME_INIT(home) };
+  tagi_t *t;
+
+  tagi_t const soafilter[] = {
+    { TAG_FILTER(soa_tag_filter) },
+    { TAG_NULL() }
+  };
+
+  t = tl_filtered_tlist(home, soafilter,
+			SIPTAG_FROM_STR("sip:my.domain"),
+			SOATAG_USER_SDP_STR("v=0"),
+			SOATAG_HOLD("*"),
+			TAG_END());
+  TEST_1(t);
+  TEST_P(t[0].t_tag, soatag_user_sdp_str);
+  TEST_P(t[1].t_tag, soatag_hold);
+  TEST_1(t[2].t_tag == NULL || t[2].t_tag == tag_null);
+
+  su_home_deinit(home);
+
+  END();
+}
+
 int test_init(struct context *ctx, char *argv[])
 {
   BEGIN();
@@ -242,8 +270,8 @@ int test_params(struct context *ctx)
 		      TAG_END()),
        9);
   TEST(af, SOA_AF_ANY);
-  TEST(address, 0);
-  TEST(hold, 0);
+  TEST_P(address, 0);
+  TEST_P(hold, 0);
   TEST(rtp_select, SOA_RTP_SELECT_SINGLE);
   TEST(rtp_sort, SOA_RTP_SORT_DEFAULT);
   TEST(rtp_mismatch, 0);
@@ -1031,12 +1059,12 @@ int test_codec_selection(struct context *ctx)
     ),
 			TAG_END()));
 
-  /* B adds GSM to SRTP */
+  /* B adds GSM to SRTP, changes IP address */
   TEST_1(soa_set_params(b,
 			SOATAG_USER_SDP_STR(
     "v=0\r\n"
     "o=left 219498671 2 IN IP4 127.0.0.2\r\n"
-    "c=IN IP4 127.0.0.2\r\n"
+    "c=IN IP4 127.0.0.3\r\n"
     "m=audio 5004 RTP/AVP 96 3 97 111\r\n"
     "a=rtpmap:96 G7231/8000\n"
     "a=rtpmap:97 G729/8000\n"
@@ -1060,6 +1088,9 @@ int test_codec_selection(struct context *ctx)
   /* Answer from B now accepts video */
   n = soa_get_local_sdp(b, &b_sdp, &answer, &answerlen); TEST(n, 1);
   TEST_1(answer != NULL && answer != NONE);
+  /* Check that updated c= line is propagated */
+  TEST_1(b_sdp->sdp_connection);
+  TEST_S(b_sdp->sdp_connection->c_address, "127.0.0.3");
   n = soa_set_remote_sdp(a, 0, answer, -1); TEST(n, 1);
   n = soa_process_answer(a, test_completed); TEST(n, 0);
   n = soa_get_local_sdp(a, &a_sdp, &offer, &offerlen); TEST(n, 1);
@@ -1291,6 +1322,7 @@ int main(int argc, char *argv[])
   } while(0)
 
   retval |= test_api_errors(ctx); SINGLE_FAILURE_CHECK();
+  retval |= test_soa_tags(ctx); SINGLE_FAILURE_CHECK();
   retval |= test_init(ctx, argv + i); SINGLE_FAILURE_CHECK();
   if (retval == 0) {
     retval |= test_params(ctx); SINGLE_FAILURE_CHECK();

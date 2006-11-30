@@ -121,6 +121,8 @@ int main(int argc, char *argv[])
   for (i = 1; argv[i]; i++) {
     if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0)
       tstflags |= tst_verbatim;
+    else if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--abort") == 0)
+      tstflags |= tst_abort;
     else if (strcmp(argv[i], "-q") == 0 || strcmp(argv[i], "--quiet") == 0)
       tstflags &= ~tst_verbatim, o_quiet = 1;
     else if (strcmp(argv[i], "-k") == 0)
@@ -197,6 +199,11 @@ int main(int argc, char *argv[])
     else if (strcmp(argv[i], "--no-alarm") == 0) {
       o_alarm = 0;
     }
+#if SU_HAVE_OSX_CF_API /* If compiled with CoreFoundation events */
+    else if (strcmp(argv[i], "--osx-runloop") == 0) {
+      ctx->osx_runloop = 1;
+    }
+#endif
     else if (strcmp(argv[i], "-") == 0) {
       i++; break;
     }
@@ -264,8 +271,7 @@ int main(int argc, char *argv[])
 
     retval |= test_stack_errors(ctx); SINGLE_FAILURE_CHECK();
 
-    if (ctx->proxy_tests)
-      retval |= test_register(ctx);
+    retval |= test_register(ctx);
 
     if (retval == 0)
       retval |= test_connectivity(ctx);
@@ -274,6 +280,7 @@ int main(int argc, char *argv[])
       retval |= test_nat_timeout(ctx);
 
     if (retval == 0) {
+      retval |= test_extension(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_basic_call(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_reject_a(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_reject_b(ctx); SINGLE_FAILURE_CHECK();
@@ -284,7 +291,7 @@ int main(int argc, char *argv[])
       retval |= test_call_cancel(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_call_destroy(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_early_bye(ctx); SINGLE_FAILURE_CHECK();
-      retval |= test_call_hold(ctx); SINGLE_FAILURE_CHECK();
+      retval |= test_reinvites(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_session_timer(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_refer(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_100rel(ctx); SINGLE_FAILURE_CHECK();

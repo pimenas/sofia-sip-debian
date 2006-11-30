@@ -65,9 +65,11 @@ static void nua_publish_usage_remove(nua_handle_t *nh,
 				      nua_dialog_state_t *ds,
 				      nua_dialog_usage_t *du);
 static void nua_publish_usage_refresh(nua_handle_t *nh,
+				      nua_dialog_state_t *ds,
 				      nua_dialog_usage_t *du,
 				      sip_time_t now);
 static int nua_publish_usage_shutdown(nua_handle_t *nh,
+				      nua_dialog_state_t *ds,
 				      nua_dialog_usage_t *du);
 
 static nua_usage_class const nua_publish_usage[1] = {
@@ -131,9 +133,9 @@ static int process_response_to_publish(nua_handle_t *nh,
  * event. When successful the publication will be updated periodically until
  * nua_unpublish() is called or handle is destroyed. Note that the periodic
  * updates and unpublish do not include the original message body nor the @b
- * Content-Type header. Instead, the periodic update will include the @b
- * SIP-If-Match header, which was generated from the latest @b SIP-ETag
- * header received in response to PUBLISH request.
+ * Content-Type header. Instead, the periodic update will include the
+ * @SIPIfMatch header, which was generated from the latest @SIPETag
+ * header received in response to @b PUBLISH request.
  *
  * The handle used for publication cannot be used for any other purposes.
  *
@@ -145,34 +147,53 @@ static int process_response_to_publish(nua_handle_t *nh,
  *
  * @par Related Tags:
  *    NUTAG_URL() \n
+ *    Tags of nua_set_hparams() \n
  *    Tags in <sip_tag.h>
  *
  * @par Events:
  *    #nua_r_publish
+ *
+ * @sa #nua_r_publish, @RFC3903, @SIPIfMatch,
+ * nua_unpublish(), #nua_r_unpublish, #nua_i_publish
  */
 
-/** @var nua_event_e::nua_r_publish
+/** @NUA_EVENT nua_r_publish
  *
- * Answer to outgoing PUBLISH.
+ * Response to an outgoing PUBLISH.
  *
- * The PUBLISH may be sent explicitly by nua_publish() or
- * implicitly by NUA state machine.
+ * The PUBLISH request may be sent explicitly by nua_publish() or implicitly
+ * by NUA state machine.
  *
- * @param nh     operation handle associated with the call
- * @param hmagic operation magic associated with the call
+ * @param status status code of PUBLISH request
+ *               (if the request is retried, @a status is 100, the @a
+ *               sip->sip_status->st_status contain the real status code
+ *               from the response message, e.g., 302, 401, or 407)
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the publication
+ * @param hmagic application context associated with the handle
  * @param sip    response to PUBLISH request or NULL upon an error
- *               (error code and message are in status an phrase parameters)
+ *               (status code is in @a status and 
+ *                descriptive message in @a phrase parameters)
  * @param tags   empty
+ *
+ * @sa nua_publish(), @RFC3903, @SIPETag, @Expires,
+ * nua_unpublish(), #nua_r_unpublish, #nua_i_publish
+ *
+ * @END_NUA_EVENT
  */
 
 /**@fn \
 void nua_unpublish(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...);
  *
- * Send un-PUBLISH request to publication server.
+ * Send un-PUBLISH request to publication server. Un-PUBLISH request is just
+ * a PUBLISH request with @Expires set to 0. It is possible to un-publish a
+ * publication not associated with the handle by providing correct ETag in
+ * SIPTAG_IF_MATCH() or SIPTAG_IF_MATCH_STR() tags.
  *
- * Request status will be delivered to the application using
- * #nua_r_unpublish event. The handle used for un-publication
- * cannot be used for any other purposes.
+ * Response to the un-PUBLISH request will be delivered to the application
+ * using #nua_r_unpublish event.
+ *
+ * The handle used for publication cannot be used for any other purposes.
  *
  * @param nh              Pointer to operation handle
  * @param tag, value, ... List of tagged parameters
@@ -182,24 +203,38 @@ void nua_unpublish(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...);
  *
  * @par Related Tags:
  *    NUTAG_URL() \n
+ *    SIPTAG_IF_MATCH(), SIPTAG_IF_MATCH_STR() \n
+ *    SIPTAG_EVENT(), SIPTAG_EVENT_STR() \n
+ *    Tags of nua_set_hparams() \n
  *    Tags in <sip_tag.h>
  *
  * @par Events:
- *    #nua_r_publish
+ *    #nua_r_unpublish
+ * 
+ * @sa #nua_r_unpublish, @RFC3903, @SIPIfMatch, 
+ * #nua_i_publish, nua_publish(), #nua_r_publish
  */
 
-/** @var nua_event_e::nua_r_unpublish
+/** @NUA_EVENT nua_r_unpublish
  *
- * Answer to outgoing un-PUBLISH.
+ * Response to an outgoing un-PUBLISH.
  *
- * The PUBLISH may be sent explicitly by nua_publish() or
- * implicitly by NUA state machine.
- *
- * @param nh     operation handle associated with the call
- * @param hmagic operation magic associated with the call
+ * @param status response status code
+ *               (if the request is retried, @a status is 100, the @a
+ *               sip->sip_status->st_status contain the real status code
+ *               from the response message, e.g., 302, 401, or 407)
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the publication
+ * @param hmagic application context associated with the handle
  * @param sip    response to PUBLISH request or NULL upon an error
- *               (error code and message are in status an phrase parameters)
+ *               (status code is in @a status and 
+ *                descriptive message in @a phrase parameters)
  * @param tags   empty
+ *
+ * @sa nua_unpublish(), @RFC3903, @SIPETag, @Expires,
+ * nua_publish(), #nua_r_publish, #nua_i_publish
+ *
+ * @END_NUA_EVENT
  */
 
 int nua_stack_publish(nua_t *nua, nua_handle_t *nh, nua_event_t e,
@@ -215,19 +250,19 @@ int nua_stack_publish2(nua_t *nua, nua_handle_t *nh, nua_event_t e,
 {
   nua_dialog_usage_t *du;
   struct publish_usage *pu;
-  struct nua_client_request *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   msg_t *msg = NULL;
   sip_t *sip;
   int remove_body = 0;
 
-  if (nh->nh_special && nh->nh_special != nua_r_publish) {
+  if (nua_stack_set_handle_special(nh, nh_has_nothing, nua_r_publish) < 0)
     return UA_EVENT2(e, 900, "Invalid handle for PUBLISH");
-  }
-  else if (cr->cr_orq) {
+
+  if (cr->cr_orq) {
     return UA_EVENT2(e, 900, "Request already in progress");
   }
 
-  nua_stack_init_handle(nua, nh, nh_has_nothing, NULL, TAG_NEXT(tags));
+  nua_stack_init_handle(nua, nh, TAG_NEXT(tags));
 
   if (e == nua_r_unpublish) {
     du = nua_dialog_usage_get(nh->nh_ds, nua_publish_usage, NULL);
@@ -244,7 +279,7 @@ int nua_stack_publish2(nua_t *nua, nua_handle_t *nh, nua_event_t e,
   if (!du)
     return UA_EVENT1(e, NUA_INTERNAL_ERROR);
 
-  nua_dialog_usage_no_refresh(du);
+  nua_dialog_usage_reset_refresh(du);
   pu = nua_dialog_usage_private(du); assert(pu);
 
   if (refresh) {
@@ -287,7 +322,6 @@ int nua_stack_publish2(nua_t *nua, nua_handle_t *nh, nua_event_t e,
   if (!cr->cr_orq)
     goto error;
 
-  nh->nh_special = nua_r_publish;
   cr->cr_usage = du;
 
   return cr->cr_event = e;
@@ -303,7 +337,7 @@ int nua_stack_publish2(nua_t *nua, nua_handle_t *nh, nua_event_t e,
 static void
 restart_publish(nua_handle_t *nh, tagi_t *tags)
 {
-  nua_creq_restart(nh, nh->nh_cr, process_response_to_publish, tags);
+  nua_creq_restart(nh, nh->nh_ds->ds_cr, process_response_to_publish, tags);
 }
 
 
@@ -313,7 +347,7 @@ int process_response_to_publish(nua_handle_t *nh,
 				sip_t const *sip)
 {
   int status = sip->sip_status->st_status;
-  struct nua_client_request *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   nua_dialog_usage_t *du = cr->cr_usage;
   struct publish_usage *pu = nua_dialog_usage_private(du);
   unsigned saved_retry_count = cr->cr_retry_count + 1;
@@ -322,7 +356,7 @@ int process_response_to_publish(nua_handle_t *nh,
     return 0;
 
   if (status < 200 || pu == NULL)
-    return nua_stack_process_response(nh, nh->nh_cr, orq, sip, TAG_END());
+    return nua_stack_process_response(nh, cr, orq, sip, TAG_END());
 
   if (pu->pu_etag)
     su_free(nh->nh_home, pu->pu_etag), pu->pu_etag = NULL;
@@ -366,15 +400,16 @@ int process_response_to_publish(nua_handle_t *nh,
     }
   }
 
-  return nua_stack_process_response(nh, nh->nh_cr, orq, sip, TAG_END());
+  return nua_stack_process_response(nh, cr, orq, sip, TAG_END());
 }
 
 
 static void nua_publish_usage_refresh(nua_handle_t *nh,
+				      nua_dialog_state_t *ds,
 				      nua_dialog_usage_t *du,
 				      sip_time_t now)
 {
-  if (nh->nh_cr->cr_usage == du) /* Already publishing. */
+  if (ds->ds_cr->cr_usage == du) /* Already publishing. */
     return;
   nua_stack_publish2(nh->nh_nua, nh, nua_r_publish, 1, NULL);
 }
@@ -386,32 +421,108 @@ static void nua_publish_usage_refresh(nua_handle_t *nh,
  * @retval <0  try again later
  */
 static int nua_publish_usage_shutdown(nua_handle_t *nh,
+				      nua_dialog_state_t *ds,
 				      nua_dialog_usage_t *du)
 {
-  if (!nh->nh_cr->cr_usage) {
+  nua_client_request_t *cr = ds->ds_cr;
+
+  if (!cr->cr_usage) {
     /* Unpublish */
     nua_stack_publish2(nh->nh_nua, nh, nua_r_destroy, 1, NULL);
-    return nh->nh_cr->cr_usage != du;
+    return cr->cr_usage != du;
   }
 
-  if (!du->du_ready && !nh->nh_cr->cr_orq)
-    return 1;			/* Unauthenticated initial request */
+  if (!du->du_ready && !cr->cr_orq)
+    return 1;			/* had unauthenticated initial request */
 
   return -1;  /* Request in progress */
 }
 
+/* ---------------------------------------------------------------------- */
+/* Server side */
+
+static
+int respond_to_publish(nua_server_request_t *sr, tagi_t const *tags);
+
+/** @NUA_EVENT nua_i_publish
+ *
+ * Incoming PUBLISH request.
+ *
+ * In order to receive #nua_i_publish events, the application must enable
+ * both the PUBLISH method with NUTAG_ALLOW() tag and the acceptable SIP
+ * events with nua_set_params() tag NUTAG_ALLOW_EVENTS(). 
+ *
+ * The nua_response() call responding to a PUBLISH request must have
+ * NUTAG_WITH() (or NUTAG_WITH_CURRENT()/NUTAG_WITH_SAVED()) tag. Note that
+ * a successful response to PUBLISH @b MUST include @Expires and @SIPETag
+ * headers.
+ *
+ * The PUBLISH request does not create a dialog. Currently the processing
+ * of incoming PUBLISH creates a new handle for each incoming request which
+ * is not assiciated with an existing dialog. If the handle @a nh is not
+ * bound, you should probably destroy it after responding to the PUBLISH
+ * request.
+ *
+ * @param status status code of response sent automatically by stack
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the incoming request
+ * @param hmagic application context associated with the call
+ *               (usually NULL)
+ * @param sip    incoming PUBLISH request
+ * @param tags   empty
+ *
+ * @sa @RFC3903, nua_respond(),
+ * @Expires, @SIPETag, @SIPIfMatch, @Event, 
+ * nua_subscribe(), #nua_i_subscribe, 
+ * nua_notifier(), #nua_i_subscription,
+ *
+ * @since First used in @VERSION_1_12_4
+ *
+ * @END_NUA_EVENT
+ */
 
 int nua_stack_process_publish(nua_t *nua,
 			      nua_handle_t *nh,
 			      nta_incoming_t *irq,
 			      sip_t const *sip)
 {
-  if (nh == NULL)
-    if (!(nh = nua_stack_incoming_handle(nua, irq, sip, nh_has_nothing, 0)))
-      return 500;		/* Respond with 500 Internal Server Error */
+  nua_server_request_t *sr, sr0[1];
+  sip_allow_events_t *allow_events = NUA_PGET(nua, nh, allow_events);
+  sip_event_t *o = sip->sip_event;
+  char const *event = o ? o->o_type : NULL;
+  
+  sr = SR_INIT(sr0);
+  
+  if (!allow_events)
+    SR_STATUS1(sr, SIP_501_NOT_IMPLEMENTED);
+  else if (!event || !msg_header_find_param(allow_events->k_common, event))
+    SR_STATUS1(sr, SIP_489_BAD_EVENT);
 
-  nua_stack_event(nh->nh_nua, nh, nta_incoming_getrequest(irq),
-		  nua_i_publish, SIP_501_NOT_IMPLEMENTED, TAG_END());
+  sr = nua_server_request(nua, nh, irq, sip, sr, sizeof *sr,
+			  respond_to_publish, 0);
 
-  return 501; /* Respond automatically with 501 Not Implemented */
+  return nua_stack_server_event(nua, sr, nua_i_publish, TAG_END());
+}
+
+static
+int respond_to_publish(nua_server_request_t *sr, tagi_t const *tags)
+{
+  nua_handle_t *nh = sr->sr_owner;
+  nua_t *nua = nh->nh_nua;
+  msg_t *msg;
+
+  msg = nua_server_response(sr, sr->sr_status, sr->sr_phrase, TAG_NEXT(tags));
+
+  if (msg) {
+    nta_incoming_mreply(sr->sr_irq, msg);
+  }
+  else {
+    SR_STATUS1(sr, SIP_500_INTERNAL_SERVER_ERROR);
+    nta_incoming_treply(sr->sr_irq, sr->sr_status, sr->sr_phrase, TAG_END());
+    nua_stack_event(nua, nh, NULL,
+		    nua_i_error, 900, "PUBLISH Response Fails",
+		    TAG_END());
+  }
+  
+  return sr->sr_status >= 200 ? sr->sr_status : 0;
 }

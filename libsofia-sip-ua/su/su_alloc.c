@@ -101,19 +101,22 @@
  *    su_free(tophome, ctx);
  * @endcode
  * 
- * @note 
- * The su_home_create() and su_home_destroy() are deprecated. The
- * function su_home_create() creates a home object with infinite reference
- * count. Likewise, su_home_init() does the same.
+ * @note
  *
- * @section su_home_desctructor_usage Destructors
+ * The su_home_destroy() function is deprecated as it does not free the home
+ * object itself.
+ *
+ * The function su_home_init() initializes a home object with infinite
+ * reference count. It must be deinitialized with su_home_deinit().
+ *
+ * @section su_home_destructor_usage Destructors
  *
  * It is possible to give a destructor function to a home object. The
  * destructor releases other resources associated with the home object
  * besides memory. The destructor function will be called when the reference
  * count of home reaches zero (upon calling su_home_unref()) or the home
  * object is otherwise deinitialized (calling su_home_deinit() on
- * stack-derived objects).
+ * objects allocated from stack).
  *
  * @section su_home_move_example Combining Allocations
  *
@@ -266,7 +269,7 @@ size_t su_block_find_collision, su_block_find_collision_used,
   su_block_find_collision_size;
 #endif
 
-static inline su_alloc_t *su_block_find(su_block_t *b, void *p)
+static inline su_alloc_t *su_block_find(su_block_t *b, void const *p)
 {
   size_t h, h0, probe;
 
@@ -502,7 +505,9 @@ void *sub_alloc(su_home_t *home,
  *
  * Create a home object used to collect multiple memory allocations under
  * one handle. The memory allocations made using this home object is freed
- * either when this home is destroyed.
+ * either when this home is destroyed. 
+ *
+ * The maximum @a size of a home object is INT_MAX (2 gigabytes).
  *
  * @param size    size of home object
  *
@@ -559,8 +564,16 @@ void *su_home_ref(su_home_t const *home)
   return (void *)home;
 }
 
-/** Set destructor function */
-SU_DLL int su_home_desctructor(su_home_t *home, void (*destructor)(void *))
+/** Set destructor function.
+ *
+ * The destructor function is called after the reference count of a
+ * #su_home_t object reaches zero or a home object is deinitialized, but
+ * before any of the memory areas within the home object are freed.
+ *
+ * @since New in @VERSION_1_12_4.
+ * Earlier versions had su_home_desctructor() (spelling).
+ */
+int su_home_destructor(su_home_t *home, void (*destructor)(void *))
 {
   int retval = -1;
 
@@ -578,6 +591,24 @@ SU_DLL int su_home_desctructor(su_home_t *home, void (*destructor)(void *))
   return retval;
 }
 
+#undef su_home_desctructor
+
+/** Set destructor function.
+ *
+ * @deprecated The su_home_destructor() was added in @VERSION_1_12_4. The
+ * su_home_desctructor() is now defined as a macro expanding as
+ * su_home_destructor(). If you want to compile an application as binary
+ * compatible with earlier versions, you have to define su_home_desctructor
+ * as itself, e.g.,
+ * @code
+ * #define su_home_desctructor su_home_desctructor
+ * #include <sofia-sip/su_alloc.h>
+ * @endcode
+ */
+int su_home_desctructor(su_home_t *home, void (*destructor)(void *))
+{
+  return su_home_destructor(home, destructor);
+}
 
 /**Unreference a su_home_t object.
  *
@@ -626,6 +657,22 @@ int su_home_unref(su_home_t *home)
   }
 }
 
+/** Return reference count of home. */
+size_t su_home_refcount(su_home_t *home)
+{
+  size_t count = 0;
+
+  if (home) {
+    su_block_t *sub = MEMLOCK(home);
+
+    if (sub)
+      count = sub->sub_ref;
+
+    UNLOCK(home);
+  }
+
+  return count;
+}
 
 /**Clone a su_home_t object.
  *
@@ -806,50 +853,44 @@ void su_home_check_blocks(su_block_t const *b)
  *
  * The function su_home_create() creates a home object.  A home object is
  * used to collect multiple memory allocations, so that they all can be
- * freed by calling su_home_destroy().
+ * freed by calling su_home_unref().
  *
  * @return This function returns a pointer to an @c su_home_t object, or @c
  * NULL upon an error. 
- *
- * @deprecated
- * Use su_home_clone() instead of su_home_create().
  */
 su_home_t *su_home_create(void)
 {
-  su_home_t *home = su_salloc(NULL, sizeof (*home));
-
-  if (home) {
-    su_home_init(home);
-  }
-
-  return home;
+  return su_home_new(sizeof(su_home_t));
 }
 
 /** Deinitialize a home object
  *
- *   The function su_home_destroy() frees a home object, and all memory
- *   blocks associated with it.
+ * The function su_home_destroy() frees all memory blocks associated with a
+ * home object. Note that the home object is not freed.
  *
- *   @param home pointer to a home object
+ * @param home pointer to a home object
  *
  * @deprecated
- * Use su_home_deinit() instead of su_home_destroy().
+ * su_home_destroy() is included for backwards compatibility only. Use
+ * su_home_unref() instead of su_home_destroy().
  */
 void su_home_destroy(su_home_t *home)
 {
   su_home_deinit(home);
-  /* free(home); - what if this is cloned one? */
+  /* XXX - home itself is not destroyed */
 }
 
-/** Initialize an su_home_t object.
+/** Initialize an su_home_t struct.
  *
- * The function su_home_init() initializes an object derived from su_home_t.
+ * The function su_home_init() initializes an su_home_t structure. It can be
+ * used when the home structure is allocated from stack.
  *
  * @param home pointer to home object
  *
- * @return
- *    The function su_home_init() returns 0 when successful,
- *    or -1 upon an error.
+ * @retval 0 when successful
+ * @retval -1 upon an error.
+ *
+ * @sa SU_HOME_INIT(), su_home_deinit(), su_home_new(), su_home_clone()
  */
 int su_home_init(su_home_t *home)
 {
@@ -916,9 +957,12 @@ void _su_home_deinit(su_home_t *home)
 /** Free memory blocks allocated through home.
  *
  * The function @c su_home_deinit() frees the memory blocks associated with
- * the home object.
+ * the home object allocated otherwise. It does not free the home object
+ * itself. Use su_home_unref() to free the home object.
  *
  * @param home pointer to home object
+ *
+ * @sa su_home_init()
  */
 void su_home_deinit(su_home_t *home)
 {
@@ -1243,6 +1287,41 @@ void *su_realloc(su_home_t *home, void *data, isize_t size)
   UNLOCK(home);
 
   return ndata;
+}
+
+
+/**Check if a memory block has been allocated from the @a home.
+ *
+ * Check if the given memory block has been allocated from the home.
+ *
+ * @param home pointer to memory pool object
+ * @param memory ponter to memory block
+ *
+ * @retval 1 if @a memory has been allocated from @a home.
+ * @retval 0 otherwise
+ *
+ * @since New in @VERSION_1_12_4.
+ */
+int su_in_home(su_home_t *home, void const *memory)
+{
+  su_alloc_t *sua;
+  su_block_t *sub;
+  int retval = 0;
+
+  if (!home || !memory)
+    return 0;
+
+  sub = MEMLOCK(home);
+
+  if (sub) {
+    sua = su_block_find(sub, memory);
+
+    retval = su_alloc_check(sub, sua);
+
+    UNLOCK(home);
+  }
+  
+  return retval;
 }
 
 

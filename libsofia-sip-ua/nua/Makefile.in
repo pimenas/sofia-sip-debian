@@ -70,10 +70,11 @@ CONFIG_HEADER = $(top_builddir)/config.h \
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libnua_la_LIBADD =
-am_libnua_la_OBJECTS = nua.lo nua_common.lo nua_stack.lo nua_dialog.lo \
-	outbound.lo nua_params.lo nua_register.lo nua_session.lo \
-	nua_options.lo nua_message.lo nua_publish.lo nua_subnotref.lo \
-	nua_notifier.lo nua_event_server.lo nua_tag.lo nua_tag_ref.lo
+am_libnua_la_OBJECTS = nua.lo nua_common.lo nua_stack.lo \
+	nua_extension.lo nua_dialog.lo outbound.lo nua_params.lo \
+	nua_register.lo nua_registrar.lo nua_session.lo nua_options.lo \
+	nua_message.lo nua_publish.lo nua_subnotref.lo nua_notifier.lo \
+	nua_event_server.lo nua_tag.lo nua_tag_ref.lo
 libnua_la_OBJECTS = $(am_libnua_la_OBJECTS)
 am_test_nua_OBJECTS = test_nua.$(OBJEXT) test_ops.$(OBJEXT) \
 	test_init.$(OBJEXT) test_nua_api.$(OBJEXT) \
@@ -82,8 +83,9 @@ am_test_nua_OBJECTS = test_nua.$(OBJEXT) test_ops.$(OBJEXT) \
 	test_cancel_bye.$(OBJEXT) test_call_hold.$(OBJEXT) \
 	test_session_timer.$(OBJEXT) test_refer.$(OBJEXT) \
 	test_100rel.$(OBJEXT) test_simple.$(OBJEXT) \
-	test_sip_events.$(OBJEXT) test_proxy.$(OBJEXT) \
-	test_nat.$(OBJEXT) test_nat_tags.$(OBJEXT)
+	test_sip_events.$(OBJEXT) test_extension.$(OBJEXT) \
+	test_proxy.$(OBJEXT) test_nat.$(OBJEXT) \
+	test_nat_tags.$(OBJEXT)
 test_nua_OBJECTS = $(am_test_nua_OBJECTS)
 test_nua_LDADD = $(LDADD)
 test_nua_DEPENDENCIES = libnua.la ../iptsec/libiptsec.la \
@@ -129,6 +131,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -211,6 +215,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -296,10 +301,12 @@ nobase_include_sofia_HEADERS = \
 			sofia-sip/nua.h sofia-sip/nua_tag.h
 
 libnua_la_SOURCES = nua.c nua_stack.h nua_common.c nua_stack.c \
+			nua_extension.c \
 			nua_dialog.c nua_dialog.h \
 			outbound.c outbound.h \
 			nua_params.c nua_params.h \
-			nua_register.c nua_session.c nua_options.c \
+			nua_register.c nua_registrar.c \
+			nua_session.c nua_options.c \
 			nua_message.c nua_publish.c nua_subnotref.c \
 			nua_notifier.c \
 			nua_event_server.c \
@@ -332,6 +339,7 @@ test_nua_SOURCES = test_nua.c test_nua.h test_ops.c \
 			test_call_hold.c test_session_timer.c \
 			test_refer.c test_100rel.c \
 			test_simple.c test_sip_events.c \
+			test_extension.c \
 			test_proxy.h test_proxy.c \
 			test_nat.h test_nat.c test_nat_tags.c
 
@@ -339,6 +347,8 @@ test_nua_SOURCES = test_nua.c test_nua.h test_ops.c \
 # ----------------------------------------------------------------------
 # Install and distribution rules
 EXTRA_DIST = Doxyfile nua.docs $(BUILT_SOURCES)
+AM_CFLAGS = $(SOFIA_CFLAGS)
+DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
 TAG_AWK = $(top_srcdir)/libsofia-sip-ua/su/tag_dll.awk
@@ -433,12 +443,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_common.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_dialog.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_event_server.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_extension.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_message.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_notifier.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_options.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_params.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_publish.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_register.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_registrar.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_session.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_stack.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_subnotref.Plo@am__quote@
@@ -450,6 +462,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_call_hold.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_call_reject.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_cancel_bye.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_extension.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nat_tags.Po@am__quote@
@@ -696,6 +709,7 @@ clean-generic:
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

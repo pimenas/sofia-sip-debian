@@ -228,6 +228,7 @@ struct sres_resolver_s {
   unsigned long       res_updated;
   sres_update_f      *res_updcb;
   sres_async_t       *res_async;
+  sres_schedule_f    *res_schedulecb;
   short               res_update_all;
 
   uint16_t            res_id;
@@ -580,7 +581,8 @@ sres_resolver_new(char const *conf_file_path)
 
 /** Copy a resolver.
  *
- * Make a copy of resolver with old
+ * Make a copy of resolver sharing the configuration and cache with old
+ * resolver.
  */
 sres_resolver_t *sres_resolver_copy(sres_resolver_t *res)
 {
@@ -612,7 +614,7 @@ sres_resolver_t *sres_resolver_copy(sres_resolver_t *res)
  * RES_OPTIONS by giving the directives in the NULL-terminated list.
  *
  * @param conf_file_path name of the resolv.conf configuration file 
- * @param cache          optional pointer to a resolver cache
+ * @param cache          optional pointer to a resolver cache (may be NULL)
  * @param option, ...    list of resolv.conf options directives 
  *                       (overriding options in conf_file)
  *
@@ -706,7 +708,7 @@ sres_resolver_new_internal(sres_cache_t *cache,
     o = memccpy(array[i] = o, options[i], '\0', len - (end - o));
   assert(o == end);
 
-  su_home_desctructor(res->res_home, sres_resolver_destructor);
+  su_home_destructor(res->res_home, sres_resolver_destructor);
 
   while (res->res_id == 0) {
 #if HAVE_DEV_URANDOM
@@ -830,6 +832,7 @@ sres_resolver_set_async(sres_resolver_t *res,
   return async;
 }
 
+/** Get async object */
 sres_async_t *
 sres_resolver_get_async(sres_resolver_t const *res,
 			sres_update_f *callback)
@@ -842,6 +845,20 @@ sres_resolver_get_async(sres_resolver_t const *res,
     return NULL;
   else
     return res->res_async;
+}
+
+/** Register resolver timer callback. */
+int sres_resolver_set_timer_cb(sres_resolver_t *res,
+			       sres_schedule_f *callback,
+			       sres_async_t *async)
+{
+  if (res == NULL)
+    return su_seterrno(EFAULT);
+  if (res->res_async != async)
+    return su_seterrno(EALREADY);
+
+  res->res_schedulecb = callback;
+  return 0;
 }
 
 /**Send a DNS query.
@@ -873,17 +890,19 @@ sres_resolver_get_async(sres_resolver_t const *res,
  * #sres_type_srv, and
  * #sres_type_naptr.
  *
- * Deprecated query type sres_type_a6 is also decoded.
+ * Deprecated query type #sres_type_a6 is also decoded.
  *
- * @note The domain name is not concatenated with the domains from seach
- * path or with the local domain Use sres_search() in order to try domains
+ * @note The domain name is @b not concatenated with the domains from seach
+ * path or with the local domain. Use sres_search() in order to try domains
  * in search path.
  *
- * @sa sres_search(), sres_blocking_query(), sres_cached_answers()
+ * @sa sres_search(), sres_blocking_query(), sres_cached_answers(),
+ * sres_query_sockaddr()
  *
  * @ERRORS
  * @ERROR EFAULT @a res or @a domain point outside the address space
  * @ERROR ENAMETOOLONG @a domain is longer than SRES_MAXDNAME
+ * @ERROR ENETDOWN no DNS servers configured
  * @ERROR ENOMEM memory exhausted
  */
 sres_query_t *
@@ -912,6 +931,9 @@ sres_query(sres_resolver_t *res,
 
   /* Reread resolv.conf if needed */
   sres_resolver_update(res, 0);
+
+  if (res->res_n_servers == 0)
+    return (void)su_seterrno(ENETDOWN), (sres_query_t *)NULL;
 
   query = sres_query_alloc(res, callback, context, type, domain);
 
@@ -943,6 +965,7 @@ sres_query(sres_resolver_t *res,
  * @ERRORS
  * @ERROR EFAULT @a res or @a domain point outside the address space
  * @ERROR ENAMETOOLONG @a domain is longer than SRES_MAXDNAME
+ * @ERROR ENETDOWN no DNS servers configured
  * @ERROR ENOMEM memory exhausted
  *
  * @sa sres_query(), sres_blocking_search(), sres_search_cached_answers().
@@ -975,6 +998,9 @@ sres_search(sres_resolver_t *res,
 
   sres_resolver_update(res, 0);
 
+  if (res->res_n_servers == 0)
+    return (void)su_seterrno(ENETDOWN), (sres_query_t *)NULL;
+
   if (sres_has_search_domain(res))
     for (dots = 0, dot = strchr(domain, '.');
 	 dots < res->res_config->c_opt.ndots && dot; 
@@ -991,7 +1017,7 @@ sres_search(sres_resolver_t *res,
       sres_query_t *sub;
       int i, subs;
       size_t len;
-      char const **domains = res->res_config->c_search;
+      char const *const *domains = res->res_config->c_search;
       char search[SRES_MAXDNAME + 1];
 
       memcpy(search, domain, dlen);
@@ -1052,7 +1078,20 @@ sres_search(sres_resolver_t *res,
  * The @a type should be #sres_type_ptr. The @a addr should contain either
  * IPv4 (AF_INET) or IPv6 (AF_INET6) address.
  *
- * If the "options"
+ * If the #SRES_OPTIONS environment variable, #RES_OPTIONS environment
+ * variable or an "options" entry in resolv.conf file contains an option
+ * "ip6-dotint", the IPv6 addresses are resolved using suffix ".ip6.int"
+ * instead of the standard ".ip6.arpa" suffix.
+ *
+ * @ERRORS
+ * @ERROR EAFNOSUPPORT address family specified in @a addr is not supported
+ * @ERROR ENETDOWN no DNS servers configured
+ * @ERROR EFAULT @a res or @a addr point outside the address space
+ * @ERROR ENOMEM memory exhausted
+ *
+ * @sa sres_query(), sres_blocking_query_sockaddr(),
+ * sres_cached_answers_sockaddr()
+ *
  */
 sres_query_t *
 sres_query_sockaddr(sres_resolver_t *res,
@@ -1211,7 +1250,7 @@ sres_search_cached_answers(sres_resolver_t *res,
     found = 1;
 
   if (dots < res->res_config->c_opt.ndots) {
-    char const **domains = res->res_config->c_search;
+    char const *const *domains = res->res_config->c_search;
     size_t dlen = strlen(domain);
 
     for (i = 0; domains[i] && i < SRES_MAX_SEARCH; i++) {
@@ -1241,7 +1280,17 @@ sres_search_cached_answers(sres_resolver_t *res,
 
 /**Get a list of matching (type/domain) reverse records from cache.
  *
+ * @param res pointer to resolver
+ * @param type record type to query (or sres_qtype_any for any record)
+ * @param addr socket address structure
  * 
+ * The @a type should be #sres_type_ptr. The @a addr should contain either
+ * IPv4 (AF_INET) or IPv6 (AF_INET6) address.
+ *
+ * If the #SRES_OPTIONS environment variable, #RES_OPTIONS environment
+ * variable or an "options" entry in resolv.conf file contains an option
+ * "ip6-dotint", the IPv6 addresses are resolved using suffix ".ip6.int"
+ * instead of default ".ip6.arpa".
  *
  * @retval 
  * pointer to an array of pointers to cached records, or
@@ -1572,7 +1621,11 @@ sres_query_alloc(sres_resolver_t *res,
     query->q_i_server = res->res_i_server;
     query->q_n_servers = res->res_n_servers;
     query->q_hash = query->q_id * Q_PRIME /* + query->q_i_server */;
+    
     sres_qtable_append(res->res_queries, query);
+
+    if (res->res_schedulecb && res->res_queries->qt_used == 1)
+      res->res_schedulecb(res->res_async, 2 * SRES_RETRANSMIT_INTERVAL); 
   }
 
   return query;
@@ -2468,6 +2521,8 @@ sres_send_dns_query(sres_resolver_t *res,
     return -1;
   if (servers == NULL)
     return -1;
+  if (N == 0) 
+    return -1;
 
   memset(m, 0, offsetof(sres_message_t, m_data[sizeof m->m_packet.mp_header]));
 
@@ -2504,7 +2559,7 @@ sres_send_dns_query(sres_resolver_t *res,
 
   transient = 0;
 
-  i0 = q->q_i_server; assert(i0 < N);
+  i0 = q->q_i_server; if (i0 > N) i0 = 0; /* Number of DNS servers reduced */
 
   if (res->res_config->c_opt.rotate || 
       servers[i0]->dns_error || servers[i0]->dns_icmp)
@@ -2716,6 +2771,9 @@ void sres_resolver_timer(sres_resolver_t *res, int dummy)
       if (q != res->res_queries->qt_table[i])
 	i--;
     }
+
+    if (res->res_schedulecb && res->res_queries->qt_used)
+      res->res_schedulecb(res->res_async, SRES_RETRANSMIT_INTERVAL); 
   }
 
   sres_cache_clean(res->res_cache, res->res_now);
@@ -2733,7 +2791,7 @@ sres_resend_dns_query(sres_resolver_t *res, sres_query_t *q, int timeout)
   
   N = res->res_n_servers;
 
-  if (N && q->q_retry_count < SRES_MAX_RETRY_COUNT) {
+  if (N > 0 && q->q_retry_count < SRES_MAX_RETRY_COUNT) {
     i = q->q_i_server;
     dns = sres_next_server(res, &i, timeout);
 

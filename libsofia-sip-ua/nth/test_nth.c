@@ -22,7 +22,7 @@
  *
  */
 
-/**@file nth_test.c
+/**@file test_nth.c
  * @brief Tests for nth module
  *  
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
@@ -60,6 +60,7 @@ typedef struct client client_t;
 #include <sofia-sip/http_header.h>
 #include <sofia-sip/msg_mclass.h>
 #include <sofia-sip/tport_tag.h>
+#include <sofia-sip/auth_module.h>
 
 int tstflags = 0;
 
@@ -74,7 +75,7 @@ int tstflags = 0;
 #define __func__ name
 #endif
 
-char const name[] = "nth_test";
+char const name[] = "test_nth";
 
 static int init_test(tester_t *t);
 static int deinit_test(tester_t *t);
@@ -86,7 +87,7 @@ static int init_engine(tester_t *t);
 
 struct site 
 {
-  site_t       *s_next;
+  site_t       *s_next, *s_parent;
   tester_t     *s_tester;
   url_string_t *s_url;
   nth_site_t   *s_ns;
@@ -110,6 +111,7 @@ struct tester
   nth_engine_t *t_engine;
 
   char const   *t_srcdir;
+  char const   *t_pem;
 
   su_sockaddr_t t_addr[1];
   socklen_t     t_addrlen;
@@ -123,36 +125,56 @@ struct tester
   site_t       *t_master;
 };
 
-static int site_create(tester_t *t, int status, char const *phrase,
-		       tag_type_t tag, tag_value_t value, ...)
+static int test_site(site_t *t, 
+		     nth_site_t *server,
+		     nth_request_t *req, 
+		     http_t const *http,
+		     char const *path);
+
+static site_t *site_create(tester_t *t, site_t *parent,
+			   char const *url,
+			   int status, char const *phrase,
+			   tag_type_t tag, tag_value_t value, ...)
 {
+  nth_site_t *pns = parent ? parent->s_ns : NULL;
   site_t *s;
   ta_list ta;
 
-  BEGIN();
+  if (url == NULL)
+    return NULL;
 
-  s = su_zalloc(t->t_home, sizeof *s); TEST_1(s);
+  s = su_zalloc(t->t_home, sizeof *s);
+  if (s == NULL)
+    return NULL;
 
+  s->s_url = URL_STRING_MAKE(url);
   s->s_tester = t;
   s->s_next = t->t_sites;
   s->s_status = status;
   s->s_phrase = phrase;
 
   ta_start(ta, tag, value);
+
   s->s_tags = tl_adup(t->t_home, ta_args(ta)); 
+  if (s->s_tags)
+    s->s_ns = nth_site_create(pns, test_site, s,
+			      (url_string_t *)s->s_url, 
+			      NTHTAG_ROOT(t->t_root),
+			      ta_tags(ta));
+
   ta_end(ta);
   
-  TEST_1(s->s_tags);
+  if (s->s_ns == NULL)
+    return NULL;
 
   t->t_sites = s;
 
-  END();
+  return s;
 }
 
 static int init_test(tester_t *t)
 {
   su_socket_t s;
-  char const *agent_pem;
 
   BEGIN();
 
@@ -170,21 +192,7 @@ static int init_test(tester_t *t)
   TEST_1(t->t_addr->su_port != 0);
   TEST_1(su_close(s) != -1);
 
-  agent_pem = su_sprintf(t->t_home, "%s/agent.pem", t->t_srcdir);
-
-  TEST_1(site_create(t, 
-		     HTTP_200_OK, 
-		     HTTPTAG_CONTENT_TYPE_STR("text/html"),
-		     HTTPTAG_PAYLOAD_STR("<html><body>Hello</body></html>\n"),
-		     TPTAG_CERTIFICATE(agent_pem),
-		     TAG_END()) == 0);
-
-  TEST_1(t->t_master = t->t_sites);
-
-  t->t_master->s_url = (url_string_t *)
-    su_sprintf(t->t_home, "HTTP://127.0.0.1:%u", htons(t->t_addr->su_port));
-
-  TEST_1(t->t_master->s_url);
+  t->t_pem = su_sprintf(t->t_home, "%s/agent.pem", t->t_srcdir);
 
   END();
 }
@@ -204,6 +212,10 @@ static int deinit_test(tester_t *t)
   }
 
   su_root_destroy(t->t_root);
+
+  su_home_deinit(t->t_home);
+
+  memset(t, 0, sizeof t);
 
   END();
 }
@@ -230,9 +242,9 @@ static int test_nth_client_api(tester_t *t)
   TEST(nth_client_status(NULL), 400);
   TEST(nth_client_method(NULL), http_method_invalid);
   TEST(nth_client_is_streaming(NULL), 0);
-  TEST(nth_client_url(NULL), NULL);
-  TEST(nth_client_request(NULL), NULL);
-  TEST(nth_client_response(NULL), NULL);
+  TEST_P(nth_client_url(NULL), NULL);
+  TEST_P(nth_client_request(NULL), NULL);
+  TEST_P(nth_client_response(NULL), NULL);
   TEST_VOID(nth_client_destroy(NULL));
 
   t->t_engine = nth_engine_create(t->t_root, 
@@ -265,7 +277,7 @@ static int test_nth_client_api(tester_t *t)
 	 6);
 
     TEST(error_msg, 1);
-    TEST(mclass, t->t_mclass);
+    TEST_P(mclass, t->t_mclass);
     TEST(mflags, MSG_DO_CANONIC|MSG_DO_COMPACT);
     TEST(expires, 32000);
     TEST(streaming, 0);
@@ -303,7 +315,7 @@ static int test_nth_client_api(tester_t *t)
 	 6);
 
     TEST(error_msg, 0);
-    TEST(mclass, NULL);
+    TEST_P(mclass, NULL);
     TEST(mflags, 0);
     TEST(expires, 10000);
     TEST(streaming, 1);
@@ -337,12 +349,6 @@ static int test_nth_client_api(tester_t *t)
   END();
 }
 
-static int nth_test_site(site_t *t, 
-			  nth_site_t *server,
-			  nth_request_t *req, 
-			  http_t const *http,
-			  char const *path);
-
 static int site_check_all(site_t *t, 
 			  nth_site_t *server,
 			  nth_request_t *req, 
@@ -353,17 +359,19 @@ static int test_nth_server_api(tester_t *t)
 
 {
   char const *v;
-  site_t *s = t->t_master;
+  site_t s[1];
   
   BEGIN();
+
+  memset(s, 0, sizeof s);
 
   v = nth_site_server_version(); 
   TEST_1(v); TEST_1(strlen(v)); TEST_S(v, "nth/" NTH_SERVER_VERSION);
 
-  s = t->t_sites;
-
   /* Fails because no parent site, no root */
-  TEST_1(!nth_site_create(NULL, nth_test_site, s, s->s_url, TAG_END()));
+  TEST_1(!nth_site_create(NULL, test_site, s,
+			  URL_STRING_MAKE("http://127.0.0.1:8888"),
+			  TAG_END()));
 
   /* Fails because url specifies both host and path */
   TEST_1(!nth_site_create(NULL, site_check_all, s, 
@@ -371,25 +379,25 @@ static int test_nth_server_api(tester_t *t)
 			  NTHTAG_ROOT(t->t_root), TAG_END()));
 
   TEST_VOID(nth_site_destroy(NULL));
-  TEST(nth_site_magic(NULL), NULL);
-  TEST_VOID(nth_site_bind(NULL, nth_test_site, s));
+  TEST_P(nth_site_magic(NULL), NULL);
+  TEST_VOID(nth_site_bind(NULL, test_site, s));
   TEST_1(nth_site_set_params(NULL, TAG_END()) == -1);
   TEST_1(nth_site_get_params(NULL, TAG_END()) == -1);
   TEST_1(nth_site_get_stats(NULL, TAG_END()) == -1);
   TEST(nth_request_status(NULL), 400);
   TEST(nth_request_method(NULL), http_method_invalid);
-  TEST(nth_request_message(NULL), NULL);
+  TEST_P(nth_request_message(NULL), NULL);
   TEST_1(nth_request_treply(NULL, HTTP_200_OK, TAG_END()) == -1);
   TEST_VOID(nth_request_destroy(NULL));
 
   END();
 }
 
-static int nth_test_site(site_t *s, 
-			 nth_site_t *ns,
-			 nth_request_t *req, 
-			 http_t const *http,
-			 char const *path)
+static int test_site(site_t *s, 
+		     nth_site_t *ns,
+		     nth_request_t *req, 
+		     http_t const *http,
+		     char const *path)
 {
   if (s == NULL || ns == NULL || req == NULL)
     return 500;
@@ -402,6 +410,7 @@ static int nth_test_site(site_t *s,
   return s->s_status;
 }
 
+
 static int site_check_all(site_t *s, 
 			  nth_site_t *ns,
 			  nth_request_t *req, 
@@ -409,6 +418,7 @@ static int site_check_all(site_t *s,
 			  char const *path)
 {
   msg_t *msg;
+  auth_status_t *as;
 
   TEST_1(s); TEST_1(ns); TEST_1(req); TEST_1(http); TEST_1(path);
 
@@ -421,6 +431,8 @@ static int site_check_all(site_t *s,
 
   msg_destroy(msg);
 
+  as = nth_request_auth(req);
+
   TEST_1(nth_request_treply(req, s->s_status, s->s_phrase,
 			    TAG_NEXT(s->s_tags)) != -1);
 
@@ -429,18 +441,118 @@ static int site_check_all(site_t *s,
   return s->s_status;
 }
 
+static char passwd_name[] = "tmp_sippasswd.XXXXXX";
+
+static void remove_tmp(void)
+{
+  if (passwd_name[0])
+    unlink(passwd_name);
+}
+
+static char const passwd[] =
+  "alice:secret:\n"
+  "bob:secret:\n"
+  "charlie:secret:\n";
+
 static int init_server(tester_t *t)
 {
-  site_t *s = t->t_master;
-
   BEGIN();
 
-  s->s_ns = nth_site_create(NULL, nth_test_site, s, 
-			    (url_string_t *)s->s_url, 
-			    NTHTAG_ROOT(t->t_root),
-			    TAG_END());
+  site_t *m = t->t_master, *sub2;
+  auth_mod_t *am;
+  int temp;
 
-  TEST_1(s->s_ns);
+  TEST_1(t->t_master = m = 
+	 site_create(t, NULL,
+		     su_sprintf(t->t_home, "HTTP://127.0.0.1:%u", 
+				htons(t->t_addr->su_port)),
+		     HTTP_200_OK, 
+		     HTTPTAG_CONTENT_TYPE_STR("text/html"),
+		     HTTPTAG_PAYLOAD_STR("<html><body>Hello</body></html>\n"),
+		     TPTAG_CERTIFICATE(t->t_pem),
+		     TAG_END()));
+
+  TEST_1(site_create(t, m, "/sub/sub",
+		     HTTP_200_OK, 
+		     HTTPTAG_CONTENT_TYPE_STR("text/html"),
+		     HTTPTAG_PAYLOAD_STR
+		     ("<html><body>sub/sub</body></html>\n"),
+		     TAG_END()));
+
+  TEST_1(site_create(t, m, "/sub/",
+		     HTTP_200_OK, 
+		     HTTPTAG_CONTENT_TYPE_STR("text/html"),
+		     HTTPTAG_PAYLOAD_STR("<html><body>sub/</body></html>\n"),
+		     TAG_END()));
+
+  TEST_1(site_create(t, m, "/sub/sub/",
+		     HTTP_200_OK, 
+		     HTTPTAG_CONTENT_TYPE_STR("text/html"),
+		     HTTPTAG_PAYLOAD_STR
+		     ("<html><body>sub/sub/</body></html>\n"),
+		     TAG_END()));
+
+  TEST_1(sub2 = 
+	 site_create(t, m, "/sub2/",
+		     HTTP_200_OK, 
+		     HTTPTAG_CONTENT_TYPE_STR("text/html"),
+		     HTTPTAG_PAYLOAD_STR("<html><body>sub2/</body></html>\n"),
+		     TAG_END()));
+
+  TEST_1(site_create(t, sub2, "sub/",
+		     HTTP_200_OK, 
+		     HTTPTAG_CONTENT_TYPE_STR("text/html"),
+		     HTTPTAG_PAYLOAD_STR
+		     ("<html><body>sub2/sub/</body></html>\n"),
+		     TAG_END()));
+
+
+#ifndef _WIN32
+  temp = mkstemp(passwd_name);
+#else
+  temp = open(passwd_name, O_WRONLY|O_CREAT|O_TRUNC, 666);
+#endif
+  TEST_1(temp != -1);
+  atexit(remove_tmp);		/* Make sure temp file is unlinked */
+
+  TEST_SIZE(write(temp, passwd, strlen(passwd)), strlen(passwd));
+
+  TEST_1(close(temp) == 0);
+
+  am = auth_mod_create(t->t_root, 
+		       AUTHTAG_METHOD("Digest"), 
+		       AUTHTAG_REALM("auth"),
+		       AUTHTAG_DB(passwd_name),
+		       TAG_END());
+  TEST_1(am);
+
+  TEST_1(site_create(t, m, "auth/",
+		     HTTP_200_OK, 
+		     HTTPTAG_CONTENT_TYPE_STR("text/html"),
+		     HTTPTAG_PAYLOAD_STR
+		     ("<html><body>auth/</body></html>\n"),
+		     NTHTAG_AUTH_MODULE(am),
+		     TAG_END()));
+
+  auth_mod_unref(am);
+
+
+  am = auth_mod_create(t->t_root, 
+		       AUTHTAG_METHOD("Delayed+Basic"), 
+		       AUTHTAG_REALM("auth2"),
+		       AUTHTAG_DB(passwd_name),
+		       TAG_END());
+  TEST_1(am);
+
+  TEST_1(site_create(t, m, "auth2/",
+		     HTTP_200_OK, 
+		     HTTPTAG_CONTENT_TYPE_STR("text/html"),
+		     HTTPTAG_PAYLOAD_STR
+		     ("<html><body>auth/</body></html>\n"),
+		     NTHTAG_AUTH_MODULE(am),
+		     TAG_END()));
+
+  auth_mod_unref(am);
 
   END();
 }
@@ -466,7 +578,7 @@ static int send_request(tester_t *t, char const *req, size_t reqlen,
   if (reqlen == (size_t)-1)
     reqlen = strlen(req);
 
-  TEST(send(c, req, reqlen, 0), reqlen);
+  TEST_SIZE(su_send(c, req, reqlen, 0), reqlen);
 
   if (close_socket == 1)
     shutdown(c, 1);
@@ -536,6 +648,93 @@ static int test_requests(tester_t *t)
 
     m = strcspn(buffer, CRLF); buffer[m] = '\0';
     TEST_S(buffer, "HTTP/1.1 200 OK");
+  }
+
+  {
+    static char const request[] = 
+      "GET %s HTTP/1.1" CRLF
+      "Host: 127.0.0.1" CRLF
+      "User-Agent: Test-Tool" CRLF
+      "Connection: close" CRLF
+      CRLF;
+    char *get;
+
+    get = su_sprintf(NULL, request, "/sub");
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = sspace(buffer); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 301");
+    m += strcspn(buffer + m, CRLF) + 1;
+    free(get);
+
+    get = su_sprintf(NULL, request, "/sub/");
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = strcspn(buffer, CRLF); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 200 OK");
+    TEST_1(strstr(buffer + m, "<body>sub/</body>"));
+    free(get);
+
+    get = su_sprintf(NULL, request, "/sub2/");
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = strcspn(buffer, CRLF); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 200 OK");
+    TEST_1(strstr(buffer + m, "<body>sub2/</body>"));
+    free(get);
+
+    get = su_sprintf(NULL, request, "/sub2/hub");
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = strcspn(buffer, CRLF); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 200 OK");
+    TEST_1(strstr(buffer + m, "<body>sub2/</body>"));
+    free(get);
+
+    /* Test that absolute path for subdir site is calculated correctly */
+    get = su_sprintf(NULL, request, "/sub2/sub");
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = sspace(buffer); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 301");
+    TEST_1(strstr(buffer + m, "/sub2/sub/" CRLF));
+    free(get);
+
+    get = su_sprintf(NULL, request, "/sub2/sub/");
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = strcspn(buffer, CRLF); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 200 OK");
+    TEST_1(strstr(buffer + m, "<body>sub2/sub/</body>"));
+    free(get);
+
+    get = su_sprintf(NULL, request, "/sub/sub");
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = strcspn(buffer, CRLF); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 200 OK");
+    TEST_1(strstr(buffer + m, "<body>sub/sub</body>"));
+    free(get);
+
+    get = su_sprintf(NULL, request, "/auth/");
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = sspace(buffer); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 401");
+    free(get);
+
+    get = su_sprintf(NULL, request, "/auth2/");
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = sspace(buffer); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 401");
+    free(get);
+  }
+
+  {
+    static char const get[] = 
+      "GET /auth2/ HTTP/1.1" CRLF
+      "Host: 127.0.0.1" CRLF
+      "User-Agent: Test-Tool" CRLF
+      "Connection: close" CRLF
+      /* alice:secret in base64 */
+      "Authorization: Basic YWxpY2U6c2VjcmV0" CRLF
+      CRLF;
+
+    TEST(send_request(t, get, -1, 0, buffer, sizeof(buffer), &m), 0);
+    m = sspace(buffer); buffer[m++] = '\0';
+    TEST_S(buffer, "HTTP/1.1 200");
   }
 
   {

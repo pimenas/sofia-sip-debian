@@ -51,6 +51,27 @@
 /* ======================================================================== */
 /* MESSAGE */
 
+/** Send an instant message. 
+ *
+ * Send an instant message using SIP MESSAGE method.
+ *
+ * @param nh              Pointer to operation handle
+ * @param tag, value, ... List of tagged parameters
+ *
+ * @return 
+ *    nothing
+ *
+ * @par Related Tags:
+ *    NUTAG_URL() \n
+ *    Tags of nua_set_hparams() \n
+ *    Tags in <sip_tag.h>
+ *
+ * @par Events:
+ *    #nua_r_message
+ *
+ * @sa #nua_i_message, @RFC3428
+ */
+
 static int process_response_to_message(nua_handle_t *nh,
 				       nta_outgoing_t *orq,
 				       sip_t const *sip);
@@ -58,7 +79,7 @@ static int process_response_to_message(nua_handle_t *nh,
 int 
 nua_stack_message(nua_t *nua, nua_handle_t *nh, nua_event_t e, tagi_t const *tags)
 { 
-  struct nua_client_request *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   msg_t *msg;
   sip_t *sip;
 
@@ -69,44 +90,13 @@ nua_stack_message(nua_t *nua, nua_handle_t *nh, nua_event_t e, tagi_t const *tag
     return UA_EVENT2(e, 900, "Request already in progress");
   }
 
-  nua_stack_init_handle(nua, nh, nh_has_nothing, NULL, TAG_NEXT(tags));
+  nua_stack_init_handle(nua, nh, TAG_NEXT(tags));
 
   msg = nua_creq_msg(nua, nh, cr, cr->cr_retry_count,
 			 SIP_METHOD_MESSAGE,
 			 NUTAG_ADD_CONTACT(NH_PGET(nh, win_messenger_enable)),
 			 TAG_NEXT(tags));
   sip = sip_object(msg);
-
-#if HAVE_SOFIA_SMIME_OLD 
-  if (sip) {
-    int status, bOverride;
-    sm_option_t sm_opt; 
-
-    tl_gets(tags, 
-	    NUTAG_SMIME_ENABLE_REF(bOverride),
-	    NUTAG_SMIME_OPT_REF(sm_opt),
-	    TAG_END());
-  
-    if (nua->sm->sm_enable && sm_opt != SM_ID_NULL) {
-      status = sm_adapt_message(nua->sm, msg, sip, 
-				bOverride? sm_opt : SM_ID_NULL);
-      switch(status)
-	{
-	case SM_SUCCESS:
-	  break;
-	case SM_ERROR:
-	  return UA_EVENT2(e, SIP_500_INTERNAL_SERVER_ERROR);
-	case SM_CERT_NOTFOUND:
-	case SM_CERTFILE_NOTFOUND:
-  	  /* currently just sent a sending fail signal, later on,
-	     should trigger the options message to ask for
-	     certificate. */ 
-	  msg_destroy(msg);
-	  return UA_EVENT2(e, SIP_500_INTERNAL_SERVER_ERROR);
-	}
-    } 
-  }
-#endif                   
 
   if (sip)
     cr->cr_orq = nta_outgoing_mcreate(nua->nua_nta,
@@ -123,17 +113,60 @@ nua_stack_message(nua_t *nua, nua_handle_t *nh, nua_event_t e, tagi_t const *tag
 
 void restart_message(nua_handle_t *nh, tagi_t *tags)
 {
-  nua_creq_restart(nh, nh->nh_cr, process_response_to_message, tags);
+  nua_creq_restart(nh, nh->nh_ds->ds_cr, process_response_to_message, tags);
 }
+
+/** @NUA_EVENT nua_r_message
+ *
+ * Response to an outgoing @b MESSAGE request.
+ *
+ * @param status response status code
+ *               (if the request is retried, @a status is 100, the @a
+ *               sip->sip_status->st_status contain the real status code
+ *               from the response message, e.g., 302, 401, or 407)
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the message
+ * @param hmagic application context associated with the handle
+ * @param sip    response to MESSAGE request or NULL upon an error
+ *               (status code is in @a status and 
+ *                descriptive message in @a phrase parameters)
+ * @param tags   empty
+ *
+ * @sa nua_message(), #nua_i_message, @RFC3428
+ *
+ * @END_NUA_EVENT
+ */
 
 static int process_response_to_message(nua_handle_t *nh,
 				       nta_outgoing_t *orq,
 				       sip_t const *sip)
 {
-  if (nua_creq_check_restart(nh, nh->nh_cr, orq, sip, restart_message))
+  if (nua_creq_check_restart(nh, nh->nh_ds->ds_cr, orq, sip, restart_message))
     return 0;
-  return nua_stack_process_response(nh, nh->nh_cr, orq, sip, TAG_END());
+  return nua_stack_process_response(nh, nh->nh_ds->ds_cr, orq, sip, TAG_END());
 }
+
+/** @NUA_EVENT nua_i_message
+ *
+ * @brief Incoming @b MESSAGE request.
+ *
+ * The @b MESSAGE request does not create a dialog. If the incoming @b
+ * MESSAGE request is not assiciated with an existing dialog the stack
+ * creates a new handle for it. If the handle @a nh is not bound, you should
+ * probably destroy it after responding to the MESSAGE request.
+ *
+ * @param status status code of response sent automatically by stack
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the message
+ * @param hmagic application context associated with the handle
+ *               (maybe NULL if outside session)
+ * @param sip    incoming MESSAGE request
+ * @param tags   empty
+ *
+ * @sa nua_message(), #nua_r_message, @RFC3428, @RFC3862
+ *
+ * @END_NUA_EVENT
+ */
 
 int nua_stack_process_message(nua_t *nua,
 			      nua_handle_t *nh,
@@ -148,29 +181,10 @@ int nua_stack_process_message(nua_t *nua,
     return 403;
 
   if (nh == NULL)
-    if (!(nh = nua_stack_incoming_handle(nua, irq, sip, nh_has_nothing, 0)))
+    if (!(nh = nua_stack_incoming_handle(nua, irq, sip, 0)))
       return 500;		/* respond with 500 Internal Server Error */
 
   msg = nta_incoming_getrequest(irq);
-
-#if HAVE_SOFIA_SMIME
-  if (nua->sm->sm_enable) {
-    int sm_status = sm_decode_message(nua->sm, msg, sip);
-
-    switch (sm_status) {
-    case SM_SMIME_DISABLED:
-      msg_destroy(msg);
-      return 493;
-    case SM_SUCCESS:
-      break;
-    case SM_ERROR:
-      msg_destroy(msg);
-      return 493;
-    default:
-      break;
-    }
-  }
-#endif
 
   nua_stack_event(nh->nh_nua, nh, msg, nua_i_message, SIP_200_OK, TAG_END());
 

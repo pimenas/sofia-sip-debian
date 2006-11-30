@@ -67,8 +67,10 @@ SOFIAPUBFUN msg_mclass_t *sip_default_mclass(void);
 #define SIP_HDR_INIT(name) {{{ 0, 0, sip_##name##_class }}}
 
 /** Initialize a SIP header structure. @HIDE */
-#define SIP_HEADER_INIT(h, sip_class, size) \
-  (memset((h), 0, (size)), ((sip_common_t *)(h))->h_class = (sip_class), (h))
+#define SIP_HEADER_INIT(h, sip_class, size)	       \
+  ((void)memset((h), 0, (size)),		       \
+   (void)(((sip_common_t *)(h))->h_class = (sip_class)),	\
+   (h))
 
 /** Serialize headers into the fragment chain. */
 SOFIAPUBFUN int sip_serialize(msg_t *msg, sip_t *sip);
@@ -80,7 +82,8 @@ SOFIAPUBFUN issize_t sip_e(sip_t const *sip, int flags, char b[], isize_t size);
 SOFIAPUBFUN int sip_is_header(sip_header_t const *header);
 
 /** Convert the header @a h to a string allocated from @a home. */
-SOFIAPUBFUN char *sip_header_as_string(su_home_t *home, sip_header_t *h);
+SOFIAPUBFUN char *sip_header_as_string(su_home_t *home,
+				       sip_header_t const *h);
 
 /** Add a duplicate of header object to a SIP message. */
 SOFIAPUBFUN int sip_add_dup(msg_t *, sip_t *, sip_header_t const *);
@@ -102,6 +105,16 @@ SOFIAPUBFUN int sip_add_tagis(msg_t *, sip_t *, tagi_t const **inout_list);
 
 /** Parse a string as a header and add it to the SIP message. */
 SOFIAPUBFUN int sip_add_make(msg_t *, sip_t *, msg_hclass_t *hc, char const *s);
+
+/** Convert headers from taglist as URL query. */
+SOFIAPUBFUN char *sip_headers_as_url_query(su_home_t *home,
+					   tag_type_t tag, tag_value_t value,
+					   ...);
+
+/** Convert URL query to a tag list. */
+SOFIAPUBFUN tagi_t *sip_url_query_as_taglist(su_home_t *home,
+					     char const *query,
+					     msg_mclass_t const *parser);
 
 /** Complete SIP message. */
 SOFIAPUBFUN int sip_complete_message(msg_t *msg);

@@ -102,6 +102,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -184,6 +186,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -242,6 +245,9 @@ target_vendor = @target_vendor@
 AUTOMAKE_OPTIONS = foreign 1.7
 SUBDIRS = libsofia-sip-ua $(GLIB_SUBDIRS) utils packages
 DIST_SUBDIRS = libsofia-sip-ua libsofia-sip-ua-glib utils packages win32
+
+# note: when glib devel files are not available, make should not
+#       enter the libsofia-sip-ua-glib subdir at all
 @HAVE_GLIB_TRUE@GLIB_SUBDIRS = libsofia-sip-ua-glib
 EXTRA_DIST = AUTHORS COPYING COPYRIGHTS ChangeLog.ext-trees README \
 	README.developers RELEASE TODO m4/sac-general.m4 m4/sac-su.m4 \
@@ -741,15 +747,16 @@ uninstall-man: uninstall-man1
 	uninstall-man1
 
 
-manpages $(dist_man_MANS): built-sources
+$(dist_man_MANS): manpages
+
+manpages: built-sources
 	-mkdir -p man man/man1 2> /dev/null
 @HAVE_DOXYGEN_TRUE@	cd utils && $(DOXYGEN) Doxyfile.build
-@HAVE_DOXYGEN_TRUE@	-@rm man/man1/_*.1
-@HAVE_DOXYGEN_FALSE@	-touch $(MANS)
+@HAVE_DOXYGEN_TRUE@	@rm -f man/man1/_*.1
+@HAVE_DOXYGEN_FALSE@	-touch $(dist_man_MANS)
 
 coverage built-sources clean-built-sources doxygen:
-	@$(MAKE) $(AM_MAKEFLAGS) -C libsofia-sip-ua $@
-	@$(MAKE) $(AM_MAKEFLAGS) -C libsofia-sip-ua-glib $@
+	for i in libsofia-sip-ua $(GLIB_SUBDIRS) ; do $(MAKE) $(AM_MAKEFLAGS) -C $$i $@ ; done
 
 .PHONY: coverage built-sources clean-built-sources doxygen manpages
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

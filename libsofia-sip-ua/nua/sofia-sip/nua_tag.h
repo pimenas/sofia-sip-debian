@@ -122,6 +122,58 @@ SOFIAPUBVAR tag_typedef_t nutag_address;
 #define NUTAG_ADDRESS_REF(x)    nutag_address_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t nutag_address_ref;
 
+/**Specify request to respond to.
+ *
+ * @par Used with
+ *    nua_respond()
+ *
+ * @par Parameter type
+ *    msg_t *
+ *
+ * @par Values
+ *   Pointer to a request message.
+ *
+ * @NEW_1_12_4.
+ *
+ * @sa NUTAG_WITH_THIS(), NUTAG_WITH_SAVED()
+ */
+#define NUTAG_WITH(x)         nutag_with, tag_ptr_v(x)
+SOFIAPUBVAR tag_typedef_t nutag_with;
+
+/**Specify request to respond to.
+ *
+ * @par Used with
+ *    nua_respond()
+ *
+ * @par Parameter type
+ *    nua_t *
+ *
+ * @par Values
+ *   Pointer to the nua agent instance object.
+ *
+ * @NEW_1_12_4.
+ *
+ * @sa nua_save_event(), NUTAG_WITH(), NUTAG_WITH_SAVED()
+ */
+#define NUTAG_WITH_THIS(nua) nutag_with, tag_ptr_v(nua_current_request((nua)))
+
+/**Specify request to respond to.
+ *
+ * @par Used with
+ *    nua_respond()
+ *
+ * @par Parameter type
+ *    msg_t *
+ *
+ * @par Values
+ *   Pointer to a saved event.
+ *
+ * @NEW_1_12_4.
+ *
+ * @sa nua_save_event(), NUTAG_WITH(), NUTAG_WITH_THIS()
+ */
+#define NUTAG_WITH_SAVED(e) nutag_with, tag_ptr_v(nua_saved_event_request((e)))
+
 /**Set request retry count.
  *
  * Retry count determines how many times stack will automatically retry
@@ -138,6 +190,8 @@ SOFIAPUBVAR tag_typedef_t nutag_address_ref;
  * @par Values
  *    @c 0   Never retry automatically \n
  *
+ * @NEW_1_12_4.
+ *
  * Corresponding tag taking reference parameter is NUTAG_RETRY_COUNT_REF()
  */
 #define NUTAG_RETRY_COUNT(x)      nutag_retry_count, tag_uint_v(x)
@@ -145,6 +199,31 @@ SOFIAPUBVAR tag_typedef_t nutag_retry_count;
 
 #define NUTAG_RETRY_COUNT_REF(x)  nutag_retry_count_ref, tag_uint_vr(&(x))
 SOFIAPUBVAR tag_typedef_t nutag_retry_count_ref;
+
+/** Extension method name.
+ *
+ * Specify extension method name with nua_method() function.
+ *
+ * @par Used with
+ *    nua_method() \n
+ *
+ * @par Parameter type
+ *    char const *
+ *
+ * @par Values
+ *    Extension method name (e.g., "SERVICE")
+ *
+ * Corresponding tag taking reference parameter is NUTAG_METHOD_REF()
+ *
+ * @sa nua_method(), SIP_METHOD_UNKNOWN()
+ *
+ * @since New in @VERSION_1_12_4.
+ */
+#define NUTAG_METHOD(x)            nutag_method, tag_str_v(x)
+SOFIAPUBVAR tag_typedef_t nutag_method;
+
+#define NUTAG_METHOD_REF(x)        nutag_method_ref, tag_str_vr(&(x))
+SOFIAPUBVAR tag_typedef_t nutag_method_ref;
 
 /**Set maximum number of simultaneous subscribers per single event server.
  *
@@ -160,6 +239,8 @@ SOFIAPUBVAR tag_typedef_t nutag_retry_count_ref;
  *
  * @par Values
  *    @c 0   Do not allow any subscriptions \n
+ *
+ * @sa nua_notifier(), nua_authorize()
  *
  * Corresponding tag taking reference parameter is 
  * NUTAG_MAX_SUBSCRIPTIONS_REF()
@@ -328,6 +409,42 @@ SOFIAPUBVAR tag_typedef_t nutag_early_answer;
 #define NUTAG_EARLY_ANSWER_REF(x) nutag_early_answer_ref, tag_bool_vr(&(x))
 SOFIAPUBVAR tag_typedef_t nutag_early_answer_ref;
 
+/**Include an extra copy of SDP answer in the response.
+ *
+ * When NUTAG_INCLUDE_EXTRA_SDP(1) is included in nua_respond() tags, stack
+ * will include in the response a copy of the SDP offer/answer that was last
+ * sent to the client. This tag should be used only when you know that the
+ * remote end requires the extra SDP, for example, some versions of Cisco
+ * SIPGateway need a copy of answer in 200 OK even when they indicate
+ * support for 100rel.
+ *
+ * @par Used with
+ *    nua_respond()
+ *
+ * @par Parameter type
+ *    int (boolean)
+ *
+ * @par Values
+ *    @c 0   False \n
+ *    @c !=0 True
+ *
+ * Corresponding tag taking reference parameter is
+ * NUTAG_INCLUDE_EXTRA_SDP_REF().
+ *
+ * @note Requires that @soa is enabled with NUTAG_MEDIA_ENABLE(1).
+ *
+ * @sa NUTAG_EARLY_ANSWER(), NUTAG_EARLY_MEDIA(), NUTAG_AUTOALERT(),
+ * NUTAG_MEDIA_ENABLE(), @RFC3264, @RFC3264
+ * 
+ * @since New in @VERSION_1_12_4.
+ */
+#define NUTAG_INCLUDE_EXTRA_SDP(x)    nutag_include_extra_sdp, tag_bool_v(x)
+SOFIAPUBVAR tag_typedef_t nutag_include_extra_sdp;
+
+#define NUTAG_INCLUDE_EXTRA_SDP_REF(x) \
+   nutag_include_extra_sdp_ref, tag_bool_vr(&(x))
+SOFIAPUBVAR tag_typedef_t nutag_include_extra_sdp_ref;
+
 /** Timer for outstanding INVITE in seconds.
  *
  * INVITE will be canceled if no answer is received before timer expires.
@@ -354,12 +471,54 @@ SOFIAPUBVAR tag_typedef_t nutag_invite_timer_ref;
 
 /**Default session timer in seconds.
  *
- * Set default session timer in seconds when using session timer extension.
- * Re-INVITE will be sent in given intervals.
+ * Set default session timer in seconds when using session timer extension. 
+ * The value given here is the proposed session expiration time in seconds.
+ * Note that the session timer extension is ponly used 
+ *
+ * @par Sending INVITE and UPDATE Requests 
+ *
+ * If NUTAG_SESSION_TIMER() is used with non-zero value, the value is
+ * used in the @SessionExpires header included in the INVITE or UPDATE
+ * requests. The intermediate proxies or the ultimate destination can lower
+ * the interval in @SessionExpires header. If the value is too low, they can
+ * reject the request with the status code <i>422 Session Timer Too
+ * Small</i>. When Re-INVITE will be sent in given intervals. In that case,
+ * @b nua retries the request automatically.
+ * 
+ * @par Returning Response to the INVITE and UPDATE Requests 
+ *
+ * The NUTAG_SESSION_TIMER() value is also used when sending the final
+ * response to the INVITE or UPDATE requests. If the NUTAG_SESSION_TIMER()
+ * value is 0 or the value in the @SessionExpires header of the requeast is
+ * lower than the value in NUTAG_SESSION_TIMER(), the value from the
+ * incoming @SessionExpires header is used. However, if the value in
+ * @SessionExpires is lower than the minimal acceptable session expiration
+ * interval specified with the tag NUTAG_MIN_SE() the request is
+ * automatically rejected with <i>422 Session Timer Too Small</i>.
+ *
+ * @par When to Use NUTAG_SESSION_TIMER()?
+ *
+ * The session time extension is enabled ("timer" feature tag is included in
+ * @Supported header) but not activated by default (no @SessionExpires
+ * header is included in the requests or responses by default). Using
+ * non-zero value with NUTAG_SESSION_TIMER() activates it. When the
+ * extension is activated, @nua refreshes the call state by sending periodic
+ * re-INVITE or UPDATE requests unless the remote end indicated that it will
+ * take care of refreshes.
+ *
+ * The session timer extension is mainly useful for proxies or back-to-back
+ * user agents that keep call state. The call state is "soft" meaning that
+ * if no call-related SIP messages are processed for certain time the state
+ * will be destroyed. An ordinary user-agent can also make use of session
+ * timer if it cannot get any activity feedback from RTP or other media.
  *
  * @par Used with
- *    nua_set_params() \n
- *    nua_get_params()
+ *    nua_invite(), nua_update(), nua_respond() \n
+ *    nua_set_params() or nua_set_hparams() \n
+ *    nua_get_params() or nua_get_hparams()
+ *
+ * See nua_set_hparams() for a complete list of the the nua operations that
+ * accept this tag.
  *
  * @par Parameter type
  *    unsigned int
@@ -369,6 +528,11 @@ SOFIAPUBVAR tag_typedef_t nutag_invite_timer_ref;
  *    @c >0 interval in seconds
  *
  * Corresponding tag taking reference parameter is NUTAG_SESSION_TIMER_REF()
+ *
+ * @sa NUTAG_SUPPORTED(), NUTAG_MIN_SE(), NUTAG_SESSION_REFRESHER(),
+ * nua_invite(), #nua_r_invite, #nua_i_invite, nua_update(), #nua_r_update,
+ * #nua_i_update, 
+ * NUTAG_UPDATE_REFRESH(), @RFC4028, @SessionExpires, @MinSE
  */
 #define NUTAG_SESSION_TIMER(x)  nutag_session_timer, tag_uint_v((x))
 SOFIAPUBVAR tag_typedef_t nutag_session_timer;
@@ -378,11 +542,17 @@ SOFIAPUBVAR tag_typedef_t nutag_session_timer_ref;
 
 /** Minimum acceptable refresh interval for session.
  *
- * Specifies the value of Min-SE header in seconds.
+ * Specifies the value of @MinSE header in seconds. The @b Min-SE header is
+ * used to specify minimum acceptable refresh interval for session timer
+ * extension.
  *
  * @par Used with
- *    nua_set_params() \n
- *    nua_get_params()
+ *    nua_handle(), nua_invite(), nua_update(), nua_respond() \n
+ *    nua_set_params() or nua_set_hparams() \n
+ *    nua_get_params() or nua_get_hparams()
+ *
+ * See nua_set_hparams() for a complete list of the nua operations that
+ * accept this tag.
  *
  * @par Parameter type
  *    unsigned int
@@ -391,7 +561,10 @@ SOFIAPUBVAR tag_typedef_t nutag_session_timer_ref;
  *    interval in seconds.
  *
  * Corresponding tag taking reference parameter is NUTAG_MIN_SE_REF()
-*/
+ *
+ * @sa NUTAG_SESSION_TIMER(), NUTAG_SESSION_REFRESHER(),
+ * NUTAG_UPDATE_REFRESH(), @RFC4028, @MinSE, @SessionExpires
+ */
 #define NUTAG_MIN_SE(x)         nutag_min_se, tag_uint_v((x))
 SOFIAPUBVAR tag_typedef_t nutag_min_se;
 
@@ -405,13 +578,17 @@ enum nua_session_refresher {
   nua_any_refresher		/**< No preference (default). */
 };
 
-/** Specify preferred refresher.
+/**Specify the preferred refresher.
  *
  * Specify for session timer extension which party is the preferred refresher.
  *
  * @par Used with
- *    nua_set_params() \n
- *    nua_get_params()
+ *    nua_handle(), nua_invite(), nua_update(), nua_respond() \n
+ *    nua_set_params() or nua_set_hparams() \n
+ *    nua_get_params() or nua_get_hparams()
+ *
+ * See nua_set_hparams() for a complete list of all the nua operations that
+ * accept this tag.
  *
  * @par Parameter type
  *   enum { #nua_no_refresher,  #nua_local_refresher, #nua_remote_refresher,
@@ -423,7 +600,11 @@ enum nua_session_refresher {
  *    @c nua_remote_refresher \n
  *    @c nua_any_refresher (default) \n
  *
- * Corresponding tag taking reference parameter is NUTAG_SESSION_REFRESHER_REF()
+ * Corresponding tag taking reference parameter is
+ * NUTAG_SESSION_REFRESHER_REF()
+ *
+ * @sa NUTAG_SESSION_TIMER(), NUTAG_MIN_SE_REF(),
+ * NUTAG_UPDATE_REFRESH(), @RFC4028, @SessionExpires, @MinSE
  */
 #define NUTAG_SESSION_REFRESHER(x)  nutag_session_refresher, tag_int_v((x))
 SOFIAPUBVAR tag_typedef_t nutag_session_refresher;
@@ -433,9 +614,21 @@ SOFIAPUBVAR tag_typedef_t nutag_session_refresher_ref;
 
 /** Use UPDATE as refresh method.
  *
+ * If this parameter is true and the remote endpoint has included UPDATE in
+ * Allow header, the nua stack uses UPDATE instead of INVITE to refresh the 
+ * session when using the session timer extension.
+ *
+ * Note that the session timer headers @SessionExpires and @MinSE are always
+ * included in the UPDATE request and responses regardless of the value of
+ * this tag.
+ *
  * @par Used with
- *    nua_set_params() \n
- *    nua_get_params()
+ *    nua_handle(), nua_invite(), nua_update(), nua_respond() \n
+ *    nua_set_params() or nua_set_hparams() \n
+ *    nua_get_params() or nua_get_hparams()
+ *
+ * See nua_set_hparams() for a complete list of all the nua operations that
+ * accept this tag.
  *
  * @par Parameter type
  *    boolean
@@ -445,6 +638,9 @@ SOFIAPUBVAR tag_typedef_t nutag_session_refresher_ref;
  *    @c 0 Use INVITE
  *
  * Corresponding tag taking reference parameter is NUTAG_UPDATE_REFRESH_REF()
+ *
+ * @sa #nua_r_update, NUTAG_SESSION_TIMER(), NUTAG_MIN_SE_REF(),
+ * NUTAG_UPDATE_REFRESH(), @RFC4028, @SessionExpires, @MinSE
  */
 #define NUTAG_UPDATE_REFRESH(x)  nutag_update_refresh, tag_bool_v((x))
 SOFIAPUBVAR tag_typedef_t nutag_update_refresh;
@@ -1438,7 +1634,7 @@ SOFIAPUBVAR tag_typedef_t nutag_refer_event_ref;
  *
  * Corresponding tag taking reference parameter is NUTAG_REFER_PAUSE_REF()
  *
- * @todo Not implemented.
+ * @deprecated Not implemented.
  */
 #define NUTAG_REFER_PAUSE(x)   nutag_refer_pause, tag_bool_v(x)
 SOFIAPUBVAR tag_typedef_t nutag_refer_pause;
@@ -1508,6 +1704,7 @@ SOFIAPUBVAR tag_typedef_t nutag_allow;
 #define NUTAG_ALLOW_REF(x) nutag_allow_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t nutag_allow_ref;
 
+
 /** Support a feature.
  *
  * This tag is used to add a new feature to the existing set of supported
@@ -1539,6 +1736,43 @@ SOFIAPUBVAR tag_typedef_t nutag_supported;
 
 #define NUTAG_SUPPORTED_REF(x) nutag_supported_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t nutag_supported_ref;
+
+/** Allow an event or events.
+ *
+ * This tag is used to add a new event to the already existing set of
+ * allowed events. If you want to ignore the existing set of allowed events,
+ * set the allowed event set with SIPTAG_ALLOW_EVENTS_STR() or
+ * SIPTAG_ALLOW_EVENTS().
+ *
+ * The set of allowed methods is added to the @AllowEvents header in the
+ * response to the SUBSCRIBE or PUBLISH requests. For incoming SUBSCRIBE or
+ * PUBLISH request, an error response <i>489 Bad Event</i> is automatically
+ * returned if the incoming method is not included in the set.
+ *
+ * @par Used with
+ *    nua_set_params() \n
+ *    nua_set_hparams() \n
+ *    any handle-specific nua call
+ *
+ * @par Parameter type
+ *    char const *
+ *
+ * @par Values
+ *    Valid event name, or comma-separated list of them.
+ *
+ * @sa @AllowEvents, @RFC3265, @RFC3903, #nua_i_subscribe, #nua_i_publish,
+ * nua_subscribe(), nua_publish(), SIPTAG_ALLOW_EVENTS(),
+ * SIPTAG_ALLOW_EVENTS_STR()
+ *
+ * @NEW_1_12_4.
+ *
+ * Corresponding tag taking reference parameter is NUTAG_ALLOW_EVENTS_REF()
+ */
+#define NUTAG_ALLOW_EVENTS(x)     nutag_allow_events, tag_str_v(x)
+SOFIAPUBVAR tag_typedef_t nutag_allow_events;
+
+#define NUTAG_ALLOW_EVENTS_REF(x) nutag_allow_events_ref, tag_str_vr(&(x))
+SOFIAPUBVAR tag_typedef_t nutag_allow_events_ref;
 
 /** Call state
  *
@@ -1747,7 +1981,10 @@ SOFIAPUBVAR tag_typedef_t nutag_service_route_enable;
           nutag_service_route_enable_ref, tag_bool_vr(&(x))
 SOFIAPUBVAR tag_typedef_t nutag_service_route_enable_ref;
 
-/** Enable local media (MSS)
+/** Enable built-in media session handling
+ *
+ * The built-in media session object @soa takes care of most details
+ * of offer-answer negotiation. 
  *
  * @par Used with
  *    nua_create()

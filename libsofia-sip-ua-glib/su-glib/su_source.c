@@ -36,9 +36,6 @@
 #include "config.h"
 #endif
 
-/* Use Posix stuff */
-#define _XOPEN_SOURCE  (500)
-
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -578,7 +575,7 @@ int su_source_register(su_port_t *self,
     su_root_t **wait_tasks;
 
     if (self->sup_size_waits == 0)
-      size = SU_MIN_WAITS;
+      size = SU_WAIT_MIN;
     else 
       size = 2 * self->sup_size_waits;
 

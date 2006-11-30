@@ -270,12 +270,15 @@ int nua_stack_init_instance(nua_handle_t *nh, tagi_t const *tags)
  *     nothing
  *
  * @par Related tags:
- *   NUTAG_ALLOW() \n
+ *   NUTAG_ALLOW(), SIPTAG_ALLOW(), and SIPTAG_ALLOW_STR() \n
+ *   NUTAG_ALLOW_EVENTS(), SIPTAG_ALLOW_EVENTS(), and 
+ *                         SIPTAG_ALLOW_EVENTS_STR() \n
  *   NUTAG_AUTOACK() \n
  *   NUTAG_AUTOALERT() \n
  *   NUTAG_AUTOANSWER() \n
  *   NUTAG_CALLEE_CAPS() \n
  *   NUTAG_DETECT_NETWORK_UPDATES() \n
+ *   NUTAG_EARLY_ANSWER() \n
  *   NUTAG_EARLY_MEDIA() \n
  *   NUTAG_ENABLEINVITE() \n
  *   NUTAG_ENABLEMESSAGE() \n
@@ -311,25 +314,16 @@ int nua_stack_init_instance(nua_handle_t *nh, tagi_t const *tags)
  *   NUTAG_SMIME_SIGNATURE() \n
  *   NUTAG_SOA_NAME() \n
  *   NUTAG_SUBSTATE() \n
- *   NUTAG_SUPPORTED() \n
+ *   NUTAG_SUPPORTED(), SIPTAG_SUPPORTED(), and SIPTAG_SUPPORTED_STR() \n
  *   NUTAG_UPDATE_REFRESH() \n
- *   NUTAG_USER_AGENT() \n
- *   SIPTAG_ALLOW() \n
- *   SIPTAG_ALLOW_STR() \n
- *   SIPTAG_FROM() \n
- *   SIPTAG_FROM_STR() \n
- *   SIPTAG_ORGANIZATION() \n
- *   SIPTAG_ORGANIZATION_STR() \n
- *   SIPTAG_SUPPORTED() \n
- *   SIPTAG_SUPPORTED_STR() \n
- *   SIPTAG_USER_AGENT() \n
- *   SIPTAG_USER_AGENT_STR() \n
+ *   NUTAG_USER_AGENT(), SIPTAG_USER_AGENT() and SIPTAG_USER_AGENT_STR() \n
+ *   SIPTAG_ORGANIZATION() and SIPTAG_ORGANIZATION_STR() \n
  *
  * nua_set_params() also accepts any soa tags, defined in
  * <sofia-sip/soa_tag.h>, and nta tags, defined in <sofia-sip/nta_tag.h>.
  * 
  * @par Events:
- *     nua_r_set_params
+ *     #nua_r_set_params
  *
  * @par SIP Header as NUA Parameters
  * The @nua parameters include SIP headers @Allow, @Supported, @Organization,
@@ -393,11 +387,14 @@ int nua_stack_init_instance(nua_handle_t *nh, tagi_t const *tags)
  *     nothing
  *
  * @par Tags Used to Set Handle-Specific Parameters:
- *   NUTAG_ALLOW() \n
+ *   NUTAG_ALLOW(), SIPTAG_ALLOW(), and SIPTAG_ALLOW_STR() \n
+ *   NUTAG_ALLOW_EVENTS(), SIPTAG_ALLOW_EVENTS(), and 
+ *                         SIPTAG_ALLOW_EVENTS_STR() \n
  *   NUTAG_AUTOACK() \n
  *   NUTAG_AUTOALERT() \n
  *   NUTAG_AUTOANSWER() \n
  *   NUTAG_CALLEE_CAPS() \n
+ *   NUTAG_EARLY_ANSWER() \n
  *   NUTAG_EARLY_MEDIA() \n
  *   NUTAG_ENABLEINVITE() \n
  *   NUTAG_ENABLEMESSAGE() \n
@@ -426,17 +423,10 @@ int nua_stack_init_instance(nua_handle_t *nh, tagi_t const *tags)
  *   NUTAG_SESSION_TIMER() \n
  *   NUTAG_SOA_NAME() \n
  *   NUTAG_SUBSTATE() \n
- *   NUTAG_SUPPORTED() \n
+ *   NUTAG_SUPPORTED(), SIPTAG_SUPPORTED(), and SIPTAG_SUPPORTED_STR() \n
  *   NUTAG_UPDATE_REFRESH() \n
- *   NUTAG_USER_AGENT() \n
- *   SIPTAG_ALLOW() \n
- *   SIPTAG_ALLOW_STR() \n
- *   SIPTAG_ORGANIZATION() \n
- *   SIPTAG_ORGANIZATION_STR() \n
- *   SIPTAG_SUPPORTED() \n
- *   SIPTAG_SUPPORTED_STR() \n
- *   SIPTAG_USER_AGENT() \n
- *   SIPTAG_USER_AGENT_STR() \n
+ *   NUTAG_USER_AGENT(), SIPTAG_USER_AGENT() and SIPTAG_USER_AGENT_STR() \n
+ *   SIPTAG_ORGANIZATION() and SIPTAG_ORGANIZATION_STR() \n
  * Any soa tags are also considered as handle-specific parameters. They are
  * defined in <sofia-sip/soa_tag.h>.
  *
@@ -444,7 +434,27 @@ int nua_stack_init_instance(nua_handle_t *nh, tagi_t const *tags)
  * NUTAG_DETECT_NETWORK_UPDATES(), NUTAG_SMIME_* tags, and all NTA tags.
  * 
  * @par Events:
- *     nua_r_set_params
+ *     #nua_r_set_params
+ */
+
+/** @NUA_EVENT nua_r_set_params
+ *
+ * Response to nua_set_params() or nua_set_hparams().
+ *
+ * @param status 200 when successful, error code otherwise
+ * @param phrase a short textual description of @a status code
+ * @param nh     NULL when responding to nua_set_params(),
+ *               operation handle when responding to nua_set_hparams()
+ * @param hmagic NULL when responding to nua_set_params(),
+ *               application contact associated with the operation handle 
+ *               when responding to nua_set_hparams()
+ * @param sip    NULL
+ * @param tags   None
+ *
+ * @sa nua_set_params(), nua_set_hparams(), 
+ * #nua_r_get_params, nua_get_params(), nua_get_hparams()
+ *
+ * @END_NUA_EVENT
  */
 
 int nua_stack_set_params(nua_t *nua, nua_handle_t *nh, nua_event_t e,
@@ -463,6 +473,7 @@ int nua_stack_set_params(nua_t *nua, nua_handle_t *nh, nua_event_t e,
   char const *phrase = "Error storing parameters";
   sip_supported_t const *supported = NULL;
   sip_allow_t const *allow = NULL;
+  sip_allow_events_t const *allow_events = NULL;
 
   enter;
 
@@ -475,6 +486,8 @@ int nua_stack_set_params(nua_t *nua, nua_handle_t *nh, nua_event_t e,
     supported = tmp->nhp_supported = dnhp->nhp_supported;
   if (!NHP_ISSET(nhp, allow)) 
     allow = tmp->nhp_allow = dnhp->nhp_allow;
+  if (!NHP_ISSET(nhp, allow_events)) 
+    allow_events = tmp->nhp_allow_events = dnhp->nhp_allow_events;
 
   error = 0;
   global = nh == dnh;			/* save also stack-specific params */
@@ -490,6 +503,8 @@ int nua_stack_set_params(nua_t *nua, nua_handle_t *nh, nua_event_t e,
 	tmp->nhp_supported = NULL;
       if (tmp->nhp_allow == allow)
 	tmp->nhp_allow = NULL;
+      if (tmp->nhp_allow_events == allow_events)
+	tmp->nhp_allow_events = NULL;
 
       /* Move parameters from tmp to nhp (or allocate new nhp) */
       if (nh != dnh && nhp == dnh->nh_prefs)
@@ -680,6 +695,10 @@ static int nhp_set_tags(su_home_t *home,
     else if (tag == nutag_autoalert) {
       NHP_SET(nhp, auto_alert, value != 0);
     }
+    /* NUTAG_EARLY_ANSWER(early_answer) */
+    else if (tag == nutag_early_answer) {
+      NHP_SET(nhp, early_answer, value != 0);
+    }
     /* NUTAG_EARLY_MEDIA(early_media) */
     else if (tag == nutag_early_media) {
       NHP_SET(nhp, early_media, value != 0);
@@ -732,9 +751,9 @@ static int nhp_set_tags(su_home_t *home,
       NHP_SET(nhp, win_messenger_enable, value != 0);
     }
 #if 0
-    /* NUTAG_MESSAGE_AUTOANSWER(message_auto_respond) */
-    else if (tag == nutag_message_autoanwer) {
-      NHP_SET(nhp, message_auto_respond, value);
+    /* NUTAG_AUTORESPOND(autorespond) */
+    else if (tag == nutag_autorespond) {
+      NHP_SET(nhp, autorespond, value);
     }
 #endif
     /* NUTAG_CALLEE_CAPS(callee_caps) */
@@ -813,6 +832,27 @@ static int nhp_set_tags(su_home_t *home,
 	return -1;
       else if (ok)
 	NHP_SET(nhp, allow, allow);
+    }
+    /* NUTAG_ALLOW_EVENTS(allow_events) */
+    /* SIPTAG_ALLOW_EVENTS_STR(allow_events) */
+    /* SIPTAG_ALLOW_EVENTS(allow_events) */
+    else if (tag == nutag_allow_events ||
+	     tag == siptag_allow_events_str ||
+	     tag == siptag_allow_events) {
+      int ok;
+      sip_allow_events_t *allow_events = NULL;
+
+      ok = nhp_merge_lists(home, 
+			   sip_allow_events_class, &allow_events, 
+			   nhp->nhp_allow_events,
+			   NHP_ISSET(nhp, allow_events), /* already set */
+			   tag == siptag_allow_events, /* dup it, don't make */
+			   tag == nutag_allow_events, /* merge with old value */
+			   t->t_value);
+      if (ok < 0)
+	return -1;
+      else if (ok)
+	NHP_SET(nhp, allow_events, allow_events);
     }
     /* SIPTAG_USER_AGENT(user_agent) */
     else if (tag == siptag_user_agent) {
@@ -1080,8 +1120,9 @@ int nua_handle_save_tags(nua_handle_t *nh, tagi_t *tags)
     ;
   else if (to_str)
     p_to = sip_to_make(tmphome, to_str);
-  else if (url) 
-    p_to = sip_to_create(tmphome, url);
+  else if (url)
+    p_to = sip_to_create(tmphome, url), 
+      p_to ? sip_aor_strip((url_t*)p_to->a_url) : 0;
   else
     p_to = SIP_NONE;
   
@@ -1137,7 +1178,7 @@ static int nua_handle_param_filter(tagi_t const *f, tagi_t const *t)
   if (!ns)
     return 0;
 
-  return strcmp(ns, "nua") == 0 && strcmp(ns, "soa") == 0;
+  return strcmp(ns, "nua") == 0 || strcmp(ns, "soa") == 0;
 }
 
 /** Filter tags stored permanently as taglist. */
@@ -1246,11 +1287,11 @@ int nua_stack_set_smime_params(nua_t *nua, tagi_t const *tags)
 
 /**@fn void nua_get_hparams(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
  * 
- * Get values of handle-specific parameters in nua_r_get_params event.
+ * Get values of handle-specific parameters in #nua_r_get_params event.
  *
  * Application will specify either expilicit list of tags it is interested
  * in, or a filter (at the moment, TAG_ANY()). The values are returned as a
- * list of tags in the nua_r_get_params event.
+ * list of tags in the #nua_r_get_params event.
  *
  * @param nh              Pointer to operation handle
  * @param tag, value, ... List of tagged parameters
@@ -1273,6 +1314,81 @@ int nua_stack_set_smime_params(nua_t *nua, tagi_t const *tags)
  *
  * @par Events:
  *     #nua_r_get_params
+ */
+
+/** @NUA_EVENT nua_r_get_params
+ *
+ * Answer to nua_get_params() or nua_get_hparams().
+ *
+ * @param status 200 when succesful, error code otherwise
+ * @param phrase a short textual description of @a status code
+ * @param nh     NULL when responding to nua_get_params(),
+ *               operation handle when responding to nua_get_hparams()
+ * @param hmagic NULL when responding to nua_get_params(),
+ *               application contact associated with the operation handle 
+ *               when responding to nua_get_hparams()
+ * @param sip    NULL
+ * @param tags   
+ *   NUTAG_AUTOACK() \n
+ *   NUTAG_AUTOALERT() \n
+ *   NUTAG_AUTOANSWER() \n
+ *   NUTAG_CALLEE_CAPS() \n
+ *   NUTAG_DETECT_NETWORK_UPDATES() \n
+ *   NUTAG_EARLY_ANSWER() \n
+ *   NUTAG_EARLY_MEDIA() \n
+ *   NUTAG_ENABLEINVITE() \n
+ *   NUTAG_ENABLEMESSAGE() \n
+ *   NUTAG_ENABLEMESSENGER() \n
+ *   NUTAG_INSTANCE() \n
+ *   NUTAG_INVITE_TIMER() \n
+ *   NUTAG_KEEPALIVE() \n
+ *   NUTAG_KEEPALIVE_STREAM() \n
+ *   NUTAG_MAX_SUBSCRIPTIONS() \n
+ *   NUTAG_MEDIA_ENABLE() \n
+ *   NUTAG_MEDIA_FEATURES() \n
+ *   NUTAG_MIN_SE() \n
+ *   NUTAG_M_DISPLAY() \n
+ *   NUTAG_M_FEATURES() \n
+ *   NUTAG_M_PARAMS() \n
+ *   NUTAG_M_USERNAME() \n
+ *   NUTAG_ONLY183_100REL() \n
+ *   NUTAG_OUTBOUND() \n
+ *   NUTAG_PATH_ENABLE() \n
+ *   NUTAG_REFER_EXPIRES() \n
+ *   NUTAG_REFER_WITH_ID() \n
+ *   NUTAG_REGISTRAR() \n
+ *   NUTAG_RETRY_COUNT() \n
+ *   NUTAG_SERVICE_ROUTE_ENABLE() \n
+ *   NUTAG_SESSION_REFRESHER() \n
+ *   NUTAG_SESSION_TIMER() \n
+ *   NUTAG_SMIME_ENABLE() \n
+ *   NUTAG_SMIME_KEY_ENCRYPTION() \n
+ *   NUTAG_SMIME_MESSAGE_DIGEST() \n
+ *   NUTAG_SMIME_MESSAGE_ENCRYPTION() \n
+ *   NUTAG_SMIME_OPT() \n
+ *   NUTAG_SMIME_PROTECTION_MODE() \n
+ *   NUTAG_SMIME_SIGNATURE() \n
+ *   NUTAG_SOA_NAME() \n
+ *   NUTAG_SUBSTATE() \n
+ *   NUTAG_UPDATE_REFRESH() \n
+ *   NUTAG_USER_AGENT() \n
+ *   SIPTAG_ALLOW() \n
+ *   SIPTAG_ALLOW_STR() \n
+ *   SIPTAG_ALLOW_EVENTS() \n
+ *   SIPTAG_ALLOW_EVENTS_STR() \n
+ *   SIPTAG_FROM() \n
+ *   SIPTAG_FROM_STR() \n
+ *   SIPTAG_ORGANIZATION() \n
+ *   SIPTAG_ORGANIZATION_STR() \n
+ *   SIPTAG_SUPPORTED() \n
+ *   SIPTAG_SUPPORTED_STR() \n
+ *   SIPTAG_USER_AGENT() \n
+ *   SIPTAG_USER_AGENT_STR() \n
+ *
+ * @sa nua_get_params(), nua_get_hparams(),
+ * nua_set_params(), nua_set_hparams(), #nua_r_set_params
+ *
+ * @END_NUA_EVENT
  */
 
 /**@internal
@@ -1375,6 +1491,7 @@ int nua_stack_get_params(nua_t *nua, nua_handle_t *nh, nua_event_t e,
      TIF(NUTAG_MEDIA_ENABLE, media_enable),
      TIF(NUTAG_ENABLEINVITE, invite_enable),
      TIF(NUTAG_AUTOALERT, auto_alert),
+     TIF(NUTAG_EARLY_ANSWER, early_answer),
      TIF(NUTAG_EARLY_MEDIA, early_media),
      TIF(NUTAG_ONLY183_100REL, only183_100rel),
      TIF(NUTAG_AUTOANSWER, auto_answer),
@@ -1388,7 +1505,7 @@ int nua_stack_get_params(nua_t *nua, nua_handle_t *nh, nua_event_t e,
 
      TIF(NUTAG_ENABLEMESSAGE, message_enable),
      TIF(NUTAG_ENABLEMESSENGER, win_messenger_enable),
-     /* TIF(NUTAG_MESSAGE_AUTOANSWER, message_auto_respond), */
+     /* TIF(NUTAG_AUTORESPOND, autorespond), */
 
      TIF(NUTAG_CALLEE_CAPS, callee_caps),
      TIF(NUTAG_MEDIA_FEATURES, media_features),
@@ -1403,6 +1520,8 @@ int nua_stack_get_params(nua_t *nua, nua_handle_t *nh, nua_event_t e,
      TIF_STR(SIPTAG_SUPPORTED_STR, supported),
      TIF(SIPTAG_ALLOW, allow),
      TIF_STR(SIPTAG_ALLOW_STR, allow),
+     TIF(SIPTAG_ALLOW_EVENTS, allow_events),
+     TIF_STR(SIPTAG_ALLOW_EVENTS_STR, allow_events),
      TIF_SIP(SIPTAG_USER_AGENT, user_agent),
      TIF(SIPTAG_USER_AGENT_STR, user_agent),
      TIF(NUTAG_USER_AGENT, user_agent),

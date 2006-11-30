@@ -44,11 +44,14 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@HAVE_GOBJECT_TRUE@am__append_1 = sofia-sip-ua-glib.pc
+
+# We should probably have something here telling 
+# if we have gobject support or not
+@HAVE_GLIB_TRUE@am__append_1 = sofia-sip-ua-glib.pc
 subdir = packages
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/sofia-sip-ua-glib.pc.in $(srcdir)/sofia-sip-ua.pc.in \
-	ChangeLog
+	$(srcdir)/sofia-sip.spec.in ChangeLog
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/sac-general.m4 \
 	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su.m4 \
@@ -59,7 +62,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h \
 	$(top_builddir)/libsofia-sip-ua/su/sofia-sip/su_configure.h
-CONFIG_CLEAN_FILES = sofia-sip-ua.pc sofia-sip-ua-glib.pc
+CONFIG_CLEAN_FILES = sofia-sip-ua.pc sofia-sip-ua-glib.pc \
+	sofia-sip-${PACKAGE_VERSION}.spec
 SOURCES =
 DIST_SOURCES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -85,6 +89,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -167,6 +173,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -222,12 +229,13 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-COND_PC_TARGETS = $(am__append_1)
 
-# Install pkg-config file
+# Install pkg-config file here
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = sofia-sip-ua.pc $(COND_PC_TARGETS)
-EXTRA_DIST = sofia-sip.spec sofia-sip.spec.in sofia-sip-ua.pc.in sofia-sip-ua-glib.pc.in
+pkgconfig_DATA = sofia-sip-ua.pc $(am__append_1)
+EXTRA_DIST = sofia-sip-${PACKAGE_VERSION}.spec sofia-sip.spec.in \
+	sofia-sip-ua.pc.in sofia-sip-ua-glib.pc.in
+DISTCLEANFILES = sofia-sip-*.spec sofia-sip.spec
 all: all-am
 
 .SUFFIXES:
@@ -263,6 +271,8 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 sofia-sip-ua.pc: $(top_builddir)/config.status $(srcdir)/sofia-sip-ua.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 sofia-sip-ua-glib.pc: $(top_builddir)/config.status $(srcdir)/sofia-sip-ua-glib.pc.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+sofia-sip-${PACKAGE_VERSION}.spec: $(top_builddir)/config.status $(srcdir)/sofia-sip.spec.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 mostlyclean-libtool:
@@ -353,6 +363,7 @@ clean-generic:
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -391,8 +402,7 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-generic mostlyclean-libtool \
-	mostlyclean-local
+mostlyclean-am: mostlyclean-generic mostlyclean-libtool
 
 pdf: pdf-am
 
@@ -411,16 +421,10 @@ uninstall-am: uninstall-info-am uninstall-pkgconfigDATA
 	install-info install-info-am install-man install-pkgconfigDATA \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool mostlyclean-local pdf \
-	pdf-am ps ps-am uninstall uninstall-am uninstall-info-am \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	uninstall uninstall-am uninstall-info-am \
 	uninstall-pkgconfigDATA
 
-
-%.spec: %.spec.in $(top_builddir)/config.status
-	cd $(top_builddir) && ${SHELL} config.status --file=$(subdir)/$@
-
-mostlyclean-local:
-	test "$(top_builddir)" = "$(top_srcdir)" || rm -f sofia-sip.spec
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

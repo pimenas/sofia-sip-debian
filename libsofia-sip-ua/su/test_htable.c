@@ -155,10 +155,10 @@ void zap(context_t *c, entry_t *e)
   su_free(c->c_home, e);
 }
 
-static int count(context_t *c, hash_value_t h)
+static unsigned long count(context_t *c, hash_value_t h)
 {
   entry_t *e, **ee;
-  int n;
+  unsigned long n;
 
   for (ee = htable_hash(c->c_hash, h), n = 0;
        (e = *ee); 

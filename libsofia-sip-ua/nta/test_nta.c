@@ -244,8 +244,6 @@ int leg_callback_200(agent_t *ag,
 		     nta_incoming_t *irq,
 		     sip_t const *sip)
 {
-  BEGIN();
-
   if (tstflags & tst_verbatim) {
     printf("%s: %s: %s " URL_PRINT_FORMAT " %s\n",
 	   name, __func__, sip->sip_request->rq_method_name, 
@@ -253,9 +251,10 @@ int leg_callback_200(agent_t *ag,
 	   sip->sip_request->rq_version);
   }
 
-  TEST_1(sip->sip_content_length);
-  TEST_1(sip->sip_via);
-  TEST_1(sip->sip_from && sip->sip_from->a_tag);
+  if (!sip->sip_content_length ||
+      !sip->sip_via ||
+      !sip->sip_from || !sip->sip_from->a_tag)
+    return 500;
 
   if (ag->ag_in_via == NULL)
     ag->ag_in_via = sip_via_dup(ag->ag_home, sip->sip_via);
@@ -276,8 +275,6 @@ int leg_callback_200(agent_t *ag,
   }
 
   return 200;
-
-  END();
 }
 
 int leg_callback_500(agent_t *ag,
@@ -300,8 +297,6 @@ int new_leg_callback_200(agent_t *ag,
 			 nta_incoming_t *irq,
 			 sip_t const *sip)
 {
-  BEGIN();
-
   if (tstflags & tst_verbatim) {
     printf("%s: %s: %s " URL_PRINT_FORMAT " %s\n",
 	   name, __func__, sip->sip_request->rq_method_name, 
@@ -309,9 +304,10 @@ int new_leg_callback_200(agent_t *ag,
 	   sip->sip_request->rq_version);
   }
 
-  TEST_1(sip->sip_content_length);
-  TEST_1(sip->sip_via);
-  TEST_1(sip->sip_from && sip->sip_from->a_tag);
+  if (!sip->sip_content_length ||
+      !sip->sip_via ||
+      !sip->sip_from || !sip->sip_from->a_tag)
+    return 500;
 
   ag->ag_latest_leg = leg;
 
@@ -329,14 +325,13 @@ int new_leg_callback_200(agent_t *ag,
 				   SIPTAG_FROM(sip->sip_to),
 				   SIPTAG_TO(sip->sip_from),
 				   TAG_END());
-  TEST_1(ag->ag_bob_leg);
-  TEST_1(nta_leg_tag(ag->ag_bob_leg, NULL));
-  TEST_1(nta_leg_get_tag(ag->ag_bob_leg));
-  TEST_1(nta_incoming_tag(irq, nta_leg_get_tag(ag->ag_bob_leg)));
+  if (!ag->ag_bob_leg ||
+      !nta_leg_tag(ag->ag_bob_leg, NULL) ||
+      !nta_leg_get_tag(ag->ag_bob_leg) ||
+      !nta_incoming_tag(irq, nta_leg_get_tag(ag->ag_bob_leg)))
+    return 500;
 
   return 200;
-
-  END();
 }
 
 
@@ -355,7 +350,7 @@ int outgoing_callback(agent_t *ag,
 	   sip->sip_status->st_phrase);
   }
 
-  TEST(orq, ag->ag_orq);
+  TEST_P(orq, ag->ag_orq);
 
   ag->ag_status = status;
 
@@ -380,7 +375,6 @@ int outgoing_callback(agent_t *ag,
 
   nta_outgoing_destroy(orq);
   ag->ag_orq = NULL;
-  return 0;
 
   END();
 }
@@ -541,7 +535,7 @@ int test_init(agent_t *ag, char const *resolv_conf)
     TEST_1(ag->ag_aliases);
     TEST_1(ag->ag_aliases->m_next);
     TEST_1(ag->ag_aliases->m_next->m_next);
-    TEST(ag->ag_aliases->m_next->m_next->m_next, NULL);
+    TEST_P(ag->ag_aliases->m_next->m_next->m_next, NULL);
 
     for (m = ag->ag_aliases; m; m = m->m_next)
       m->m_url->url_port = ag->ag_contact->m_url->url_port;
@@ -594,6 +588,19 @@ int test_init(agent_t *ag, char const *resolv_conf)
   END();
 }  
 
+int test_reinit(agent_t *ag)
+{
+  BEGIN();
+  /* Create a new default leg */
+  nta_leg_destroy(ag->ag_default_leg), ag->ag_default_leg = NULL;
+  TEST_1(ag->ag_default_leg = nta_leg_tcreate(ag->ag_agent, 
+					     leg_callback_200,
+					     ag,
+					     NTATAG_NO_DIALOG(1),
+					     TAG_END()));
+  END();
+}
+
 int test_deinit(agent_t *ag)
 {
   BEGIN();
@@ -636,7 +643,7 @@ int readfile(FILE *f, void **contents)
   }
 
   if (!(buffer = malloc(len + 2)) ||
-      fread(buffer, 1, len, f) != len) {
+      fread(buffer, 1, len, f) != (size_t)len) {
     fprintf(stderr, "%s: unable to read file (%s)\n", __func__, strerror(errno));
     if (buffer)
       free(buffer);
@@ -729,7 +736,7 @@ static int test_bad_messages(agent_t *ag)
     r = buffer;
 
     if (strncmp(r, "JUNK ", 5) == 0) {
-      TEST(sendto(s, r, blen, 0, ai->ai_addr, ai->ai_addrlen), blen);
+      TEST_SIZE(su_sendto(s, r, blen, 0, ai->ai_addr, ai->ai_addrlen), blen);
     }
     else if (strncmp(r, "INVITE ", 7) != 0) {
       su_iovec_t vec[3];
@@ -737,8 +744,8 @@ static int test_bad_messages(agent_t *ag)
       vec[0].siv_base = r, vec[0].siv_len = n;
       vec[1].siv_base = via, vec[1].siv_len = vlen;
       vec[2].siv_base = r + n, vec[2].siv_len = blen - n;
-      TEST(su_vsend(s, vec, 3, 0, (void *)ai->ai_addr, ai->ai_addrlen),
-	   blen + vlen);
+      TEST_SIZE(su_vsend(s, vec, 3, 0, (void *)ai->ai_addr, ai->ai_addrlen),
+		blen + vlen);
     }
     free(buffer);
     su_root_step(ag->ag_root, 1);
@@ -750,6 +757,8 @@ static int test_bad_messages(agent_t *ag)
     su_root_step(ag->ag_root, 1);
 
   nta_leg_destroy(ag->ag_default_leg), ag->ag_default_leg = NULL;
+
+  closedir(dir);
 
   END();
 #else
@@ -799,14 +808,6 @@ int test_tports(agent_t *ag)
   url->url_params = "transport=tcp";
 
   url->url_params = "transport=udp";
-
-  /* Create a new default leg */
-  nta_leg_destroy(ag->ag_default_leg), ag->ag_default_leg = NULL;
-  TEST_1(ag->ag_default_leg = nta_leg_tcreate(ag->ag_agent, 
-					     leg_callback_200,
-					     ag,
-					     NTATAG_NO_DIALOG(1),
-					     TAG_END()));
 
   TEST_1(nta_agent_add_tport(ag->ag_agent, (url_string_t *)url, 
 			     TAG_END()) == 0);
@@ -867,16 +868,61 @@ int test_tports(agent_t *ag)
 
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
     TEST_1(ag->ag_request);
+
+    msg_destroy(ag->ag_request), ag->ag_request = NULL;
 
     TEST_1(ag->ag_out_via->v_comp == NULL);
 
     nta_leg_bind(ag->ag_default_leg, leg_callback_200, ag);
   }
 
-  /* Test 0.1.1
+  {
+    /* Test 0.1.2: test url_headers
+     *
+     * Send a message from default leg to default leg.
+     */
+    url_t url[1];
+    sip_t *sip;
+    
+    *url = *ag->ag_contact->m_url;
+    /* Test that method parameter is stripped and headers in query are used */
+    url->url_params = "method=MESSAGE;user=IP";
+    url->url_headers = "organization=United%20Testers";
+    ag->ag_expect_leg = ag->ag_default_leg;
+    su_free(ag->ag_home, (void *)ag->ag_out_via), ag->ag_out_via = NULL;
+
+    TEST_1(ag->ag_orq = 
+	  nta_outgoing_tcreate(ag->ag_default_leg, 
+			       outgoing_callback, ag,
+			       ag->ag_obp,
+			       SIP_METHOD_MESSAGE,
+			       (url_string_t *)url,
+			       SIPTAG_SUBJECT_STR("Test 0.1.2"),
+			       SIPTAG_FROM(ag->ag_alice),
+			       SIPTAG_TO(ag->ag_bob),
+			       SIPTAG_CONTACT(ag->ag_m_alice),
+			       TAG_END()));
+
+    nta_test_run(ag);
+    TEST(ag->ag_status, 200);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_1(ag->ag_request);
+    TEST_1(sip = sip_object(ag->ag_request));
+
+    TEST_1(sip->sip_organization);
+    TEST_S(sip->sip_organization->g_string, "United Testers");
+    TEST_S(sip->sip_request->rq_url->url_params, "user=IP");
+    
+    TEST_1(ag->ag_out_via->v_comp == NULL);
+
+    nta_leg_bind(ag->ag_default_leg, leg_callback_200, ag);
+  }
+
+  /* Test 0.1.3
    * Send a message from Bob to Alice using SIGCOMP and TCP
    */
   if (tcp_comp) {
@@ -902,7 +948,7 @@ int test_tports(agent_t *ag)
 				SIP_METHOD_MESSAGE,
 				(url_string_t *)url,
 				NTATAG_COMP("sigcomp"),
-				SIPTAG_SUBJECT_STR("Test 0.1.1"),
+				SIPTAG_SUBJECT_STR("Test 0.1.3"),
 				SIPTAG_FROM(ag->ag_bob),
 				SIPTAG_TO(ag->ag_alice),
 				SIPTAG_CONTACT(ag->ag_m_bob),
@@ -914,8 +960,8 @@ int test_tports(agent_t *ag)
     TEST(ag->ag_status, 200);
     TEST_1(ag->ag_client_compartment);
     nta_compartment_decref(&ag->ag_client_compartment);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_server_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
     TEST_S(ag->ag_out_via->v_comp, "sigcomp");
   }
 
@@ -952,8 +998,8 @@ int test_tports(agent_t *ag)
 
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_server_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
   }
 
   /* Test 0.3
@@ -986,8 +1032,8 @@ int test_tports(agent_t *ag)
 
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_server_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
   }
 
   /* Test 0.4.1:
@@ -1021,8 +1067,8 @@ int test_tports(agent_t *ag)
 
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_server_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
     TEST_1(ag->ag_out_via);
     TEST_1(strcasecmp(ag->ag_out_via->v_protocol, "SIP/2.0/TCP") == 0 ||
 	   strcasecmp(ag->ag_out_via->v_protocol, "SIP/2.0/SCTP") == 0);
@@ -1065,8 +1111,8 @@ int test_tports(agent_t *ag)
 
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
     TEST_1(ag->ag_in_via);
     TEST_1(strcasecmp(ag->ag_in_via->v_protocol, "SIP/2.0/UDP") == 0);
     su_free(ag->ag_home, ag->ag_in_via), ag->ag_in_via = NULL;
@@ -1105,8 +1151,8 @@ int test_tports(agent_t *ag)
 
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_server_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
     TEST_1(ag->ag_out_via);
     TEST_S(ag->ag_out_via->v_protocol, "SIP/2.0/UDP");
   }
@@ -1146,8 +1192,8 @@ int test_tports(agent_t *ag)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_server_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
 
     nta_agent_set_params(ag->ag_agent, 
 			 NTATAG_USER_VIA(0),
@@ -1189,8 +1235,8 @@ int test_tports(agent_t *ag)
 
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_server_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
   }
 
   /* Test 0.8: Send a too large message */
@@ -1225,8 +1271,8 @@ int test_tports(agent_t *ag)
 
     nta_test_run(ag);
     TEST(ag->ag_status, 413);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, NULL);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, NULL);
 
     nta_agent_set_params(ag->ag_agent, 
 			 NTATAG_MAXSIZE(2 * 1024 * 1024),
@@ -1267,8 +1313,8 @@ int test_tports(agent_t *ag)
 
     nta_test_run(ag);
     TEST(ag->ag_status, 408);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, NULL);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, NULL);
 
     nta_agent_set_params(ag->ag_agent,
 			 NTATAG_SIP_T1(500),
@@ -1332,8 +1378,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
   }
 
   {
@@ -1354,8 +1400,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
   }
 
   {
@@ -1376,8 +1422,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
   }
 
   {
@@ -1398,8 +1444,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
 
   }
 
@@ -1421,8 +1467,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 503);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
   }
 
   {
@@ -1443,8 +1489,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
   }
 
   {
@@ -1467,8 +1513,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
   }
 
   {
@@ -1491,8 +1537,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
     url->url_params = NULL;
   }
 
@@ -1516,8 +1562,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
     url->url_params = NULL;
   }
 
@@ -1541,8 +1587,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
     url->url_params = NULL;
   }
 
@@ -1566,8 +1612,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 503);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
   }
 
   {
@@ -1590,8 +1636,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
     url->url_port = NULL;
   }
 
@@ -1640,8 +1686,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
     url->url_params = NULL;
   }
 
@@ -2049,8 +2095,8 @@ int test_routing(agent_t *ag)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_default_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
   }
 
   END();
@@ -2092,8 +2138,8 @@ int test_dialog(agent_t *ag)
 			     TAG_END()));
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, ag->ag_server_leg);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
   TEST_1(ag->ag_bob_leg != NULL);
 
   nta_leg_bind(ag->ag_server_leg, leg_callback_200, ag);
@@ -2109,8 +2155,8 @@ int test_dialog(agent_t *ag)
       		       TAG_END()));
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, ag->ag_alice_leg);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_alice_leg);
 
   /* Send again message from Alice to Bob */
   ag->ag_expect_leg = ag->ag_bob_leg;
@@ -2123,8 +2169,8 @@ int test_dialog(agent_t *ag)
       		       TAG_END()));
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, ag->ag_bob_leg);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_bob_leg);
 
   /* Send message from Bob to Alice
    * This time, however, specify request URI 
@@ -2140,8 +2186,8 @@ int test_dialog(agent_t *ag)
       			 TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 200);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, ag->ag_alice_leg);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, ag->ag_alice_leg);
   }
 
   nta_leg_destroy(ag->ag_alice_leg), ag->ag_alice_leg = NULL;
@@ -2165,7 +2211,7 @@ int test_for_ack(agent_t *ag,
   method = sip ? sip->sip_request->rq_method : sip_method_unknown;
 
   nta_incoming_destroy(irq);
-  TEST(irq, ag->ag_irq);
+  TEST_P(irq, ag->ag_irq);
   ag->ag_irq = NULL;
 
   TEST(method, sip_method_ack);
@@ -2260,7 +2306,7 @@ int alice_leg_callback(agent_t *ag,
   if (sip->sip_request->rq_method == sip_method_bye) {
     leg_zap(ag, leg);
   }
-
+  if (sip)
   return 200;
 
   END();
@@ -2313,8 +2359,10 @@ int bob_leg_callback(agent_t *ag,
 			      sip->sip_contact), 0);
   }
 
-  if (sip->sip_request->rq_method == sip_method_invite) {
-    nta_incoming_bind(irq, test_for_ack, ag); 
+  if (sip->sip_request->rq_method != sip_method_invite) {
+    return 200;
+  } else {
+	nta_incoming_bind(irq, test_for_ack, ag); 
 #if 1
     nta_incoming_treply(irq,
 			SIP_180_RINGING,
@@ -2332,9 +2380,6 @@ int bob_leg_callback(agent_t *ag,
 			SIPTAG_CONTACT(ag->ag_m_bob),
 			TAG_END());
     ag->ag_irq = irq;
-    return 0;
-  } else {
-    return 200;
   }
 
   END();
@@ -2406,8 +2451,6 @@ int outgoing_invite_callback(agent_t *ag,
   nta_outgoing_destroy(orq);
   ag->ag_orq = NULL;
   ag->ag_call_leg = NULL;
-  return 0;
-
   END();
 }
 
@@ -2459,16 +2502,16 @@ int test_call(agent_t *ag)
 
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, ag->ag_server_leg);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
   TEST_1(ag->ag_bob_leg != NULL);
 
   TEST_1(r1 = nta_leg_make_replaces(ag->ag_alice_leg, ag->ag_home, 0));
   TEST_1(r2 = sip_replaces_format(ag->ag_home, "%s;from-tag=%s;to-tag=%s",
 				  r1->rp_call_id, r1->rp_to_tag, r1->rp_from_tag));
 
-  TEST(ag->ag_alice_leg, nta_leg_by_replaces(ag->ag_agent, r2));
-  TEST(ag->ag_bob_leg, nta_leg_by_replaces(ag->ag_agent, r1));
+  TEST_P(ag->ag_alice_leg, nta_leg_by_replaces(ag->ag_agent, r2));
+  TEST_P(ag->ag_bob_leg, nta_leg_by_replaces(ag->ag_agent, r1));
 
   /* Re-INVITE from Bob to Alice.
    *
@@ -2490,8 +2533,8 @@ int test_call(agent_t *ag)
 			     TAG_END()));
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, ag->ag_alice_leg);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_alice_leg);
 
   nta_agent_set_params(ag->ag_agent, 
 		       NTATAG_DEBUG_DROP_PROB(0),
@@ -2514,9 +2557,9 @@ int test_call(agent_t *ag)
 
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, old_leg);
-  TEST(ag->ag_alice_leg, NULL);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, old_leg);
+  TEST_P(ag->ag_alice_leg, NULL);
 
   nta_leg_destroy(ag->ag_bob_leg), ag->ag_bob_leg = NULL;
   ag->ag_latest_leg = NULL;
@@ -2536,21 +2579,23 @@ int test_for_ack_or_timeout(agent_t *ag,
 
   sip_method_t method = sip ? sip->sip_request->rq_method : sip_method_unknown;
 
-  nta_incoming_destroy(irq);
-  TEST(irq, ag->ag_irq);
-  ag->ag_irq = NULL;
-
-  if (sip) {
+  if (method == sip_method_ack) {
     TEST(method, sip_method_ack);
   
     ag->ag_status = 200;
+  }
+  else if (method == sip_method_cancel) {
+    nta_incoming_treply(irq, SIP_487_REQUEST_CANCELLED, TAG_END());
   }
   else {
     if (ag->ag_bob_leg) {
       nta_leg_destroy(ag->ag_bob_leg), ag->ag_bob_leg = NULL;
     }
   }
-  return 0;
+
+  nta_incoming_destroy(irq);
+  TEST_P(irq, ag->ag_irq);
+  ag->ag_irq = NULL;
 
   END();
 }
@@ -2599,7 +2644,9 @@ int bob_leg_callback2(agent_t *ag,
 			      sip->sip_contact), 0);
   }
 
-  if (sip->sip_request->rq_method == sip_method_invite) {
+  if (sip->sip_request->rq_method != sip_method_invite) {
+    return 200;
+  } else {
     nta_incoming_bind(irq, test_for_ack_or_timeout, ag); 
     nta_incoming_treply(irq,
 			SIP_183_SESSION_PROGRESS,
@@ -2619,13 +2666,11 @@ int bob_leg_callback2(agent_t *ag,
 			SIPTAG_CONTACT(ag->ag_m_bob),
 			TAG_END());
     ag->ag_irq = irq;
-    return 0;
-  } else {
-    return 200;
   }
 
   END();
 }
+
 
 int invite_prack_callback(agent_t *ag,
 			  nta_outgoing_t *orq,
@@ -2716,6 +2761,143 @@ int invite_prack_callback(agent_t *ag,
   END();
 }
 
+static int process_prack(nta_reliable_magic_t *arg,
+			 nta_reliable_t *rel,
+			 nta_incoming_t *irq,
+			 sip_t const *sip)
+{
+  agent_t *ag = (agent_t *)arg;
+  if (ag->ag_irq) {
+    nta_incoming_treply(ag->ag_irq, 
+			504, "Reliable Response Timeout",
+			TAG_END());
+    nta_incoming_destroy(ag->ag_irq);
+  }
+  return 504;
+}
+
+/* send invite, wait for 183, send CANCEL */
+int bob_leg_callback3(agent_t *ag,
+		      nta_leg_t *leg,
+		      nta_incoming_t *irq,
+		      sip_t const *sip)
+{
+  BEGIN();
+
+  if (tstflags & tst_verbatim) {
+    printf("%s: %s: %s " URL_PRINT_FORMAT " %s\n",
+	   name, __func__, sip->sip_request->rq_method_name, 
+	   URL_PRINT_ARGS(sip->sip_request->rq_url),
+	   sip->sip_request->rq_version);
+  }
+
+  TEST_1(sip->sip_content_length);
+  TEST_1(sip->sip_via);
+  TEST_1(sip->sip_from && sip->sip_from->a_tag);
+
+  ag->ag_latest_leg = leg;
+
+  if (ag->ag_bob_leg && leg != ag->ag_bob_leg) {
+    leg_match(ag, leg, 1, __func__);
+    return 500;
+  }
+
+  if (ag->ag_bob_leg == NULL) {
+    nta_leg_bind(leg, leg_callback_500, ag);
+    ag->ag_bob_leg = nta_leg_tcreate(ag->ag_agent,
+				     bob_leg_callback,
+				     ag,
+				     SIPTAG_CALL_ID(sip->sip_call_id),
+				     SIPTAG_FROM(sip->sip_to),
+				     SIPTAG_TO(sip->sip_from),
+				     TAG_END());
+    TEST_1(ag->ag_bob_leg);
+    TEST_1(nta_leg_tag(ag->ag_bob_leg, NULL));
+    TEST_1(nta_leg_get_tag(ag->ag_bob_leg));
+    TEST_1(nta_incoming_tag(irq, nta_leg_get_tag(ag->ag_bob_leg)));
+    TEST(nta_leg_server_route(ag->ag_bob_leg, 
+			      sip->sip_record_route, 
+			      sip->sip_contact), 0);
+  }
+
+  if (sip->sip_request->rq_method != sip_method_invite) {
+    return 200;
+  } else {
+    nta_reliable_t *rel;
+    nta_incoming_bind(irq, test_for_ack_or_timeout, ag);
+    rel = nta_reliable_treply(irq, process_prack, ag,
+			      SIP_183_SESSION_PROGRESS,
+			      SIPTAG_CONTENT_TYPE(ag->ag_content_type),
+			      SIPTAG_PAYLOAD(ag->ag_payload),
+			      SIPTAG_CONTACT(ag->ag_m_bob),
+			      TAG_END());
+    ag->ag_irq = irq;
+  }
+
+  END();
+}
+
+
+int invite_183_cancel_callback(agent_t *ag,
+			       nta_outgoing_t *orq,
+			       sip_t const *sip)
+{
+  BEGIN();
+
+  int status = sip->sip_status->st_status;
+
+  if (tstflags & tst_verbatim) {
+    printf("%s: %s: %s %03d %s\n", name, __func__, 
+	   sip->sip_status->st_version, 
+	   sip->sip_status->st_status, 
+	   sip->sip_status->st_phrase);
+  }
+
+  if (status > 100 && status < 200) {
+    nta_outgoing_cancel(orq);
+    return 0;
+  }
+
+  if (status < 200)
+    return 0;
+
+  if (status < 300) {
+    nta_outgoing_t *ack;
+    msg_t *msg;
+    sip_t *osip;
+
+    TEST_1(msg = nta_outgoing_getrequest(orq));
+    TEST_1(osip = sip_object(msg));
+
+    TEST_1(nta_leg_rtag(ag->ag_call_leg, sip->sip_to->a_tag));
+    
+    TEST(nta_leg_client_route(ag->ag_call_leg, 
+			      sip->sip_record_route,
+			      sip->sip_contact), 0);
+
+    ack = nta_outgoing_tcreate(ag->ag_call_leg, NULL, NULL,
+			       NULL,
+			       SIP_METHOD_ACK,
+			       NULL,
+			       SIPTAG_CSEQ(sip->sip_cseq),
+			       NTATAG_ACK_BRANCH(osip->sip_via->v_branch),
+			       TAG_END());
+    TEST_1(ack);
+    nta_outgoing_destroy(ack);
+    msg_destroy(msg);
+  }
+  else {
+    ag->ag_status = status;
+  }
+
+  TEST_1(sip->sip_to && sip->sip_to->a_tag);
+
+  nta_outgoing_destroy(orq);
+  ag->ag_orq = NULL;
+  ag->ag_call_leg = NULL;
+
+  END();
+}
 
 /*
  * Test establishing a call with an early dialog / 100 rel / timeout
@@ -2755,11 +2937,10 @@ int test_prack(agent_t *ag)
 			       TAG_END()));
     nta_test_run(ag);
     TEST(ag->ag_status, 481);
-    TEST(ag->ag_orq, NULL);
-    TEST(ag->ag_latest_leg, NULL);
+    TEST_P(ag->ag_orq, NULL);
+    TEST_P(ag->ag_latest_leg, NULL);
   }
 
-  {
   TEST_1(ag->ag_alice_leg = nta_leg_tcreate(ag->ag_agent, 
 					   alice_leg_callback,
 					   ag,
@@ -2786,8 +2967,8 @@ int test_prack(agent_t *ag)
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
   /*TEST(ag->ag_tag_status, 183);*/
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, ag->ag_server_leg);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
   TEST_1(ag->ag_bob_leg != NULL);
 
   /* Send BYE from Bob to Alice */
@@ -2807,16 +2988,49 @@ int test_prack(agent_t *ag)
 
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, old_leg);
-  TEST(ag->ag_alice_leg, NULL);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, old_leg);
+  TEST_P(ag->ag_alice_leg, NULL);
 
   nta_leg_destroy(ag->ag_bob_leg), ag->ag_bob_leg = NULL;
   ag->ag_latest_leg = NULL;
   ag->ag_call_leg = NULL;
-  }
 
-  if (0) {
+  /* Test CANCELing a call after received PRACK */
+  TEST_1(ag->ag_alice_leg = nta_leg_tcreate(ag->ag_agent, 
+					   alice_leg_callback,
+					   ag,
+					   SIPTAG_FROM(ag->ag_alice),
+					   SIPTAG_TO(ag->ag_bob),
+					   TAG_END()));
+  TEST_1(nta_leg_tag(ag->ag_alice_leg, NULL));
+
+  /* Send INVITE */
+  nta_leg_bind(ag->ag_server_leg, bob_leg_callback3, ag);
+  ag->ag_expect_leg = ag->ag_server_leg;
+  TEST_1(ag->ag_orq = 
+	 nta_outgoing_tcreate(ag->ag_call_leg = ag->ag_alice_leg, 
+			      invite_183_cancel_callback, ag,
+			      ag->ag_obp,
+			      SIP_METHOD_INVITE,
+			      (url_string_t *)ag->ag_m_bob->m_url,
+			      SIPTAG_SUBJECT_STR("Call 2b"),
+			      SIPTAG_CONTACT(ag->ag_m_alice),
+			      SIPTAG_REQUIRE_STR("100rel"),
+			      SIPTAG_CONTENT_TYPE(c),
+			      SIPTAG_PAYLOAD(sdp),
+			      TAG_END()));
+  nta_test_run(ag);
+  TEST_1(ag->ag_status == 487 || ag->ag_status == 504);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
+  TEST_1(ag->ag_bob_leg != NULL);
+
+  nta_leg_destroy(ag->ag_bob_leg), ag->ag_bob_leg = NULL;
+  ag->ag_latest_leg = NULL;
+  ag->ag_call_leg = NULL;
+
+  if (getenv("EXPENSIVE_CHECKS")) {
   printf("%s: starting 100rel timeout test, test will complete in 4 seconds\n",
 	 name);
   
@@ -2854,8 +3068,8 @@ int test_prack(agent_t *ag)
 			      TAG_END()));
   nta_test_run(ag);
   TEST(ag->ag_status, 503);
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, ag->ag_server_leg);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
   TEST_1(ag->ag_bob_leg == NULL);
 
   TEST(nta_agent_set_params(ag->ag_agent, 
@@ -2864,12 +3078,13 @@ int test_prack(agent_t *ag)
 			    TAG_END()), 2);
   }
   END();
-
+/*
   nta_leg_destroy(ag->ag_bob_leg), ag->ag_bob_leg = NULL;
   ag->ag_latest_leg = NULL;
   ag->ag_call_leg = NULL;
   if (ag->ag_call_tag)
     su_free(ag->ag_home, (void *)ag->ag_call_tag), ag->ag_call_tag = NULL;
+*/
 }
 
 int alice_leg_callback2(agent_t *ag,
@@ -2940,7 +3155,8 @@ int alice_leg_callback2(agent_t *ag,
     leg_zap(ag, leg);
   }
 
-  return 200;
+  if(sip)
+	return 200;
 
   END();
 }
@@ -2988,8 +3204,8 @@ int test_fix_467(agent_t *ag)
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
   /*TEST(ag->ag_tag_status, 183);*/
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, ag->ag_server_leg);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
   TEST_1(ag->ag_bob_leg != NULL);
 
   /* Send BYE from Bob to Alice */
@@ -3010,15 +3226,16 @@ int test_fix_467(agent_t *ag)
   
   nta_test_run(ag);
   TEST(ag->ag_status, 200);
-  TEST(ag->ag_orq, NULL);
-  TEST(ag->ag_latest_leg, old_leg);
-  TEST(ag->ag_alice_leg, NULL);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, old_leg);
+  TEST_P(ag->ag_alice_leg, NULL);
 
   END();
-
+/*
   nta_leg_destroy(ag->ag_bob_leg), ag->ag_bob_leg = NULL;
   ag->ag_latest_leg = NULL;
   ag->ag_call_leg = NULL;
+*/
 }
 
 #if HAVE_ALARM
@@ -3145,6 +3362,7 @@ int main(int argc, char *argv[])
   retval |= test_init(ag, argv[i]); SINGLE_FAILURE_CHECK();
   if (retval == 0) {
     retval |= test_bad_messages(ag); SINGLE_FAILURE_CHECK();
+    retval |= test_reinit(ag); SINGLE_FAILURE_CHECK();
     retval |= test_tports(ag); SINGLE_FAILURE_CHECK();
     retval |= test_resolv(ag, argv[i]); SINGLE_FAILURE_CHECK();
     retval |= test_routing(ag); SINGLE_FAILURE_CHECK();

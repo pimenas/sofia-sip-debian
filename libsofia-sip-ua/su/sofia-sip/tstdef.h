@@ -114,7 +114,7 @@
  *
  *   // Check max bandwidth
  *   TEST_D(max_bandwidth(), DBL_MAX);
- * 
+ *
  *   END();
  * }
  * @endcode
@@ -136,7 +136,9 @@ SOFIA_BEGIN_DECLS
 
 enum {
   /** If (TSTFLAGS & tst_verbatim) is non-zero, be verbatim. */
-  tst_verbatim = 1
+  tst_verbatim = 1,
+  /** If (TSTFLAGS & tst_abort) is non-zero, abort() when failed. */
+  tst_abort = 2,
 };
 
 #ifndef TSTFLAGS
@@ -158,6 +160,8 @@ enum {
 #define TEST_VOID(suite) TEST_VOID_(TSTFLAGS, suite)
 /** Test that @a suite is equal to @a expected. @HIDE */
 #define TEST(suite, expected) TEST_(TSTFLAGS, suite, expected)
+/** Test that @a suite is same pointer as @a expected. @HIDE */
+#define TEST_P(suite, expected) TEST_P_(TSTFLAGS, suite, expected)
 /** Test that 64-bit @a suite is equal to @a expect. @HIDE */
 #define TEST64(suite, expected) TEST64_(TSTFLAGS, suite, expected)
 /** Test that @a suite is same double as @a expected. @HIDE */
@@ -166,6 +170,9 @@ enum {
 #define TEST_S(suite, expected) TEST_S_(TSTFLAGS, suite, expected)
 /** Test that @a suite is results as identical memory as @a expected. @HIDE */
 #define TEST_M(suite, expected, len) TEST_M_(TSTFLAGS, suite, expected, len)
+/** Test that @a suite has same size as @a expected. @HIDE */
+#define TEST_SIZE(suite, expected) TEST_SIZE_(TSTFLAGS, suite, expected)
+
 #else
 /* Deprecated */
 #define TEST0(flags, suite) TEST_1_(flags, suite)
@@ -178,6 +185,9 @@ enum {
 #define END(flags) (void) tstdef_dummy;  } END_(flags) 
 #endif
 
+#define TEST_FAILED(flags) \
+  ((flags) & tst_abort) ? abort() : (void)0; return 1
+
 /** @HIDE */
 #define TEST_1_(flags, suite) do { \
   if (flags & tst_verbatim) { \
@@ -186,7 +196,8 @@ enum {
   if ((suite)) { if (flags & tst_verbatim) \
   printf("%s: %s%sok: (%s)\n", TSTNAME, #suite); break ; } \
   fprintf(stderr, "%s:%u: %s %s%sFAILED: (%s)\n", \
-          __FILE__, __LINE__, TSTNAME, #suite); fflush(stderr); return 1; } \
+          __FILE__, __LINE__, TSTNAME, #suite); fflush(stderr); \
+  TEST_FAILED(flags); }						\
   while(0)
 
 /** @HIDE */
@@ -197,19 +208,60 @@ enum {
   (suite); } while(0)
 
 /** @HIDE */
-#define TEST_(flags, suite, expect) do { \
-  unsigned long _value, _expect; \
+#define TEST_(flags, suite, expect) do {				\
+    uintptr_t _value, _expect;						\
+    if (flags & tst_verbatim) {						\
+      printf("%s: %s%stesting %s == %s\n", TSTNAME, #suite, #expect);	\
+      fflush(stdout); }							\
+    _value = (uintptr_t)(suite);					\
+    _expect = (uintptr_t)(expect);					\
+    if (_value == _expect) {						\
+      if (flags & tst_verbatim)						\
+	printf("%s: %s%sok: %s == %s \n",				\
+	       TSTNAME, #suite, #expect);				\
+      break;								\
+    }									\
+    fprintf(stderr, "%s:%u: %s %s%sFAILED: "				\
+	    "%s != %s or "MOD_ZU" != "MOD_ZU"\n",			\
+	    __FILE__, __LINE__, TSTNAME,				\
+	    #suite, #expect, (size_t)_value, (size_t)_expect);		\
+    fflush(stderr);							\
+    TEST_FAILED(flags);							\
+  } while(0)
+
+/** @HIDE */
+#define TEST_P_(flags, suite, expect) do {				\
+    void const * _value, * _expect;					\
+  if (flags & tst_verbatim) {						\
+    printf("%s: %s%stesting %s == %s\n", TSTNAME, #suite, #expect);	\
+    fflush(stdout); }							\
+  if ((_value = (suite)) == (_expect = (expect))) {			\
+    if (flags & tst_verbatim)						\
+      printf("%s: %s%sok: %s == %s \n", TSTNAME, #suite, #expect);	\
+    break;								\
+  }									\
+  fprintf(stderr, "%s:%u: %s %s%sFAILED: %s != %s or %p != %p\n",	\
+	  __FILE__, __LINE__, TSTNAME,					\
+	  #suite, #expect, _value, _expect); fflush(stderr);		\
+  TEST_FAILED(flags);							\
+  } while(0)
+
+/** @HIDE */
+#define TEST_SIZE_(flags, suite, expect) do {	\
+  size_t _value, _expect; \
   if (flags & tst_verbatim) { \
     printf("%s: %s%stesting %s == %s\n", TSTNAME, #suite, #expect); \
     fflush(stdout); } \
-  if ((_value = (unsigned long)(suite)) == \
-      (_expect = (unsigned long)(expect))) \
+  if ((_value = (size_t)(suite)) == \
+      (_expect = (size_t)(expect))) \
   { if (flags & tst_verbatim) \
   printf("%s: %s%sok: %s == %s \n", TSTNAME, #suite, #expect); break; } \
-  fprintf(stderr, "%s:%u: %s %s%sFAILED: %s != %s or %lu != %lu\n", \
+  fprintf(stderr, "%s:%u: %s %s%sFAILED: %s != %s or "MOD_ZU" != "MOD_ZU"\n", \
 	 __FILE__, __LINE__, TSTNAME, \
-         #suite, #expect, _value, _expect); fflush(stderr); return 1; } \
-  while(0)
+	  #suite, #expect, _value, _expect); fflush(stderr);		\
+  TEST_FAILED(flags);							\
+  } while(0)
+
 
 /** @HIDE */
 #define TEST64_(flags, suite, expect) do { \
@@ -224,7 +276,7 @@ enum {
 	 __FILE__, __LINE__, TSTNAME, \
 	  #suite, #expect, (unsigned longlong)_value,	\
 	 (unsigned longlong)_expect); fflush(stderr);	\
-    return 1; \
+  TEST_FAILED(flags);					\
   } while(0)
 
 /** @HIDE */
@@ -239,7 +291,7 @@ enum {
   fprintf(stderr, "%s:%u: %s %s%sFAILED: %s != %s or %g != %g\n", \
 	 __FILE__, __LINE__, TSTNAME, \
          #suite, #expect, _value, _expect); fflush(stderr); \
-    return 1; \
+  TEST_FAILED(flags);					    \
   } while(0)
 
 /** @HIDE */
@@ -254,10 +306,13 @@ enum {
       (_value != NULL && _expect != NULL && strcmp(_value, _expect) == 0)) \
   { if (flags & tst_verbatim) \
   printf("%s: %s%sok: %s == %s \n", TSTNAME, #suite, #expect);break;}\
-  fprintf(stderr, "%s:%u: %s %s%sFAILED: %s != %s or \"%s\" != \"%s\"\n", \
+  fprintf(stderr, "%s:%u: %s %s%sFAILED: %s != %s or %s%s%s != \"%s\"\n", \
 	 __FILE__, __LINE__, TSTNAME, \
-         #suite, #expect, _value, _expect); fflush(stderr); return 1; } \
-  while(0)
+	  #suite, #expect, \
+	  _value ? "\"" : "", _value ? _value : "NULL", _value ? "\"" : "", \
+	  _expect); fflush(stderr);					\
+  TEST_FAILED(flags);							\
+  } while(0)
 
 /** @HIDE */
 #define TEST_M_(flags, suite, expect, len) do { \
@@ -277,8 +332,9 @@ enum {
                   "or \"%.*s\" != \"%.*s\"\n", \
 	 __FILE__, __LINE__, TSTNAME, \
 	  #suite, #expect, _len, (char *)_value, _len, (char *)_expect); \
-  fflush(stderr); return 1; } \
-  while(0)
+  fflush(stderr);							\
+  TEST_FAILED(flags);							\
+  } while(0)
 
 /** @HIDE */
 #define BEGIN_(flags) \

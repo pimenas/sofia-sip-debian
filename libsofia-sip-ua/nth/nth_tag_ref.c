@@ -55,3 +55,6 @@ EXPORT tag_typedef_t nthtag_root_ref =
 extern tag_typedef_t nthtag_strict_host;
 EXPORT tag_typedef_t nthtag_strict_host_ref = 
   REFTAG_TYPEDEF(nthtag_strict_host);
+extern tag_typedef_t nthtag_auth_module;
+EXPORT tag_typedef_t nthtag_auth_module_ref = 
+  REFTAG_TYPEDEF(nthtag_auth_module);

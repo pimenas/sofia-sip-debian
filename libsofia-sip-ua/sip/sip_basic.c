@@ -351,7 +351,7 @@ char *sip_status_dup_one(sip_header_t *dst, sip_header_t const *src,
   st->st_status = o->st_status;
   MSG_STRING_DUP(b, st->st_phrase, o->st_phrase);
 
-  assert(b <= end);
+  assert(b <= end); (void)end;
 
   return b;
 }
@@ -655,6 +655,9 @@ issize_t sip_name_addr_d(su_home_t *home,
   char *display = NULL, *addr_spec = NULL;
   size_t n;
 
+  if (*s == '\0')		/* Empty string */
+    return -1;
+  
   if (return_display && *s == '"') {
     /* Quoted string */
     if (msg_quoted_d(&s, &display) == -1)
@@ -696,7 +699,7 @@ issize_t sip_name_addr_d(su_home_t *home,
        * @RFC3261 section 20.10.
        */
       if (return_params)
-	n = strcspn(s, " ,;?");	/* DO NOT accept ,;? in URL */
+	n = strcspn(s, " \t,;?");	/* DO NOT accept ,;? in URL */
       else
 	/* P-Asserted-Identity and friends */
 	n = strcspn(s, " ,"); /* DO NOT accept , in URL */
@@ -1039,7 +1042,7 @@ char *sip_call_id_dup_one(sip_header_t *dst, sip_header_t const *src,
   MSG_STRING_DUP(b, i->i_id, o->i_id);
   if (!(i->i_hash = o->i_hash))
     i->i_hash = msg_hash_string(i->i_id);
-  assert(b <= end);
+  assert(b <= end); (void)end;
 
   return b;
 }
@@ -1189,7 +1192,7 @@ char *sip_cseq_dup_one(sip_header_t *dst, sip_header_t const *src,
     cs->cs_method_name = o->cs_method_name;
   cs->cs_seq = o->cs_seq;
 
-  assert(b <= end);
+  assert(b <= end); (void)end;
 
   return b;
 }
@@ -1332,40 +1335,18 @@ issize_t sip_contact_d(su_home_t *home,
 		       char *s,
 		       isize_t slen)
 {
-  sip_header_t **hh = &h->sh_succ, *h0 = h;
-  sip_contact_t *m = h->sh_contact;
+  sip_contact_t *m = (sip_contact_t *)h;
 
   assert(h);
 
-  for (;*s;) {
-    /* Ignore empty entries (comma-whitespace) */
-    if (*s == ',') { *s++ = '\0'; skip_lws(&s); continue; }
+  while (*s == ',')   /* Ignore empty entries (comma-whitespace) */
+    *s = '\0', s += span_lws(s + 1) + 1;
 
-    if (!h) {
-      /* If there are multiple contacts on one line 
-       * we must allocate next header structure */
-      if (!(h = sip_header_alloc(home, h0->sh_class, 0)))
-	return -1;
-      *hh = h; h->sh_prev = hh; hh = &h->sh_succ; 
-      m = m->m_next = h->sh_contact;
-    }
-
-    if (sip_name_addr_d(home, &s, &m->m_display, m->m_url,
-			&m->m_params, &m->m_comment) == -1)
-      return -1;
-    if (*s != '\0' && *s != ',')
-      return -1;
-
-    if (m->m_params) 
-      msg_header_update_params(m->m_common, 0);
-
-    h = NULL;
-  }
-
-  if (h)		/* Empty list is an error */
+  if (sip_name_addr_d(home, &s, &m->m_display, m->m_url, 
+		      &m->m_params, &m->m_comment) == -1)
     return -1;
 
-  return 0;
+  return msg_parse_next_field(home, h, s, slen);
 }
 
 
@@ -1373,6 +1354,7 @@ issize_t sip_contact_e(char b[], isize_t bsiz, sip_header_t const *h, int flags)
 {
   sip_contact_t const *m = h->sh_contact;
   int always_lt_gt = MSG_IS_CANONIC(flags) && m->m_url->url_type != url_any;
+
   assert(sip_is_contact(h));
 
   return sip_name_addr_e(b, bsiz, flags,
@@ -2031,7 +2013,7 @@ char *sip_retry_after_dup_one(sip_header_t *dst,
   MSG_STRING_DUP(b, af->af_comment, o->af_comment);
   af->af_delta = o->af_delta;
 
-  assert(b <= end);
+  assert(b <= end); (void)end;
 
   return b;
 }
@@ -2066,39 +2048,18 @@ issize_t sip_any_route_d(su_home_t *home,
 			 char *s,
 			 isize_t slen)
 {
-  sip_header_t **hh = &h->sh_succ, *h0 = h;
-  sip_route_t *r = h->sh_route;
+  sip_route_t *r = (sip_route_t *)h;
 
   assert(h);
 
-  /* Loop through comma-separated list of route headers.. */
+  while (*s == ',')   /* Ignore empty entries (comma-whitespace) */
+    *s = '\0', s += span_lws(s + 1) + 1;
 
-  for (;*s;) {
-    /* Ignore empty entries (comma-whitespace) */
-    if (*s == ',') { *s++ = '\0'; skip_lws(&s); continue; }
-
-    if (!h) {
-      if (!(h = sip_header_alloc(home, h0->sh_class, 0)))
-	break;
-      *hh = h; h->sh_prev = hh; hh = &h->sh_succ;
-      r = r->r_next = h->sh_route;
-    }
-
-    r = h->sh_route;
-
-    if (sip_name_addr_d(home, &s, &r->r_display, 
-			r->r_url, &r->r_params, NULL) < 0)
-      return -1;
-    if (*s != '\0' && *s != ',')
-      return -1;
-
-    h = NULL;
-  }
-
-  if (h)		/* Empty list is an error */
+  if (sip_name_addr_d(home, &s, &r->r_display, 
+		      r->r_url, &r->r_params, NULL) < 0)
     return -1;
 
-  return 0;
+  return msg_parse_next_field(home, h, s, slen);
 }
 
 issize_t sip_any_route_e(char b[], isize_t bsiz, sip_header_t const *h, int flags)
@@ -2522,49 +2483,29 @@ SIP_HEADER_CLASS(via, "Via", "v", v_params, prepend, via);
 
 issize_t sip_via_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
-  sip_via_t *v = h->sh_via;
-  sip_header_t *h0 = h;
-  sip_header_t **hh = &h->sh_succ;
+  sip_via_t *v = (sip_via_t *)h;
 
   assert(h);
 
-  for (;*s;) {
-    /* Ignore empty entries (comma-whitespace) */
-    if (*s == ',') { *s++ = '\0'; skip_lws(&s); continue; }
+  while (*s == ',')   /* Ignore empty entries (comma-whitespace) */
+    *s = '\0', s += span_lws(s + 1) + 1;
 
-    if (!h) {      /* Allocate next header structure */
-      if (!(h = sip_header_alloc(home, h0->sh_class, 0)))
-	return -1;
-      *hh = h; h->sh_prev = hh; hh = &h->sh_succ;
-      v = v->v_next = h->sh_via;
-    }
-    
-    /* sent-protocol sent-by *( ";" via-params ) [ comment ] */
-    /* Parse protocol */
-    if (sip_transport_d(&s, &v->v_protocol) == -1)
-      return -1;
-    /* Host (and port) */
-    if (msg_hostport_d(&s, &v->v_host, &v->v_port) == -1)
-      return -1;
-    /* Parameters */
-    if (*s == ';' && msg_params_d(home, &s, &v->v_params) == -1)
-      return -1;
-    /* Comment */
-    if (*s == '(' && msg_comment_d(&s, &v->v_comment) == -1)
-      return -1;
-    if (*s != '\0' && *s != ',')
-      return -1;
+  /* sent-protocol sent-by *( ";" via-params ) [ comment ] */
 
-    if (v->v_params)
-      msg_header_update_params(v->v_common, 0);
-
-    h = NULL;
-  }
-
-  if (h)		/* Empty list */
+  /* Parse protocol */
+  if (sip_transport_d(&s, &v->v_protocol) == -1)
+    return -1;
+  /* Host (and port) */
+  if (msg_hostport_d(&s, &v->v_host, &v->v_port) == -1)
+    return -1;
+  /* Parameters */
+  if (*s == ';' && msg_params_d(home, &s, &v->v_params) == -1)
+    return -1;
+  /* Comment */
+  if (*s == '(' && msg_comment_d(&s, &v->v_comment) == -1)
     return -1;
 
-  return 0;
+  return msg_parse_next_field(home, h, s, slen);
 }
 
 issize_t sip_via_e(char b[], isize_t bsiz, sip_header_t const *h, int flags)
@@ -2624,7 +2565,7 @@ char *sip_via_dup_one(sip_header_t *dst, sip_header_t const *src,
   MSG_STRING_DUP(b, v->v_port, o->v_port);
   MSG_STRING_DUP(b, v->v_comment, o->v_comment);
 
-  assert(b <= end);
+  assert(b <= end); (void)end;
 
   return b;
 }
