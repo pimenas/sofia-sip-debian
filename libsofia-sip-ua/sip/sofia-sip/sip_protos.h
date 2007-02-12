@@ -143,6 +143,7 @@ SOFIAPUBFUN issize_t sip_request_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_REQUEST_INIT() SIP_HDR_INIT(request)
 
@@ -159,6 +160,7 @@ SOFIAPUBFUN issize_t sip_request_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_request_t *sip_request_init(sip_request_t x[1])
@@ -180,6 +182,7 @@ su_inline sip_request_t *sip_request_init(sip_request_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header request 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_request(sip_header_t const *header)
@@ -219,6 +222,7 @@ int sip_is_request(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_request_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -261,6 +265,7 @@ sip_request_t *sip_request_dup(su_home_t *home, sip_request_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -290,6 +295,7 @@ sip_request_t *sip_request_copy(su_home_t *home, sip_request_t const *hdr)
  * @return
  * A pointer to newly maked #sip_request_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -320,6 +326,7 @@ su_inline sip_request_t *sip_request_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -374,6 +381,7 @@ SOFIAPUBFUN issize_t sip_status_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_STATUS_INIT() SIP_HDR_INIT(status)
 
@@ -390,6 +398,7 @@ SOFIAPUBFUN issize_t sip_status_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_status_t *sip_status_init(sip_status_t x[1])
@@ -411,6 +420,7 @@ su_inline sip_status_t *sip_status_init(sip_status_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header status 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_status(sip_header_t const *header)
@@ -450,6 +460,7 @@ int sip_is_status(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_status_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -492,6 +503,7 @@ sip_status_t *sip_status_dup(su_home_t *home, sip_status_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -521,6 +533,7 @@ sip_status_t *sip_status_copy(su_home_t *home, sip_status_t const *hdr)
  * @return
  * A pointer to newly maked #sip_status_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -551,6 +564,7 @@ su_inline sip_status_t *sip_status_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -605,6 +619,7 @@ SOFIAPUBFUN issize_t sip_via_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_VIA_INIT() SIP_HDR_INIT(via)
 
@@ -621,6 +636,7 @@ SOFIAPUBFUN issize_t sip_via_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_via_t *sip_via_init(sip_via_t x[1])
@@ -642,6 +658,7 @@ su_inline sip_via_t *sip_via_init(sip_via_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header via 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_via(sip_header_t const *header)
@@ -681,6 +698,7 @@ int sip_is_via(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_via_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -723,6 +741,7 @@ sip_via_t *sip_via_dup(su_home_t *home, sip_via_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -752,6 +771,7 @@ sip_via_t *sip_via_copy(su_home_t *home, sip_via_t const *hdr)
  * @return
  * A pointer to newly maked #sip_via_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -782,6 +802,7 @@ su_inline sip_via_t *sip_via_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -836,6 +857,7 @@ SOFIAPUBFUN issize_t sip_route_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ROUTE_INIT() SIP_HDR_INIT(route)
 
@@ -852,6 +874,7 @@ SOFIAPUBFUN issize_t sip_route_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_route_t *sip_route_init(sip_route_t x[1])
@@ -873,6 +896,7 @@ su_inline sip_route_t *sip_route_init(sip_route_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header route 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_route(sip_header_t const *header)
@@ -912,6 +936,7 @@ int sip_is_route(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_route_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -954,6 +979,7 @@ sip_route_t *sip_route_dup(su_home_t *home, sip_route_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -983,6 +1009,7 @@ sip_route_t *sip_route_copy(su_home_t *home, sip_route_t const *hdr)
  * @return
  * A pointer to newly maked #sip_route_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1013,6 +1040,7 @@ su_inline sip_route_t *sip_route_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1067,6 +1095,7 @@ SOFIAPUBFUN issize_t sip_record_route_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_RECORD_ROUTE_INIT() SIP_HDR_INIT(record_route)
 
@@ -1083,6 +1112,7 @@ SOFIAPUBFUN issize_t sip_record_route_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_record_route_t *sip_record_route_init(sip_record_route_t x[1])
@@ -1104,6 +1134,7 @@ su_inline sip_record_route_t *sip_record_route_init(sip_record_route_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header record_route 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_record_route(sip_header_t const *header)
@@ -1143,6 +1174,7 @@ int sip_is_record_route(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_record_route_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1185,6 +1217,7 @@ sip_record_route_t *sip_record_route_dup(su_home_t *home, sip_record_route_t con
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1214,6 +1247,7 @@ sip_record_route_t *sip_record_route_copy(su_home_t *home, sip_record_route_t co
  * @return
  * A pointer to newly maked #sip_record_route_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1244,6 +1278,7 @@ su_inline sip_record_route_t *sip_record_route_make(su_home_t *home, char const 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1298,6 +1333,7 @@ SOFIAPUBFUN issize_t sip_max_forwards_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_MAX_FORWARDS_INIT() SIP_HDR_INIT(max_forwards)
 
@@ -1314,6 +1350,7 @@ SOFIAPUBFUN issize_t sip_max_forwards_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_max_forwards_t *sip_max_forwards_init(sip_max_forwards_t x[1])
@@ -1335,6 +1372,7 @@ su_inline sip_max_forwards_t *sip_max_forwards_init(sip_max_forwards_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header max_forwards 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_max_forwards(sip_header_t const *header)
@@ -1374,6 +1412,7 @@ int sip_is_max_forwards(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_max_forwards_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1416,6 +1455,7 @@ sip_max_forwards_t *sip_max_forwards_dup(su_home_t *home, sip_max_forwards_t con
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1445,6 +1485,7 @@ sip_max_forwards_t *sip_max_forwards_copy(su_home_t *home, sip_max_forwards_t co
  * @return
  * A pointer to newly maked #sip_max_forwards_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1475,6 +1516,7 @@ su_inline sip_max_forwards_t *sip_max_forwards_make(su_home_t *home, char const 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1529,6 +1571,7 @@ SOFIAPUBFUN issize_t sip_proxy_require_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_PROXY_REQUIRE_INIT() SIP_HDR_INIT(proxy_require)
 
@@ -1545,6 +1588,7 @@ SOFIAPUBFUN issize_t sip_proxy_require_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_proxy_require_t *sip_proxy_require_init(sip_proxy_require_t x[1])
@@ -1566,6 +1610,7 @@ su_inline sip_proxy_require_t *sip_proxy_require_init(sip_proxy_require_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header proxy_require 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_proxy_require(sip_header_t const *header)
@@ -1605,6 +1650,7 @@ int sip_is_proxy_require(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_proxy_require_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1647,6 +1693,7 @@ sip_proxy_require_t *sip_proxy_require_dup(su_home_t *home, sip_proxy_require_t 
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1676,6 +1723,7 @@ sip_proxy_require_t *sip_proxy_require_copy(su_home_t *home, sip_proxy_require_t
  * @return
  * A pointer to newly maked #sip_proxy_require_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1706,6 +1754,7 @@ su_inline sip_proxy_require_t *sip_proxy_require_make(su_home_t *home, char cons
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1760,6 +1809,7 @@ SOFIAPUBFUN issize_t sip_from_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_FROM_INIT() SIP_HDR_INIT(from)
 
@@ -1776,6 +1826,7 @@ SOFIAPUBFUN issize_t sip_from_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_from_t *sip_from_init(sip_from_t x[1])
@@ -1797,6 +1848,7 @@ su_inline sip_from_t *sip_from_init(sip_from_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header from 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_from(sip_header_t const *header)
@@ -1836,6 +1888,7 @@ int sip_is_from(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_from_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1878,6 +1931,7 @@ sip_from_t *sip_from_dup(su_home_t *home, sip_from_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1907,6 +1961,7 @@ sip_from_t *sip_from_copy(su_home_t *home, sip_from_t const *hdr)
  * @return
  * A pointer to newly maked #sip_from_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1937,6 +1992,7 @@ su_inline sip_from_t *sip_from_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1991,6 +2047,7 @@ SOFIAPUBFUN issize_t sip_to_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_TO_INIT() SIP_HDR_INIT(to)
 
@@ -2007,6 +2064,7 @@ SOFIAPUBFUN issize_t sip_to_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_to_t *sip_to_init(sip_to_t x[1])
@@ -2028,6 +2086,7 @@ su_inline sip_to_t *sip_to_init(sip_to_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header to 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_to(sip_header_t const *header)
@@ -2067,6 +2126,7 @@ int sip_is_to(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_to_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2109,6 +2169,7 @@ sip_to_t *sip_to_dup(su_home_t *home, sip_to_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2138,6 +2199,7 @@ sip_to_t *sip_to_copy(su_home_t *home, sip_to_t const *hdr)
  * @return
  * A pointer to newly maked #sip_to_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -2168,6 +2230,7 @@ su_inline sip_to_t *sip_to_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2222,6 +2285,7 @@ SOFIAPUBFUN issize_t sip_call_id_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_CALL_ID_INIT() SIP_HDR_INIT(call_id)
 
@@ -2238,6 +2302,7 @@ SOFIAPUBFUN issize_t sip_call_id_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_call_id_t *sip_call_id_init(sip_call_id_t x[1])
@@ -2259,6 +2324,7 @@ su_inline sip_call_id_t *sip_call_id_init(sip_call_id_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header call_id 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_call_id(sip_header_t const *header)
@@ -2298,6 +2364,7 @@ int sip_is_call_id(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_call_id_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2340,6 +2407,7 @@ sip_call_id_t *sip_call_id_dup(su_home_t *home, sip_call_id_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2369,6 +2437,7 @@ sip_call_id_t *sip_call_id_copy(su_home_t *home, sip_call_id_t const *hdr)
  * @return
  * A pointer to newly maked #sip_call_id_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -2399,6 +2468,7 @@ su_inline sip_call_id_t *sip_call_id_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2453,6 +2523,7 @@ SOFIAPUBFUN issize_t sip_cseq_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_CSEQ_INIT() SIP_HDR_INIT(cseq)
 
@@ -2469,6 +2540,7 @@ SOFIAPUBFUN issize_t sip_cseq_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_cseq_t *sip_cseq_init(sip_cseq_t x[1])
@@ -2490,6 +2562,7 @@ su_inline sip_cseq_t *sip_cseq_init(sip_cseq_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header cseq 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_cseq(sip_header_t const *header)
@@ -2529,6 +2602,7 @@ int sip_is_cseq(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_cseq_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2571,6 +2645,7 @@ sip_cseq_t *sip_cseq_dup(su_home_t *home, sip_cseq_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2600,6 +2675,7 @@ sip_cseq_t *sip_cseq_copy(su_home_t *home, sip_cseq_t const *hdr)
  * @return
  * A pointer to newly maked #sip_cseq_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -2630,6 +2706,7 @@ su_inline sip_cseq_t *sip_cseq_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2684,6 +2761,7 @@ SOFIAPUBFUN issize_t sip_contact_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_CONTACT_INIT() SIP_HDR_INIT(contact)
 
@@ -2700,6 +2778,7 @@ SOFIAPUBFUN issize_t sip_contact_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_contact_t *sip_contact_init(sip_contact_t x[1])
@@ -2721,6 +2800,7 @@ su_inline sip_contact_t *sip_contact_init(sip_contact_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header contact 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_contact(sip_header_t const *header)
@@ -2760,6 +2840,7 @@ int sip_is_contact(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_contact_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2802,6 +2883,7 @@ sip_contact_t *sip_contact_dup(su_home_t *home, sip_contact_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2831,6 +2913,7 @@ sip_contact_t *sip_contact_copy(su_home_t *home, sip_contact_t const *hdr)
  * @return
  * A pointer to newly maked #sip_contact_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -2861,6 +2944,7 @@ su_inline sip_contact_t *sip_contact_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2915,6 +2999,7 @@ SOFIAPUBFUN issize_t sip_rseq_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_RSEQ_INIT() SIP_HDR_INIT(rseq)
 
@@ -2931,6 +3016,7 @@ SOFIAPUBFUN issize_t sip_rseq_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_rseq_t *sip_rseq_init(sip_rseq_t x[1])
@@ -2952,6 +3038,7 @@ su_inline sip_rseq_t *sip_rseq_init(sip_rseq_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header rseq 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_rseq(sip_header_t const *header)
@@ -2991,6 +3078,7 @@ int sip_is_rseq(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_rseq_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3033,6 +3121,7 @@ sip_rseq_t *sip_rseq_dup(su_home_t *home, sip_rseq_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3062,6 +3151,7 @@ sip_rseq_t *sip_rseq_copy(su_home_t *home, sip_rseq_t const *hdr)
  * @return
  * A pointer to newly maked #sip_rseq_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -3092,6 +3182,7 @@ su_inline sip_rseq_t *sip_rseq_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3146,6 +3237,7 @@ SOFIAPUBFUN issize_t sip_rack_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_RACK_INIT() SIP_HDR_INIT(rack)
 
@@ -3162,6 +3254,7 @@ SOFIAPUBFUN issize_t sip_rack_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_rack_t *sip_rack_init(sip_rack_t x[1])
@@ -3183,6 +3276,7 @@ su_inline sip_rack_t *sip_rack_init(sip_rack_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header rack 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_rack(sip_header_t const *header)
@@ -3222,6 +3316,7 @@ int sip_is_rack(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_rack_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3264,6 +3359,7 @@ sip_rack_t *sip_rack_dup(su_home_t *home, sip_rack_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3293,6 +3389,7 @@ sip_rack_t *sip_rack_copy(su_home_t *home, sip_rack_t const *hdr)
  * @return
  * A pointer to newly maked #sip_rack_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -3323,6 +3420,7 @@ su_inline sip_rack_t *sip_rack_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3377,6 +3475,7 @@ SOFIAPUBFUN issize_t sip_request_disposition_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_REQUEST_DISPOSITION_INIT() SIP_HDR_INIT(request_disposition)
 
@@ -3393,6 +3492,7 @@ SOFIAPUBFUN issize_t sip_request_disposition_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_request_disposition_t *sip_request_disposition_init(sip_request_disposition_t x[1])
@@ -3414,6 +3514,7 @@ su_inline sip_request_disposition_t *sip_request_disposition_init(sip_request_di
  * 
  * @retval 1 (true) if the @a header is an instance of header request_disposition 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_request_disposition(sip_header_t const *header)
@@ -3453,6 +3554,7 @@ int sip_is_request_disposition(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_request_disposition_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3495,6 +3597,7 @@ sip_request_disposition_t *sip_request_disposition_dup(su_home_t *home, sip_requ
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3524,6 +3627,7 @@ sip_request_disposition_t *sip_request_disposition_copy(su_home_t *home, sip_req
  * @return
  * A pointer to newly maked #sip_request_disposition_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -3554,6 +3658,7 @@ su_inline sip_request_disposition_t *sip_request_disposition_make(su_home_t *hom
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3608,6 +3713,7 @@ SOFIAPUBFUN issize_t sip_accept_contact_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ACCEPT_CONTACT_INIT() SIP_HDR_INIT(accept_contact)
 
@@ -3624,6 +3730,7 @@ SOFIAPUBFUN issize_t sip_accept_contact_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_accept_contact_t *sip_accept_contact_init(sip_accept_contact_t x[1])
@@ -3645,6 +3752,7 @@ su_inline sip_accept_contact_t *sip_accept_contact_init(sip_accept_contact_t x[1
  * 
  * @retval 1 (true) if the @a header is an instance of header accept_contact 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_accept_contact(sip_header_t const *header)
@@ -3684,6 +3792,7 @@ int sip_is_accept_contact(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_accept_contact_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3726,6 +3835,7 @@ sip_accept_contact_t *sip_accept_contact_dup(su_home_t *home, sip_accept_contact
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3755,6 +3865,7 @@ sip_accept_contact_t *sip_accept_contact_copy(su_home_t *home, sip_accept_contac
  * @return
  * A pointer to newly maked #sip_accept_contact_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -3785,6 +3896,7 @@ su_inline sip_accept_contact_t *sip_accept_contact_make(su_home_t *home, char co
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3839,6 +3951,7 @@ SOFIAPUBFUN issize_t sip_reject_contact_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_REJECT_CONTACT_INIT() SIP_HDR_INIT(reject_contact)
 
@@ -3855,6 +3968,7 @@ SOFIAPUBFUN issize_t sip_reject_contact_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_reject_contact_t *sip_reject_contact_init(sip_reject_contact_t x[1])
@@ -3876,6 +3990,7 @@ su_inline sip_reject_contact_t *sip_reject_contact_init(sip_reject_contact_t x[1
  * 
  * @retval 1 (true) if the @a header is an instance of header reject_contact 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_reject_contact(sip_header_t const *header)
@@ -3915,6 +4030,7 @@ int sip_is_reject_contact(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_reject_contact_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3957,6 +4073,7 @@ sip_reject_contact_t *sip_reject_contact_dup(su_home_t *home, sip_reject_contact
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3986,6 +4103,7 @@ sip_reject_contact_t *sip_reject_contact_copy(su_home_t *home, sip_reject_contac
  * @return
  * A pointer to newly maked #sip_reject_contact_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -4016,6 +4134,7 @@ su_inline sip_reject_contact_t *sip_reject_contact_make(su_home_t *home, char co
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4070,6 +4189,7 @@ SOFIAPUBFUN issize_t sip_expires_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_EXPIRES_INIT() SIP_HDR_INIT(expires)
 
@@ -4086,6 +4206,7 @@ SOFIAPUBFUN issize_t sip_expires_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_expires_t *sip_expires_init(sip_expires_t x[1])
@@ -4107,6 +4228,7 @@ su_inline sip_expires_t *sip_expires_init(sip_expires_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header expires 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_expires(sip_header_t const *header)
@@ -4146,6 +4268,7 @@ int sip_is_expires(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_expires_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4188,6 +4311,7 @@ sip_expires_t *sip_expires_dup(su_home_t *home, sip_expires_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4217,6 +4341,7 @@ sip_expires_t *sip_expires_copy(su_home_t *home, sip_expires_t const *hdr)
  * @return
  * A pointer to newly maked #sip_expires_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -4247,6 +4372,7 @@ su_inline sip_expires_t *sip_expires_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4301,6 +4427,7 @@ SOFIAPUBFUN issize_t sip_date_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_DATE_INIT() SIP_HDR_INIT(date)
 
@@ -4317,6 +4444,7 @@ SOFIAPUBFUN issize_t sip_date_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_date_t *sip_date_init(sip_date_t x[1])
@@ -4338,6 +4466,7 @@ su_inline sip_date_t *sip_date_init(sip_date_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header date 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_date(sip_header_t const *header)
@@ -4377,6 +4506,7 @@ int sip_is_date(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_date_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4419,6 +4549,7 @@ sip_date_t *sip_date_dup(su_home_t *home, sip_date_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4448,6 +4579,7 @@ sip_date_t *sip_date_copy(su_home_t *home, sip_date_t const *hdr)
  * @return
  * A pointer to newly maked #sip_date_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -4478,6 +4610,7 @@ su_inline sip_date_t *sip_date_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4532,6 +4665,7 @@ SOFIAPUBFUN issize_t sip_retry_after_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_RETRY_AFTER_INIT() SIP_HDR_INIT(retry_after)
 
@@ -4548,6 +4682,7 @@ SOFIAPUBFUN issize_t sip_retry_after_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_retry_after_t *sip_retry_after_init(sip_retry_after_t x[1])
@@ -4569,6 +4704,7 @@ su_inline sip_retry_after_t *sip_retry_after_init(sip_retry_after_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header retry_after 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_retry_after(sip_header_t const *header)
@@ -4608,6 +4744,7 @@ int sip_is_retry_after(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_retry_after_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4650,6 +4787,7 @@ sip_retry_after_t *sip_retry_after_dup(su_home_t *home, sip_retry_after_t const 
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4679,6 +4817,7 @@ sip_retry_after_t *sip_retry_after_copy(su_home_t *home, sip_retry_after_t const
  * @return
  * A pointer to newly maked #sip_retry_after_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -4709,6 +4848,7 @@ su_inline sip_retry_after_t *sip_retry_after_make(su_home_t *home, char const *s
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4763,6 +4903,7 @@ SOFIAPUBFUN issize_t sip_timestamp_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_TIMESTAMP_INIT() SIP_HDR_INIT(timestamp)
 
@@ -4779,6 +4920,7 @@ SOFIAPUBFUN issize_t sip_timestamp_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_timestamp_t *sip_timestamp_init(sip_timestamp_t x[1])
@@ -4800,6 +4942,7 @@ su_inline sip_timestamp_t *sip_timestamp_init(sip_timestamp_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header timestamp 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_timestamp(sip_header_t const *header)
@@ -4839,6 +4982,7 @@ int sip_is_timestamp(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_timestamp_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4881,6 +5025,7 @@ sip_timestamp_t *sip_timestamp_dup(su_home_t *home, sip_timestamp_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4910,6 +5055,7 @@ sip_timestamp_t *sip_timestamp_copy(su_home_t *home, sip_timestamp_t const *hdr)
  * @return
  * A pointer to newly maked #sip_timestamp_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -4940,6 +5086,7 @@ su_inline sip_timestamp_t *sip_timestamp_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4994,6 +5141,7 @@ SOFIAPUBFUN issize_t sip_min_expires_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_MIN_EXPIRES_INIT() SIP_HDR_INIT(min_expires)
 
@@ -5010,6 +5158,7 @@ SOFIAPUBFUN issize_t sip_min_expires_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_min_expires_t *sip_min_expires_init(sip_min_expires_t x[1])
@@ -5031,6 +5180,7 @@ su_inline sip_min_expires_t *sip_min_expires_init(sip_min_expires_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header min_expires 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_min_expires(sip_header_t const *header)
@@ -5070,6 +5220,7 @@ int sip_is_min_expires(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_min_expires_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5112,6 +5263,7 @@ sip_min_expires_t *sip_min_expires_dup(su_home_t *home, sip_min_expires_t const 
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5141,6 +5293,7 @@ sip_min_expires_t *sip_min_expires_copy(su_home_t *home, sip_min_expires_t const
  * @return
  * A pointer to newly maked #sip_min_expires_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -5171,6 +5324,7 @@ su_inline sip_min_expires_t *sip_min_expires_make(su_home_t *home, char const *s
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5225,6 +5379,7 @@ SOFIAPUBFUN issize_t sip_subject_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SUBJECT_INIT() SIP_HDR_INIT(subject)
 
@@ -5241,6 +5396,7 @@ SOFIAPUBFUN issize_t sip_subject_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_subject_t *sip_subject_init(sip_subject_t x[1])
@@ -5262,6 +5418,7 @@ su_inline sip_subject_t *sip_subject_init(sip_subject_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header subject 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_subject(sip_header_t const *header)
@@ -5301,6 +5458,7 @@ int sip_is_subject(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_subject_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5343,6 +5501,7 @@ sip_subject_t *sip_subject_dup(su_home_t *home, sip_subject_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5372,6 +5531,7 @@ sip_subject_t *sip_subject_copy(su_home_t *home, sip_subject_t const *hdr)
  * @return
  * A pointer to newly maked #sip_subject_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -5402,6 +5562,7 @@ su_inline sip_subject_t *sip_subject_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5456,6 +5617,7 @@ SOFIAPUBFUN issize_t sip_priority_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_PRIORITY_INIT() SIP_HDR_INIT(priority)
 
@@ -5472,6 +5634,7 @@ SOFIAPUBFUN issize_t sip_priority_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_priority_t *sip_priority_init(sip_priority_t x[1])
@@ -5493,6 +5656,7 @@ su_inline sip_priority_t *sip_priority_init(sip_priority_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header priority 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_priority(sip_header_t const *header)
@@ -5532,6 +5696,7 @@ int sip_is_priority(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_priority_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5574,6 +5739,7 @@ sip_priority_t *sip_priority_dup(su_home_t *home, sip_priority_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5603,6 +5769,7 @@ sip_priority_t *sip_priority_copy(su_home_t *home, sip_priority_t const *hdr)
  * @return
  * A pointer to newly maked #sip_priority_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -5633,6 +5800,7 @@ su_inline sip_priority_t *sip_priority_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5687,6 +5855,7 @@ SOFIAPUBFUN issize_t sip_call_info_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_CALL_INFO_INIT() SIP_HDR_INIT(call_info)
 
@@ -5703,6 +5872,7 @@ SOFIAPUBFUN issize_t sip_call_info_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_call_info_t *sip_call_info_init(sip_call_info_t x[1])
@@ -5724,6 +5894,7 @@ su_inline sip_call_info_t *sip_call_info_init(sip_call_info_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header call_info 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_call_info(sip_header_t const *header)
@@ -5763,6 +5934,7 @@ int sip_is_call_info(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_call_info_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5805,6 +5977,7 @@ sip_call_info_t *sip_call_info_dup(su_home_t *home, sip_call_info_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5834,6 +6007,7 @@ sip_call_info_t *sip_call_info_copy(su_home_t *home, sip_call_info_t const *hdr)
  * @return
  * A pointer to newly maked #sip_call_info_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -5864,6 +6038,7 @@ su_inline sip_call_info_t *sip_call_info_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5918,6 +6093,7 @@ SOFIAPUBFUN issize_t sip_organization_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ORGANIZATION_INIT() SIP_HDR_INIT(organization)
 
@@ -5934,6 +6110,7 @@ SOFIAPUBFUN issize_t sip_organization_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_organization_t *sip_organization_init(sip_organization_t x[1])
@@ -5955,6 +6132,7 @@ su_inline sip_organization_t *sip_organization_init(sip_organization_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header organization 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_organization(sip_header_t const *header)
@@ -5994,6 +6172,7 @@ int sip_is_organization(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_organization_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6036,6 +6215,7 @@ sip_organization_t *sip_organization_dup(su_home_t *home, sip_organization_t con
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6065,6 +6245,7 @@ sip_organization_t *sip_organization_copy(su_home_t *home, sip_organization_t co
  * @return
  * A pointer to newly maked #sip_organization_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -6095,6 +6276,7 @@ su_inline sip_organization_t *sip_organization_make(su_home_t *home, char const 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6149,6 +6331,7 @@ SOFIAPUBFUN issize_t sip_server_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SERVER_INIT() SIP_HDR_INIT(server)
 
@@ -6165,6 +6348,7 @@ SOFIAPUBFUN issize_t sip_server_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_server_t *sip_server_init(sip_server_t x[1])
@@ -6186,6 +6370,7 @@ su_inline sip_server_t *sip_server_init(sip_server_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header server 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_server(sip_header_t const *header)
@@ -6225,6 +6410,7 @@ int sip_is_server(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_server_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6267,6 +6453,7 @@ sip_server_t *sip_server_dup(su_home_t *home, sip_server_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6296,6 +6483,7 @@ sip_server_t *sip_server_copy(su_home_t *home, sip_server_t const *hdr)
  * @return
  * A pointer to newly maked #sip_server_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -6326,6 +6514,7 @@ su_inline sip_server_t *sip_server_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6380,6 +6569,7 @@ SOFIAPUBFUN issize_t sip_user_agent_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_USER_AGENT_INIT() SIP_HDR_INIT(user_agent)
 
@@ -6396,6 +6586,7 @@ SOFIAPUBFUN issize_t sip_user_agent_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_user_agent_t *sip_user_agent_init(sip_user_agent_t x[1])
@@ -6417,6 +6608,7 @@ su_inline sip_user_agent_t *sip_user_agent_init(sip_user_agent_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header user_agent 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_user_agent(sip_header_t const *header)
@@ -6456,6 +6648,7 @@ int sip_is_user_agent(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_user_agent_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6498,6 +6691,7 @@ sip_user_agent_t *sip_user_agent_dup(su_home_t *home, sip_user_agent_t const *hd
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6527,6 +6721,7 @@ sip_user_agent_t *sip_user_agent_copy(su_home_t *home, sip_user_agent_t const *h
  * @return
  * A pointer to newly maked #sip_user_agent_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -6557,6 +6752,7 @@ su_inline sip_user_agent_t *sip_user_agent_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6611,6 +6807,7 @@ SOFIAPUBFUN issize_t sip_in_reply_to_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_IN_REPLY_TO_INIT() SIP_HDR_INIT(in_reply_to)
 
@@ -6627,6 +6824,7 @@ SOFIAPUBFUN issize_t sip_in_reply_to_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_in_reply_to_t *sip_in_reply_to_init(sip_in_reply_to_t x[1])
@@ -6648,6 +6846,7 @@ su_inline sip_in_reply_to_t *sip_in_reply_to_init(sip_in_reply_to_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header in_reply_to 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_in_reply_to(sip_header_t const *header)
@@ -6687,6 +6886,7 @@ int sip_is_in_reply_to(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_in_reply_to_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6729,6 +6929,7 @@ sip_in_reply_to_t *sip_in_reply_to_dup(su_home_t *home, sip_in_reply_to_t const 
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6758,6 +6959,7 @@ sip_in_reply_to_t *sip_in_reply_to_copy(su_home_t *home, sip_in_reply_to_t const
  * @return
  * A pointer to newly maked #sip_in_reply_to_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -6788,6 +6990,7 @@ su_inline sip_in_reply_to_t *sip_in_reply_to_make(su_home_t *home, char const *s
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6842,6 +7045,7 @@ SOFIAPUBFUN issize_t sip_accept_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ACCEPT_INIT() SIP_HDR_INIT(accept)
 
@@ -6858,6 +7062,7 @@ SOFIAPUBFUN issize_t sip_accept_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_accept_t *sip_accept_init(sip_accept_t x[1])
@@ -6879,6 +7084,7 @@ su_inline sip_accept_t *sip_accept_init(sip_accept_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header accept 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_accept(sip_header_t const *header)
@@ -6918,6 +7124,7 @@ int sip_is_accept(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_accept_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6960,6 +7167,7 @@ sip_accept_t *sip_accept_dup(su_home_t *home, sip_accept_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6989,6 +7197,7 @@ sip_accept_t *sip_accept_copy(su_home_t *home, sip_accept_t const *hdr)
  * @return
  * A pointer to newly maked #sip_accept_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7019,6 +7228,7 @@ su_inline sip_accept_t *sip_accept_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7073,6 +7283,7 @@ SOFIAPUBFUN issize_t sip_accept_encoding_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ACCEPT_ENCODING_INIT() SIP_HDR_INIT(accept_encoding)
 
@@ -7089,6 +7300,7 @@ SOFIAPUBFUN issize_t sip_accept_encoding_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_accept_encoding_t *sip_accept_encoding_init(sip_accept_encoding_t x[1])
@@ -7110,6 +7322,7 @@ su_inline sip_accept_encoding_t *sip_accept_encoding_init(sip_accept_encoding_t 
  * 
  * @retval 1 (true) if the @a header is an instance of header accept_encoding 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_accept_encoding(sip_header_t const *header)
@@ -7149,6 +7362,7 @@ int sip_is_accept_encoding(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_accept_encoding_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7191,6 +7405,7 @@ sip_accept_encoding_t *sip_accept_encoding_dup(su_home_t *home, sip_accept_encod
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7220,6 +7435,7 @@ sip_accept_encoding_t *sip_accept_encoding_copy(su_home_t *home, sip_accept_enco
  * @return
  * A pointer to newly maked #sip_accept_encoding_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7250,6 +7466,7 @@ su_inline sip_accept_encoding_t *sip_accept_encoding_make(su_home_t *home, char 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7304,6 +7521,7 @@ SOFIAPUBFUN issize_t sip_accept_language_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ACCEPT_LANGUAGE_INIT() SIP_HDR_INIT(accept_language)
 
@@ -7320,6 +7538,7 @@ SOFIAPUBFUN issize_t sip_accept_language_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_accept_language_t *sip_accept_language_init(sip_accept_language_t x[1])
@@ -7341,6 +7560,7 @@ su_inline sip_accept_language_t *sip_accept_language_init(sip_accept_language_t 
  * 
  * @retval 1 (true) if the @a header is an instance of header accept_language 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_accept_language(sip_header_t const *header)
@@ -7380,6 +7600,7 @@ int sip_is_accept_language(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_accept_language_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7422,6 +7643,7 @@ sip_accept_language_t *sip_accept_language_dup(su_home_t *home, sip_accept_langu
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7451,6 +7673,7 @@ sip_accept_language_t *sip_accept_language_copy(su_home_t *home, sip_accept_lang
  * @return
  * A pointer to newly maked #sip_accept_language_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7481,6 +7704,7 @@ su_inline sip_accept_language_t *sip_accept_language_make(su_home_t *home, char 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7535,6 +7759,7 @@ SOFIAPUBFUN issize_t sip_allow_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ALLOW_INIT() SIP_HDR_INIT(allow)
 
@@ -7551,6 +7776,7 @@ SOFIAPUBFUN issize_t sip_allow_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_allow_t *sip_allow_init(sip_allow_t x[1])
@@ -7572,6 +7798,7 @@ su_inline sip_allow_t *sip_allow_init(sip_allow_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header allow 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_allow(sip_header_t const *header)
@@ -7611,6 +7838,7 @@ int sip_is_allow(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_allow_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7653,6 +7881,7 @@ sip_allow_t *sip_allow_dup(su_home_t *home, sip_allow_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7682,6 +7911,7 @@ sip_allow_t *sip_allow_copy(su_home_t *home, sip_allow_t const *hdr)
  * @return
  * A pointer to newly maked #sip_allow_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7712,6 +7942,7 @@ su_inline sip_allow_t *sip_allow_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7766,6 +7997,7 @@ SOFIAPUBFUN issize_t sip_require_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_REQUIRE_INIT() SIP_HDR_INIT(require)
 
@@ -7782,6 +8014,7 @@ SOFIAPUBFUN issize_t sip_require_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_require_t *sip_require_init(sip_require_t x[1])
@@ -7803,6 +8036,7 @@ su_inline sip_require_t *sip_require_init(sip_require_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header require 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_require(sip_header_t const *header)
@@ -7842,6 +8076,7 @@ int sip_is_require(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_require_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7884,6 +8119,7 @@ sip_require_t *sip_require_dup(su_home_t *home, sip_require_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7913,6 +8149,7 @@ sip_require_t *sip_require_copy(su_home_t *home, sip_require_t const *hdr)
  * @return
  * A pointer to newly maked #sip_require_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7943,6 +8180,7 @@ su_inline sip_require_t *sip_require_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7997,6 +8235,7 @@ SOFIAPUBFUN issize_t sip_supported_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SUPPORTED_INIT() SIP_HDR_INIT(supported)
 
@@ -8013,6 +8252,7 @@ SOFIAPUBFUN issize_t sip_supported_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_supported_t *sip_supported_init(sip_supported_t x[1])
@@ -8034,6 +8274,7 @@ su_inline sip_supported_t *sip_supported_init(sip_supported_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header supported 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_supported(sip_header_t const *header)
@@ -8073,6 +8314,7 @@ int sip_is_supported(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_supported_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8115,6 +8357,7 @@ sip_supported_t *sip_supported_dup(su_home_t *home, sip_supported_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8144,6 +8387,7 @@ sip_supported_t *sip_supported_copy(su_home_t *home, sip_supported_t const *hdr)
  * @return
  * A pointer to newly maked #sip_supported_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -8174,6 +8418,7 @@ su_inline sip_supported_t *sip_supported_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8228,6 +8473,7 @@ SOFIAPUBFUN issize_t sip_unsupported_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_UNSUPPORTED_INIT() SIP_HDR_INIT(unsupported)
 
@@ -8244,6 +8490,7 @@ SOFIAPUBFUN issize_t sip_unsupported_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_unsupported_t *sip_unsupported_init(sip_unsupported_t x[1])
@@ -8265,6 +8512,7 @@ su_inline sip_unsupported_t *sip_unsupported_init(sip_unsupported_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header unsupported 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_unsupported(sip_header_t const *header)
@@ -8304,6 +8552,7 @@ int sip_is_unsupported(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_unsupported_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8346,6 +8595,7 @@ sip_unsupported_t *sip_unsupported_dup(su_home_t *home, sip_unsupported_t const 
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8375,6 +8625,7 @@ sip_unsupported_t *sip_unsupported_copy(su_home_t *home, sip_unsupported_t const
  * @return
  * A pointer to newly maked #sip_unsupported_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -8405,6 +8656,7 @@ su_inline sip_unsupported_t *sip_unsupported_make(su_home_t *home, char const *s
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8459,6 +8711,7 @@ SOFIAPUBFUN issize_t sip_event_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_EVENT_INIT() SIP_HDR_INIT(event)
 
@@ -8475,6 +8728,7 @@ SOFIAPUBFUN issize_t sip_event_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_event_t *sip_event_init(sip_event_t x[1])
@@ -8496,6 +8750,7 @@ su_inline sip_event_t *sip_event_init(sip_event_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header event 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_event(sip_header_t const *header)
@@ -8535,6 +8790,7 @@ int sip_is_event(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_event_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8577,6 +8833,7 @@ sip_event_t *sip_event_dup(su_home_t *home, sip_event_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8606,6 +8863,7 @@ sip_event_t *sip_event_copy(su_home_t *home, sip_event_t const *hdr)
  * @return
  * A pointer to newly maked #sip_event_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -8636,6 +8894,7 @@ su_inline sip_event_t *sip_event_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8690,6 +8949,7 @@ SOFIAPUBFUN issize_t sip_allow_events_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ALLOW_EVENTS_INIT() SIP_HDR_INIT(allow_events)
 
@@ -8706,6 +8966,7 @@ SOFIAPUBFUN issize_t sip_allow_events_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_allow_events_t *sip_allow_events_init(sip_allow_events_t x[1])
@@ -8727,6 +8988,7 @@ su_inline sip_allow_events_t *sip_allow_events_init(sip_allow_events_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header allow_events 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_allow_events(sip_header_t const *header)
@@ -8766,6 +9028,7 @@ int sip_is_allow_events(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_allow_events_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8808,6 +9071,7 @@ sip_allow_events_t *sip_allow_events_dup(su_home_t *home, sip_allow_events_t con
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8837,6 +9101,7 @@ sip_allow_events_t *sip_allow_events_copy(su_home_t *home, sip_allow_events_t co
  * @return
  * A pointer to newly maked #sip_allow_events_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -8867,6 +9132,7 @@ su_inline sip_allow_events_t *sip_allow_events_make(su_home_t *home, char const 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8921,6 +9187,7 @@ SOFIAPUBFUN issize_t sip_subscription_state_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SUBSCRIPTION_STATE_INIT() SIP_HDR_INIT(subscription_state)
 
@@ -8937,6 +9204,7 @@ SOFIAPUBFUN issize_t sip_subscription_state_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_subscription_state_t *sip_subscription_state_init(sip_subscription_state_t x[1])
@@ -8958,6 +9226,7 @@ su_inline sip_subscription_state_t *sip_subscription_state_init(sip_subscription
  * 
  * @retval 1 (true) if the @a header is an instance of header subscription_state 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_subscription_state(sip_header_t const *header)
@@ -8997,6 +9266,7 @@ int sip_is_subscription_state(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_subscription_state_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9039,6 +9309,7 @@ sip_subscription_state_t *sip_subscription_state_dup(su_home_t *home, sip_subscr
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9068,6 +9339,7 @@ sip_subscription_state_t *sip_subscription_state_copy(su_home_t *home, sip_subsc
  * @return
  * A pointer to newly maked #sip_subscription_state_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -9098,6 +9370,7 @@ su_inline sip_subscription_state_t *sip_subscription_state_make(su_home_t *home,
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9152,6 +9425,7 @@ SOFIAPUBFUN issize_t sip_proxy_authenticate_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_PROXY_AUTHENTICATE_INIT() SIP_HDR_INIT(proxy_authenticate)
 
@@ -9168,6 +9442,7 @@ SOFIAPUBFUN issize_t sip_proxy_authenticate_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_proxy_authenticate_t *sip_proxy_authenticate_init(sip_proxy_authenticate_t x[1])
@@ -9189,6 +9464,7 @@ su_inline sip_proxy_authenticate_t *sip_proxy_authenticate_init(sip_proxy_authen
  * 
  * @retval 1 (true) if the @a header is an instance of header proxy_authenticate 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_proxy_authenticate(sip_header_t const *header)
@@ -9228,6 +9504,7 @@ int sip_is_proxy_authenticate(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_proxy_authenticate_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9270,6 +9547,7 @@ sip_proxy_authenticate_t *sip_proxy_authenticate_dup(su_home_t *home, sip_proxy_
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9299,6 +9577,7 @@ sip_proxy_authenticate_t *sip_proxy_authenticate_copy(su_home_t *home, sip_proxy
  * @return
  * A pointer to newly maked #sip_proxy_authenticate_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -9329,6 +9608,7 @@ su_inline sip_proxy_authenticate_t *sip_proxy_authenticate_make(su_home_t *home,
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9383,6 +9663,7 @@ SOFIAPUBFUN issize_t sip_proxy_authentication_info_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_PROXY_AUTHENTICATION_INFO_INIT() SIP_HDR_INIT(proxy_authentication_info)
 
@@ -9399,6 +9680,7 @@ SOFIAPUBFUN issize_t sip_proxy_authentication_info_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_proxy_authentication_info_t *sip_proxy_authentication_info_init(sip_proxy_authentication_info_t x[1])
@@ -9420,6 +9702,7 @@ su_inline sip_proxy_authentication_info_t *sip_proxy_authentication_info_init(si
  * 
  * @retval 1 (true) if the @a header is an instance of header proxy_authentication_info 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_proxy_authentication_info(sip_header_t const *header)
@@ -9459,6 +9742,7 @@ int sip_is_proxy_authentication_info(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_proxy_authentication_info_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9501,6 +9785,7 @@ sip_proxy_authentication_info_t *sip_proxy_authentication_info_dup(su_home_t *ho
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9530,6 +9815,7 @@ sip_proxy_authentication_info_t *sip_proxy_authentication_info_copy(su_home_t *h
  * @return
  * A pointer to newly maked #sip_proxy_authentication_info_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -9560,6 +9846,7 @@ su_inline sip_proxy_authentication_info_t *sip_proxy_authentication_info_make(su
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9614,6 +9901,7 @@ SOFIAPUBFUN issize_t sip_proxy_authorization_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_PROXY_AUTHORIZATION_INIT() SIP_HDR_INIT(proxy_authorization)
 
@@ -9630,6 +9918,7 @@ SOFIAPUBFUN issize_t sip_proxy_authorization_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_proxy_authorization_t *sip_proxy_authorization_init(sip_proxy_authorization_t x[1])
@@ -9651,6 +9940,7 @@ su_inline sip_proxy_authorization_t *sip_proxy_authorization_init(sip_proxy_auth
  * 
  * @retval 1 (true) if the @a header is an instance of header proxy_authorization 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_proxy_authorization(sip_header_t const *header)
@@ -9690,6 +9980,7 @@ int sip_is_proxy_authorization(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_proxy_authorization_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9732,6 +10023,7 @@ sip_proxy_authorization_t *sip_proxy_authorization_dup(su_home_t *home, sip_prox
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9761,6 +10053,7 @@ sip_proxy_authorization_t *sip_proxy_authorization_copy(su_home_t *home, sip_pro
  * @return
  * A pointer to newly maked #sip_proxy_authorization_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -9791,6 +10084,7 @@ su_inline sip_proxy_authorization_t *sip_proxy_authorization_make(su_home_t *hom
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9845,6 +10139,7 @@ SOFIAPUBFUN issize_t sip_authorization_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_AUTHORIZATION_INIT() SIP_HDR_INIT(authorization)
 
@@ -9861,6 +10156,7 @@ SOFIAPUBFUN issize_t sip_authorization_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_authorization_t *sip_authorization_init(sip_authorization_t x[1])
@@ -9882,6 +10178,7 @@ su_inline sip_authorization_t *sip_authorization_init(sip_authorization_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header authorization 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_authorization(sip_header_t const *header)
@@ -9921,6 +10218,7 @@ int sip_is_authorization(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_authorization_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9963,6 +10261,7 @@ sip_authorization_t *sip_authorization_dup(su_home_t *home, sip_authorization_t 
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9992,6 +10291,7 @@ sip_authorization_t *sip_authorization_copy(su_home_t *home, sip_authorization_t
  * @return
  * A pointer to newly maked #sip_authorization_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -10022,6 +10322,7 @@ su_inline sip_authorization_t *sip_authorization_make(su_home_t *home, char cons
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10076,6 +10377,7 @@ SOFIAPUBFUN issize_t sip_www_authenticate_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_WWW_AUTHENTICATE_INIT() SIP_HDR_INIT(www_authenticate)
 
@@ -10092,6 +10394,7 @@ SOFIAPUBFUN issize_t sip_www_authenticate_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_www_authenticate_t *sip_www_authenticate_init(sip_www_authenticate_t x[1])
@@ -10113,6 +10416,7 @@ su_inline sip_www_authenticate_t *sip_www_authenticate_init(sip_www_authenticate
  * 
  * @retval 1 (true) if the @a header is an instance of header www_authenticate 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_www_authenticate(sip_header_t const *header)
@@ -10152,6 +10456,7 @@ int sip_is_www_authenticate(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_www_authenticate_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10194,6 +10499,7 @@ sip_www_authenticate_t *sip_www_authenticate_dup(su_home_t *home, sip_www_authen
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10223,6 +10529,7 @@ sip_www_authenticate_t *sip_www_authenticate_copy(su_home_t *home, sip_www_authe
  * @return
  * A pointer to newly maked #sip_www_authenticate_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -10253,6 +10560,7 @@ su_inline sip_www_authenticate_t *sip_www_authenticate_make(su_home_t *home, cha
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10307,6 +10615,7 @@ SOFIAPUBFUN issize_t sip_authentication_info_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_AUTHENTICATION_INFO_INIT() SIP_HDR_INIT(authentication_info)
 
@@ -10323,6 +10632,7 @@ SOFIAPUBFUN issize_t sip_authentication_info_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_authentication_info_t *sip_authentication_info_init(sip_authentication_info_t x[1])
@@ -10344,6 +10654,7 @@ su_inline sip_authentication_info_t *sip_authentication_info_init(sip_authentica
  * 
  * @retval 1 (true) if the @a header is an instance of header authentication_info 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_authentication_info(sip_header_t const *header)
@@ -10383,6 +10694,7 @@ int sip_is_authentication_info(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_authentication_info_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10425,6 +10737,7 @@ sip_authentication_info_t *sip_authentication_info_dup(su_home_t *home, sip_auth
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10454,6 +10767,7 @@ sip_authentication_info_t *sip_authentication_info_copy(su_home_t *home, sip_aut
  * @return
  * A pointer to newly maked #sip_authentication_info_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -10484,6 +10798,7 @@ su_inline sip_authentication_info_t *sip_authentication_info_make(su_home_t *hom
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10538,6 +10853,7 @@ SOFIAPUBFUN issize_t sip_error_info_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ERROR_INFO_INIT() SIP_HDR_INIT(error_info)
 
@@ -10554,6 +10870,7 @@ SOFIAPUBFUN issize_t sip_error_info_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_error_info_t *sip_error_info_init(sip_error_info_t x[1])
@@ -10575,6 +10892,7 @@ su_inline sip_error_info_t *sip_error_info_init(sip_error_info_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header error_info 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_error_info(sip_header_t const *header)
@@ -10614,6 +10932,7 @@ int sip_is_error_info(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_error_info_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10656,6 +10975,7 @@ sip_error_info_t *sip_error_info_dup(su_home_t *home, sip_error_info_t const *hd
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10685,6 +11005,7 @@ sip_error_info_t *sip_error_info_copy(su_home_t *home, sip_error_info_t const *h
  * @return
  * A pointer to newly maked #sip_error_info_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -10715,6 +11036,7 @@ su_inline sip_error_info_t *sip_error_info_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10769,6 +11091,7 @@ SOFIAPUBFUN issize_t sip_warning_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_WARNING_INIT() SIP_HDR_INIT(warning)
 
@@ -10785,6 +11108,7 @@ SOFIAPUBFUN issize_t sip_warning_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_warning_t *sip_warning_init(sip_warning_t x[1])
@@ -10806,6 +11130,7 @@ su_inline sip_warning_t *sip_warning_init(sip_warning_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header warning 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_warning(sip_header_t const *header)
@@ -10845,6 +11170,7 @@ int sip_is_warning(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_warning_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10887,6 +11213,7 @@ sip_warning_t *sip_warning_dup(su_home_t *home, sip_warning_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10916,6 +11243,7 @@ sip_warning_t *sip_warning_copy(su_home_t *home, sip_warning_t const *hdr)
  * @return
  * A pointer to newly maked #sip_warning_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -10946,6 +11274,7 @@ su_inline sip_warning_t *sip_warning_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11000,6 +11329,7 @@ SOFIAPUBFUN issize_t sip_refer_to_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_REFER_TO_INIT() SIP_HDR_INIT(refer_to)
 
@@ -11016,6 +11346,7 @@ SOFIAPUBFUN issize_t sip_refer_to_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_refer_to_t *sip_refer_to_init(sip_refer_to_t x[1])
@@ -11037,6 +11368,7 @@ su_inline sip_refer_to_t *sip_refer_to_init(sip_refer_to_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header refer_to 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_refer_to(sip_header_t const *header)
@@ -11076,6 +11408,7 @@ int sip_is_refer_to(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_refer_to_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11118,6 +11451,7 @@ sip_refer_to_t *sip_refer_to_dup(su_home_t *home, sip_refer_to_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11147,6 +11481,7 @@ sip_refer_to_t *sip_refer_to_copy(su_home_t *home, sip_refer_to_t const *hdr)
  * @return
  * A pointer to newly maked #sip_refer_to_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -11177,6 +11512,7 @@ su_inline sip_refer_to_t *sip_refer_to_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11231,6 +11567,7 @@ SOFIAPUBFUN issize_t sip_referred_by_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_REFERRED_BY_INIT() SIP_HDR_INIT(referred_by)
 
@@ -11247,6 +11584,7 @@ SOFIAPUBFUN issize_t sip_referred_by_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_referred_by_t *sip_referred_by_init(sip_referred_by_t x[1])
@@ -11268,6 +11606,7 @@ su_inline sip_referred_by_t *sip_referred_by_init(sip_referred_by_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header referred_by 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_referred_by(sip_header_t const *header)
@@ -11307,6 +11646,7 @@ int sip_is_referred_by(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_referred_by_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11349,6 +11689,7 @@ sip_referred_by_t *sip_referred_by_dup(su_home_t *home, sip_referred_by_t const 
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11378,6 +11719,7 @@ sip_referred_by_t *sip_referred_by_copy(su_home_t *home, sip_referred_by_t const
  * @return
  * A pointer to newly maked #sip_referred_by_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -11408,6 +11750,7 @@ su_inline sip_referred_by_t *sip_referred_by_make(su_home_t *home, char const *s
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11462,6 +11805,7 @@ SOFIAPUBFUN issize_t sip_replaces_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_REPLACES_INIT() SIP_HDR_INIT(replaces)
 
@@ -11478,6 +11822,7 @@ SOFIAPUBFUN issize_t sip_replaces_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_replaces_t *sip_replaces_init(sip_replaces_t x[1])
@@ -11499,6 +11844,7 @@ su_inline sip_replaces_t *sip_replaces_init(sip_replaces_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header replaces 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_replaces(sip_header_t const *header)
@@ -11538,6 +11884,7 @@ int sip_is_replaces(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_replaces_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11580,6 +11927,7 @@ sip_replaces_t *sip_replaces_dup(su_home_t *home, sip_replaces_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11609,6 +11957,7 @@ sip_replaces_t *sip_replaces_copy(su_home_t *home, sip_replaces_t const *hdr)
  * @return
  * A pointer to newly maked #sip_replaces_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -11639,6 +11988,7 @@ su_inline sip_replaces_t *sip_replaces_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11693,6 +12043,7 @@ SOFIAPUBFUN issize_t sip_session_expires_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SESSION_EXPIRES_INIT() SIP_HDR_INIT(session_expires)
 
@@ -11709,6 +12060,7 @@ SOFIAPUBFUN issize_t sip_session_expires_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_session_expires_t *sip_session_expires_init(sip_session_expires_t x[1])
@@ -11730,6 +12082,7 @@ su_inline sip_session_expires_t *sip_session_expires_init(sip_session_expires_t 
  * 
  * @retval 1 (true) if the @a header is an instance of header session_expires 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_session_expires(sip_header_t const *header)
@@ -11769,6 +12122,7 @@ int sip_is_session_expires(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_session_expires_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11811,6 +12165,7 @@ sip_session_expires_t *sip_session_expires_dup(su_home_t *home, sip_session_expi
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11840,6 +12195,7 @@ sip_session_expires_t *sip_session_expires_copy(su_home_t *home, sip_session_exp
  * @return
  * A pointer to newly maked #sip_session_expires_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -11870,6 +12226,7 @@ su_inline sip_session_expires_t *sip_session_expires_make(su_home_t *home, char 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11924,6 +12281,7 @@ SOFIAPUBFUN issize_t sip_min_se_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_MIN_SE_INIT() SIP_HDR_INIT(min_se)
 
@@ -11940,6 +12298,7 @@ SOFIAPUBFUN issize_t sip_min_se_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_min_se_t *sip_min_se_init(sip_min_se_t x[1])
@@ -11961,6 +12320,7 @@ su_inline sip_min_se_t *sip_min_se_init(sip_min_se_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header min_se 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_min_se(sip_header_t const *header)
@@ -12000,6 +12360,7 @@ int sip_is_min_se(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_min_se_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12042,6 +12403,7 @@ sip_min_se_t *sip_min_se_dup(su_home_t *home, sip_min_se_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12071,6 +12433,7 @@ sip_min_se_t *sip_min_se_copy(su_home_t *home, sip_min_se_t const *hdr)
  * @return
  * A pointer to newly maked #sip_min_se_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -12101,6 +12464,7 @@ su_inline sip_min_se_t *sip_min_se_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12155,6 +12519,7 @@ SOFIAPUBFUN issize_t sip_path_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_PATH_INIT() SIP_HDR_INIT(path)
 
@@ -12171,6 +12536,7 @@ SOFIAPUBFUN issize_t sip_path_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_path_t *sip_path_init(sip_path_t x[1])
@@ -12192,6 +12558,7 @@ su_inline sip_path_t *sip_path_init(sip_path_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header path 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_path(sip_header_t const *header)
@@ -12231,6 +12598,7 @@ int sip_is_path(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_path_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12273,6 +12641,7 @@ sip_path_t *sip_path_dup(su_home_t *home, sip_path_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12302,6 +12671,7 @@ sip_path_t *sip_path_copy(su_home_t *home, sip_path_t const *hdr)
  * @return
  * A pointer to newly maked #sip_path_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -12332,6 +12702,7 @@ su_inline sip_path_t *sip_path_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12386,6 +12757,7 @@ SOFIAPUBFUN issize_t sip_service_route_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SERVICE_ROUTE_INIT() SIP_HDR_INIT(service_route)
 
@@ -12402,6 +12774,7 @@ SOFIAPUBFUN issize_t sip_service_route_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_service_route_t *sip_service_route_init(sip_service_route_t x[1])
@@ -12423,6 +12796,7 @@ su_inline sip_service_route_t *sip_service_route_init(sip_service_route_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header service_route 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_service_route(sip_header_t const *header)
@@ -12462,6 +12836,7 @@ int sip_is_service_route(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_service_route_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12504,6 +12879,7 @@ sip_service_route_t *sip_service_route_dup(su_home_t *home, sip_service_route_t 
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12533,6 +12909,7 @@ sip_service_route_t *sip_service_route_copy(su_home_t *home, sip_service_route_t
  * @return
  * A pointer to newly maked #sip_service_route_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -12563,6 +12940,7 @@ su_inline sip_service_route_t *sip_service_route_make(su_home_t *home, char cons
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12617,6 +12995,7 @@ SOFIAPUBFUN issize_t sip_reason_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_REASON_INIT() SIP_HDR_INIT(reason)
 
@@ -12633,6 +13012,7 @@ SOFIAPUBFUN issize_t sip_reason_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_reason_t *sip_reason_init(sip_reason_t x[1])
@@ -12654,6 +13034,7 @@ su_inline sip_reason_t *sip_reason_init(sip_reason_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header reason 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_reason(sip_header_t const *header)
@@ -12693,6 +13074,7 @@ int sip_is_reason(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_reason_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12735,6 +13117,7 @@ sip_reason_t *sip_reason_dup(su_home_t *home, sip_reason_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12764,6 +13147,7 @@ sip_reason_t *sip_reason_copy(su_home_t *home, sip_reason_t const *hdr)
  * @return
  * A pointer to newly maked #sip_reason_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -12794,6 +13178,7 @@ su_inline sip_reason_t *sip_reason_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12848,6 +13233,7 @@ SOFIAPUBFUN issize_t sip_security_client_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SECURITY_CLIENT_INIT() SIP_HDR_INIT(security_client)
 
@@ -12864,6 +13250,7 @@ SOFIAPUBFUN issize_t sip_security_client_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_security_client_t *sip_security_client_init(sip_security_client_t x[1])
@@ -12885,6 +13272,7 @@ su_inline sip_security_client_t *sip_security_client_init(sip_security_client_t 
  * 
  * @retval 1 (true) if the @a header is an instance of header security_client 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_security_client(sip_header_t const *header)
@@ -12924,6 +13312,7 @@ int sip_is_security_client(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_security_client_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12966,6 +13355,7 @@ sip_security_client_t *sip_security_client_dup(su_home_t *home, sip_security_cli
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12995,6 +13385,7 @@ sip_security_client_t *sip_security_client_copy(su_home_t *home, sip_security_cl
  * @return
  * A pointer to newly maked #sip_security_client_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13025,6 +13416,7 @@ su_inline sip_security_client_t *sip_security_client_make(su_home_t *home, char 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13079,6 +13471,7 @@ SOFIAPUBFUN issize_t sip_security_server_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SECURITY_SERVER_INIT() SIP_HDR_INIT(security_server)
 
@@ -13095,6 +13488,7 @@ SOFIAPUBFUN issize_t sip_security_server_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_security_server_t *sip_security_server_init(sip_security_server_t x[1])
@@ -13116,6 +13510,7 @@ su_inline sip_security_server_t *sip_security_server_init(sip_security_server_t 
  * 
  * @retval 1 (true) if the @a header is an instance of header security_server 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_security_server(sip_header_t const *header)
@@ -13155,6 +13550,7 @@ int sip_is_security_server(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_security_server_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13197,6 +13593,7 @@ sip_security_server_t *sip_security_server_dup(su_home_t *home, sip_security_ser
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13226,6 +13623,7 @@ sip_security_server_t *sip_security_server_copy(su_home_t *home, sip_security_se
  * @return
  * A pointer to newly maked #sip_security_server_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13256,6 +13654,7 @@ su_inline sip_security_server_t *sip_security_server_make(su_home_t *home, char 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13310,6 +13709,7 @@ SOFIAPUBFUN issize_t sip_security_verify_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SECURITY_VERIFY_INIT() SIP_HDR_INIT(security_verify)
 
@@ -13326,6 +13726,7 @@ SOFIAPUBFUN issize_t sip_security_verify_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_security_verify_t *sip_security_verify_init(sip_security_verify_t x[1])
@@ -13347,6 +13748,7 @@ su_inline sip_security_verify_t *sip_security_verify_init(sip_security_verify_t 
  * 
  * @retval 1 (true) if the @a header is an instance of header security_verify 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_security_verify(sip_header_t const *header)
@@ -13386,6 +13788,7 @@ int sip_is_security_verify(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_security_verify_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13428,6 +13831,7 @@ sip_security_verify_t *sip_security_verify_dup(su_home_t *home, sip_security_ver
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13457,6 +13861,7 @@ sip_security_verify_t *sip_security_verify_copy(su_home_t *home, sip_security_ve
  * @return
  * A pointer to newly maked #sip_security_verify_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13487,6 +13892,7 @@ su_inline sip_security_verify_t *sip_security_verify_make(su_home_t *home, char 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13541,6 +13947,7 @@ SOFIAPUBFUN issize_t sip_privacy_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_PRIVACY_INIT() SIP_HDR_INIT(privacy)
 
@@ -13557,6 +13964,7 @@ SOFIAPUBFUN issize_t sip_privacy_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_privacy_t *sip_privacy_init(sip_privacy_t x[1])
@@ -13578,6 +13986,7 @@ su_inline sip_privacy_t *sip_privacy_init(sip_privacy_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header privacy 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_privacy(sip_header_t const *header)
@@ -13617,6 +14026,7 @@ int sip_is_privacy(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_privacy_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13659,6 +14069,7 @@ sip_privacy_t *sip_privacy_dup(su_home_t *home, sip_privacy_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13688,6 +14099,7 @@ sip_privacy_t *sip_privacy_copy(su_home_t *home, sip_privacy_t const *hdr)
  * @return
  * A pointer to newly maked #sip_privacy_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13718,6 +14130,7 @@ su_inline sip_privacy_t *sip_privacy_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13772,6 +14185,7 @@ SOFIAPUBFUN issize_t sip_etag_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ETAG_INIT() SIP_HDR_INIT(etag)
 
@@ -13788,6 +14202,7 @@ SOFIAPUBFUN issize_t sip_etag_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_etag_t *sip_etag_init(sip_etag_t x[1])
@@ -13809,6 +14224,7 @@ su_inline sip_etag_t *sip_etag_init(sip_etag_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header etag 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_etag(sip_header_t const *header)
@@ -13848,6 +14264,7 @@ int sip_is_etag(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_etag_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13890,6 +14307,7 @@ sip_etag_t *sip_etag_dup(su_home_t *home, sip_etag_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13919,6 +14337,7 @@ sip_etag_t *sip_etag_copy(su_home_t *home, sip_etag_t const *hdr)
  * @return
  * A pointer to newly maked #sip_etag_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13949,6 +14368,7 @@ su_inline sip_etag_t *sip_etag_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14003,6 +14423,7 @@ SOFIAPUBFUN issize_t sip_if_match_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_IF_MATCH_INIT() SIP_HDR_INIT(if_match)
 
@@ -14019,6 +14440,7 @@ SOFIAPUBFUN issize_t sip_if_match_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_if_match_t *sip_if_match_init(sip_if_match_t x[1])
@@ -14040,6 +14462,7 @@ su_inline sip_if_match_t *sip_if_match_init(sip_if_match_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header if_match 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_if_match(sip_header_t const *header)
@@ -14079,6 +14502,7 @@ int sip_is_if_match(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_if_match_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14121,6 +14545,7 @@ sip_if_match_t *sip_if_match_dup(su_home_t *home, sip_if_match_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14150,6 +14575,7 @@ sip_if_match_t *sip_if_match_copy(su_home_t *home, sip_if_match_t const *hdr)
  * @return
  * A pointer to newly maked #sip_if_match_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -14180,6 +14606,7 @@ su_inline sip_if_match_t *sip_if_match_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14234,6 +14661,7 @@ SOFIAPUBFUN issize_t sip_mime_version_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_MIME_VERSION_INIT() SIP_HDR_INIT(mime_version)
 
@@ -14250,6 +14678,7 @@ SOFIAPUBFUN issize_t sip_mime_version_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_mime_version_t *sip_mime_version_init(sip_mime_version_t x[1])
@@ -14271,6 +14700,7 @@ su_inline sip_mime_version_t *sip_mime_version_init(sip_mime_version_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header mime_version 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_mime_version(sip_header_t const *header)
@@ -14310,6 +14740,7 @@ int sip_is_mime_version(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_mime_version_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14352,6 +14783,7 @@ sip_mime_version_t *sip_mime_version_dup(su_home_t *home, sip_mime_version_t con
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14381,6 +14813,7 @@ sip_mime_version_t *sip_mime_version_copy(su_home_t *home, sip_mime_version_t co
  * @return
  * A pointer to newly maked #sip_mime_version_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -14411,6 +14844,7 @@ su_inline sip_mime_version_t *sip_mime_version_make(su_home_t *home, char const 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14465,6 +14899,7 @@ SOFIAPUBFUN issize_t sip_content_type_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_CONTENT_TYPE_INIT() SIP_HDR_INIT(content_type)
 
@@ -14481,6 +14916,7 @@ SOFIAPUBFUN issize_t sip_content_type_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_content_type_t *sip_content_type_init(sip_content_type_t x[1])
@@ -14502,6 +14938,7 @@ su_inline sip_content_type_t *sip_content_type_init(sip_content_type_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header content_type 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_type(sip_header_t const *header)
@@ -14541,6 +14978,7 @@ int sip_is_content_type(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_content_type_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14583,6 +15021,7 @@ sip_content_type_t *sip_content_type_dup(su_home_t *home, sip_content_type_t con
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14612,6 +15051,7 @@ sip_content_type_t *sip_content_type_copy(su_home_t *home, sip_content_type_t co
  * @return
  * A pointer to newly maked #sip_content_type_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -14642,6 +15082,7 @@ su_inline sip_content_type_t *sip_content_type_make(su_home_t *home, char const 
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14696,6 +15137,7 @@ SOFIAPUBFUN issize_t sip_content_encoding_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_CONTENT_ENCODING_INIT() SIP_HDR_INIT(content_encoding)
 
@@ -14712,6 +15154,7 @@ SOFIAPUBFUN issize_t sip_content_encoding_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_content_encoding_t *sip_content_encoding_init(sip_content_encoding_t x[1])
@@ -14733,6 +15176,7 @@ su_inline sip_content_encoding_t *sip_content_encoding_init(sip_content_encoding
  * 
  * @retval 1 (true) if the @a header is an instance of header content_encoding 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_encoding(sip_header_t const *header)
@@ -14772,6 +15216,7 @@ int sip_is_content_encoding(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_content_encoding_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14814,6 +15259,7 @@ sip_content_encoding_t *sip_content_encoding_dup(su_home_t *home, sip_content_en
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14843,6 +15289,7 @@ sip_content_encoding_t *sip_content_encoding_copy(su_home_t *home, sip_content_e
  * @return
  * A pointer to newly maked #sip_content_encoding_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -14873,6 +15320,7 @@ su_inline sip_content_encoding_t *sip_content_encoding_make(su_home_t *home, cha
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14927,6 +15375,7 @@ SOFIAPUBFUN issize_t sip_content_language_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_CONTENT_LANGUAGE_INIT() SIP_HDR_INIT(content_language)
 
@@ -14943,6 +15392,7 @@ SOFIAPUBFUN issize_t sip_content_language_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_content_language_t *sip_content_language_init(sip_content_language_t x[1])
@@ -14964,6 +15414,7 @@ su_inline sip_content_language_t *sip_content_language_init(sip_content_language
  * 
  * @retval 1 (true) if the @a header is an instance of header content_language 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_language(sip_header_t const *header)
@@ -15003,6 +15454,7 @@ int sip_is_content_language(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_content_language_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15045,6 +15497,7 @@ sip_content_language_t *sip_content_language_dup(su_home_t *home, sip_content_la
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15074,6 +15527,7 @@ sip_content_language_t *sip_content_language_copy(su_home_t *home, sip_content_l
  * @return
  * A pointer to newly maked #sip_content_language_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -15104,6 +15558,7 @@ su_inline sip_content_language_t *sip_content_language_make(su_home_t *home, cha
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15158,6 +15613,7 @@ SOFIAPUBFUN issize_t sip_content_disposition_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_CONTENT_DISPOSITION_INIT() SIP_HDR_INIT(content_disposition)
 
@@ -15174,6 +15630,7 @@ SOFIAPUBFUN issize_t sip_content_disposition_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_content_disposition_t *sip_content_disposition_init(sip_content_disposition_t x[1])
@@ -15195,6 +15652,7 @@ su_inline sip_content_disposition_t *sip_content_disposition_init(sip_content_di
  * 
  * @retval 1 (true) if the @a header is an instance of header content_disposition 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_disposition(sip_header_t const *header)
@@ -15234,6 +15692,7 @@ int sip_is_content_disposition(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_content_disposition_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15276,6 +15735,7 @@ sip_content_disposition_t *sip_content_disposition_dup(su_home_t *home, sip_cont
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15305,6 +15765,7 @@ sip_content_disposition_t *sip_content_disposition_copy(su_home_t *home, sip_con
  * @return
  * A pointer to newly maked #sip_content_disposition_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -15335,6 +15796,7 @@ su_inline sip_content_disposition_t *sip_content_disposition_make(su_home_t *hom
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15389,6 +15851,7 @@ SOFIAPUBFUN issize_t sip_content_length_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_CONTENT_LENGTH_INIT() SIP_HDR_INIT(content_length)
 
@@ -15405,6 +15868,7 @@ SOFIAPUBFUN issize_t sip_content_length_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_content_length_t *sip_content_length_init(sip_content_length_t x[1])
@@ -15426,6 +15890,7 @@ su_inline sip_content_length_t *sip_content_length_init(sip_content_length_t x[1
  * 
  * @retval 1 (true) if the @a header is an instance of header content_length 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_length(sip_header_t const *header)
@@ -15465,6 +15930,7 @@ int sip_is_content_length(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_content_length_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15507,6 +15973,7 @@ sip_content_length_t *sip_content_length_dup(su_home_t *home, sip_content_length
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15536,6 +16003,7 @@ sip_content_length_t *sip_content_length_copy(su_home_t *home, sip_content_lengt
  * @return
  * A pointer to newly maked #sip_content_length_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -15566,6 +16034,7 @@ su_inline sip_content_length_t *sip_content_length_make(su_home_t *home, char co
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15620,6 +16089,7 @@ SOFIAPUBFUN issize_t sip_unknown_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_UNKNOWN_INIT() SIP_HDR_INIT(unknown)
 
@@ -15636,6 +16106,7 @@ SOFIAPUBFUN issize_t sip_unknown_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_unknown_t *sip_unknown_init(sip_unknown_t x[1])
@@ -15657,6 +16128,7 @@ su_inline sip_unknown_t *sip_unknown_init(sip_unknown_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header unknown 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_unknown(sip_header_t const *header)
@@ -15696,6 +16168,7 @@ int sip_is_unknown(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_unknown_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15738,6 +16211,7 @@ sip_unknown_t *sip_unknown_dup(su_home_t *home, sip_unknown_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15767,6 +16241,7 @@ sip_unknown_t *sip_unknown_copy(su_home_t *home, sip_unknown_t const *hdr)
  * @return
  * A pointer to newly maked #sip_unknown_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -15797,6 +16272,7 @@ su_inline sip_unknown_t *sip_unknown_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15851,6 +16327,7 @@ SOFIAPUBFUN issize_t sip_error_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_ERROR_INIT() SIP_HDR_INIT(error)
 
@@ -15867,6 +16344,7 @@ SOFIAPUBFUN issize_t sip_error_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_error_t *sip_error_init(sip_error_t x[1])
@@ -15888,6 +16366,7 @@ su_inline sip_error_t *sip_error_init(sip_error_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header error 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_error(sip_header_t const *header)
@@ -15927,6 +16406,7 @@ int sip_is_error(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_error_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15969,6 +16449,7 @@ sip_error_t *sip_error_dup(su_home_t *home, sip_error_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15998,6 +16479,7 @@ sip_error_t *sip_error_copy(su_home_t *home, sip_error_t const *hdr)
  * @return
  * A pointer to newly maked #sip_error_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -16028,6 +16510,7 @@ su_inline sip_error_t *sip_error_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16055,15 +16538,15 @@ su_inline sip_error_t *sip_error_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a SIP @ref sip_separator "separator line between headers and payload". @internal */
+/** Parse a SIP @ref sip_separator "separator line between headers and body". @internal */
 SOFIAPUBFUN issize_t sip_separator_d(su_home_t *, msg_header_t *,
 				       char *s, isize_t slen);
 
-/** Print a SIP @ref sip_separator "separator line between headers and payload". @internal */
+/** Print a SIP @ref sip_separator "separator line between headers and body". @internal */
 SOFIAPUBFUN issize_t sip_separator_e(char b[], isize_t bsiz,
                     	            msg_header_t const *h, int flags);
 
-/**Access a SIP @ref sip_separator "separator line between headers and payload"
+/**Access a SIP @ref sip_separator "separator line between headers and body"
  * structure #sip_separator_t from #sip_t.
  * 
  */
@@ -16073,7 +16556,7 @@ SOFIAPUBFUN issize_t sip_separator_e(char b[], isize_t bsiz,
 /**Initializer for structure #sip_separator_t.
  * 
  * A static #sip_separator_t structure for
- * @ref sip_separator "separator line between headers and payload" must be initialized with
+ * @ref sip_separator "separator line between headers and body" must be initialized with
  * the SIP_SEPARATOR_INIT() macro. 
  * For instance,
  * @code 
@@ -16082,13 +16565,14 @@ SOFIAPUBFUN issize_t sip_separator_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_SEPARATOR_INIT() SIP_HDR_INIT(separator)
 
 /**Initialize a structure #sip_separator_t.
  * 
  * An #sip_separator_t structure for
- * @ref sip_separator "separator line between headers and payload" can be initialized with the
+ * @ref sip_separator "separator line between headers and body" can be initialized with the
  * sip_separator_init() function/macro. For instance,
  * @code
  * 
@@ -16098,6 +16582,7 @@ SOFIAPUBFUN issize_t sip_separator_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_separator_t *sip_separator_init(sip_separator_t x[1])
@@ -16112,13 +16597,14 @@ su_inline sip_separator_t *sip_separator_init(sip_separator_t x[1])
 /**Test if header object is instance of #sip_separator_t.
  * 
  * Check if the header class is an instance of
- * @ref sip_separator "separator line between headers and payload" object and return true (nonzero),
+ * @ref sip_separator "separator line between headers and body" object and return true (nonzero),
  * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
  * @retval 1 (true) if the @a header is an instance of header separator 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_separator(sip_header_t const *header)
@@ -16132,7 +16618,7 @@ int sip_is_separator(sip_header_t const *header);
 #define sip_separator_p(h) sip_is_separator((h))
 
 
-/**Duplicate a list of @ref sip_separator "separator line between headers and payload" header structures #sip_separator_t.
+/**Duplicate a list of @ref sip_separator "separator line between headers and body" header structures #sip_separator_t.
  * 
  * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
@@ -16158,6 +16644,7 @@ int sip_is_separator(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_separator_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16174,7 +16661,7 @@ sip_separator_t *sip_separator_dup(su_home_t *home, sip_separator_t const *hdr)
 }
 #endif
 
-/**Copy a list of @ref sip_separator "separator line between headers and payload" header structures #sip_separator_t.
+/**Copy a list of @ref sip_separator "separator line between headers and body" header structures #sip_separator_t.
  * 
  * The function sip_separator_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
@@ -16200,6 +16687,7 @@ sip_separator_t *sip_separator_dup(su_home_t *home, sip_separator_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16216,7 +16704,7 @@ sip_separator_t *sip_separator_copy(su_home_t *home, sip_separator_t const *hdr)
 }
 #endif
 
-/**Make a @ref sip_separator "separator line between headers and payload" structure #sip_separator_t.
+/**Make a @ref sip_separator "separator line between headers and body" structure #sip_separator_t.
  * 
  * The function sip_separator_make() makes a new
  * #sip_separator_t header structure.  It allocates a new
@@ -16229,6 +16717,7 @@ sip_separator_t *sip_separator_copy(su_home_t *home, sip_separator_t const *hdr)
  * @return
  * A pointer to newly maked #sip_separator_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -16243,7 +16732,7 @@ su_inline sip_separator_t *sip_separator_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a @ref sip_separator "separator line between headers and payload" from formatting result.
+/**Make a @ref sip_separator "separator line between headers and body" from formatting result.
  * 
  * Make a new #sip_separator_t object using formatting result as its value. 
  * The function first prints the arguments according to the format @a fmt
@@ -16259,6 +16748,7 @@ su_inline sip_separator_t *sip_separator_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16313,6 +16803,7 @@ SOFIAPUBFUN issize_t sip_payload_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #define SIP_PAYLOAD_INIT() SIP_HDR_INIT(payload)
 
@@ -16329,6 +16820,7 @@ SOFIAPUBFUN issize_t sip_payload_e(char b[], isize_t bsiz,
  * 
  * @endcode
  * @HI
+ *
  */
 #if SU_HAVE_INLINE
 su_inline sip_payload_t *sip_payload_init(sip_payload_t x[1])
@@ -16350,6 +16842,7 @@ su_inline sip_payload_t *sip_payload_init(sip_payload_t x[1])
  * 
  * @retval 1 (true) if the @a header is an instance of header payload 
  * @retval 0 (false) otherwise
+ *
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_payload(sip_header_t const *header)
@@ -16389,6 +16882,7 @@ int sip_is_payload(sip_header_t const *header);
  * A pointer to the
  * newly duplicated #sip_payload_t header structure, or NULL
  * upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16431,6 +16925,7 @@ sip_payload_t *sip_payload_dup(su_home_t *home, sip_payload_t const *hdr)
  * 
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16460,6 +16955,7 @@ sip_payload_t *sip_payload_copy(su_home_t *home, sip_payload_t const *hdr)
  * @return
  * A pointer to newly maked #sip_payload_t header structure, or NULL upon an
  * error.
+ *
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -16490,6 +16986,7 @@ su_inline sip_payload_t *sip_payload_make(su_home_t *home, char const *s)
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
+ *
  */
 #if SU_HAVE_INLINE
 su_inline

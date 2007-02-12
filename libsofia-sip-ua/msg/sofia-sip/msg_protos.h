@@ -548,27 +548,27 @@ su_inline msg_error_t *msg_error_format(su_home_t *home, char const *fmt, ...)
 
 /** @} */
 
-/* Declare internal prototypes for separator line between headers and payload */
+/* Declare internal prototypes for separator line between headers and body */
 
 /**@addtogroup msg_separator 
  * @{ 
  */
 
 enum { 
-  /** Hash of separator line between headers and payload. @internal */
+  /** Hash of separator line between headers and body. @internal */
   msg_separator_hash = -5 
 };
 
-/** Parse a separator line between headers and payload. @internal */
+/** Parse a separator line between headers and body. @internal */
 MSG_DLL msg_parse_f msg_separator_d;
 
-/** Print a separator line between headers and payload. @internal */
+/** Print a separator line between headers and body. @internal */
 MSG_DLL msg_print_f msg_separator_e;
 
-/**Header class for separator line between headers and payload.
+/**Header class for separator line between headers and body.
  * 
  * The header class msg_separator_class defines how a 
- * separator line between headers and payload header is parsed and printed.  It also
+ * separator line between headers and body header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the msg_separator_t header structure.
  * 
@@ -615,7 +615,7 @@ su_inline msg_separator_t *msg_separator_init(msg_separator_t x[1])
 /**Test if header object is instance of msg_separator_t.
  * 
  * The function msg_is_separator() returns true (nonzero) if
- * the header class is an instance of separator line between headers and payload
+ * the header class is an instance of separator line between headers and body
  * object and false (zero) otherwise.
  * 
  * @param header pointer to the header structure to be tested
@@ -753,10 +753,10 @@ msg_separator_t *msg_separator_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
 #endif
 
-/**Make a separator line between headers and payload from formatting result.
+/**Make a separator line between headers and body from formatting result.
  * 
  * The function msg_separator_format() makes a new
- * separator line between headers and payload object using formatting result as its
+ * separator line between headers and body object using formatting result as its
  * value.  The function first prints the arguments according to
  * the format @a fmt specified.  Then it allocates a new header
  * structure, and uses the formatting result as the header

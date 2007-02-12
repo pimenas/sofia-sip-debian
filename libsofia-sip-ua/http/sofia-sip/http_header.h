@@ -58,8 +58,10 @@ SOFIA_BEGIN_DECLS
  */
 
 /** Initialize a HTTP header structure. */
-#define HTTP_HEADER_INIT(h, http_class, size) \
-  (memset((h), 0, (size)), ((msg_common_t *)(h))->h_class = (http_class), (h))
+#define HTTP_HEADER_INIT(h, http_class, size)			\
+  ((void)memset((h), 0, (size)),				\
+   (void)(((msg_common_t *)(h))->h_class = (http_class)),	\
+   (h))
 
 #define HTTP_METHOD_NAME(method, name) \
  ((method) == http_method_unknown ? (name) : http_method_name(method, name))
@@ -93,7 +95,7 @@ SOFIAPUBVAR char const http_version_1_1[];
  */
 
 /** HTTP parser description. */
-SOFIAPUBFUN msg_mclass_t *http_default_mclass(void);
+SOFIAPUBFUN msg_mclass_t const *http_default_mclass(void);
 
 /** Complete a HTTP request. */
 SOFIAPUBFUN int http_request_complete(msg_t *msg);

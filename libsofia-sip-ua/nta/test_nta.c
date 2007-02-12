@@ -630,20 +630,20 @@ int readfile(FILE *f, void **contents)
   /* Read in whole (binary!) file */
   char *buffer = NULL;
   long size;
-  int len = -1;
+  size_t len;
   
   /* Read whole file in */
   if (fseek(f, 0, SEEK_END) < 0 ||
       (size = ftell(f)) < 0 ||
       fseek(f, 0, SEEK_SET) < 0 ||
-      (long)(len = size) != size) {
+      (long)(len = (size_t)size) != size) {
     fprintf(stderr, "%s: unable to determine file size (%s)\n", 
 	    __func__, strerror(errno));
     return -1;
   }
 
   if (!(buffer = malloc(len + 2)) ||
-      fread(buffer, 1, len, f) != (size_t)len) {
+      fread(buffer, 1, len, f) != len) {
     fprintf(stderr, "%s: unable to read file (%s)\n", __func__, strerror(errno));
     if (buffer)
       free(buffer);
@@ -654,7 +654,7 @@ int readfile(FILE *f, void **contents)
 
   *contents = buffer;
 
-  return len;
+  return (int)len;
 }
 
 #if HAVE_DIRENT_H
@@ -771,12 +771,12 @@ static unsigned char const code[] =
 
 #include <sofia-sip/su_uniqueid.h>
 
-sip_payload_t *test_payload(su_home_t *home, int size)
+sip_payload_t *test_payload(su_home_t *home, size_t size)
 {
-  sip_payload_t *pl = sip_payload_create(home, NULL, size);
+  sip_payload_t *pl = sip_payload_create(home, NULL, (isize_t)size);
 
   if (pl) {
-    int i;
+    size_t i;
     char *data = (char *)pl->pl_data;
     
     for (i = 0; i < size; i++) {
@@ -928,7 +928,7 @@ int test_tports(agent_t *ag)
   if (tcp_comp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 1024;
+    size_t size = 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -973,7 +973,7 @@ int test_tports(agent_t *ag)
   if (tcp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 512 * 1024;
+    usize_t size = 512 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1009,7 +1009,7 @@ int test_tports(agent_t *ag)
   if (tcp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 512 * 1024;
+    usize_t size = 512 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1043,7 +1043,7 @@ int test_tports(agent_t *ag)
   {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 2 * 1024;
+    usize_t size = 2 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1082,7 +1082,7 @@ int test_tports(agent_t *ag)
   if (v_udp_only) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 2 * 1024;
+    usize_t size = 2 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1125,7 +1125,7 @@ int test_tports(agent_t *ag)
   if (udp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 2 * 1024;
+    usize_t size = 2 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1206,7 +1206,7 @@ int test_tports(agent_t *ag)
   if (sctp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 16 * 1024;
+    usize_t size = 16 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1243,7 +1243,7 @@ int test_tports(agent_t *ag)
   if (tcp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 128 * 1024;
+    usize_t size = 128 * 1024;
 
     nta_agent_set_params(ag->ag_agent, 
 			 NTATAG_MAXSIZE(65536),
@@ -1328,6 +1328,105 @@ int test_tports(agent_t *ag)
   END();
 }
 
+int leg_callback_destroy(agent_t *ag,
+			 nta_leg_t *leg,
+			 nta_incoming_t *irq,
+			 sip_t const *sip)
+{
+  if (tstflags & tst_verbatim) {
+    printf("%s: %s: %s " URL_PRINT_FORMAT " %s\n",
+	   name, __func__, sip->sip_request->rq_method_name, 
+	   URL_PRINT_ARGS(sip->sip_request->rq_url),
+	   sip->sip_request->rq_version);
+  }
+
+  ag->ag_latest_leg = leg;
+
+  nta_incoming_destroy(irq);
+
+  return 0;
+}
+
+int leg_callback_save(agent_t *ag,
+		      nta_leg_t *leg,
+		      nta_incoming_t *irq,
+		      sip_t const *sip)
+{
+  if (tstflags & tst_verbatim) {
+    printf("%s: %s: %s " URL_PRINT_FORMAT " %s\n",
+	   name, __func__, sip->sip_request->rq_method_name, 
+	   URL_PRINT_ARGS(sip->sip_request->rq_url),
+	   sip->sip_request->rq_version);
+  }
+
+  ag->ag_latest_leg = leg;
+  ag->ag_irq = irq;
+  ag->ag_status = 1000;
+
+  return 0;
+}
+
+
+int test_destroy_incoming(agent_t *ag)
+{
+  BEGIN();
+
+  url_t url[1];
+
+  *url = *ag->ag_contact->m_url;
+
+  /* Test 3.1
+   * Check that when a incoming request is destroyed in callback, 
+   * a 500 response is sent
+   */
+  ag->ag_expect_leg = ag->ag_default_leg;
+  nta_leg_bind(ag->ag_default_leg, leg_callback_destroy, ag);
+
+  TEST_1(ag->ag_orq = 
+	 nta_outgoing_tcreate(ag->ag_default_leg, 
+			      outgoing_callback, ag,
+			      ag->ag_obp,
+			      SIP_METHOD_MESSAGE,
+			      (url_string_t *)url,
+			      SIPTAG_SUBJECT_STR("Test 3.1"),
+			      SIPTAG_FROM(ag->ag_alice),
+			      SIPTAG_TO(ag->ag_bob),
+			      TAG_END()));
+
+  nta_test_run(ag);
+  TEST(ag->ag_status, 500);
+  TEST_P(ag->ag_orq, NULL);
+  TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
+
+  /* Test 3.1
+   * Check that when a incoming request is destroyed, a 500 response is sent
+   */
+  nta_leg_bind(ag->ag_default_leg, leg_callback_save, ag);
+
+  TEST_1(ag->ag_orq = 
+	 nta_outgoing_tcreate(ag->ag_default_leg, 
+			      outgoing_callback, ag,
+			      ag->ag_obp,
+			      SIP_METHOD_MESSAGE,
+			      (url_string_t *)url,
+			      SIPTAG_SUBJECT_STR("Test 3.1"),
+			      SIPTAG_FROM(ag->ag_alice),
+			      SIPTAG_TO(ag->ag_bob),
+			      TAG_END()));
+
+  nta_test_run(ag);
+  TEST(ag->ag_status, 1000);
+  TEST_1(ag->ag_irq);
+  TEST_1(ag->ag_orq);
+  TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
+  nta_incoming_destroy(ag->ag_irq), ag->ag_irq = NULL;
+  nta_test_run(ag);
+  TEST(ag->ag_status, 500);
+  TEST_P(ag->ag_orq, NULL);
+
+  END();
+}
+
 int test_resolv(agent_t *ag, char const *resolv_conf)
 {
   int udp = 0, tcp = 0, sctp = 0, tls = 0;
@@ -1339,6 +1438,8 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
     return 0;
 
   BEGIN();
+
+  nta_leg_bind(ag->ag_default_leg, leg_callback_200, ag);
 
   nta_agent_set_params(ag->ag_agent, 
 		       NTATAG_SIP_T1(8 * 25), 
@@ -1698,7 +1799,7 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
   if (tcp_comp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 1024;
+    usize_t size = 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1736,7 +1837,7 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
   if (tcp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 512 * 1024;
+    usize_t size = 512 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1777,7 +1878,7 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
   if (tcp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 512 * 1024;
+    usize_t size = 512 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1811,7 +1912,7 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
   {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 2 * 1024;
+    usize_t size = 2 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1850,7 +1951,7 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
   if (udp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 2 * 1024;
+    usize_t size = 2 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1930,7 +2031,7 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
   if (sctp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 16 * 1024;
+    usize_t size = 16 * 1024;
 
     *url = *ag->ag_aliases->m_url;
     url->url_user = "alice";
@@ -1967,7 +2068,7 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
   if (tcp) {
     url_t url[1];
     sip_payload_t *pl;
-    unsigned size = 128 * 1024;
+    usize_t size = 128 * 1024;
 
     nta_agent_set_params(ag->ag_agent, 
 			 NTATAG_MAXSIZE(65536),
@@ -2063,6 +2164,8 @@ int test_routing(agent_t *ag)
 
   *url = *ag->ag_aliases->m_url;
   url->url_user = "bob";
+
+  nta_leg_bind(ag->ag_default_leg, leg_callback_200, ag);
 
   nta_agent_set_params(ag->ag_agent, 
 		       NTATAG_MAXSIZE(2 * 1024 * 1024),
@@ -3335,10 +3438,10 @@ int main(int argc, char *argv[])
   }
 
   if (o_attach) {
-    char line[10];
+    char line[10], *got;
     printf("nua_test: pid %u\n", getpid());
     printf("<Press RETURN to continue>\n");
-    fgets(line, sizeof line, stdin);
+    got = fgets(line, sizeof line, stdin); (void)got;
   }
 #if HAVE_ALARM
   else if (o_alarm) {
@@ -3364,6 +3467,7 @@ int main(int argc, char *argv[])
     retval |= test_bad_messages(ag); SINGLE_FAILURE_CHECK();
     retval |= test_reinit(ag); SINGLE_FAILURE_CHECK();
     retval |= test_tports(ag); SINGLE_FAILURE_CHECK();
+    retval |= test_destroy_incoming(ag); SINGLE_FAILURE_CHECK();
     retval |= test_resolv(ag, argv[i]); SINGLE_FAILURE_CHECK();
     retval |= test_routing(ag); SINGLE_FAILURE_CHECK();
     retval |= test_dialog(ag); SINGLE_FAILURE_CHECK();

@@ -3087,7 +3087,7 @@ httptag_error_vr(http_error_t const **vp)
 
 /**@ingroup http_separator
  *
- * Tag list item for pointer to a separator line between headers and payload object.
+ * Tag list item for pointer to a separator line between headers and body object.
  *
  * The HTTPTAG_SEPARATOR() macro is used to include a tag item with a
  * pointer to a http_separator_t object in a tag list.
@@ -3102,7 +3102,7 @@ SOFIAPUBVAR tag_typedef_t httptag_separator;
 
 /**@ingroup http_separator
  *
- * Tag list item for string with separator line between headers and payload value.
+ * Tag list item for string with separator line between headers and body value.
  *
  * The HTTPTAG_SEPARATOR_STR() macro is used to include a tag item with a 
  * string containing value of a http_separator_t header in a tag list.

@@ -57,7 +57,7 @@ tag_typedef_t tptag_reuse = BOOLTAG_TYPEDEF(reuse);
 tag_typedef_t tptag_fresh = BOOLTAG_TYPEDEF(fresh);
 tag_typedef_t tptag_server = BOOLTAG_TYPEDEF(server);
 tag_typedef_t tptag_public = INTTAG_TYPEDEF(public);
-tag_typedef_t tptag_mtu = UINTTAG_TYPEDEF(mtu);
+tag_typedef_t tptag_mtu = USIZETAG_TYPEDEF(mtu);
 tag_typedef_t tptag_connect = BOOLTAG_TYPEDEF(connect);
 tag_typedef_t tptag_sdwn_error = BOOLTAG_TYPEDEF(sdwn_error);
 tag_typedef_t tptag_sdwn_after = BOOLTAG_TYPEDEF(sdwn_after);
@@ -77,3 +77,7 @@ tag_typedef_t tptag_thrpsize = UINTTAG_TYPEDEF(thrpsize);
 tag_typedef_t tptag_thrprqsize = UINTTAG_TYPEDEF(thrprqsize);
 tag_typedef_t tptag_http_connect = STRTAG_TYPEDEF(http_connect);
 tag_typedef_t tptag_stun_server = BOOLTAG_TYPEDEF(stun_server);
+tag_typedef_t tptag_tos = INTTAG_TYPEDEF(tos);
+tag_typedef_t tptag_log = INTTAG_TYPEDEF(log);
+tag_typedef_t tptag_dump = STRTAG_TYPEDEF(dump);
+

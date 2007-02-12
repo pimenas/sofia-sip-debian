@@ -152,24 +152,24 @@ int nta_check_method(nta_incoming_t *irq,
 		     tag_type_t tag, tag_value_t value, ...)
 {
   /* Check extensions */
+  sip_method_t method = sip->sip_request->rq_method;
   char const *name = sip->sip_request->rq_method_name;
-  sip_param_t const *allowed;
-  int i = 0;
 
-  if (allow && (allowed = allow->k_items))
-    for (i = 0; allowed[i]; i++)
-      if (strcasecmp(name, allowed[i]) == 0)
-	return 0;
+  if (sip_is_allowed(allow, method, name))
+    return 0;
 
   if (irq) {
     ta_list ta;
     ta_start(ta, tag, value);
-    if (sip->sip_request->rq_method != sip_method_unknown)
+
+    if (method != sip_method_unknown)
+      /* Well-known method */
       nta_incoming_treply(irq,
 			  SIP_405_METHOD_NOT_ALLOWED,
 			  SIPTAG_ALLOW(allow),
 			  ta_tags(ta));
     else
+      /* Completeley unknown method */
       nta_incoming_treply(irq,
 			  SIP_501_NOT_IMPLEMENTED,
 			  SIPTAG_ALLOW(allow),
@@ -177,10 +177,7 @@ int nta_check_method(nta_incoming_t *irq,
     ta_end(ta);
   }
 
-  if (sip->sip_request->rq_method != sip_method_unknown)
-    return 405;
-  else
-    return 501;
+  return method != sip_method_unknown ? 405 : 501;
 }
 
 static char const application_sdp[] = "application/sdp";
@@ -346,8 +343,8 @@ int nta_check_accept(nta_incoming_t *irq,
 /**Check @SessionExpires header.
  *
  * If the proposed session-expiration time is smaller than @MinSE or our
- * minimal session expiration time, respond with 422 containing our minimal
- * session expiration time in @MinSE header.
+ * minimal session expiration time, respond with 422 containing shortest
+ * acceptable session expiration time in @MinSE header.
  *
  * @param irq 	incoming transaction object (may be NULL).
  * @param sip 	contents of the SIP message
@@ -362,26 +359,28 @@ int nta_check_session_expires(nta_incoming_t *irq,
 			      sip_time_t my_min_se,
 			      tag_type_t tag, tag_value_t value, ...)
 {
-  if ((sip->sip_min_se &&
-       sip->sip_session_expires->x_delta < sip->sip_min_se->min_delta)
-      || sip->sip_session_expires->x_delta < my_min_se) {
+  unsigned long min_se = my_min_se;
+
+  if (sip->sip_min_se && min_se < sip->sip_min_se->min_delta)
+    min_se = sip->sip_min_se->min_delta;
+
+  if (sip->sip_session_expires->x_delta >= min_se)
+    return 0;
+
+  if (irq) {
     ta_list ta;
+    sip_min_se_t min_se0[1];
 
-    sip_min_se_t min_se[1];
+    ta_start(ta, tag, value);
 
-    sip_min_se_init(min_se)->min_delta = my_min_se;
+    sip_min_se_init(min_se0)->min_delta = min_se;
 
-    if (irq) {
-      ta_start(ta, tag, value);
-      nta_incoming_treply(irq,
-			  SIP_422_SESSION_TIMER_TOO_SMALL,
-			  SIPTAG_MIN_SE(min_se),
-			  ta_tags(ta));
-      ta_end(ta);
-    }
-
-    return 422;
+    nta_incoming_treply(irq,
+			SIP_422_SESSION_TIMER_TOO_SMALL,
+			SIPTAG_MIN_SE(min_se0),
+			ta_tags(ta));
+    ta_end(ta);
   }
 
-  return 0;
+  return 422;
 }

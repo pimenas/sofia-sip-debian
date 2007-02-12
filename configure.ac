@@ -11,19 +11,19 @@ dnl information on the package
 dnl ---------------------------
 
 dnl update both the version for AC_INIT and the LIBSOFIA_SIP_UA_MAJOR_MINOR
-AC_INIT([sofia-sip], [1.12.4])
+AC_INIT([sofia-sip], [1.12.5])
 AC_CONFIG_SRCDIR([libsofia-sip-ua/sip/sofia-sip/sip.h])
 AC_SUBST(VER_LIBSOFIA_SIP_UA_MAJOR_MINOR, [1.12])
 dnl Includedir specific to this sofia version
 AC_SUBST(include_sofiadir, '${includedir}/sofia-sip-1.12')
-AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [3])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [4])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_REV, [0])
-AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [3])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [4])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_SOVER, [0]) # CUR-AGE
-AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_CUR, [2])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_CUR, [3])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_REV, [0])
-AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_AGE, [2])
-AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_SOVER, [0]) # CUR-AGE
+AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_AGE, [0])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_SOVER, [3]) # CUR-AGE
 					    
 # dnl calls AC_CANONICAL_ macros that are required by AM_INIT_AUTOMAKE
 SAC_CANONICAL_SYSTEM_CACHE_CHECK
@@ -56,16 +56,6 @@ AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [echo])
 AM_CONDITIONAL([HAVE_DOXYGEN], [test $DOXYGEN = doxygen])
 
-AC_ARG_WITH([aclocal],
-[  --with-aclocal          Install m4 files in aclocal --print-ac-dir],
-[if test "$with_aclocal" = "yes" ;  then
-	m4dir=`$ACLOCAL --print-ac-dir`
-else
-	m4dir=`$with_aclocal --print-ac-dir`
-fi], [m4dir='${datadir}/aclocal'])
-
-AC_SUBST([m4dir])
-
 ### checks for libraries
 ### --------------------
 
@@ -93,6 +83,15 @@ elif test x${HAVE_OPENSSL} != x1 ; then
 else
   AC_DEFINE([HAVE_SOFIA_STUN], 1, [Define to 1 if we use STUN library])
 fi
+AM_CONDITIONAL([HAVE_STUN], [test "x$enable_stun" = xyes])
+
+AC_ARG_ENABLE(nth,
+[  --disable-nth              disable nth and http modules (enabled)],
+ , enable_nth=yes)
+AM_CONDITIONAL([HAVE_NTH], [test "x$enable_nth" = xyes])
+if test x$enable_nth = xyes ; then
+  AC_DEFINE([HAVE_SOFIA_NTH], 1, [Define to 1 if we use NTH library])
+fi
 
 dnl Disable NTLM support by default
 AC_ARG_ENABLE(ntlm,
@@ -114,10 +113,6 @@ AC_HEADER_STDC
 
 ### checks for declarations
 ### -----------------------
-AC_CHECK_DECL([SIGPIPE], [
-AC_DEFINE([HAVE_SIGPIPE], 1, [Define to 1 if you have SIGPIPE])],,[
-#include <signal.h>
-])
 
 ### checks for types
 ### ----------------
@@ -191,7 +186,6 @@ libsofia-sip-ua/tport/Makefile
 libsofia-sip-ua/url/Makefile
 libsofia-sip-ua/features/sofia-sip/sofia_features.h
 libsofia-sip-ua-glib/Makefile
-libsofia-sip-ua-glib/nua-glib/Makefile
 libsofia-sip-ua-glib/su-glib/Makefile
 utils/Makefile
 utils/Doxyfile.build

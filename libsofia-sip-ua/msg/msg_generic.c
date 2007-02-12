@@ -136,6 +136,12 @@ issize_t msg_numeric_e(char b[], isize_t bsiz, msg_header_t const *h, int flags)
 /* ====================================================================== */
 /* Comma-separated list */
 
+/** @typedef struct msg_list_s msg_list_t; 
+ *
+ * Type for token list headers.
+ *
+ */
+
 issize_t msg_list_d(su_home_t *home, msg_header_t *h, char *s, isize_t slen)
 {
   return msg_commalist_d(home, &s, &h->sh_list->k_items, NULL);
@@ -198,12 +204,9 @@ int msg_list_append_items(su_home_t *home,
   if (items == NULL) return 0;
 
   for (i = 0; items[i]; i++) {
-    if (msg_params_add(home, (msg_param_t **)&k->k_items, items[i]) < 0)
+    if (msg_header_add_param(home, (msg_common_t *)k, items[i]) < 0)
       return -1;
   }
-
-  if (i > 0)
-    msg_fragment_clear(k->k_common);
 
   return 0;
 }
@@ -213,7 +216,8 @@ int msg_list_append_items(su_home_t *home,
  * @retval 0 when successful
  * @retval -1 upon an error
  */
-int msg_list_replace_items(su_home_t *home, msg_list_t *k, 
+int msg_list_replace_items(su_home_t *home,
+			   msg_list_t *k,
 			   msg_param_t const items[])
 {
   size_t i;
@@ -222,12 +226,9 @@ int msg_list_replace_items(su_home_t *home, msg_list_t *k,
   if (items == NULL) return 0;
 
   for (i = 0; items[i]; i++) {
-    if (msg_params_replace(home, (msg_param_t **)&k->k_items, items[i]) < 0)
+    if (msg_header_replace_item(home, (msg_common_t *)k, items[i]) < 0)
       return -1;
   }
-
-  if (i > 0)
-    msg_fragment_clear(k->k_common);
 
   return 0;
 }

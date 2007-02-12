@@ -54,15 +54,26 @@ BEGIN {
   split("", NAMES);
   split("", Comments);
   split("", COMMENTS);
+  split("", experimental);
 
+  # indexed by the C name of the header
+  split("", Since);		# Non-NUL if extra
+  split("", Extra);		# Offset in extra headers
+
+  without_experimental = 0;
   template="";
   template1="";
   template2="";
   template3="";
   prefix="";
   tprefix="";
+  extra=0;
   failed=0;
   success=0;
+
+  extra_struct = "msg_pub_extra";
+
+  ERRNO="error";
 }
 
 function name_hash (name)
@@ -92,7 +103,7 @@ function name_hash (name)
 #
 # Replace magic patterns in template p with header-specific values
 #
-function protos (name, comment, hash)
+function protos (name, comment, hash, since)
 {
   NAME=toupper(name);
   sub(/.*[\/][*][*][<][ 	]*/, "", comment); 
@@ -141,17 +152,37 @@ function protos (name, comment, hash)
   COMMENTS[N] = COMMENT; 
 
   symbols[name] = comment;
+  if (since) {
+    Since[name] = since;
+    Extra[name] = extra++;
+  }
+
+  expr = (without_experimental > 0 && do_hash);
+  if (expr) {
+    printf "%s is experimental\n", Comment;
+  }    
+  
+  experimental[N] = expr;
 
   if (PR) {
-    replace(template, hash, name, NAME, comment, Comment, COMMENT);
-    replace(template1, hash, name, NAME, comment, Comment, COMMENT);
-    replace(template2, hash, name, NAME, comment, Comment, COMMENT);
-    replace(template3, hash, name, NAME, comment, Comment, COMMENT);
+    if (expr) {
+      print "#if SU_HAVE_EXPERIMENTAL" > PR;
+    }
+    replace(template, hash, name, NAME, comment, Comment, COMMENT, since);
+    replace(template1, hash, name, NAME, comment, Comment, COMMENT, since);
+    replace(template2, hash, name, NAME, comment, Comment, COMMENT, since);
+    replace(template3, hash, name, NAME, comment, Comment, COMMENT, since);
+    if (expr) {
+      print "#endif /* SU_HAVE_EXPERIMENTAL */" > PR;
+    }
   }
 }
 
-function replace (p, hash, name, NAME, comment, Comment, COMMENT)
+function replace (p, hash, name, NAME, comment, Comment, COMMENT, since)
 {
+  #
+  # Replace various forms of header name in template, print it out
+  #
   if (p) {
     gsub(/#hash#/, hash, p);
     gsub(/#xxxxxx#/, name, p); 
@@ -159,6 +190,14 @@ function replace (p, hash, name, NAME, comment, Comment, COMMENT)
     gsub(/#xxxxxxx_xxxxxxx#/, comment, p);
     gsub(/#Xxxxxxx_Xxxxxxx#/, Comment, p);
     gsub(/#XXXXXXX_XXXXXXX#/, COMMENT, p);
+
+    if (since) {
+      gsub(/#version#/, since, p);
+    }
+    else {
+      # Remove line with #version#
+      gsub(/\n[^\n]*#version#[^\n]*\n/, "\n", p);
+    }
     	    
     print p > PR;
   }
@@ -186,8 +225,19 @@ function process_footer (text)
   for (i = 1; i <= n; i++) {
     l = lines[i];
     if (match(tolower(l), /#(xxxxxx(x_xxxxxxx)?|hash)#/)) {
+      expr = 0;
+
       for (j = 1; j <= N; j++) {
 	l = lines[i];
+	if (expr != experimental[j]) {
+	  expr = experimental[j];
+	  if (expr) {
+	    print "#if SU_HAVE_EXPERIMENTAL" > PR;
+	  }
+	  else {
+	    print "#endif /* SU_HAVE_EXPERIMENTAL */" > PR;
+	  }
+	}
 	gsub(/#hash#/, hashes[j], l);
 	gsub(/#xxxxxxx_xxxxxxx#/, comments[j], l);
 	gsub(/#Xxxxxxx_Xxxxxxx#/, Comments[j], l);
@@ -195,6 +245,10 @@ function process_footer (text)
 	gsub(/#xxxxxx#/, names[j], l); 
 	gsub(/#XXXXXX#/, NAMES[j], l);
 	print l > PR;
+      }
+
+      if (expr) {
+	print "#endif /* SU_HAVE_EXPERIMENTAL */" > PR;
       }
     } else {
       print l > PR;
@@ -232,10 +286,11 @@ function read_header_flags (flagfile,    line, tokens, name, value)
   close(flagfile);
 }
 
-/^ *\/\* === Headers start here \*\// { 
-
-  in_header_list=1; 
-
+#
+# Read in templates
+#
+function templates ()
+{
   if (!auto) {
     auto = FILENAME; 
 
@@ -248,27 +303,43 @@ function read_header_flags (flagfile,    line, tokens, name, value)
     if (PR) {
       if (TEMPLATE == "") { TEMPLATE = PR ".in"; }
       RS0=RS; RS="\f\n";
-      getline theader < TEMPLATE;
+      if ((getline theader < TEMPLATE) < 0) {
+	print ( TEMPLATE ": " ERRNO );
+	failed=1;
+        exit(1);
+      }
       getline header < TEMPLATE;
       getline template < TEMPLATE;
       getline footer < TEMPLATE;
 
       if (TEMPLATE1) {
-	getline dummy < TEMPLATE1;
+	if ((getline dummy < TEMPLATE1) < 0) {
+	  print(TEMPLATE1 ": " ERRNO);
+	  failed=1;
+          exit(1);
+        }
 	getline dummy < TEMPLATE1;
 	getline template1 < TEMPLATE1;
 	getline dummy < TEMPLATE1;
       }
 
       if (TEMPLATE2) {
-	getline dummy < TEMPLATE2;
+	if ((getline dummy < TEMPLATE2) < 0) {
+	  print( TEMPLATE2 ": " ERRNO );
+	  failed=1;
+	  exit(1);
+	}
 	getline dummy < TEMPLATE2;
 	getline template2 < TEMPLATE2;
 	getline dummy < TEMPLATE2;
       }
 
       if (TEMPLATE3) {
-	getline dummy < TEMPLATE3;
+	if ((getline dummy < TEMPLATE3) < 0) {
+	  print( TEMPLATE3 ": " ERRNO );
+	  failed=1;
+	  exit(1);
+	}
 	getline dummy < TEMPLATE3;
 	getline template3 < TEMPLATE3;
 	getline dummy < TEMPLATE3;
@@ -291,9 +362,16 @@ function read_header_flags (flagfile,    line, tokens, name, value)
   }
 }
 
-in_header_list && /^ *\/\* === Headers end here \*\// { in_header_list=0;}
+/^#### EXTRA HEADER LIST STARTS HERE ####$/ { HLIST=1; templates(); }
+HLIST && /^#### EXPERIMENTAL HEADER LIST STARTS HERE ####$/ { 
+  without_experimental=total; }
+HLIST && /^[a-z]/ { protos($1, $0, 0, $2); headers[total++] = $1; }
+/^#### EXTRA HEADER LIST ENDS HERE ####$/ { HLIST=0;  }
 
-in_header_list && PT && /^ *\/\* === Hash headers end here \*\// { in_header_list=0;}
+/^ *\/\* === Headers start here \*\// { in_header_list=1;  templates(); }
+/^ *\/\* === Headers end here \*\// { in_header_list=0; }
+
+PT && /^ *\/\* === Hash headers end here \*\// { in_header_list=0;}
 
 in_header_list && /^  (sip|rtsp|http|msg|mp)_[a-z_0-9]+_t/ { 
   n=$0
@@ -319,10 +397,13 @@ in_header_list && /^  (sip|rtsp|http|msg|mp)_[a-z_0-9]+_t/ {
 END {
   if (failed) { exit };
 
+  if (without_experimental == 0)
+    without_experimental = total;
+
   if (!NO_LAST) {
     protos("unknown", "/**< Unknown headers */", -3);
     protos("error", "/**< Erroneous headers */", -4);
-    protos("separator", "/**< Separator line between headers and payload */", -5);
+    protos("separator", "/**< Separator line between headers and body */", -5);
     protos("payload", "/**< Message payload */", -6);
     if (multipart)
       protos("multipart", "/**< Multipart payload */", -7);
@@ -342,6 +423,8 @@ END {
     getline template < TEMPLATE;
     getline footer < TEMPLATE;
     RS=RS0;
+
+    module_struct = module "_t";
 
     sub(/.*[\/]/, "", TEMPLATE);
     gsub(/#AUTO#/, auto, header);
@@ -374,6 +457,23 @@ END {
 
     # printf("extern msg_hclass_t msg_multipart_class[];\n\n") > PT;
 
+    if (extra > 0) {
+      printf("struct %s {\n", extra_struct) > PT;
+      printf("  %s base;\n", module_struct) > PT;
+      if (total - without_experimental < extra) {
+	printf("  msg_header_t *extra[%u];\n", 
+	       extra - (total - without_experimental)) > PT;
+      }
+      if (total - without_experimental > 0) {
+	print "#if SU_HAVE_EXPERIMENTAL" > PT;
+	printf("  msg_header_t *experimental[%u];\n", 
+	       total - without_experimental) > PT;
+	print "#endif" > PT;
+      }
+      printf("};\n\n") > PT;
+      module_struct = "struct " extra_struct;
+    }
+
     printf("msg_mclass_t const %s_mclass[1] = \n{{\n", module) > PT;
     printf("# if defined (%s_HCLASS)\n", toupper(module)) > PT;
     printf("  %s_HCLASS,\n", toupper(module)) > PT;
@@ -387,7 +487,7 @@ END {
     printf("#else\n") > PT;
     printf("  0,\n") > PT;
     printf("#endif\n") > PT;
-    printf("  sizeof(%s_t),\n", module) > PT;
+    printf("  sizeof (%s),\n", module_struct) > PT;
     printf("  %s_extract_body,\n", module) > PT;
 
     len = split("request status separator payload unknown error", unnamed, " ");
@@ -408,7 +508,13 @@ END {
     else {
       printf("  NULL, \n") > PT;
     }
-    printf("  %d, %d, \n", MC_HASH_SIZE, total) > PT;
+    printf("  %d, \n", MC_HASH_SIZE) > PT;
+    printf ("#if SU_HAVE_EXPERIMENTAL\n" \
+	    "  %d,\n" \
+	    "#else\n" \
+	    "  %d,\n" \
+	    "#endif\n", \
+	    total, without_experimental) > PT;
     printf("  {\n") > PT;
 
     for (i = 0; i < total; i++) {
@@ -427,6 +533,7 @@ END {
       }
 
       header_hash[j] = n;
+      experimental2[j] = (i >= without_experimental);
     }
 
     for (i = 0; i < MC_HASH_SIZE; i++) {
@@ -435,8 +542,23 @@ END {
 	n = header_hash[i];
         flags = header_flags[n]; if (flags) flags = ",\n      " flags;
 
-	printf("    { %s_%s_class, offsetof(%s_t, %s_%s)%s }%s\n", 
-	       tprefix, n, module, prefix, n, flags, c) > PT;
+	if (experimental2[i]) {
+	  print "#if SU_HAVE_EXPERIMENTAL" > PT;
+	}
+
+	if (Since[n]) {
+	  printf("    { %s_%s_class,\n" \
+		 "      offsetof(struct %s, extra[%u])%s }%s\n", 
+		 tprefix, n, extra_struct, Extra[n], flags, c) > PT;
+	}
+	else {
+	  printf("    { %s_%s_class, offsetof(%s_t, %s_%s)%s }%s\n", 
+		 tprefix, n, module, prefix, n, flags, c) > PT;
+	}
+
+	if (experimental2[i]) {
+	  printf("#else\n    { NULL, 0 }%s\n#endif\n", c) > PT;
+	}
       }
       else {
 	printf("    { NULL, 0 }%s\n", c) > PT;

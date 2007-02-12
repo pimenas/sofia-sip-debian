@@ -60,7 +60,7 @@ msg_mclass_t const msg_test_mclass[1] =
 #else
   0,
 #endif
-  sizeof(msg_test_t),
+  sizeof (msg_test_t),
   msg_test_extract_body,
   {{ msg_request_class, offsetof(msg_test_t, msg_request) }},
   {{ msg_status_class, offsetof(msg_test_t, msg_status) }},
@@ -70,7 +70,12 @@ msg_mclass_t const msg_test_mclass[1] =
   {{ msg_error_class, offsetof(msg_test_t, msg_error) }},
   {{ msg_multipart_class, offsetof(msg_test_t, msg_multipart) }},
   NULL, 
-  127, 12, 
+  127, 
+#if SU_HAVE_EXPERIMENTAL
+  12,
+#else
+  12,
+#endif
   {
     { NULL, 0 },
     { NULL, 0 },

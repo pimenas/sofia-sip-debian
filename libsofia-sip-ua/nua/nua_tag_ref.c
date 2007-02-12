@@ -86,6 +86,9 @@ EXPORT tag_typedef_t nutag_answer_sent_ref =
 extern tag_typedef_t nutag_substate;
 EXPORT tag_typedef_t nutag_substate_ref = 
   REFTAG_TYPEDEF(nutag_substate);
+extern tag_typedef_t nutag_newsub;
+EXPORT tag_typedef_t nutag_newsub_ref = 
+  REFTAG_TYPEDEF(nutag_newsub);
 extern tag_typedef_t nutag_invite_timer;
 EXPORT tag_typedef_t nutag_invite_timer_ref = 
   REFTAG_TYPEDEF(nutag_invite_timer);
@@ -239,6 +242,9 @@ EXPORT tag_typedef_t nutag_allow_ref =
 extern tag_typedef_t nutag_allow_events;
 EXPORT tag_typedef_t nutag_allow_events_ref = 
   REFTAG_TYPEDEF(nutag_allow_events);
+extern tag_typedef_t nutag_appl_method;
+EXPORT tag_typedef_t nutag_appl_method_ref = 
+  REFTAG_TYPEDEF(nutag_appl_method);
 extern tag_typedef_t nutag_supported;
 EXPORT tag_typedef_t nutag_supported_ref = 
   REFTAG_TYPEDEF(nutag_supported);
@@ -254,12 +260,6 @@ EXPORT tag_typedef_t nutag_detect_network_updates_ref =
 extern tag_typedef_t nutag_with;
 EXPORT tag_typedef_t nutag_with_ref = 
   REFTAG_TYPEDEF(nutag_with);
-extern tag_typedef_t _nutag_add_contact;
-EXPORT tag_typedef_t _nutag_add_contact_ref = 
-  REFTAG_TYPEDEF(_nutag_add_contact);
-extern tag_typedef_t _nutag_copy;
-EXPORT tag_typedef_t _nutag_copy_ref = 
-  REFTAG_TYPEDEF(_nutag_copy);
 
 EXPORT tag_type_t nua_tag_list[] =
 {
@@ -277,7 +277,6 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_enableinvite,
   nutag_answer_sent,
   nutag_smime_message_encryption,
-  _nutag_copy,
   nutag_keepalive,
   nutag_auth,
   nutag_min_se,
@@ -301,7 +300,6 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_detect_network_updates,
   nutag_offer_recv,
   nutag_m_username,
-  _nutag_add_contact,
   nutag_max_subscriptions,
   nutag_smime_enable,
   nutag_answer_recv,
@@ -325,8 +323,10 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_m_params,
   nutag_status,
   nutag_refer_pause,
+  nutag_appl_method,
   nutag_allow,
   nutag_handle,
+  nutag_newsub,
   nutag_callee_caps,
   nutag_hold,
   nutag_smime_key_encryption,
