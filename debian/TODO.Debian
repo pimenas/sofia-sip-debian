@@ -1,11 +1,18 @@
 1) todo list for next upstream release (1.12.5) 
 
-   none
+   - add libsofia-sip-ua-glib3 package and deprecate libsofia-sip-ua-glib0; 
+     there are yet no packages depending on libsofia-sip-ua-glib0 in Debian,
+     so the transition should be straighforward
 
 2) generic concerns
 
-   should we give some recommendations for embedded
-   systems (like rm -rf /usr/share/doc) in README.Debian ?
+   - it's normal that doxygen is run multiple times per library, but for
+     some reason the debian build causes the top-level "doxygen" target
+     to be run twice, and this needs to be fixed
+     ref:http://lists.alioth.debian.org/pipermail/pkg-voip-maintainers/2006-November/006604.html
+   
+   - should we give some recommendations for embedded
+     systems (like rm -rf /usr/share/doc) in README.Debian ?
 
 3) pkg-config dependencies
  

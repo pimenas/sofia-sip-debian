@@ -1,3 +1,27 @@
+sofia-sip (1.12.5-1) unstable; urgency=low
+
+  [ Kai Vehmanen ]
+  * New upstream release
+    See the release notes at:
+    http://www.mail-archive.com/sofia-sip-devel@lists.sourceforge.net/msg01286.html
+  * Note that libsofia-sip-ua-glib ABI has changed, so libsofia-ua-glib3 replaces
+    libsofia-sip-ua-glib0. This is not a major change however, as this library
+    was not part of the stable set of interfaces, and no applications in Debian have
+    yet used the -glib0 library.
+  * Relaxed dependency from sofia-sip-bin to libsofia-sip-ua0 (allow newer versions
+    of the library).
+
+ -- Mark Purcell <msp@debian.org>  Thu, 29 Mar 2007 22:36:20 +0100
+
+sofia-sip (1.12.4-2) UNRELEASED; urgency=low
+
+  [ Kai Vehmanen ]
+  * Do not install addrinfo binary and man page. (Closes: #404008). 
+    Next upstream release will contain a renamed binary that can
+    be added back to the package.
+
+ -- George Danchev <danchev@spnet.net>  Tue,  2 Jan 2007 18:35:32 +0200
+
 sofia-sip (1.12.4-1) unstable; urgency=high
 
   [ Kai Vehmanen ]
