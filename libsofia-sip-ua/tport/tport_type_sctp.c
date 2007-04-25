@@ -57,6 +57,12 @@
 #undef MAX_STREAMS
 #define MAX_STREAMS MAX_STREAMS
 
+/* Missing socket symbols */
+#ifndef SOL_SCTP
+#define SOL_SCTP IPPROTO_SCTP
+#endif
+
+
 enum { MAX_STREAMS = 1 };
 typedef struct tport_sctp_t
 {
@@ -90,8 +96,8 @@ static int tport_sctp_init_socket(tport_primary_t *pri,
 				  int socket,
 				  char const **return_reason);
 static int tport_recv_sctp(tport_t *self);
-static int tport_send_sctp(tport_t const *self, msg_t *msg,
-			   msg_iovec_t iov[], int iovused);
+static ssize_t tport_send_sctp(tport_t const *self, msg_t *msg,
+			       msg_iovec_t iov[], size_t iovused);
 
 tport_vtable_t const tport_sctp_client_vtable =
 {
@@ -174,9 +180,6 @@ static int tport_sctp_init_secondary(tport_t *self, int socket, int accepted,
 {
   self->tp_has_connection = 1;
 
-  if (su_setblocking(socket, 0) < 0)
-    return *return_reason = "su_setblocking", -1;
-
   if (accepted) {
     /* Accepted socket inherit the init information from listen socket */
     return 0;
@@ -251,8 +254,8 @@ int tport_recv_sctp(tport_t *self)
   return 2;
 }
 
-static int tport_send_sctp(tport_t const *self, msg_t *msg,
-			   msg_iovec_t iov[], int iovused)
+static ssize_t tport_send_sctp(tport_t const *self, msg_t *msg,
+			       msg_iovec_t iov[], size_t iovused)
 {
   
 

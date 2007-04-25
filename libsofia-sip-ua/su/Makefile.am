@@ -80,7 +80,8 @@ libsu_la_SOURCES = \
 	su_wait.c su_root.c su_timer.c \
 	su_port.c  su_port.h \
 	su_base_port.c su_pthread_port.c su_socket_port.c \
-	su_poll_port.c su_epoll_port.c su_select_port.c \
+	su_poll_port.c su_epoll_port.c su_select_port.c su_kqueue_port.c \
+	su_devpoll_port.c \
 	su_localinfo.c \
 	su_os_nw.c \
 	su_taglist.c su_tag.c su_tag_io.c \
@@ -94,7 +95,6 @@ EXTRA_libsu_la_SOURCES = \
 			inet_ntop.c inet_pton.c poll.c getopt.c \
 			su_tag_ref.c su_win32_port.c
 
-libsu_la_CFLAGS = 	$(AM_CFLAGS) $(SOFIA_CFLAGS)
 libsu_la_LIBADD = 	$(REPLACE_LIBADD)
 libsu_la_DEPENDENCIES = $(REPLACE_LIBADD)
 
@@ -105,7 +105,7 @@ LDADD = 		libsu.la
 # ----------------------------------------------------------------------
 # Install and distribution rules
 
-EXTRA_DIST = 		Doxyfile su.docs \
+EXTRA_DIST = 		su.docs \
 			run_addrinfo run_localinfo run_test_su
 
 dist_pkgdata_SCRIPTS = 	tag_dll.awk

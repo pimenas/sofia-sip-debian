@@ -80,11 +80,16 @@ function name_hash (name)
 {
   hash = 0;
 
-  len = split(name, chars, "");
+  len = length(name); 
 
   for (i = 1; i <= len; i++) {
-    c = tolower(chars[i]);
+    c = tolower(substr(name, i, 1));
     hash = (38501 * (hash + index(ascii, c))) % 65536;
+  }
+
+  if (hash == 0) {
+    print "*** msg_parser.awk: calculating hash failed\n";
+    exit(5);
   }
 
   if (0) {
@@ -196,7 +201,7 @@ function replace (p, hash, name, NAME, comment, Comment, COMMENT, since)
     }
     else {
       # Remove line with #version#
-      gsub(/\n[^\n]*#version#[^\n]*\n/, "\n", p);
+      gsub(/\n[^#\n]*#version#[^\n]*/, "", p);
     }
     	    
     print p > PR;
@@ -431,6 +436,10 @@ END {
     gsub(/#DATE#/, "@date Generated: " date, header);
     print header > PT;
 
+    print "" > PT;
+    print "#define msg_offsetof(s, f) ((unsigned short)offsetof(s ,f))" > PT;
+    print "" > PT;
+
     if (MC_SHORT_SIZE) {
       printf("static msg_href_t const " \
 	     "%s_short_forms[MC_SHORT_SIZE] = \n{\n", 
@@ -442,7 +451,7 @@ END {
 	  n = shorts[i];
         flags = header_flags[n]; if (flags) flags = ",\n      " flags;
 	  
-	  printf("  { /* %s */ %s_%s_class, offsetof(%s_t, %s_%s)%s }%s\n", 
+	  printf("  { /* %s */ %s_%s_class, msg_offsetof(%s_t, %s_%s)%s }%s\n", 
 		 substr(lower_case, i, 1), 
 		 tprefix, n, module, prefix, n, flags, c)	\
 	    > PT;
@@ -493,11 +502,11 @@ END {
     len = split("request status separator payload unknown error", unnamed, " ");
 
     for (i = 1; i <= len; i++) {
-      printf("  {{ %s_%s_class, offsetof(%s_t, %s_%s) }},\n", 
+      printf("  {{ %s_%s_class, msg_offsetof(%s_t, %s_%s) }},\n", 
 	     tprefix, unnamed[i], module, prefix, unnamed[i]) > PT;
     }
     if (multipart) {
-      printf("  {{ %s_class, offsetof(%s_t, %s_multipart) }},\n",
+      printf("  {{ %s_class, msg_offsetof(%s_t, %s_multipart) }},\n",
 	     multipart, module, prefix) > PT;
     } else {
       printf("  {{ NULL, 0 }},\n") > PT;
@@ -548,11 +557,11 @@ END {
 
 	if (Since[n]) {
 	  printf("    { %s_%s_class,\n" \
-		 "      offsetof(struct %s, extra[%u])%s }%s\n", 
+		 "      msg_offsetof(struct %s, extra[%u])%s }%s\n", 
 		 tprefix, n, extra_struct, Extra[n], flags, c) > PT;
 	}
 	else {
-	  printf("    { %s_%s_class, offsetof(%s_t, %s_%s)%s }%s\n", 
+	  printf("    { %s_%s_class, msg_offsetof(%s_t, %s_%s)%s }%s\n", 
 		 tprefix, n, module, prefix, n, flags, c) > PT;
 	}
 

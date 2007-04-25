@@ -166,12 +166,11 @@ struct context
     struct eventlist specials[1];
 
     /* State flags for complex scenarios */
-    union {
-      struct {
-	unsigned bit0:1, bit1:1, bit2:1, bit3:1;
-	unsigned bit4:1, bit5:1, bit6:1, bit7:1;
-      } b;
+    struct {
       unsigned n;
+      unsigned bit0:1, bit1:1, bit2:1, bit3:1;
+      unsigned bit4:1, bit5:1, bit6:1, bit7:1;
+      unsigned :0;
     } flags;
 
   } a, b, c;
@@ -215,6 +214,7 @@ int save_until_special(CONDITION_PARAMS);
 int until_terminated(CONDITION_PARAMS);
 int until_ready(CONDITION_PARAMS);
 int accept_call(CONDITION_PARAMS);
+int cancel_when_ringing(CONDITION_PARAMS);
 
 int accept_notify(CONDITION_PARAMS);
 
@@ -297,13 +297,13 @@ void print_event(nua_event_t event,
 		 sip_t const *sip,
 		 tagi_t tags[]);
 
-static inline
+su_inline
 void eventlist_init(struct eventlist *list)
 {
   list->tail = &list->head;
 }
 
-static inline
+su_inline
 void call_init(struct call *call)
 {
 }
@@ -329,10 +329,8 @@ int test_nat_timeout(struct context *ctx);
 int test_unregister(struct context *ctx);
 
 int test_basic_call(struct context *ctx);
-int test_reject_a(struct context *ctx);
-int test_reject_b(struct context *ctx);
-int test_reject_302(struct context *ctx);
-int test_reject_401(struct context *ctx);
+int test_offer_answer(struct context *ctx);
+int test_rejects(struct context *ctx);
 int test_mime_negotiation(struct context *ctx);
 int test_call_timeouts(struct context *ctx);
 int test_reject_401_aka(struct context *ctx);

@@ -27,6 +27,9 @@
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 
+/* Define to 1 if printf supports C99 size specifiers */
+#undef HAVE_C99_FORMAT
+
 /* Define to 1 if you have the `clock_getcpuclockid' function. */
 #undef HAVE_CLOCK_GETCPUCLOCKID
 
@@ -144,6 +147,9 @@
 
 /* Define to 1 if you have IP_RECVERR in <netinet/in.h> */
 #undef HAVE_IP_RECVERR
+
+/* Define to 1 if you have the `kqueue' function. */
+#undef HAVE_KQUEUE
 
 /* Define to 1 if you have the `crypto' library (-lcrypto). */
 #undef HAVE_LIBCRYPTO
@@ -302,6 +308,9 @@
 /* Define to 1 if your CC supports C99 struct initialization */
 #undef HAVE_STRUCT_KEYWORDS
 
+/* Define to 1 if you have the <sys/devpoll.h> header file. */
+#undef HAVE_SYS_DEVPOLL_H
+
 /* Define to 1 if you have the <sys/epoll.h> header file. */
 #undef HAVE_SYS_EPOLL_H
 
@@ -353,13 +362,13 @@
 /* Define to 1 if you have the <ws2tcpip.h> header file. */
 #undef HAVE_WS2TCPIP_H
 
-/* Define to format (%lli) for long long */
+/* Format (%lli) for long long */
 #undef LLI
 
-/* Define to format (%llu) for unsigned long long */
+/* Format (%llu) for unsigned long long */
 #undef LLU
 
-/* Define to format (%llx) for long long hex */
+/* Format (%llx) for long long hex */
 #undef LLX
 
 /* Define printf() modifier for ssize_t */
@@ -391,7 +400,7 @@
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
-   automatically deduced at runtime.
+   automatically deduced at run-time.
 	STACK_DIRECTION > 0 => grows toward higher addresses
 	STACK_DIRECTION < 0 => grows toward lower addresses
 	STACK_DIRECTION = 0 => direction of growth unknown */
@@ -427,5 +436,5 @@
 /* Define to a at least 64-bit int type */
 #undef longlong
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t

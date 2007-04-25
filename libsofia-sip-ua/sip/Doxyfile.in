@@ -1,8 +1,9 @@
 PROJECT_NAME         = "sip"
 OUTPUT_DIRECTORY     = ../docs/html/sip
 
-INPUT 		     = sofia-sip sip.docs sip_parser.docs .
+INPUT 		     = @srcdir@/sofia-sip sofia-sip @srcdir@/sip.docs @srcdir@/sip_parser.docs @srcdir@ . 
 
+@INCLUDE_PATH = . @srcdir@
 @INCLUDE = ../docs/Doxyfile.conf
 
 TAGFILES            += \
@@ -25,4 +26,6 @@ ALIASES += \
 
 @INCLUDE = sip.doxyaliases
 
-IMAGE_PATH           += images
+PREDEFINED += SU_HAVE_EXPERIMENTAL=1
+
+IMAGE_PATH           += @srcdir@/images

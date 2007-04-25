@@ -104,7 +104,7 @@ static char const __func__[] = "tport";
 #define TP_INSERT(tp) ((void)0)
 #define TP_REMOVE(tp) ((tp)->tp_left = (tp)->tp_right = (tp)->tp_dad = NULL)
 
-static inline int tp_cmp(tport_t const *a, tport_t const *b)
+su_inline int tp_cmp(tport_t const *a, tport_t const *b)
 {
   if (a == b)
     return 0;
@@ -115,14 +115,14 @@ static inline int tp_cmp(tport_t const *a, tport_t const *b)
   return memcmp(a->tp_addr, b->tp_addr, a->tp_addrlen);
 }
 
-static inline int tprb_is_inserted(tport_t const *a)
+su_inline int tprb_is_inserted(tport_t const *a)
 {
   return a->tp_dad != 0 || a->tp_left != 0 || a->tp_right != 0;
 }
 
-RBTREE_PROTOS(static inline, tprb, tport_t);
+RBTREE_PROTOS(su_inline, tprb, tport_t);
 
-RBTREE_BODIES(static inline, tprb, tport_t, 
+RBTREE_BODIES(su_inline, tprb, tport_t, 
 	      TP_LEFT, TP_RIGHT, TP_PARENT,
 	      TP_IS_RED, TP_SET_RED, TP_IS_BLACK, TP_SET_BLACK, TP_COPY_COLOR,
 	      tp_cmp, TP_INSERT, TP_REMOVE);
@@ -280,7 +280,7 @@ inline int tport_is_shutdown(tport_t const *self)
 }
 
 /** Test if transport is bound */
-static inline int tport_is_bound(tport_t const *self)
+su_inline int tport_is_bound(tport_t const *self)
 {
   return self->tp_protoname != NULL;
 }
@@ -292,12 +292,12 @@ int tport_is_connected(tport_t const *self)
 }
 
 /** MTU for transport  */
-static inline unsigned tport_mtu(tport_t const *self)
+su_inline unsigned tport_mtu(tport_t const *self)
 {
   return self->tp_params->tpp_mtu;
 }
 
-static inline
+su_inline
 int tport_has_sigcomp(tport_t const *self)
 {
   return self->tp_name->tpn_comp != NULL;
@@ -1482,6 +1482,8 @@ int tport_bind_server(tport_master_t *mr,
   unsigned short step = 0;
 
   bind6only_check(mr);
+
+  (void)hostname;
   
   SU_DEBUG_5(("%s(%p) to " TPN_FORMAT "\n", __func__, (void *)mr, TPN_ARGS(tpn)));
 
@@ -1807,7 +1809,7 @@ tport_get_local_addrinfo(tport_master_t *mr,
   return 0;
 }
 
-static inline su_addrinfo_t *get_next_addrinfo(su_addrinfo_t **all);
+su_inline su_addrinfo_t *get_next_addrinfo(su_addrinfo_t **all);
 
 /** Translate address and service.
  *
@@ -1903,7 +1905,7 @@ int tport_getaddrinfo(char const *node, char const *service,
   return EAI_MEMORY;
 }
 
-static inline
+su_inline
 su_addrinfo_t *get_next_addrinfo(su_addrinfo_t **all)
 {
   su_addrinfo_t *ai;
@@ -2047,7 +2049,7 @@ int tport_shutdown(tport_t *self, int how)
   return 0;
 }
 
-static inline
+su_inline
 unsigned long tport_now(void)
 {
   return su_now().tv_sec;
@@ -2653,7 +2655,7 @@ void tport_hup_event(tport_t *self)
  * @retval 2  incomplete recv, recv again
  * @retval 3  STUN keepalive, ignore
  */
-static inline
+su_inline
 int tport_recv_data(tport_t *self)
 {
   return self->tp_pri->pri_vtable->vtp_recv(self);
@@ -3271,6 +3273,7 @@ int tport_send_msg(tport_t *self, msg_t *msg,
   /* We have sent a complete message */
 
   self->tp_slogged = NULL;
+  self->tp_stats.sent_msgs ++;
 
   ai = msg_addrinfo(msg); assert(ai);
   close_after = (ai->ai_flags & TP_AI_CLOSE) == TP_AI_CLOSE;
@@ -3690,8 +3693,11 @@ void tport_send_queue(tport_t *self)
     }
     assert(total == n);
 
+    /* We have sent a complete message */
+    
     self->tp_queue[qhead] = NULL;
     msg_destroy(msg);
+    self->tp_stats.sent_msgs++;
     self->tp_slogged = NULL;
 
     qhead = (qhead + 1) % N;
@@ -3792,11 +3798,15 @@ msg_select_addrinfo(msg_t *msg, su_addrinfo_t *res)
       continue;
 #endif
 
+    if (ai->ai_protocol == 0)
+      continue;
     if (ai->ai_addrlen > sizeof(su_sockaddr_t))
       continue;
+
     mai->ai_family = ai->ai_family;
     mai->ai_socktype = ai->ai_socktype;
     mai->ai_protocol = ai->ai_protocol;
+
     if (ai->ai_addrlen < sizeof(su_sockaddr_t))
       memset(su, 0, sizeof(su_sockaddr_t));
     memcpy(su, ai->ai_addr, ai->ai_addrlen);

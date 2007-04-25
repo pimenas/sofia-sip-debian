@@ -37,10 +37,13 @@ dist_man_MANS = man/man1/sip-date.1 man/man1/sip-options.1 \
 
 $(dist_man_MANS): manpages
 
-manpages: built-sources
+manpages:
 	-mkdir -p man man/man1 2> /dev/null
 if HAVE_DOXYGEN
-	cd utils && $(DOXYGEN) Doxyfile.build
+	@echo 'cd utils && $(DOXYGEN)'
+	@cd utils && \
+	{ exec 3>&1 1>&2; { $(DOXYGEN) 2>&1; echo $$? >& 3 ;} | \
+	  fgrep -v 'Warning: explicit' ;} | { read x; exit $$x ;}
 	@rm -f man/man1/_*.1
 else
 	-touch $(dist_man_MANS)
@@ -49,6 +52,11 @@ endif
 CLEANFILES = $(dist_man_MANS)
 
 coverage built-sources clean-built-sources valcheck doxygen:
-	for i in libsofia-sip-ua $(GLIB_SUBDIRS) ; do $(MAKE) $(AM_MAKEFLAGS) -C $$i $@ ; done
+	@failcom='exit 1'; for f in x $$MAKEFLAGS; do \
+	case $$f in *=* | --[!k]*);; *k*) failcom='fail=yes';; esac; done; \
+	for i in libsofia-sip-ua $(GLIB_SUBDIRS) ; do \
+	  (cd $$i && $(MAKE) $(AM_MAKEFLAGS) $@) || eval $$failcom; \
+	done ; \
+	test -z "$$fail"
 
-.PHONY: coverage built-sources clean-built-sources doxygen manpages
+.PHONY: coverage built-sources clean-built-sources valcheck doxygen manpages

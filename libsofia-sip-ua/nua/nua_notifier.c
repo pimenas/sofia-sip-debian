@@ -135,7 +135,7 @@ void nua_notify_usage_remove(nua_handle_t *nh,
  * (or SIPTAG_ALLOW_EVENTS() or SIPTAG_ALLOW_EVENTS_STR()). The application
  * can decide whether to accept the SUBSCRIBE request or reject it. The
  * nua_response() call responding to a SUBSCRIBE request must have
- * NUTAG_WITH() (or NUTAG_WITH_CURRENT()/NUTAG_WITH_SAVED()) tag.
+ * NUTAG_WITH() (or NUTAG_WITH_THIS()/NUTAG_WITH_SAVED()) tag.
  *
  * If the application accepts the SUBSCRIBE request, it must immediately
  * send an initial NOTIFY establishing the dialog. This is because the
@@ -690,6 +690,16 @@ static int nua_notify_client_report(nua_client_request_t *cr,
 		   SIPTAG_EVENT(du ? du->du_event : NULL),
 		   TAG_NEXT(tags));
 
+  if (du && du->du_cr == cr && !cr->cr_terminated) {
+    if (nu->nu_requested) {
+      /* Re-SUBSCRIBEd while NOTIFY was in progress, resend NOTIFY */
+      nua_client_resend_request(cr, 0);
+    }
+    else if (nu->nu_expires) {
+      nua_dialog_usage_refresh_at(du, nu->nu_expires);
+    }
+  }
+
   return 0;
 }
 
@@ -699,18 +709,19 @@ static void nua_notify_usage_refresh(nua_handle_t *nh,
 				     nua_dialog_usage_t *du,
 				     sip_time_t now)
 {
+  struct notifier_usage *nu = nua_dialog_usage_private(du);
   nua_client_request_t *cr = du->du_cr;
   nua_event_t e = nua_r_notify;
 
   if (cr) {
-    int terminating;
+    int terminating = 0;
 
-    if (nua_client_is_queued(cr)) /* Already notifying. */
-      return;
+    if (nu->nu_expires && nu->nu_expires <= now)
+      terminating = 1;
+    else if (nu->nu_requested && nu->nu_requested <= now)
+      terminating = 1;
 
-    terminating = du->du_expires && du->du_expires <= now;
-
-    if (nua_client_resend_request(cr, terminating, NULL) >= 0)
+    if (nua_client_resend_request(cr, terminating) >= 0)
       return;
   }
   else {
@@ -738,13 +749,10 @@ static int nua_notify_usage_shutdown(nua_handle_t *nh,
   struct notifier_usage *nu = nua_dialog_usage_private(du);
   nua_client_request_t *cr = du->du_cr;
 
-  if (nua_client_is_queued(cr)) /* Already notifying. */
-    return -1;  /* Request in progress */
-
   nu->nu_substate = nua_substate_terminated;
 
   if (cr) {
-    if (nua_client_resend_request(cr, 1, NULL) >= 0)
+    if (nua_client_resend_request(cr, 1) >= 0)
       return 0;
   }
   else {

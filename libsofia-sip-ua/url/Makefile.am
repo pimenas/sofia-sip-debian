@@ -34,6 +34,7 @@ COVERAGE_INPUT = 	$(liburl_la_SOURCES) $(include_sofia_HEADERS)
 
 LDADD = 		liburl.la \
 			../bnf/libbnf.la \
+			../ipt/libipt.la \
 			../su/libsu.la
 
 test_urlmap_SOURCES = 	urlmap.c urlmap.h
@@ -42,7 +43,7 @@ test_urlmap_CFLAGS =	$(CFLAGS) -DTEST_URLMAP=1
 # ----------------------------------------------------------------------
 # Install and distribution rules
 
-EXTRA_DIST =		Doxyfile url.docs $(BUILT_SOURCES)
+EXTRA_DIST =		url.docs $(BUILT_SOURCES)
 
 # ----------------------------------------------------------------------
 # Tests

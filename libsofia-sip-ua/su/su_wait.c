@@ -31,6 +31,7 @@
  * (poll()/select()/WaitForMultipleObjects()) functionality.
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
+ * @author Martti Mela <Martti.Mela@nokia.com>
  * @date Created: Tue Sep 14 15:51:04 1999 ppessi
  *
  */
@@ -304,6 +305,7 @@ int su_wait_mask(su_wait_t *waitobj, su_socket_t s, int events)
     WSASetLastError(error);
     return -1;
   }
+
 #elif SU_HAVE_POLL || HAVE_SELECT
   waitobj->fd = s;
   waitobj->events = events;
