@@ -1,3 +1,12 @@
+sofia-sip (1.12.6-1) unstable; urgency=low
+
+  [ Kai Vehmanen ]
+  * Fixed inclusion of libsofia-sip-ua-glib3.so library to the
+    packages. Closes bug #419559.
+  * New upstream release.
+
+ -- Kilian Krause <kilian@debian.org>  Fri, 18 May 2007 20:15:48 +0200
+
 sofia-sip (1.12.5-1) unstable; urgency=low
 
   [ Kai Vehmanen ]

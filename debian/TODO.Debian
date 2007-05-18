@@ -1,8 +1,6 @@
-1) todo list for next upstream release (1.12.5) 
+1) todo list for next upstream release (1.12.7-) 
 
-   - add libsofia-sip-ua-glib3 package and deprecate libsofia-sip-ua-glib0; 
-     there are yet no packages depending on libsofia-sip-ua-glib0 in Debian,
-     so the transition should be straighforward
+   - none
 
 2) generic concerns
 

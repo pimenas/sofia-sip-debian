@@ -23,7 +23,7 @@ cleanbuilddir/sofia-sip::
 # Update that sum when new releases occur, this
 # catches silent file content forges at the server side
 
-MD5TRUSTED := 7aa5ff3560cb862143e87c96e82b7bbc
+MD5TRUSTED := 8c24a9d58179f8fa7c7edd4af7dab104
 
 DEBVERSION:=$(DEB_VERSION)
 UPVERSION:=$(DEB_UPSTREAM_VERSION)
