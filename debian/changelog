@@ -1,3 +1,18 @@
+sofia-sip (1.12.6-2) unstable; urgency=low
+
+  [ Kai Vehmanen ]
+  * Set DEB_* variables after including CDBS macros, not before.
+  * The "--as-needed" linked option is now explicitly disabled (was
+    enabled before, but didn't work as it was in the wrong place).
+  * CDBS clean target was set to "clean". See
+    http://www.bononia.it/~zack/blog/posts/2007/09/clean_distclean.html.
+    (Closes: #442732)
+  * Another fix related to #442732: remove the doxygen output directories
+    in clean target. In upstream, the doxygen targets are not run
+    by default, so also the cleaning has to be done separately.
+  
+ -- Kilian Krause <kilian@debian.org>  Fri, 18 May 2007 21:38:58 +0200
+
 sofia-sip (1.12.6-1) unstable; urgency=low
 
   [ Kai Vehmanen ]
