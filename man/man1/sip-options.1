@@ -1,11 +1,11 @@
-.TH "sip-options" 1 "25 Apr 2007" "Version 1.12.6" "sofia-sip" \" -*- nroff -*-
+.TH "sip-options" 1 "17 Oct 2007" "Version 1.12.7" "sofia-sip-utils" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
 sip-options \- Query SIP OPTIONS
 .SH "Synopsis"
 .PP
-\fCsip-options [--bind=url] [--from=url] [-a|--all] to \fP
+\fCsip-options [OPTIONS] target-uri \fP
 .SH "Description"
 .PP
 The \fIsip-options\fP utility sends a SIP OPTIONS request (or any other SIP request) to a SIP server.
@@ -26,6 +26,8 @@ Specifies the \fBFrom\fP header. Unless this option is used or the environment v
 Specify the initial Max-Forwards count (defaults to 70, stack default).  
 .IP "\fB--method=s \fP" 1c
 Specify the request method (defaults to OPTIONS).  
+.IP "\fB--extra | -x/dt> \fP" 1c
+Read extra headers (and optionally a message body) from the standard input  
 .PP
 .SH "Return Codes"
 .PP

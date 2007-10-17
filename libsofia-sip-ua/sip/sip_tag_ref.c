@@ -12,7 +12,7 @@
 
 #include <sofia-sip/su_tag_class.h>
 
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_OPEN_C
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT
@@ -442,6 +442,36 @@ EXPORT tag_typedef_t siptag_refer_sub_ref =
 extern tag_typedef_t siptag_refer_sub_str;
 EXPORT tag_typedef_t siptag_refer_sub_str_ref = 
   REFTAG_TYPEDEF(siptag_refer_sub_str);
+extern tag_typedef_t siptag_alert_info;
+EXPORT tag_typedef_t siptag_alert_info_ref = 
+  REFTAG_TYPEDEF(siptag_alert_info);
+extern tag_typedef_t siptag_alert_info_str;
+EXPORT tag_typedef_t siptag_alert_info_str_ref = 
+  REFTAG_TYPEDEF(siptag_alert_info_str);
+extern tag_typedef_t siptag_reply_to;
+EXPORT tag_typedef_t siptag_reply_to_ref = 
+  REFTAG_TYPEDEF(siptag_reply_to);
+extern tag_typedef_t siptag_reply_to_str;
+EXPORT tag_typedef_t siptag_reply_to_str_ref = 
+  REFTAG_TYPEDEF(siptag_reply_to_str);
+extern tag_typedef_t siptag_remote_party_id;
+EXPORT tag_typedef_t siptag_remote_party_id_ref = 
+  REFTAG_TYPEDEF(siptag_remote_party_id);
+extern tag_typedef_t siptag_remote_party_id_str;
+EXPORT tag_typedef_t siptag_remote_party_id_str_ref = 
+  REFTAG_TYPEDEF(siptag_remote_party_id_str);
+extern tag_typedef_t siptag_p_asserted_identity;
+EXPORT tag_typedef_t siptag_p_asserted_identity_ref = 
+  REFTAG_TYPEDEF(siptag_p_asserted_identity);
+extern tag_typedef_t siptag_p_asserted_identity_str;
+EXPORT tag_typedef_t siptag_p_asserted_identity_str_ref = 
+  REFTAG_TYPEDEF(siptag_p_asserted_identity_str);
+extern tag_typedef_t siptag_p_preferred_identity;
+EXPORT tag_typedef_t siptag_p_preferred_identity_ref = 
+  REFTAG_TYPEDEF(siptag_p_preferred_identity);
+extern tag_typedef_t siptag_p_preferred_identity_str;
+EXPORT tag_typedef_t siptag_p_preferred_identity_str_ref = 
+  REFTAG_TYPEDEF(siptag_p_preferred_identity_str);
 #if SU_HAVE_EXPERIMENTAL
 extern tag_typedef_t siptag_suppress_body_if_match;
 EXPORT tag_typedef_t siptag_suppress_body_if_match_ref = 

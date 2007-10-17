@@ -95,7 +95,7 @@ SOFIAPUBVAR tag_typedef_t httptag_http;
 #define HTTPTAG_HTTP_REF(x)   httptag_http_ref, httptag_http_vr(&(x))
 SOFIAPUBVAR tag_typedef_t httptag_http_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline
 tag_value_t httptag_http_v(http_t const *v) { return (tag_value_t)v; }
 su_inline 
@@ -143,7 +143,7 @@ SOFIAPUBVAR tag_typedef_t httptag_header;
 #define HTTPTAG_HEADER_REF(x)   httptag_header_ref, httptag_header_vr(&(x))
 SOFIAPUBVAR tag_typedef_t httptag_header_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_header_v(http_header_t const *v)
 { return (tag_value_t)v; }
@@ -213,7 +213,7 @@ SOFIAPUBVAR tag_typedef_t httptag_request_ref;
 #define HTTPTAG_REQUEST_STR_REF(x)        HTTPTAG_STR_REF(request, x)
 SOFIAPUBVAR tag_typedef_t httptag_request_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_request_v(http_request_t const *v)
 { return (tag_value_t)v; }
@@ -265,7 +265,7 @@ SOFIAPUBVAR tag_typedef_t httptag_status_ref;
 #define HTTPTAG_STATUS_STR_REF(x)        HTTPTAG_STR_REF(status, x)
 SOFIAPUBVAR tag_typedef_t httptag_status_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_status_v(http_status_t const *v)
 { return (tag_value_t)v; }
@@ -317,7 +317,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept_ref;
 #define HTTPTAG_ACCEPT_STR_REF(x)        HTTPTAG_STR_REF(accept, x)
 SOFIAPUBVAR tag_typedef_t httptag_accept_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_accept_v(http_accept_t const *v)
 { return (tag_value_t)v; }
@@ -369,7 +369,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept_charset_ref;
 #define HTTPTAG_ACCEPT_CHARSET_STR_REF(x)        HTTPTAG_STR_REF(accept_charset, x)
 SOFIAPUBVAR tag_typedef_t httptag_accept_charset_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_accept_charset_v(http_accept_charset_t const *v)
 { return (tag_value_t)v; }
@@ -421,7 +421,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept_encoding_ref;
 #define HTTPTAG_ACCEPT_ENCODING_STR_REF(x)        HTTPTAG_STR_REF(accept_encoding, x)
 SOFIAPUBVAR tag_typedef_t httptag_accept_encoding_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_accept_encoding_v(http_accept_encoding_t const *v)
 { return (tag_value_t)v; }
@@ -473,7 +473,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept_language_ref;
 #define HTTPTAG_ACCEPT_LANGUAGE_STR_REF(x)        HTTPTAG_STR_REF(accept_language, x)
 SOFIAPUBVAR tag_typedef_t httptag_accept_language_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_accept_language_v(http_accept_language_t const *v)
 { return (tag_value_t)v; }
@@ -525,7 +525,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept_ranges_ref;
 #define HTTPTAG_ACCEPT_RANGES_STR_REF(x)        HTTPTAG_STR_REF(accept_ranges, x)
 SOFIAPUBVAR tag_typedef_t httptag_accept_ranges_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_accept_ranges_v(http_accept_ranges_t const *v)
 { return (tag_value_t)v; }
@@ -577,7 +577,7 @@ SOFIAPUBVAR tag_typedef_t httptag_allow_ref;
 #define HTTPTAG_ALLOW_STR_REF(x)        HTTPTAG_STR_REF(allow, x)
 SOFIAPUBVAR tag_typedef_t httptag_allow_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_allow_v(http_allow_t const *v)
 { return (tag_value_t)v; }
@@ -629,7 +629,7 @@ SOFIAPUBVAR tag_typedef_t httptag_authentication_info_ref;
 #define HTTPTAG_AUTHENTICATION_INFO_STR_REF(x)        HTTPTAG_STR_REF(authentication_info, x)
 SOFIAPUBVAR tag_typedef_t httptag_authentication_info_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_authentication_info_v(http_authentication_info_t const *v)
 { return (tag_value_t)v; }
@@ -681,7 +681,7 @@ SOFIAPUBVAR tag_typedef_t httptag_authorization_ref;
 #define HTTPTAG_AUTHORIZATION_STR_REF(x)        HTTPTAG_STR_REF(authorization, x)
 SOFIAPUBVAR tag_typedef_t httptag_authorization_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_authorization_v(http_authorization_t const *v)
 { return (tag_value_t)v; }
@@ -733,7 +733,7 @@ SOFIAPUBVAR tag_typedef_t httptag_age_ref;
 #define HTTPTAG_AGE_STR_REF(x)        HTTPTAG_STR_REF(age, x)
 SOFIAPUBVAR tag_typedef_t httptag_age_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_age_v(http_age_t const *v)
 { return (tag_value_t)v; }
@@ -785,7 +785,7 @@ SOFIAPUBVAR tag_typedef_t httptag_cache_control_ref;
 #define HTTPTAG_CACHE_CONTROL_STR_REF(x)        HTTPTAG_STR_REF(cache_control, x)
 SOFIAPUBVAR tag_typedef_t httptag_cache_control_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_cache_control_v(http_cache_control_t const *v)
 { return (tag_value_t)v; }
@@ -837,7 +837,7 @@ SOFIAPUBVAR tag_typedef_t httptag_connection_ref;
 #define HTTPTAG_CONNECTION_STR_REF(x)        HTTPTAG_STR_REF(connection, x)
 SOFIAPUBVAR tag_typedef_t httptag_connection_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_connection_v(http_connection_t const *v)
 { return (tag_value_t)v; }
@@ -889,7 +889,7 @@ SOFIAPUBVAR tag_typedef_t httptag_date_ref;
 #define HTTPTAG_DATE_STR_REF(x)        HTTPTAG_STR_REF(date, x)
 SOFIAPUBVAR tag_typedef_t httptag_date_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_date_v(http_date_t const *v)
 { return (tag_value_t)v; }
@@ -941,7 +941,7 @@ SOFIAPUBVAR tag_typedef_t httptag_etag_ref;
 #define HTTPTAG_ETAG_STR_REF(x)        HTTPTAG_STR_REF(etag, x)
 SOFIAPUBVAR tag_typedef_t httptag_etag_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_etag_v(http_etag_t const *v)
 { return (tag_value_t)v; }
@@ -993,7 +993,7 @@ SOFIAPUBVAR tag_typedef_t httptag_expect_ref;
 #define HTTPTAG_EXPECT_STR_REF(x)        HTTPTAG_STR_REF(expect, x)
 SOFIAPUBVAR tag_typedef_t httptag_expect_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_expect_v(http_expect_t const *v)
 { return (tag_value_t)v; }
@@ -1045,7 +1045,7 @@ SOFIAPUBVAR tag_typedef_t httptag_expires_ref;
 #define HTTPTAG_EXPIRES_STR_REF(x)        HTTPTAG_STR_REF(expires, x)
 SOFIAPUBVAR tag_typedef_t httptag_expires_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_expires_v(http_expires_t const *v)
 { return (tag_value_t)v; }
@@ -1097,7 +1097,7 @@ SOFIAPUBVAR tag_typedef_t httptag_from_ref;
 #define HTTPTAG_FROM_STR_REF(x)        HTTPTAG_STR_REF(from, x)
 SOFIAPUBVAR tag_typedef_t httptag_from_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_from_v(http_from_t const *v)
 { return (tag_value_t)v; }
@@ -1149,7 +1149,7 @@ SOFIAPUBVAR tag_typedef_t httptag_host_ref;
 #define HTTPTAG_HOST_STR_REF(x)        HTTPTAG_STR_REF(host, x)
 SOFIAPUBVAR tag_typedef_t httptag_host_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_host_v(http_host_t const *v)
 { return (tag_value_t)v; }
@@ -1201,7 +1201,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_match_ref;
 #define HTTPTAG_IF_MATCH_STR_REF(x)        HTTPTAG_STR_REF(if_match, x)
 SOFIAPUBVAR tag_typedef_t httptag_if_match_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_if_match_v(http_if_match_t const *v)
 { return (tag_value_t)v; }
@@ -1253,7 +1253,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_modified_since_ref;
 #define HTTPTAG_IF_MODIFIED_SINCE_STR_REF(x)        HTTPTAG_STR_REF(if_modified_since, x)
 SOFIAPUBVAR tag_typedef_t httptag_if_modified_since_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_if_modified_since_v(http_if_modified_since_t const *v)
 { return (tag_value_t)v; }
@@ -1305,7 +1305,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_none_match_ref;
 #define HTTPTAG_IF_NONE_MATCH_STR_REF(x)        HTTPTAG_STR_REF(if_none_match, x)
 SOFIAPUBVAR tag_typedef_t httptag_if_none_match_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_if_none_match_v(http_if_none_match_t const *v)
 { return (tag_value_t)v; }
@@ -1357,7 +1357,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_range_ref;
 #define HTTPTAG_IF_RANGE_STR_REF(x)        HTTPTAG_STR_REF(if_range, x)
 SOFIAPUBVAR tag_typedef_t httptag_if_range_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_if_range_v(http_if_range_t const *v)
 { return (tag_value_t)v; }
@@ -1409,7 +1409,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_unmodified_since_ref;
 #define HTTPTAG_IF_UNMODIFIED_SINCE_STR_REF(x)        HTTPTAG_STR_REF(if_unmodified_since, x)
 SOFIAPUBVAR tag_typedef_t httptag_if_unmodified_since_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_if_unmodified_since_v(http_if_unmodified_since_t const *v)
 { return (tag_value_t)v; }
@@ -1461,7 +1461,7 @@ SOFIAPUBVAR tag_typedef_t httptag_last_modified_ref;
 #define HTTPTAG_LAST_MODIFIED_STR_REF(x)        HTTPTAG_STR_REF(last_modified, x)
 SOFIAPUBVAR tag_typedef_t httptag_last_modified_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_last_modified_v(http_last_modified_t const *v)
 { return (tag_value_t)v; }
@@ -1513,7 +1513,7 @@ SOFIAPUBVAR tag_typedef_t httptag_location_ref;
 #define HTTPTAG_LOCATION_STR_REF(x)        HTTPTAG_STR_REF(location, x)
 SOFIAPUBVAR tag_typedef_t httptag_location_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_location_v(http_location_t const *v)
 { return (tag_value_t)v; }
@@ -1565,7 +1565,7 @@ SOFIAPUBVAR tag_typedef_t httptag_max_forwards_ref;
 #define HTTPTAG_MAX_FORWARDS_STR_REF(x)        HTTPTAG_STR_REF(max_forwards, x)
 SOFIAPUBVAR tag_typedef_t httptag_max_forwards_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_max_forwards_v(http_max_forwards_t const *v)
 { return (tag_value_t)v; }
@@ -1617,7 +1617,7 @@ SOFIAPUBVAR tag_typedef_t httptag_pragma_ref;
 #define HTTPTAG_PRAGMA_STR_REF(x)        HTTPTAG_STR_REF(pragma, x)
 SOFIAPUBVAR tag_typedef_t httptag_pragma_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_pragma_v(http_pragma_t const *v)
 { return (tag_value_t)v; }
@@ -1669,7 +1669,7 @@ SOFIAPUBVAR tag_typedef_t httptag_proxy_authenticate_ref;
 #define HTTPTAG_PROXY_AUTHENTICATE_STR_REF(x)        HTTPTAG_STR_REF(proxy_authenticate, x)
 SOFIAPUBVAR tag_typedef_t httptag_proxy_authenticate_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_proxy_authenticate_v(http_proxy_authenticate_t const *v)
 { return (tag_value_t)v; }
@@ -1721,7 +1721,7 @@ SOFIAPUBVAR tag_typedef_t httptag_proxy_authorization_ref;
 #define HTTPTAG_PROXY_AUTHORIZATION_STR_REF(x)        HTTPTAG_STR_REF(proxy_authorization, x)
 SOFIAPUBVAR tag_typedef_t httptag_proxy_authorization_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_proxy_authorization_v(http_proxy_authorization_t const *v)
 { return (tag_value_t)v; }
@@ -1773,7 +1773,7 @@ SOFIAPUBVAR tag_typedef_t httptag_range_ref;
 #define HTTPTAG_RANGE_STR_REF(x)        HTTPTAG_STR_REF(range, x)
 SOFIAPUBVAR tag_typedef_t httptag_range_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_range_v(http_range_t const *v)
 { return (tag_value_t)v; }
@@ -1825,7 +1825,7 @@ SOFIAPUBVAR tag_typedef_t httptag_referer_ref;
 #define HTTPTAG_REFERER_STR_REF(x)        HTTPTAG_STR_REF(referer, x)
 SOFIAPUBVAR tag_typedef_t httptag_referer_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_referer_v(http_referer_t const *v)
 { return (tag_value_t)v; }
@@ -1877,7 +1877,7 @@ SOFIAPUBVAR tag_typedef_t httptag_retry_after_ref;
 #define HTTPTAG_RETRY_AFTER_STR_REF(x)        HTTPTAG_STR_REF(retry_after, x)
 SOFIAPUBVAR tag_typedef_t httptag_retry_after_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_retry_after_v(http_retry_after_t const *v)
 { return (tag_value_t)v; }
@@ -1929,7 +1929,7 @@ SOFIAPUBVAR tag_typedef_t httptag_server_ref;
 #define HTTPTAG_SERVER_STR_REF(x)        HTTPTAG_STR_REF(server, x)
 SOFIAPUBVAR tag_typedef_t httptag_server_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_server_v(http_server_t const *v)
 { return (tag_value_t)v; }
@@ -1981,7 +1981,7 @@ SOFIAPUBVAR tag_typedef_t httptag_te_ref;
 #define HTTPTAG_TE_STR_REF(x)        HTTPTAG_STR_REF(te, x)
 SOFIAPUBVAR tag_typedef_t httptag_te_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_te_v(http_te_t const *v)
 { return (tag_value_t)v; }
@@ -2033,7 +2033,7 @@ SOFIAPUBVAR tag_typedef_t httptag_trailer_ref;
 #define HTTPTAG_TRAILER_STR_REF(x)        HTTPTAG_STR_REF(trailer, x)
 SOFIAPUBVAR tag_typedef_t httptag_trailer_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_trailer_v(http_trailer_t const *v)
 { return (tag_value_t)v; }
@@ -2085,7 +2085,7 @@ SOFIAPUBVAR tag_typedef_t httptag_transfer_encoding_ref;
 #define HTTPTAG_TRANSFER_ENCODING_STR_REF(x)        HTTPTAG_STR_REF(transfer_encoding, x)
 SOFIAPUBVAR tag_typedef_t httptag_transfer_encoding_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_transfer_encoding_v(http_transfer_encoding_t const *v)
 { return (tag_value_t)v; }
@@ -2137,7 +2137,7 @@ SOFIAPUBVAR tag_typedef_t httptag_upgrade_ref;
 #define HTTPTAG_UPGRADE_STR_REF(x)        HTTPTAG_STR_REF(upgrade, x)
 SOFIAPUBVAR tag_typedef_t httptag_upgrade_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_upgrade_v(http_upgrade_t const *v)
 { return (tag_value_t)v; }
@@ -2189,7 +2189,7 @@ SOFIAPUBVAR tag_typedef_t httptag_user_agent_ref;
 #define HTTPTAG_USER_AGENT_STR_REF(x)        HTTPTAG_STR_REF(user_agent, x)
 SOFIAPUBVAR tag_typedef_t httptag_user_agent_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_user_agent_v(http_user_agent_t const *v)
 { return (tag_value_t)v; }
@@ -2241,7 +2241,7 @@ SOFIAPUBVAR tag_typedef_t httptag_vary_ref;
 #define HTTPTAG_VARY_STR_REF(x)        HTTPTAG_STR_REF(vary, x)
 SOFIAPUBVAR tag_typedef_t httptag_vary_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_vary_v(http_vary_t const *v)
 { return (tag_value_t)v; }
@@ -2293,7 +2293,7 @@ SOFIAPUBVAR tag_typedef_t httptag_via_ref;
 #define HTTPTAG_VIA_STR_REF(x)        HTTPTAG_STR_REF(via, x)
 SOFIAPUBVAR tag_typedef_t httptag_via_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_via_v(http_via_t const *v)
 { return (tag_value_t)v; }
@@ -2345,7 +2345,7 @@ SOFIAPUBVAR tag_typedef_t httptag_warning_ref;
 #define HTTPTAG_WARNING_STR_REF(x)        HTTPTAG_STR_REF(warning, x)
 SOFIAPUBVAR tag_typedef_t httptag_warning_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_warning_v(http_warning_t const *v)
 { return (tag_value_t)v; }
@@ -2397,7 +2397,7 @@ SOFIAPUBVAR tag_typedef_t httptag_www_authenticate_ref;
 #define HTTPTAG_WWW_AUTHENTICATE_STR_REF(x)        HTTPTAG_STR_REF(www_authenticate, x)
 SOFIAPUBVAR tag_typedef_t httptag_www_authenticate_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_www_authenticate_v(http_www_authenticate_t const *v)
 { return (tag_value_t)v; }
@@ -2449,7 +2449,7 @@ SOFIAPUBVAR tag_typedef_t httptag_proxy_connection_ref;
 #define HTTPTAG_PROXY_CONNECTION_STR_REF(x)        HTTPTAG_STR_REF(proxy_connection, x)
 SOFIAPUBVAR tag_typedef_t httptag_proxy_connection_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_proxy_connection_v(http_proxy_connection_t const *v)
 { return (tag_value_t)v; }
@@ -2501,7 +2501,7 @@ SOFIAPUBVAR tag_typedef_t httptag_set_cookie_ref;
 #define HTTPTAG_SET_COOKIE_STR_REF(x)        HTTPTAG_STR_REF(set_cookie, x)
 SOFIAPUBVAR tag_typedef_t httptag_set_cookie_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_set_cookie_v(http_set_cookie_t const *v)
 { return (tag_value_t)v; }
@@ -2553,7 +2553,7 @@ SOFIAPUBVAR tag_typedef_t httptag_cookie_ref;
 #define HTTPTAG_COOKIE_STR_REF(x)        HTTPTAG_STR_REF(cookie, x)
 SOFIAPUBVAR tag_typedef_t httptag_cookie_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_cookie_v(http_cookie_t const *v)
 { return (tag_value_t)v; }
@@ -2605,7 +2605,7 @@ SOFIAPUBVAR tag_typedef_t httptag_mime_version_ref;
 #define HTTPTAG_MIME_VERSION_STR_REF(x)        HTTPTAG_STR_REF(mime_version, x)
 SOFIAPUBVAR tag_typedef_t httptag_mime_version_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_mime_version_v(http_mime_version_t const *v)
 { return (tag_value_t)v; }
@@ -2657,7 +2657,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_encoding_ref;
 #define HTTPTAG_CONTENT_ENCODING_STR_REF(x)        HTTPTAG_STR_REF(content_encoding, x)
 SOFIAPUBVAR tag_typedef_t httptag_content_encoding_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_content_encoding_v(http_content_encoding_t const *v)
 { return (tag_value_t)v; }
@@ -2709,7 +2709,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_language_ref;
 #define HTTPTAG_CONTENT_LANGUAGE_STR_REF(x)        HTTPTAG_STR_REF(content_language, x)
 SOFIAPUBVAR tag_typedef_t httptag_content_language_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_content_language_v(http_content_language_t const *v)
 { return (tag_value_t)v; }
@@ -2761,7 +2761,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_length_ref;
 #define HTTPTAG_CONTENT_LENGTH_STR_REF(x)        HTTPTAG_STR_REF(content_length, x)
 SOFIAPUBVAR tag_typedef_t httptag_content_length_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_content_length_v(http_content_length_t const *v)
 { return (tag_value_t)v; }
@@ -2813,7 +2813,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_location_ref;
 #define HTTPTAG_CONTENT_LOCATION_STR_REF(x)        HTTPTAG_STR_REF(content_location, x)
 SOFIAPUBVAR tag_typedef_t httptag_content_location_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_content_location_v(http_content_location_t const *v)
 { return (tag_value_t)v; }
@@ -2865,7 +2865,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_md5_ref;
 #define HTTPTAG_CONTENT_MD5_STR_REF(x)        HTTPTAG_STR_REF(content_md5, x)
 SOFIAPUBVAR tag_typedef_t httptag_content_md5_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_content_md5_v(http_content_md5_t const *v)
 { return (tag_value_t)v; }
@@ -2917,7 +2917,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_range_ref;
 #define HTTPTAG_CONTENT_RANGE_STR_REF(x)        HTTPTAG_STR_REF(content_range, x)
 SOFIAPUBVAR tag_typedef_t httptag_content_range_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_content_range_v(http_content_range_t const *v)
 { return (tag_value_t)v; }
@@ -2969,7 +2969,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_type_ref;
 #define HTTPTAG_CONTENT_TYPE_STR_REF(x)        HTTPTAG_STR_REF(content_type, x)
 SOFIAPUBVAR tag_typedef_t httptag_content_type_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_content_type_v(http_content_type_t const *v)
 { return (tag_value_t)v; }
@@ -3021,7 +3021,7 @@ SOFIAPUBVAR tag_typedef_t httptag_unknown_ref;
 #define HTTPTAG_UNKNOWN_STR_REF(x)        HTTPTAG_STR_REF(unknown, x)
 SOFIAPUBVAR tag_typedef_t httptag_unknown_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_unknown_v(http_unknown_t const *v)
 { return (tag_value_t)v; }
@@ -3073,7 +3073,7 @@ SOFIAPUBVAR tag_typedef_t httptag_error_ref;
 #define HTTPTAG_ERROR_STR_REF(x)        HTTPTAG_STR_REF(error, x)
 SOFIAPUBVAR tag_typedef_t httptag_error_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_error_v(http_error_t const *v)
 { return (tag_value_t)v; }
@@ -3125,7 +3125,7 @@ SOFIAPUBVAR tag_typedef_t httptag_separator_ref;
 #define HTTPTAG_SEPARATOR_STR_REF(x)        HTTPTAG_STR_REF(separator, x)
 SOFIAPUBVAR tag_typedef_t httptag_separator_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_separator_v(http_separator_t const *v)
 { return (tag_value_t)v; }
@@ -3177,7 +3177,7 @@ SOFIAPUBVAR tag_typedef_t httptag_payload_ref;
 #define HTTPTAG_PAYLOAD_STR_REF(x)        HTTPTAG_STR_REF(payload, x)
 SOFIAPUBVAR tag_typedef_t httptag_payload_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 httptag_payload_v(http_payload_t const *v)
 { return (tag_value_t)v; }

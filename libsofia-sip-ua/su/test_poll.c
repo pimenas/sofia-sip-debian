@@ -22,9 +22,9 @@
  *
  */
 
-/**@ingroup su_root_ex
+/**@internal 
  * @file test_poll.c
- * Example code for su_wait.h.
+ * Example code for <sofia-sip/su_wait.h>.
  *
  * This file illustrates how the asynchronous connect can be used with @b su.
  *

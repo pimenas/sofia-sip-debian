@@ -56,6 +56,16 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+# 
+# Generate lcov output
+#
+
+#
+# Copyright (C) 2007 Nokia Corporation
+# Contact: Pekka Pessi <pekka.pessi@nokia.com>
+# Licensed under LGPL. See file COPYING.
+#
+
 
 
 
@@ -86,24 +96,27 @@ bin_PROGRAMS = addrinfo$(EXEEXT) localinfo$(EXEEXT)
 check_PROGRAMS = torture_su$(EXEEXT) torture_su_port$(EXEEXT) \
 	torture_su_alloc$(EXEEXT) torture_su_time$(EXEEXT) \
 	torture_su_tag$(EXEEXT) test_htable$(EXEEXT) \
-	torture_rbtree$(EXEEXT) test_memmem$(EXEEXT) \
-	torture_su_bm$(EXEEXT) torture_su_root$(EXEEXT) \
-	torture_su_timer$(EXEEXT) test_su$(EXEEXT) su_proxy$(EXEEXT) \
-	test_poll$(EXEEXT) $(am__EXEEXT_1)
+	torture_rbtree$(EXEEXT) torture_heap$(EXEEXT) \
+	test_memmem$(EXEEXT) torture_su_bm$(EXEEXT) \
+	torture_su_root$(EXEEXT) torture_su_timer$(EXEEXT) \
+	test_su$(EXEEXT) su_proxy$(EXEEXT) test_poll$(EXEEXT) \
+	$(am__EXEEXT_1)
 DIST_COMMON = $(am__nobase_include_sofia_HEADERS_DIST) \
 	$(dist_pkgdata_SCRIPTS) $(srcdir)/Doxyfile.in \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am \
-	ChangeLog
+	$(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/sofia.am \
+	$(top_srcdir)/rules/valcheck.am ChangeLog
 
 # Use with --enable-ndebug
 @NDEBUG_TRUE@am__append_1 = -DNDEBUG
+@HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_2 = --frames
+@HAVE_LCOV_TRUE@am__append_3 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
 subdir = libsofia-sip-ua/su
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/sac-general.m4 \
-	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su.m4 \
-	$(top_srcdir)/m4/sac-su2.m4 $(top_srcdir)/m4/sac-tport.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/sac-coverage.m4 \
+	$(top_srcdir)/m4/sac-general.m4 \
+	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su2.m4 \
+	$(top_srcdir)/m4/sac-tport.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -120,8 +133,8 @@ am__libsu_la_SOURCES_DIST = su.c su_errno.c su_addrinfo.c su_alloc.c \
 	su_epoll_port.c su_select_port.c su_kqueue_port.c \
 	su_devpoll_port.c su_localinfo.c su_os_nw.c su_taglist.c \
 	su_tag.c su_tag_io.c su_log.c su_global_log.c su_default_log.c \
-	su_module_debug.h su_md5.c su_uniqueid.c su_bm.c \
-	su_osx_runloop.c
+	su_module_debug.h su_md5.c su_uniqueid.c su_bm.c smoothsort.c \
+	string0.c su_osx_runloop.c
 @COREFOUNDATION_TRUE@am__objects_1 = su_osx_runloop.lo
 am_libsu_la_OBJECTS = su.lo su_errno.lo su_addrinfo.lo su_alloc.lo \
 	su_alloc_lock.lo su_strdup.lo su_sprintf.lo su_strlst.lo \
@@ -131,7 +144,8 @@ am_libsu_la_OBJECTS = su.lo su_errno.lo su_addrinfo.lo su_alloc.lo \
 	su_select_port.lo su_kqueue_port.lo su_devpoll_port.lo \
 	su_localinfo.lo su_os_nw.lo su_taglist.lo su_tag.lo \
 	su_tag_io.lo su_log.lo su_global_log.lo su_default_log.lo \
-	su_md5.lo su_uniqueid.lo su_bm.lo $(am__objects_1)
+	su_md5.lo su_uniqueid.lo su_bm.lo smoothsort.lo string0.lo \
+	$(am__objects_1)
 libsu_la_OBJECTS = $(am_libsu_la_OBJECTS)
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pkgdatadir)" \
 	"$(DESTDIR)$(include_sofiadir)" \
@@ -172,6 +186,10 @@ test_su_osx_SOURCES = test_su_osx.c
 test_su_osx_OBJECTS = test_su_osx.$(OBJEXT)
 test_su_osx_LDADD = $(LDADD)
 test_su_osx_DEPENDENCIES = libsu.la
+torture_heap_SOURCES = torture_heap.c
+torture_heap_OBJECTS = torture_heap.$(OBJEXT)
+torture_heap_LDADD = $(LDADD)
+torture_heap_DEPENDENCIES = libsu.la
 torture_rbtree_SOURCES = torture_rbtree.c
 torture_rbtree_OBJECTS = torture_rbtree.$(OBJEXT)
 torture_rbtree_LDADD = $(LDADD)
@@ -225,18 +243,27 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libsu_la_SOURCES) $(EXTRA_libsu_la_SOURCES) addrinfo.c \
 	localinfo.c su_proxy.c test_htable.c test_memmem.c test_poll.c \
-	test_su.c test_su_osx.c torture_rbtree.c torture_su.c \
-	torture_su_alloc.c torture_su_bm.c torture_su_port.c \
-	torture_su_root.c torture_su_root_osx.c torture_su_tag.c \
-	torture_su_time.c torture_su_timer.c
-DIST_SOURCES = $(am__libsu_la_SOURCES_DIST) $(EXTRA_libsu_la_SOURCES) \
-	addrinfo.c localinfo.c su_proxy.c test_htable.c test_memmem.c \
-	test_poll.c test_su.c test_su_osx.c torture_rbtree.c \
+	test_su.c test_su_osx.c torture_heap.c torture_rbtree.c \
 	torture_su.c torture_su_alloc.c torture_su_bm.c \
 	torture_su_port.c torture_su_root.c torture_su_root_osx.c \
 	torture_su_tag.c torture_su_time.c torture_su_timer.c
+DIST_SOURCES = $(am__libsu_la_SOURCES_DIST) $(EXTRA_libsu_la_SOURCES) \
+	addrinfo.c localinfo.c su_proxy.c test_htable.c test_memmem.c \
+	test_poll.c test_su.c test_su_osx.c torture_heap.c \
+	torture_rbtree.c torture_su.c torture_su_alloc.c \
+	torture_su_bm.c torture_su_port.c torture_su_root.c \
+	torture_su_root_osx.c torture_su_tag.c torture_su_time.c \
+	torture_su_timer.c
 am__nobase_include_sofia_HEADERS_DIST = sofia-sip/su_types.h \
 	sofia-sip/su.h sofia-sip/su_errno.h sofia-sip/su_addrinfo.h \
 	sofia-sip/su_localinfo.h sofia-sip/su_wait.h \
@@ -246,9 +273,10 @@ am__nobase_include_sofia_HEADERS_DIST = sofia-sip/su_types.h \
 	sofia-sip/su_tag_class.h sofia-sip/su_tagarg.h \
 	sofia-sip/su_tag_io.h sofia-sip/su_tag_inline.h \
 	sofia-sip/htable.h sofia-sip/htable2.h sofia-sip/rbtree.h \
-	sofia-sip/su_debug.h sofia-sip/su_log.h sofia-sip/su_config.h \
-	sofia-sip/su_md5.h sofia-sip/su_uniqueid.h sofia-sip/su_bm.h \
-	sofia-sip/tstdef.h sofia-sip/su_os_nw.h \
+	sofia-sip/heap.h sofia-sip/su_debug.h sofia-sip/su_log.h \
+	sofia-sip/su_config.h sofia-sip/su_md5.h \
+	sofia-sip/su_uniqueid.h sofia-sip/su_bm.h sofia-sip/tstdef.h \
+	sofia-sip/su_os_nw.h sofia-sip/string0.h \
 	sofia-sip/su_osx_runloop.h
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -278,6 +306,7 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
 COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
+COVERAGE_FLAGS = @COVERAGE_FLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -302,13 +331,20 @@ EXPENSIVE_CHECKS_FALSE = @EXPENSIVE_CHECKS_FALSE@
 EXPENSIVE_CHECKS_TRUE = @EXPENSIVE_CHECKS_TRUE@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+GCOV = @GCOV@
+GENHTML = @GENHTML@
+GENPNG = @GENPNG@
 GLIB_CFLAGS = @GLIB_CFLAGS@
 GLIB_LIBS = @GLIB_LIBS@
 GLIB_VERSION = @GLIB_VERSION@
 HAVE_DOXYGEN_FALSE = @HAVE_DOXYGEN_FALSE@
 HAVE_DOXYGEN_TRUE = @HAVE_DOXYGEN_TRUE@
+HAVE_GENPNG_FALSE = @HAVE_GENPNG_FALSE@
+HAVE_GENPNG_TRUE = @HAVE_GENPNG_TRUE@
 HAVE_GLIB_FALSE = @HAVE_GLIB_FALSE@
 HAVE_GLIB_TRUE = @HAVE_GLIB_TRUE@
+HAVE_LCOV_FALSE = @HAVE_LCOV_FALSE@
+HAVE_LCOV_TRUE = @HAVE_LCOV_TRUE@
 HAVE_MINGW32_FALSE = @HAVE_MINGW32_FALSE@
 HAVE_MINGW32_TRUE = @HAVE_MINGW32_TRUE@
 HAVE_NTH_FALSE = @HAVE_NTH_FALSE@
@@ -323,6 +359,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
@@ -360,7 +397,6 @@ REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
-SOFIA_COVERAGE = @SOFIA_COVERAGE@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -419,26 +455,12 @@ target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
 noinst_LTLIBRARIES = libsu.la
-@COREFOUNDATION_FALSE@OSXSOURCES = 
-@COREFOUNDATION_TRUE@OSXSOURCES = \
-@COREFOUNDATION_TRUE@	su_osx_runloop.c
-
-@COREFOUNDATION_FALSE@OSXHEADERS = 
-@COREFOUNDATION_TRUE@OSXHEADERS = \
-@COREFOUNDATION_TRUE@	sofia-sip/su_osx_runloop.h
-
-@COREFOUNDATION_TRUE@OSXPROGS = \
-@COREFOUNDATION_TRUE@	torture_su_root_osx test_su_osx
-
-@COREFOUNDATION_TRUE@OSXTESTS = \
-@COREFOUNDATION_TRUE@	torture_su_root_osx run_test_su_osx
-
 
 # ----------------------------------------------------------------------
 # Tests
 TESTS = torture_su torture_su_port \
 			torture_su_alloc torture_su_time torture_su_tag \
-			test_htable torture_rbtree \
+			test_htable torture_rbtree torture_heap \
 			test_memmem torture_su_bm \
 			torture_su_root torture_su_timer \
 			run_addrinfo run_localinfo run_test_su \
@@ -458,11 +480,12 @@ nobase_include_sofia_HEADERS = \
 			sofia-sip/su_tag_class.h sofia-sip/su_tagarg.h \
 			sofia-sip/su_tag_io.h sofia-sip/su_tag_inline.h \
 			sofia-sip/htable.h sofia-sip/htable2.h \
-			sofia-sip/rbtree.h sofia-sip/su_debug.h \
-			sofia-sip/su_log.h \
+			sofia-sip/rbtree.h sofia-sip/heap.h \
+			sofia-sip/su_debug.h sofia-sip/su_log.h \
 			sofia-sip/su_config.h sofia-sip/su_md5.h \
 			sofia-sip/su_uniqueid.h sofia-sip/su_bm.h \
 			sofia-sip/tstdef.h sofia-sip/su_os_nw.h \
+			sofia-sip/string0.h \
 			$(OSXHEADERS)
 
 nobase_nodist_include_sofia_HEADERS = sofia-sip/su_configure.h
@@ -480,13 +503,14 @@ libsu_la_SOURCES = \
 	su_os_nw.c \
 	su_taglist.c su_tag.c su_tag_io.c \
 	su_log.c su_global_log.c su_default_log.c su_module_debug.h \
-	su_md5.c su_uniqueid.c su_bm.c $(OSXSOURCES)
+	su_md5.c su_uniqueid.c su_bm.c smoothsort.c string0.c $(OSXSOURCES)
 
 EXTRA_libsu_la_SOURCES = \
 			memmem.c strtoull.c strcasestr.c \
 			memspn.c memcspn.c memccpy.c \
 			inet_ntop.c inet_pton.c poll.c getopt.c \
-			su_tag_ref.c su_win32_port.c
+			su_tag_ref.c su_win32_port.c \
+			su_open_c_localinfo.cpp
 
 libsu_la_LIBADD = $(REPLACE_LIBADD)
 libsu_la_DEPENDENCIES = $(REPLACE_LIBADD)
@@ -495,9 +519,8 @@ LDADD = libsu.la
 
 # ----------------------------------------------------------------------
 # Install and distribution rules
-EXTRA_DIST = su.docs \
-			run_addrinfo run_localinfo run_test_su
-
+EXTRA_DIST = su.docs run_addrinfo run_localinfo run_test_su \
+	su_osx_runloop.c sofia-sip/su_osx_runloop.h
 dist_pkgdata_SCRIPTS = tag_dll.awk
 
 # ----------------------------------------------------------------------
@@ -505,6 +528,7 @@ dist_pkgdata_SCRIPTS = tag_dll.awk
 AUTOMAKE_OPTIONS = foreign
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
 	$(openssl_CFLAGS) $(am__append_1)
+SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
@@ -531,14 +555,39 @@ INTERNAL_INCLUDES = \
 	-I$(srcdir)/../url -I../url \
 	-I$(srcdir)/../su -I../su
 
+PHONY = built-sources clean-built-sources $(am__append_3)
 VALGRIND = valgrind 
 VALGRINDFLAGS = --tool=memcheck
+
+# Scripts
+@HAVE_LCOV_TRUE@LCOV_UNCOVERED = ${top_srcdir}/scripts/uncovered
+@HAVE_LCOV_TRUE@LCOV_REPORT = ${top_srcdir}/scripts/lcov-report
+
+# Report directory
+@HAVE_LCOV_TRUE@lcovdir = ${top_builddir}/lcov
+
+# Options
+@HAVE_LCOV_TRUE@GENHTML_OPTIONS = --show-details --legend \
+@HAVE_LCOV_TRUE@	$(am__append_2)
+
+# Fancy shell command that expands to directory relative to top_builddir
+@HAVE_LCOV_TRUE@expand_subdir = `pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+
+# ----------------------------------------------------------------------
+# Sofia specific rules
+
+# ----------------------------------------------------------------------
+# OS X stuff
+@COREFOUNDATION_TRUE@OSXSOURCES = su_osx_runloop.c
+@COREFOUNDATION_TRUE@OSXHEADERS = sofia-sip/su_osx_runloop.h
+@COREFOUNDATION_TRUE@OSXPROGS = torture_su_root_osx test_su_osx
+@COREFOUNDATION_TRUE@OSXTESTS = torture_su_root_osx run_test_su_osx
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: _tag_ref.c _tag.c .c .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(am__configure_deps)
+.SUFFIXES: _tag_ref.c _tag.c .c .cpp .lo .o .obj
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -579,7 +628,7 @@ clean-noinstLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 libsu.la: $(libsu_la_OBJECTS) $(libsu_la_DEPENDENCIES) 
-	$(LINK)  $(libsu_la_LDFLAGS) $(libsu_la_OBJECTS) $(libsu_la_LIBADD) $(LIBS)
+	$(CXXLINK)  $(libsu_la_LDFLAGS) $(libsu_la_OBJECTS) $(libsu_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
@@ -639,6 +688,9 @@ test_su$(EXEEXT): $(test_su_OBJECTS) $(test_su_DEPENDENCIES)
 test_su_osx$(EXEEXT): $(test_su_osx_OBJECTS) $(test_su_osx_DEPENDENCIES) 
 	@rm -f test_su_osx$(EXEEXT)
 	$(LINK) $(test_su_osx_LDFLAGS) $(test_su_osx_OBJECTS) $(test_su_osx_LDADD) $(LIBS)
+torture_heap$(EXEEXT): $(torture_heap_OBJECTS) $(torture_heap_DEPENDENCIES) 
+	@rm -f torture_heap$(EXEEXT)
+	$(LINK) $(torture_heap_LDFLAGS) $(torture_heap_OBJECTS) $(torture_heap_LDADD) $(LIBS)
 torture_rbtree$(EXEEXT): $(torture_rbtree_OBJECTS) $(torture_rbtree_DEPENDENCIES) 
 	@rm -f torture_rbtree$(EXEEXT)
 	$(LINK) $(torture_rbtree_LDFLAGS) $(torture_rbtree_OBJECTS) $(torture_rbtree_LDADD) $(LIBS)
@@ -705,7 +757,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/memmem.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/memspn.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poll.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/smoothsort.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strcasestr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/string0.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strtoull.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_addrinfo.Plo@am__quote@
@@ -722,6 +776,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_localinfo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_log.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_md5.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_open_c_localinfo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_os_nw.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_osx_runloop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/su_poll_port.Plo@am__quote@
@@ -750,6 +805,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_poll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_su.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_su_osx.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_heap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_rbtree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_su_alloc.Po@am__quote@
@@ -781,6 +837,27 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+.cpp.o:
+@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
+
+.cpp.obj:
+@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ `$(CYGPATH_W) '$<'`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.cpp.lo:
+@am__fastdepCXX_TRUE@	if $(LTCXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1017,10 +1094,12 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+@HAVE_LCOV_FALSE@clean-local:
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-checkPROGRAMS clean-generic \
-	clean-libtool clean-noinstLTLIBRARIES mostlyclean-am
+	clean-libtool clean-local clean-noinstLTLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -1074,13 +1153,13 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_pkgdataSCRIPTS \
 
 .PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
 	clean-binPROGRAMS clean-checkPROGRAMS clean-generic \
-	clean-libtool clean-noinstLTLIBRARIES ctags distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-binPROGRAMS install-data \
-	install-data-am install-dist_pkgdataSCRIPTS install-exec \
-	install-exec-am install-info install-info-am install-man \
-	install-nobase_include_sofiaHEADERS \
+	clean-libtool clean-local clean-noinstLTLIBRARIES ctags \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-binPROGRAMS \
+	install-data install-data-am install-dist_pkgdataSCRIPTS \
+	install-exec install-exec-am install-info install-info-am \
+	install-man install-nobase_include_sofiaHEADERS \
 	install-nobase_nodist_include_sofiaHEADERS install-strip \
 	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
@@ -1103,15 +1182,12 @@ clean-built-sources:
 _tag.c_tag_ref.c:
 	$(AWK) -f $(TAG_AWK) NODLL=1 $(TAG_DLL_FLAGS) REF=$@ $<
 
-@ENABLE_COVERAGE_TRUE@coverage:
-@ENABLE_COVERAGE_TRUE@	@$(top_srcdir)/scripts/coverage $(COVERAGE_FLAGS) $(COVERAGE_INPUT)
-
 ../bnf/libbnf.la ../http/libhttp.la ../ipt/libipt.la ../iptsec/libiptsec.la \
  ../msg/libmsg.la ../nea/libnea.la ../nta/libnta.la ../nth/libnth.la \
  ../nua/libnua.la ../sdp/libsdp.la ../sip/libsip.la ../soa/libsoa.la \
  ../sresolv/libsresolv.la ../stun/libstun.la ../su/libsu.la \
  ../tport/libtport.la ../url/liburl.la:
-	$(MAKE) -C $(@D) $(@F)
+	cd $(@D) && $(MAKE) $(@F)
 
 valcheck: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) valcheck-am
@@ -1199,8 +1275,43 @@ valcheck-TESTS:	$(TESTS)
 	  test "$$failed" -eq 0; \
 	else :; fi
 
-# ----------------------------------------------------------------------
-# Sofia specific rules
+#
+# Generate pretty coverage report (unless it has been already done)
+#
+@HAVE_LCOV_TRUE@lcov:
+@HAVE_LCOV_TRUE@	@-test -r ${lcovdir}${expand_subdir}/lcov.info \
+@HAVE_LCOV_TRUE@	|| make lcov-report
+
+# Generate pretty coverage report based on current coverage data
+@HAVE_LCOV_TRUE@lcov-report:
+@HAVE_LCOV_TRUE@	sub=${expand_subdir} odir=${lcovdir}$$sub ; \
+@HAVE_LCOV_TRUE@	rm -rf $$odir ; mkdir -p $$odir && \
+@HAVE_LCOV_TRUE@	${LCOV_REPORT} ${GENHTML_OPTIONS} \
+@HAVE_LCOV_TRUE@          --title "${PACKAGE_NAME}-${PACKAGE_VERSION}$$sub" \
+@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir 
+
+# Rerun checks before generating report
+@HAVE_LCOV_TRUE@lcov-rerun: clean-lcov
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) check
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) lcov-report
+
+# Show all uncovered lines as errors
+@HAVE_LCOV_TRUE@uncovered:
+@HAVE_LCOV_TRUE@	${LCOV_UNCOVERED} --lcov-dir=${lcovdir} --srcdir=${srcdir}
+
+# Run check in current dir and show all uncovered lines as errors
+@HAVE_LCOV_TRUE@covcheck:
+@HAVE_LCOV_TRUE@	-find . -name "*.gcda" | xargs rm -rf
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) check
+@HAVE_LCOV_TRUE@	${LCOV_UNCOVERED} --lcov-dir=${lcovdir} --srcdir=${srcdir}
+
+@HAVE_LCOV_TRUE@clean-local::
+@HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+@HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
+
+@HAVE_LCOV_TRUE@clean-lcov:
+@HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+@HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

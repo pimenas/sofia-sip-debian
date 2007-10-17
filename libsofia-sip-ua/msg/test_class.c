@@ -42,10 +42,10 @@
 
 #define TAG_NAMESPACE "tst"
 
-#include <test_class.h>
+#include "test_class.h"
 #include <sofia-sip/msg_parser.h>
 #include <sofia-sip/msg_mclass.h>
-#include <test_protos.h>
+#include "test_protos.h"
 #include <sofia-sip/msg_addr.h>
 
 extern msg_mclass_t const msg_test_mclass[1];
@@ -192,6 +192,14 @@ char *msg_status_dup_one(msg_header_t *dst, msg_header_t const *src,
 
   return b;
 }
+
+msg_hclass_t test_numeric_class[] =
+  MSG_HEADER_CLASS(msg_, numeric, "Numeric", "", x_common,
+		   single, msg_generic, msg_generic);
+
+msg_hclass_t test_auth_class[] =
+  MSG_HEADER_CLASS(msg_, auth, "Auth", "", au_params,
+		   append, msg_auth, msg_generic);
 
 /** Extract the message body, including separator line. 
  *
@@ -411,3 +419,4 @@ int tst_add_tl(msg_t *msg, msg_test_t *tst,
 
   return t ? -1 : 0;
 }
+

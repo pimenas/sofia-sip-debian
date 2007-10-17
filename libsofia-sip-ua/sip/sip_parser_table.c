@@ -93,13 +93,12 @@ static msg_href_t const sip_short_forms[MC_SHORT_SIZE] =
   { NULL }
 };
 
-struct msg_pub_extra {
+/* Ordinary 65, extra 1, experimental 0 */
+struct _d_sip_t {
   sip_t base;
   msg_header_t *extra[1];
-#if SU_HAVE_EXPERIMENTAL
-  msg_header_t *experimental[2];
-#endif
 };
+
 
 msg_mclass_t const sip_mclass[1] = 
 {{
@@ -115,7 +114,7 @@ msg_mclass_t const sip_mclass[1] =
 #else
   0,
 #endif
-  sizeof (struct msg_pub_extra),
+  sizeof (struct _d_sip_t),
   sip_extract_body,
   {{ sip_request_class, msg_offsetof(sip_t, sip_request) }},
   {{ sip_status_class, msg_offsetof(sip_t, sip_status) }},
@@ -126,18 +125,14 @@ msg_mclass_t const sip_mclass[1] =
   {{ NULL, 0 }},
   sip_short_forms, 
   127, 
-#if SU_HAVE_EXPERIMENTAL
-  68,
-#else
   66,
-#endif
   {
     { sip_in_reply_to_class, msg_offsetof(sip_t, sip_in_reply_to) },
     { sip_from_class, msg_offsetof(sip_t, sip_from),
       sip_mask_request | sip_mask_response },
     { sip_proxy_authenticate_class, msg_offsetof(sip_t, sip_proxy_authenticate) },
     { sip_refer_sub_class,
-      msg_offsetof(struct msg_pub_extra, extra[0]) },
+      msg_offsetof(struct _d_sip_t, extra[0]) },
     { NULL, 0 },
     { sip_content_language_class, msg_offsetof(sip_t, sip_content_language) },
     { NULL, 0 },
@@ -176,12 +171,7 @@ msg_mclass_t const sip_mclass[1] =
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
-#if SU_HAVE_EXPERIMENTAL
-    { sip_suppress_notify_if_match_class,
-      msg_offsetof(struct msg_pub_extra, extra[2]) },
-#else
     { NULL, 0 },
-#endif
     { NULL, 0 },
     { sip_proxy_authorization_class, msg_offsetof(sip_t, sip_proxy_authorization),
       sip_mask_proxy },
@@ -251,17 +241,12 @@ msg_mclass_t const sip_mclass[1] =
     { sip_www_authenticate_class, msg_offsetof(sip_t, sip_www_authenticate) },
     { sip_etag_class, msg_offsetof(sip_t, sip_etag),
       sip_mask_publish },
-#if SU_HAVE_EXPERIMENTAL
-    { sip_suppress_body_if_match_class,
-      msg_offsetof(struct msg_pub_extra, extra[1]) },
-#else
     { NULL, 0 },
-#endif
     { sip_rack_class, msg_offsetof(sip_t, sip_rack),
       sip_mask_100rel },
     { sip_unsupported_class, msg_offsetof(sip_t, sip_unsupported) },
     { sip_require_class, msg_offsetof(sip_t, sip_require),
-      sip_mask_ua | sip_mask_registrar },
+      sip_mask_ua | sip_mask_registrar | sip_mask_timer },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
@@ -305,4 +290,18 @@ msg_mclass_t const sip_mclass[1] =
     { NULL, 0 }
   }
 }};
+
+msg_hclass_t * const sip_extensions[] = {
+  sip_alert_info_class,
+  sip_reply_to_class,
+  sip_remote_party_id_class,
+  sip_p_asserted_identity_class,
+  sip_p_preferred_identity_class,
+#if SU_HAVE_EXPERIMENTAL
+  sip_suppress_body_if_match_class,
+  sip_suppress_notify_if_match_class,
+#endif
+  NULL
+};
+
 

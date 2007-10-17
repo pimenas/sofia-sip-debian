@@ -68,11 +68,17 @@ typedef struct {
 /** Tag type class */
 typedef struct tag_class_s const tag_class_t;
 
+/** Tag structure. 
+ *
+ * The tag structure contains the name, namespace and class of the tag. The
+ * fourth field, @a tt_magic, is interpreted by the tag class.
+ */
 struct tag_type_s {
-  char const    *tt_ns;
-  char const 	*tt_name;
-  tag_class_t   *tt_class;
-  tag_value_t    tt_magic;
+  char const    *tt_ns;		/**< Tag namespace (e.g., "sip" or "nua") */
+  char const 	*tt_name;	/**< Tag name (e.g, "min_se")  */
+  tag_class_t   *tt_class;	/**< Tag class defines the type of the value */
+  tag_value_t    tt_magic;	/**< Class-specific data 
+				   (e.g., pointer to header class structure) */
 };
 
 /** Definition of tag type. */
@@ -171,7 +177,7 @@ SOFIAPUBFUN void    tl_vfree(tagi_t *t);
 #define SU_ALIGN(x) \
 ((sizeof(void *) - ((intptr_t)(x) & (sizeof(void *) - 1))) & (sizeof(void *) - 1))
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t tag_int_v(int v) { return (tag_value_t)v; }
 su_inline tag_value_t tag_int_vr(int *vp) { return (tag_value_t)vp; }
 su_inline tag_value_t tag_uint_v(unsigned v) { return (tag_value_t)v; }

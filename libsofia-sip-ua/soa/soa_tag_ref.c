@@ -12,7 +12,7 @@
 
 #include <sofia-sip/su_tag_class.h>
 
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_OPEN_C
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT
@@ -92,9 +92,16 @@ EXPORT tag_typedef_t soatag_srtp_integrity_ref =
 extern tag_typedef_t soatag_hold;
 EXPORT tag_typedef_t soatag_hold_ref = 
   REFTAG_TYPEDEF(soatag_hold);
+extern tag_typedef_t soatag_ordered_user;
+EXPORT tag_typedef_t soatag_ordered_user_ref = 
+  REFTAG_TYPEDEF(soatag_ordered_user);
+extern tag_typedef_t soatag_reuse_rejected;
+EXPORT tag_typedef_t soatag_reuse_rejected_ref = 
+  REFTAG_TYPEDEF(soatag_reuse_rejected);
 
 EXPORT tag_type_t soa_tag_list[] =
 {
+  soatag_ordered_user,
   soatag_user_sdp,
   soatag_caps_sdp,
   soatag_rtp_select,
@@ -111,6 +118,7 @@ EXPORT tag_type_t soa_tag_list[] =
   soatag_active_chat,
   soatag_active_audio,
   soatag_remote_sdp,
+  soatag_reuse_rejected,
   soatag_address,
   soatag_active_video,
   soatag_audio_aux,

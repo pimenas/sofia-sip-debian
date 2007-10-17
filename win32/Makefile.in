@@ -54,10 +54,10 @@ subdir = win32
 DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in ChangeLog
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/sac-general.m4 \
-	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su.m4 \
-	$(top_srcdir)/m4/sac-su2.m4 $(top_srcdir)/m4/sac-tport.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/sac-coverage.m4 \
+	$(top_srcdir)/m4/sac-general.m4 \
+	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su2.m4 \
+	$(top_srcdir)/m4/sac-tport.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -85,6 +85,7 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
 COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
+COVERAGE_FLAGS = @COVERAGE_FLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -109,13 +110,20 @@ EXPENSIVE_CHECKS_FALSE = @EXPENSIVE_CHECKS_FALSE@
 EXPENSIVE_CHECKS_TRUE = @EXPENSIVE_CHECKS_TRUE@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+GCOV = @GCOV@
+GENHTML = @GENHTML@
+GENPNG = @GENPNG@
 GLIB_CFLAGS = @GLIB_CFLAGS@
 GLIB_LIBS = @GLIB_LIBS@
 GLIB_VERSION = @GLIB_VERSION@
 HAVE_DOXYGEN_FALSE = @HAVE_DOXYGEN_FALSE@
 HAVE_DOXYGEN_TRUE = @HAVE_DOXYGEN_TRUE@
+HAVE_GENPNG_FALSE = @HAVE_GENPNG_FALSE@
+HAVE_GENPNG_TRUE = @HAVE_GENPNG_TRUE@
 HAVE_GLIB_FALSE = @HAVE_GLIB_FALSE@
 HAVE_GLIB_TRUE = @HAVE_GLIB_TRUE@
+HAVE_LCOV_FALSE = @HAVE_LCOV_FALSE@
+HAVE_LCOV_TRUE = @HAVE_LCOV_TRUE@
 HAVE_MINGW32_FALSE = @HAVE_MINGW32_FALSE@
 HAVE_MINGW32_TRUE = @HAVE_MINGW32_TRUE@
 HAVE_NTH_FALSE = @HAVE_NTH_FALSE@
@@ -130,6 +138,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
@@ -167,7 +176,6 @@ REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
-SOFIA_COVERAGE = @SOFIA_COVERAGE@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -248,10 +256,12 @@ EXTRA_DIST = SofiaSIP.dsw libsofia-sip-ua/libsofia_sip_ua.dsp \
 	tests/torture_su_bm/torture_su_bm.dsp \
 	tests/torture_su_port/torture_su_port.dsp \
 	utils/localinfo/localinfo.dsp \
-	utils/sip_options/sip_options.dsp utils/sip_dig/sip_dig.dsp \
-	utils/stunc/stunc.dsp $(PTHREAD_DIST) README.txt autogen.cmd \
-	build_sources.cmd version_files.cmd version.awk install.cmd \
-	check.cmd SofiaSIP.sln \
+	utils/sip_options/sip_options.dsp \
+	utils/sip_options_static/sip_options_static.dsp \
+	utils/sip_dig/sip_dig.dsp utils/stunc/stunc.dsp \
+	$(PTHREAD_DIST) README.txt autogen.cmd build_sources.cmd \
+	version_files.cmd version.awk install.cmd check.cmd \
+	SofiaSIP.sln \
 	libsofia-sip-ua-static/libsofia_sip_ua_static.vcproj \
 	libsofia-sip-ua/libsofia_sip_ua.vcproj \
 	tests/test_htable/test_htable.vcproj \
@@ -293,9 +303,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  win32/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  win32/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  win32/Makefile
+	  $(AUTOMAKE) --foreign  win32/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

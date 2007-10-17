@@ -51,6 +51,7 @@
 
 #define msg_offsetof(s, f) ((unsigned short)offsetof(s ,f))
 
+
 msg_mclass_t const http_mclass[1] = 
 {{
 # if defined (HTTP_HCLASS)
@@ -76,11 +77,7 @@ msg_mclass_t const http_mclass[1] =
   {{ NULL, 0 }},
   NULL, 
   127, 
-#if SU_HAVE_EXPERIMENTAL
   52,
-#else
-  52,
-#endif
   {
     { http_proxy_authenticate_class, msg_offsetof(http_t, http_proxy_authenticate) },
     { http_from_class, msg_offsetof(http_t, http_from) },

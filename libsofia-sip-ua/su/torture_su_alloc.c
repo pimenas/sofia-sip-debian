@@ -22,8 +22,7 @@
  *
  */
 
-/**@ingroup su_alloc
- *
+/**@internal 
  * @file su_alloc_test.c
  *
  * Testing functions for su_alloc functions.
@@ -698,6 +697,9 @@ int main(int argc, char *argv[])
     else
       usage(1);
   }
+#if HAVE_OPEN_C
+  tstflags |= tst_verbatim;
+#endif
 
   retval |= test_alloc();
   retval |= test_strdupcat();

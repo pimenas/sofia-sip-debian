@@ -3,6 +3,8 @@
 
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) $(openssl_CFLAGS)
 
+SOFIA_COVERAGE = $(COVERAGE_FLAGS)
+
 # Use with --enable-ndebug
 if NDEBUG
 AM_CFLAGS += -DNDEBUG
@@ -26,17 +28,12 @@ SUFFIXES = _tag_ref.c _tag.c
 _tag.c_tag_ref.c:
 	$(AWK) -f $(TAG_AWK) NODLL=1 $(TAG_DLL_FLAGS) REF=$@ $<
 
-if ENABLE_COVERAGE
-coverage:
-	@$(top_srcdir)/scripts/coverage $(COVERAGE_FLAGS) $(COVERAGE_INPUT)
-endif
-
 ../bnf/libbnf.la ../http/libhttp.la ../ipt/libipt.la ../iptsec/libiptsec.la \
  ../msg/libmsg.la ../nea/libnea.la ../nta/libnta.la ../nth/libnth.la \
  ../nua/libnua.la ../sdp/libsdp.la ../sip/libsip.la ../soa/libsoa.la \
  ../sresolv/libsresolv.la ../stun/libstun.la ../su/libsu.la \
  ../tport/libtport.la ../url/liburl.la:
-	$(MAKE) -C $(@D) $(@F)
+	cd $(@D) && $(MAKE) $(@F)
 
 INTERNAL_INCLUDES = \
 	-I$(srcdir)/../features -I../features \
@@ -59,4 +56,11 @@ INTERNAL_INCLUDES = \
 	-I$(srcdir)/../url -I../url \
 	-I$(srcdir)/../su -I../su
 
+PHONY = built-sources clean-built-sources
+
 include $(top_srcdir)/rules/valcheck.am
+
+if HAVE_LCOV
+include $(top_srcdir)/rules/lcov.am
+endif
+

@@ -9,24 +9,29 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-# select whicn optional sofia-sip modules have been enabled
+# select which optional sofia-sip modules have been enabled
 # in the build
 OPT_LIBADD =
 OPT_SUBDIRS_STUN =
+OPT_SUBDIRS_HTTP =
 OPT_SUBDIRS_NTH =
 if HAVE_STUN
 OPT_LIBADD += stun/libstun.la 
 OPT_SUBDIRS_STUN += stun
 endif
 if HAVE_NTH
-OPT_LIBADD += nth/libnth.la http/libhttp.la
-OPT_SUBDIRS_NTH += nth http
+OPT_LIBADD += http/libhttp.la nth/libnth.la 
+OPT_SUBDIRS_HTTP += http
+OPT_SUBDIRS_NTH += nth 
 endif
 
 # note: order does matter in the subdir list
-SUBDIRS = su features bnf sresolv sdp url msg sip $(OPT_SUBDIRS_STUN) ipt soa \
-	  tport nta nea iptsec $(OPT_SUBDIRS_NTH) nua
-DIST_SUBDIRS = $(SUBDIRS) docs
+SUBDIRS = su features bnf sresolv ipt sdp url msg sip $(OPT_SUBDIRS_HTTP) \
+	  $(OPT_SUBDIRS_STUN) soa tport nta $(OPT_SUBDIRS_NTH) \
+	  nea iptsec nua
+DIST_SUBDIRS = su features bnf sresolv ipt sdp url msg sip http \
+	  stun soa tport nta nth \
+	  nea iptsec nua docs
 
 DOXYGEN = doxygen
 
@@ -54,6 +59,8 @@ libsofia_sip_ua_la_LIBADD = 	bnf/libbnf.la \
 # - soname to 'libsofia-sip-ua.so.(CUR-AGE)'
 libsofia_sip_ua_la_LDFLAGS = \
 	-version-info $(LIBVER_SOFIA_SIP_UA_CUR):$(LIBVER_SOFIA_SIP_UA_REV):$(LIBVER_SOFIA_SIP_UA_AGE)
+
+PHONY = doxygen built-sources
 
 include $(top_srcdir)/rules/recursive.am
 
@@ -96,4 +103,8 @@ doxygen: built-sources
 	done 
 	${srcdir}/docs/hide_emails.sh docs/html
 
-.PHONY: built-sources built-sources-am empty-doxytags doxygen 
+if HAVE_LCOV
+include $(top_srcdir)/rules/lcov.am
+endif
+
+.PHONY: $(PHONY)

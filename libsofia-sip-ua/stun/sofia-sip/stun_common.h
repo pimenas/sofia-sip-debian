@@ -36,21 +36,6 @@
  * 
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-
-#ifdef WIN32
-#include <winsock.h>
-#else
-#include <sys/socket.h>
-#include <netinet/tcp.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
-
-#include <sofia-sip/su.h>
 #include <sofia-sip/su_localinfo.h>
 
 SOFIA_BEGIN_DECLS

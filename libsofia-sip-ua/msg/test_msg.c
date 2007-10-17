@@ -127,7 +127,7 @@ static int msg_time_test(void)
     char *s;
     msg_numeric_t x[1];
 
-    memset(x, 0, sizeof (x));
+    memset(x, 0, sizeof (x)); x->x_common->h_class = test_numeric_class;
 
     TEST_1(msg_numeric_d(NULL, (msg_header_t *)x, s = error1, strlen(error1)) < 0);
   }
@@ -797,7 +797,21 @@ int test_msg_parsing(void)
 
   {
     size_t size = SIZE_MAX;
-    char *s = msg_as_string(msg_home(msg), msg, NULL, 0, &size);
+    char *s;
+    char body[66 * 15 + 1];
+    int i;
+    msg_payload_t *pl;
+
+    /* Bug #1726034 */
+    for (i = 0; i < 15; i++)
+      strcpy(body + i * 66, 
+	     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\r\n");
+    pl = msg_payload_make(msg_home(msg), body);
+
+    TEST(msg_header_insert(msg, (msg_pub_t *)tst, (void *)pl), 0);
+
+    s = msg_as_string(msg_home(msg), msg, NULL, 0, &size);
     TEST_S(s, 
 "GET a-wife HTTP/1.1" CRLF
 "Foo: bar" CRLF
@@ -806,7 +820,23 @@ int test_msg_parsing(void)
 "Content-Language: se-FI, fi-FI, sv-FI\r\n"
 "Accept-Language: se, fi, sv\r\n"
 CRLF
-"test" CRLF);
+"test" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" CRLF
+);
   }
 
   msg_destroy(msg);
@@ -1701,6 +1731,10 @@ int main(int argc, char *argv[])
     else
       usage(1);
   }
+
+#if HAVE_OPEN_C
+  test_flags |= tst_verbatim;
+#endif
 
   retval |= msg_time_test(); fflush(stdout);
   retval |= addr_test(); fflush(stdout);

@@ -63,25 +63,25 @@ typedef struct nta_incoming_s   nta_incoming_t;
 #ifndef NTA_AGENT_MAGIC_T
 /** Default type of application context for NTA agents.
  * Application may define this to appropriate type before including
- * <nta.h>. */
+ * <sofia-sip/nta.h>. */
 #define NTA_AGENT_MAGIC_T struct nta_agent_magic_s
 #endif
 #ifndef NTA_LEG_MAGIC_T
 /** Default type of application context for NTA call legs.
  * Application may define this to appropriate type before including
- * <nta.h>. */
+ * <sofia-sip/nta.h>. */
 #define NTA_LEG_MAGIC_T struct nta_leg_magic_s
 #endif
 #ifndef NTA_OUTGOING_MAGIC_T
 /** Default type of application context for outgoing NTA requests.
  * Application may define this to appropriate type before including
- * <nta.h>. */
+ * <sofia-sip/nta.h>. */
 #define NTA_OUTGOING_MAGIC_T struct nta_outgoing_magic_s
 #endif
 #ifndef NTA_INCOMING_MAGIC_T
 /** Default type of application context for incoming NTA requests.
  * Application may define this to appropriate type before including
- * <nta.h>. */
+ * <sofia-sip/nta.h>. */
 #define NTA_INCOMING_MAGIC_T struct nta_incoming_magic_s
 #endif
 
@@ -284,6 +284,7 @@ SOFIAPUBFUN sip_method_t nta_incoming_method(nta_incoming_t const *irq);
 SOFIAPUBFUN char const *nta_incoming_method_name(nta_incoming_t const *irq);
 SOFIAPUBFUN url_t const *nta_incoming_url(nta_incoming_t const *irq);
 SOFIAPUBFUN uint32_t nta_incoming_cseq(nta_incoming_t const *irq);
+SOFIAPUBFUN sip_time_t nta_incoming_received(nta_incoming_t *irq, su_nanotime_t *nano);
 
 SOFIAPUBFUN int nta_incoming_set_params(nta_incoming_t *irq,
 					tag_type_t tag, tag_value_t value, ...);
@@ -379,6 +380,7 @@ SOFIAPUBFUN int nta_outgoing_status(nta_outgoing_t const *orq);
 SOFIAPUBFUN sip_method_t nta_outgoing_method(nta_outgoing_t const *orq);
 SOFIAPUBFUN char const *nta_outgoing_method_name(nta_outgoing_t const *orq);
 SOFIAPUBFUN uint32_t nta_outgoing_cseq(nta_outgoing_t const *orq);
+SOFIAPUBFUN char const *nta_outgoing_branch(nta_outgoing_t const *orq);
 
 SOFIAPUBFUN unsigned nta_outgoing_delay(nta_outgoing_t const *orq);
 
@@ -437,13 +439,13 @@ SOFIAPUBFUN int nta_outgoing_setrseq(nta_outgoing_t *orq, uint32_t rseq);
 typedef struct nta_reliable_s   nta_reliable_t;
 
 #ifndef NTA_RELIABLE_MAGIC_T
-/** Default type of application context for reliable NTA responses.
+/** Default type of application context for reliable preliminary responses.
  * Application may define this to appropriate type before including
- * <nta.h>. */
+ * <sofia-sip/nta.h>. */
 #define NTA_RELIABLE_MAGIC_T struct nta_reliable_magic_s
 #endif
 
-/** Application context for reliable NTA requests */
+/** Application context for reliable preliminary responses. */
 typedef NTA_RELIABLE_MAGIC_T  nta_reliable_magic_t;
 
 typedef int nta_prack_f(nta_reliable_magic_t *rmagic,

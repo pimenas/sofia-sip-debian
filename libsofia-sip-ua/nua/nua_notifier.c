@@ -366,7 +366,7 @@ int nua_subscribe_server_report(nua_server_request_t *sr, tagi_t const *tags)
  * @par Related Tags:
  *    NUTAG_SUBSTATE() \n
  *    Tags of nua_set_hparams() \n
- *    Tags in <sip_tag.h>
+ *    Header tags defined in <sofia-sip/sip_tag.h>
  *
  * @par Events:
  *    #nua_r_notify
@@ -696,7 +696,7 @@ static int nua_notify_client_report(nua_client_request_t *cr,
       nua_client_resend_request(cr, 0);
     }
     else if (nu->nu_expires) {
-      nua_dialog_usage_refresh_at(du, nu->nu_expires);
+      nua_dialog_usage_set_refresh_at(du, nu->nu_expires);
     }
   }
 

@@ -114,6 +114,7 @@ nua_handle_t *nh_create_handle(nua_t *nua,
     nh->nh_nua = nua;
     nh->nh_magic = hmagic;
     nh->nh_prefs = nua->nua_dhandle->nh_prefs;
+    nh->nh_ds->ds_owner = nh;
 
     if (nua_handle_save_tags(nh, tags) < 0) {
       SU_DEBUG_5(("nua(%p): creating handle %p failed\n",
@@ -235,9 +236,9 @@ char const *nua_generate_instance_identifier(su_home_t *home)
  *   ...
  * @endcode
  *
- * @sa #nua_event_t, nua_respond()
+ * @sa nua_respond(), #nua_event_e, #nua_event_t, nua_event_name()
  *
- * @NEW_1_12_6
+ * @NEW_1_12_6.
  */
 int nua_event_is_incoming_request(nua_event_t event)
 {
@@ -260,7 +261,10 @@ int nua_event_is_incoming_request(nua_event_t event)
   }
 }
 
-/** Get name for a NUA event. */
+/** Get name for a NUA event. 
+ *
+ * @sa #nua_event_e, #nua_event_t, nua_callstate_name(), nua_substate_name()
+ */
 char const *nua_event_name(nua_event_t event)
 {
   switch (event) {
@@ -329,7 +333,10 @@ char const *nua_event_name(nua_event_t event)
   }
 }
 
-/** Return name of call state */
+/** Return name of call state.
+ * 
+ * @sa enum #nua_callstate, nua_event_name(), nua_substate_name()
+ */
 char const *nua_callstate_name(enum nua_callstate state)
 {
   switch (state) {
@@ -348,7 +355,10 @@ char const *nua_callstate_name(enum nua_callstate state)
   }
 }
 
-/** Return name of subscription state. @NEW_1_12_5. */
+/** Return name of subscription state. @NEW_1_12_5. 
+ *
+ * @sa enum #nua_substate, nua_event_name(), nua_callstate_name()
+ */
 char const *nua_substate_name(enum nua_substate substate)
 {
   switch (substate) {

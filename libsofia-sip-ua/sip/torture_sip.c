@@ -74,6 +74,135 @@ msg_mclass_t *test_mclass = NULL;
 
 static msg_t *read_message(int flags, char const string[]);
 
+static int test_identity(void)
+{
+  su_home_t *home;
+  sip_p_asserted_identity_t *paid;
+  sip_p_preferred_identity_t *ppid;
+
+  msg_t *msg;
+  sip_t *sip;
+
+  BEGIN();
+
+  msg_href_t const *href;
+  msg_mclass_t const *def0, *def1, *ext;
+
+  def0 = sip_default_mclass();
+
+  /* Check that Refer-Sub has been added to our parser */
+  TEST_1(href = msg_find_hclass(def0, "Refer-Sub", NULL));
+  TEST_P(href->hr_class, sip_refer_sub_class);
+  /* Check that Reply-To is not there */
+  TEST_P(msg_find_hclass(def0, "Reply-To", NULL), def0->mc_unknown);
+
+  TEST_1(ext = sip_extend_mclass(NULL));
+  /* Update default parser */
+  TEST_1(sip_update_default_mclass(ext) == 0);
+  def1 = sip_default_mclass();
+  TEST_1(def0 != def1);
+  TEST_1(ext == def1);
+
+  TEST_1(href = msg_find_hclass(def1, "Reply-To", NULL));
+  TEST_P(href->hr_class, sip_reply_to_class);
+
+  TEST_1(test_mclass = msg_mclass_clone(def0, 0, 0));
+
+  msg = read_message(MSG_DO_EXTRACT_COPY, 
+    "BYE sip:foo@bar SIP/2.0\r\n"
+    "To: <sip:foo@bar>;tag=deadbeef\r\n"
+    "From: <sip:bar@foo>;\r\n"
+    "Call-ID: 0ha0isndaksdj@10.1.2.3\r\n"
+    "CSeq: 8 SUBSCRIBE\r\n"
+    "Via: SIP/2.0/UDP 135.180.130.133\r\n"
+    "P-Asserted-Identity: <sip:test@test.domain.com>\r\n"
+    "P-Preferred-Identity: <sip:test@test.domain.com>, <tel:+358708008000>\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n");
+
+  sip = sip_object(msg);
+
+  TEST_1(!sip_p_asserted_identity(sip));
+  TEST_1(!sip_p_preferred_identity(sip));
+
+  msg_destroy(msg);
+
+  TEST_1(msg_mclass_insert_header(test_mclass, 
+				  sip_p_asserted_identity_class, 0) > 0);
+  TEST_1(msg_mclass_insert_header(test_mclass, 
+				  sip_p_preferred_identity_class, 0) > 0);
+
+  msg = read_message(MSG_DO_EXTRACT_COPY, 
+    "BYE sip:foo@bar SIP/2.0\r\n"
+    "To: <sip:foo@bar>;tag=deadbeef\r\n"
+    "From: <sip:bar@foo>;\r\n"
+    "Call-ID: 0ha0isndaksdj@10.1.2.3\r\n"
+    "CSeq: 8 SUBSCRIBE\r\n"
+    "Via: SIP/2.0/UDP 135.180.130.133\r\n"
+    "P-Asserted-Identity: <sip:test@test.domain.com>\r\n"
+    "P-Preferred-Identity: <sip:test@test.domain.com>, <tel:+358708008000>\r\n"
+    "Content-Length: 0\r\n"
+    "\r\n");
+
+  sip = sip_object(msg);
+
+  TEST_1(home = msg_home(msg));
+  
+  TEST_1((paid = sip_p_asserted_identity_make(home, "sip:joe@example.com")));
+  TEST_1((paid = sip_p_asserted_identity_make
+	  (home, "Jaska <sip:joe@example.com>, Helmi <tel:+3587808000>")));
+  TEST_1(paid->paid_next);
+  TEST_1((ppid = sip_p_preferred_identity_make(home, "sip:joe@example.com")));
+  TEST_1((ppid = sip_p_preferred_identity_make
+	  (home, "Jaska <sip:joe@example.com>, Helmi <tel:+3587808000>")));
+
+  msg_destroy(msg);
+
+  /* Now with extensions */
+  TEST_1(test_mclass = msg_mclass_clone(def1, 0, 0));
+
+  {
+    su_home_t *home = su_home_clone(NULL, sizeof *home);
+
+    char *s;
+    char const canonic[] = 
+      "\"Jaska Jokunen\" <sip:jaska.jokunen@example.com>;"
+      "screen=yes;party=called;id-type=user;privacy=\"name,uri-network\"";
+    char const canonic2[] = 
+      "Jaska Jokunen <sip:jaska.jokunen@example.com>;"
+      "screen=yes;party=called;id-type=user;privacy=\"name,uri-network\"";
+
+    sip_remote_party_id_t *rpid, *d;
+
+    TEST_1(rpid = sip_remote_party_id_make(home, canonic));
+    TEST_S(rpid->rpid_display, "\"Jaska Jokunen\"");
+    TEST_S(rpid->rpid_url->url_user, "jaska.jokunen");
+    TEST_S(rpid->rpid_params[0], "screen=yes");
+    TEST_S(rpid->rpid_screen, "yes");
+    TEST_S(rpid->rpid_party, "called");
+    TEST_S(rpid->rpid_id_type, "user");
+    TEST_S(rpid->rpid_privacy, "\"name,uri-network\"");
+    TEST_1(s = sip_header_as_string(home, (void*)rpid));
+    TEST_S(s, canonic);
+    TEST_1(d = sip_remote_party_id_dup(home, rpid));
+    TEST_S(d->rpid_display, rpid->rpid_display);
+    TEST_S(d->rpid_params[0], rpid->rpid_params[0]);
+
+    TEST_1(rpid = sip_remote_party_id_make(home, canonic2));
+    TEST_S(rpid->rpid_display, "Jaska Jokunen");
+    TEST_1(s = sip_header_as_string(home, (void*)rpid));
+    TEST_S(s, canonic2);
+    TEST_1(d = sip_remote_party_id_dup(home, rpid));
+    TEST_S(d->rpid_display, rpid->rpid_display);
+
+    su_home_check(home);
+    
+    su_home_zap(home);
+  }
+
+  END();
+}
+
 int test_url_headers(void)
 {
   BEGIN();
@@ -84,16 +213,20 @@ int test_url_headers(void)
   sip_from_t const *f;
   sip_accept_t const *ac;
   sip_payload_t const *body;
+  sip_refer_sub_t rs[1];
 
   TEST_1(home = su_home_new(sizeof *home));
 
+  sip_refer_sub_init(rs)->rs_value = "false";
+
   s = sip_headers_as_url_query
     (home,
-     SIPTAG_SUBJECT_STR(";"),
+     SIPTAG_SUBJECT_STR("kuik"),
+     SIPTAG_REFER_SUB(rs),
      TAG_END());
 
   TEST_1(s);
-  TEST_S(s, "subject=;");
+  TEST_S(s, "subject=kuik&refer-sub=false");
 
   s = sip_headers_as_url_query
     (home,
@@ -405,6 +538,8 @@ int test_basic(void)
 
     TEST_1(!sip_from_create(home, (void *)"sip:joe@[baa"));
 
+    TEST_1(!sip_from_make(home, (void *)"tester <>;tag=fasjfuios"));
+
     TEST_1(f = sip_from_make(home, (void *)"sip:joe@bar (foo)"));
     su_free(home, f);
 
@@ -692,6 +827,40 @@ int test_basic(void)
     su_free(home, ci0);
   }
 
+  {
+    sip_alert_info_t *ai, *ai0;
+
+    TEST_1(ai = sip_alert_info_make(home, "<http://www.nokia.com/ringtone.mp3>;x-format=mp3"));
+    TEST_1(ai0 = sip_alert_info_dup(home, ai));
+
+    TEST(msg_header_remove_param(ai->ai_common, "x-format"), 1);
+    TEST(msg_header_remove_param(ai0->ai_common, "x-format"), 1);
+
+    su_free(home, ai);
+    su_free(home, ai0);
+  }
+
+  {
+    sip_reply_to_t *rplyto, *rplyto0;
+
+    TEST_1(rplyto = sip_reply_to_make(home, "sip:joe@bar"));
+    TEST_1(msg_header_add_param(home, (msg_common_t *)rplyto, "x-extra=extra") == 0);
+    while (rplyto->rplyto_params && rplyto->rplyto_params[0])
+      msg_header_remove_param(rplyto->rplyto_common, rplyto->rplyto_params[0]);
+    su_free(home, rplyto);
+
+    TEST_1(!sip_reply_to_make(home, (void *)"sip:joe@[baa"));
+
+    TEST_1(rplyto = sip_reply_to_make(home, (void *)"sip:joe@bar"));
+    su_free(home, rplyto);
+
+    TEST_1(rplyto = sip_reply_to_make(home, (void *)"Joe <sip:joe@bar;user=ip>;x-extra=extra"));
+    TEST_1(rplyto0 = sip_reply_to_dup(home, rplyto));
+    su_free(home, rplyto);
+    su_free(home, rplyto0);
+  }
+
+
   su_home_check(home);
   su_home_zap(home);
 
@@ -889,6 +1058,8 @@ static int test_encoding(void)
     "Warning: 399 presence.bar:5060 \"Unimplemented filter\"\r\n"
     "RSeq: 421414\r\n"
     "Refer-To: <sip:hsdf@cdwf.xcfw.com?Subject=test&Organization=Bar>\r\n"
+    "Alert-Info: <http://alert.example.org/test.mp3>\r\n"		     
+    "Reply-To: Bob <sip:bob@example.com>\r\n"		     
     "WWW-Authenticate: Digest realm=\"foo\"\r\n"
     "Proxy-Authenticate: Digest realm=\"foo\"\r\n"
     "Security-Server: tls;q=0.2\r\n"
@@ -1553,6 +1724,10 @@ static int parser_test(void)
 
   TEST_SIZE(sip_error_info_class->hc_params, 
 	    offsetof(sip_error_info_t, ei_params));
+  TEST_SIZE(sip_alert_info_class->hc_params, 
+	    offsetof(sip_alert_info_t, ai_params));
+  TEST_SIZE(sip_reply_to_class->hc_params, 
+	    offsetof(sip_reply_to_t, rplyto_params));
   TEST_SIZE(sip_warning_class->hc_params, 0);
 		       
   TEST_SIZE(sip_mime_version_class->hc_params, 0);
@@ -2147,7 +2322,7 @@ int test_refer(void)
 
   TEST_1(home = su_home_create());
 
-  /* Check that Refer-Sub has already been added to our parser */
+  /* Check that Refer-Sub has now been added to our parser */
   TEST_1(msg_mclass_insert_with_mask(test_mclass, sip_refer_sub_class, 
 				     0, 0) == -1);
   
@@ -3288,8 +3463,16 @@ int main(int argc, char *argv[])
       usage(1);
   }
 
-  if (!test_mclass)
+#if HAVE_OPEN_C
+  tstflags |= tst_verbatim;
+#endif
+
+  retval |= test_identity(); fflush(stdout);
+
+  if (test_mclass == NULL)
     test_mclass = msg_mclass_clone(sip_default_mclass(), 0, 0);
+
+  retval |= parser_test(); fflush(stdout);
 
   retval |= test_url_headers(); fflush(stdout);
   retval |= test_manipulation(); fflush(stdout);
@@ -3302,7 +3485,7 @@ int main(int argc, char *argv[])
   retval |= tag_test(); fflush(stdout);
   retval |= parser_tag_test(); fflush(stdout);
   retval |= response_phrase_test(); fflush(stdout);
-  retval |= parser_test(); fflush(stdout);
+
   retval |= sip_header_test(); fflush(stdout);
   retval |= test_bad_packet(); fflush(stdout);
   retval |= test_sip_list_header(); fflush(stdout);
@@ -3323,6 +3506,10 @@ int main(int argc, char *argv[])
   retval |= test_sec_ext(); fflush(stdout);
 
   retval |= test_utils(); fflush(stdout);
+
+#if HAVE_OPEN_C
+  sleep(5);
+#endif
 
   return retval;
 }

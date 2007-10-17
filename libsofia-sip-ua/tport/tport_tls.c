@@ -587,6 +587,10 @@ int tls_error(tls_t *tls, int ret, char const *who, char const *operation,
     return 0;
 
   case SSL_ERROR_SYSCALL:
+    if (SSL_get_shutdown(tls->con) & SSL_RECEIVED_SHUTDOWN)
+      return 0;			/* EOS */
+    if (errno == 0)
+      return 0;			/* EOS */
     return -1;
 
   default:
@@ -660,20 +664,30 @@ int tls_pending(tls_t const *tls)
   return tls && tls->con && SSL_pending(tls->con);
 }
 
+/** Check if data is available in TCP connection.
+ *
+ * 
+ *
+ * @retval -1 upon an error
+ * @retval 0 end-of-stream
+ * @retval 1 nothing to read 
+ * @retval 2 there is data to read
+ */
 int tls_want_read(tls_t *tls, int events)
 {
   if (tls && (events & tls->read_events)) {
     int ret = tls_read(tls);
-
-    if (ret >= 0)
-      return 1;
-    else if (errno == EAGAIN)
+    if (ret > 0)
+      return 2;
+    else if (ret == 0)
       return 0;
+    else if (errno == EAGAIN)
+      return 3;			/* ??? */
     else
       return -1;
   }
 
-  return 0;
+  return 1;
 }
 
 ssize_t tls_write(tls_t *tls, void *buf, size_t size)

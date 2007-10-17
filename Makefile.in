@@ -20,6 +20,16 @@
 # Copyright (C) 2005,2006 Nokia Corporation
 # Contact: Pekka Pessi <pekka.pessi@nokia.com>
 # Licensed under LGPL. See file COPYING.
+
+# 
+# Generate lcov output
+#
+
+#
+# Copyright (C) 2007 Nokia Corporation
+# Contact: Pekka Pessi <pekka.pessi@nokia.com>
+# Licensed under LGPL. See file COPYING.
+#
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -48,14 +58,16 @@ DIST_COMMON = README $(am__configure_deps) $(dist_man_MANS) \
 	$(srcdir)/config.h.in $(top_srcdir)/configure \
 	$(top_srcdir)/libsofia-sip-ua/features/sofia-sip/sofia_features.h.in \
 	$(top_srcdir)/libsofia-sip-ua/su/sofia-sip/su_configure.h.in \
-	AUTHORS COPYING ChangeLog TODO compile config.guess config.sub \
-	depcomp install-sh ltmain.sh missing
+	$(top_srcdir)/rules/lcov.am AUTHORS COPYING ChangeLog TODO \
+	config.guess config.sub depcomp install-sh ltmain.sh missing
+@HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_1 = --frames
+@HAVE_LCOV_TRUE@am__append_2 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/sac-general.m4 \
-	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su.m4 \
-	$(top_srcdir)/m4/sac-su2.m4 $(top_srcdir)/m4/sac-tport.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/sac-coverage.m4 \
+	$(top_srcdir)/m4/sac-general.m4 \
+	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su2.m4 \
+	$(top_srcdir)/m4/sac-tport.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -105,6 +117,7 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
 COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
+COVERAGE_FLAGS = @COVERAGE_FLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -129,13 +142,20 @@ EXPENSIVE_CHECKS_FALSE = @EXPENSIVE_CHECKS_FALSE@
 EXPENSIVE_CHECKS_TRUE = @EXPENSIVE_CHECKS_TRUE@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+GCOV = @GCOV@
+GENHTML = @GENHTML@
+GENPNG = @GENPNG@
 GLIB_CFLAGS = @GLIB_CFLAGS@
 GLIB_LIBS = @GLIB_LIBS@
 GLIB_VERSION = @GLIB_VERSION@
 HAVE_DOXYGEN_FALSE = @HAVE_DOXYGEN_FALSE@
 HAVE_DOXYGEN_TRUE = @HAVE_DOXYGEN_TRUE@
+HAVE_GENPNG_FALSE = @HAVE_GENPNG_FALSE@
+HAVE_GENPNG_TRUE = @HAVE_GENPNG_TRUE@
 HAVE_GLIB_FALSE = @HAVE_GLIB_FALSE@
 HAVE_GLIB_TRUE = @HAVE_GLIB_TRUE@
+HAVE_LCOV_FALSE = @HAVE_LCOV_FALSE@
+HAVE_LCOV_TRUE = @HAVE_LCOV_TRUE@
 HAVE_MINGW32_FALSE = @HAVE_MINGW32_FALSE@
 HAVE_MINGW32_TRUE = @HAVE_MINGW32_TRUE@
 HAVE_NTH_FALSE = @HAVE_NTH_FALSE@
@@ -150,6 +170,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
@@ -187,7 +208,6 @@ REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
-SOFIA_COVERAGE = @SOFIA_COVERAGE@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -247,28 +267,47 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 AUTOMAKE_OPTIONS = foreign 1.7
 SUBDIRS = libsofia-sip-ua $(GLIB_SUBDIRS) utils packages
-DIST_SUBDIRS = libsofia-sip-ua libsofia-sip-ua-glib utils packages win32
+DIST_SUBDIRS = libsofia-sip-ua libsofia-sip-ua-glib utils packages \
+	win32 open_c
+
 
 # note: when glib devel files are not available, make should not
 #       enter the libsofia-sip-ua-glib subdir at all
 @HAVE_GLIB_TRUE@GLIB_SUBDIRS = libsofia-sip-ua-glib
 EXTRA_DIST = AUTHORS COPYING COPYRIGHTS ChangeLog.ext-trees README \
-	README.developers RELEASE TODO m4/sac-general.m4 m4/sac-su.m4 \
-	m4/sac-su2.m4 m4/sac-tport.m4 m4/sac-openssl.m4 \
-	docs/build_system.txt docs/devel_platform_notes.txt \
-	docs/release_management.txt
+	README.developers RELEASE TODO m4/sac-general.m4 \
+	m4/sac-coverage.m4 m4/sac-su2.m4 m4/sac-tport.m4 \
+	m4/sac-openssl.m4 docs/build_system.txt \
+	docs/devel_platform_notes.txt docs/release_management.txt \
+	scripts/lcov-report scripts/uncovered
 dist_man_MANS = man/man1/sip-date.1 man/man1/sip-options.1 \
 		man/man1/localinfo.1 man/man1/addrinfo.1 \
 		man/man1/stunc.1 man/man1/sip-dig.1
 
 CLEANFILES = $(dist_man_MANS)
+PHONY = built-sources clean-built-sources valcheck doxygen manpages \
+	$(am__append_2)
+
+# Scripts
+@HAVE_LCOV_TRUE@LCOV_UNCOVERED = ${top_srcdir}/scripts/uncovered
+@HAVE_LCOV_TRUE@LCOV_REPORT = ${top_srcdir}/scripts/lcov-report
+
+# Report directory
+@HAVE_LCOV_TRUE@lcovdir = ${top_builddir}/lcov
+
+# Options
+@HAVE_LCOV_TRUE@GENHTML_OPTIONS = --show-details --legend \
+@HAVE_LCOV_TRUE@	$(am__append_1)
+
+# Fancy shell command that expands to directory relative to top_builddir
+@HAVE_LCOV_TRUE@expand_subdir = `pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
 .SUFFIXES:
 am--refresh:
 	@:
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/lcov.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -519,7 +558,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/docs $(distdir)/libsofia-sip-ua-glib/su-glib $(distdir)/libsofia-sip-ua/bnf $(distdir)/libsofia-sip-ua/docs $(distdir)/libsofia-sip-ua/features $(distdir)/libsofia-sip-ua/features/sofia-sip $(distdir)/libsofia-sip-ua/http $(distdir)/libsofia-sip-ua/ipt $(distdir)/libsofia-sip-ua/iptsec $(distdir)/libsofia-sip-ua/msg $(distdir)/libsofia-sip-ua/nea $(distdir)/libsofia-sip-ua/nta $(distdir)/libsofia-sip-ua/nth $(distdir)/libsofia-sip-ua/nua $(distdir)/libsofia-sip-ua/sdp $(distdir)/libsofia-sip-ua/sip $(distdir)/libsofia-sip-ua/soa $(distdir)/libsofia-sip-ua/sresolv $(distdir)/libsofia-sip-ua/stun $(distdir)/libsofia-sip-ua/su $(distdir)/libsofia-sip-ua/su/sofia-sip $(distdir)/libsofia-sip-ua/tport $(distdir)/libsofia-sip-ua/url $(distdir)/m4 $(distdir)/man/man1 $(distdir)/packages $(distdir)/utils $(distdir)/win32
+	$(mkdir_p) $(distdir)/docs $(distdir)/libsofia-sip-ua-glib/su-glib $(distdir)/libsofia-sip-ua/bnf $(distdir)/libsofia-sip-ua/docs $(distdir)/libsofia-sip-ua/features $(distdir)/libsofia-sip-ua/features/sofia-sip $(distdir)/libsofia-sip-ua/http $(distdir)/libsofia-sip-ua/ipt $(distdir)/libsofia-sip-ua/iptsec $(distdir)/libsofia-sip-ua/msg $(distdir)/libsofia-sip-ua/nea $(distdir)/libsofia-sip-ua/nta $(distdir)/libsofia-sip-ua/nth $(distdir)/libsofia-sip-ua/nua $(distdir)/libsofia-sip-ua/sdp $(distdir)/libsofia-sip-ua/sip $(distdir)/libsofia-sip-ua/soa $(distdir)/libsofia-sip-ua/sresolv $(distdir)/libsofia-sip-ua/stun $(distdir)/libsofia-sip-ua/su $(distdir)/libsofia-sip-ua/su/sofia-sip $(distdir)/libsofia-sip-ua/tport $(distdir)/libsofia-sip-ua/url $(distdir)/m4 $(distdir)/man/man1 $(distdir)/open_c $(distdir)/packages $(distdir)/rules $(distdir)/scripts $(distdir)/utils $(distdir)/win32
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -692,9 +731,10 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@HAVE_LCOV_FALSE@clean-local:
 clean: clean-recursive
 
-clean-am: clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -747,9 +787,9 @@ uninstall-info: uninstall-info-recursive
 uninstall-man: uninstall-man1
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am am--refresh check \
-	check-am clean clean-generic clean-libtool clean-recursive \
-	ctags ctags-recursive dist dist-all dist-bzip2 dist-gzip \
-	dist-shar dist-tarZ dist-zip distcheck distclean \
+	check-am clean clean-generic clean-libtool clean-local \
+	clean-recursive ctags ctags-recursive dist dist-all dist-bzip2 \
+	dist-gzip dist-shar dist-tarZ dist-zip distcheck distclean \
 	distclean-generic distclean-hdr distclean-libtool \
 	distclean-recursive distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
@@ -768,6 +808,7 @@ $(dist_man_MANS): manpages
 
 manpages:
 	-mkdir -p man man/man1 2> /dev/null
+@HAVE_DOXYGEN_TRUE@	$(MAKE) $(AM_MAKEFLAGS) -C libsofia-sip-ua/docs built-sources
 @HAVE_DOXYGEN_TRUE@	@echo 'cd utils && $(DOXYGEN)'
 @HAVE_DOXYGEN_TRUE@	@cd utils && \
 @HAVE_DOXYGEN_TRUE@	{ exec 3>&1 1>&2; { $(DOXYGEN) 2>&1; echo $$? >& 3 ;} | \
@@ -775,7 +816,7 @@ manpages:
 @HAVE_DOXYGEN_TRUE@	@rm -f man/man1/_*.1
 @HAVE_DOXYGEN_FALSE@	-touch $(dist_man_MANS)
 
-coverage built-sources clean-built-sources valcheck doxygen:
+built-sources clean-built-sources valcheck doxygen:
 	@failcom='exit 1'; for f in x $$MAKEFLAGS; do \
 	case $$f in *=* | --[!k]*);; *k*) failcom='fail=yes';; esac; done; \
 	for i in libsofia-sip-ua $(GLIB_SUBDIRS) ; do \
@@ -783,7 +824,48 @@ coverage built-sources clean-built-sources valcheck doxygen:
 	done ; \
 	test -z "$$fail"
 
-.PHONY: coverage built-sources clean-built-sources valcheck doxygen manpages
+#
+# Generate pretty coverage report (unless it has been already done)
+#
+@HAVE_LCOV_TRUE@lcov:
+@HAVE_LCOV_TRUE@	@-test -r ${lcovdir}${expand_subdir}/lcov.info \
+@HAVE_LCOV_TRUE@	|| make lcov-report
+
+# Generate pretty coverage report based on current coverage data
+@HAVE_LCOV_TRUE@lcov-report:
+@HAVE_LCOV_TRUE@	sub=${expand_subdir} odir=${lcovdir}$$sub ; \
+@HAVE_LCOV_TRUE@	rm -rf $$odir ; mkdir -p $$odir && \
+@HAVE_LCOV_TRUE@	${LCOV_REPORT} ${GENHTML_OPTIONS} \
+@HAVE_LCOV_TRUE@          --title "${PACKAGE_NAME}-${PACKAGE_VERSION}$$sub" \
+@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir 
+
+# Rerun checks before generating report
+@HAVE_LCOV_TRUE@lcov-rerun: clean-lcov
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) check
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) lcov-report
+
+# Show all uncovered lines as errors
+@HAVE_LCOV_TRUE@uncovered:
+@HAVE_LCOV_TRUE@	${LCOV_UNCOVERED} --lcov-dir=${lcovdir} --srcdir=${srcdir}
+
+# Run check in current dir and show all uncovered lines as errors
+@HAVE_LCOV_TRUE@covcheck:
+@HAVE_LCOV_TRUE@	-find . -name "*.gcda" | xargs rm -rf
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) check
+@HAVE_LCOV_TRUE@	${LCOV_UNCOVERED} --lcov-dir=${lcovdir} --srcdir=${srcdir}
+
+@HAVE_LCOV_TRUE@clean-local::
+@HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+@HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
+
+@HAVE_LCOV_TRUE@clean-lcov:
+@HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+@HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
+
+@HAVE_LCOV_TRUE@lcov-upload: lcov
+@HAVE_LCOV_TRUE@	rsync -rvz -e ssh --delete lcov/* sofia-sip.org:/var/www/coverage/lcov/
+
+.PHONY: $(PHONY)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

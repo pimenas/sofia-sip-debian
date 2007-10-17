@@ -49,13 +49,14 @@ struct call;
 #include <sofia-sip/su_log.h>
 #include <sofia-sip/su_tagarg.h>
 #include <sofia-sip/su_tag_io.h>
+#include <sofia-sip/nua_tag.h>
 
 #if __APPLE_CC__
 #include <sofia-sip/su_osx_runloop.h>
 #endif
 
-#include <test_proxy.h>
-#include <test_nat.h>
+#include "test_proxy.h"
+#include "test_nat.h"
 #include <sofia-sip/auth_module.h>
 
 #include <stddef.h>
@@ -124,7 +125,9 @@ struct context
   su_root_t *root;
 
   int threading, proxy_tests, expensive, quit_on_single_failure, osx_runloop;
-  char const *external_proxy;
+  int print_tags;
+
+  url_t *external_proxy;
 
   int proxy_logging;
 
@@ -133,9 +136,11 @@ struct context
     struct context *ctx;	/* Backpointer */
 
     int logging;
+    int print_tags;
 
     int running;
 
+    struct domain *domain;
     condition_function *next_condition;
     nua_event_t next_event, last_event;
     nua_t *nua;
@@ -176,6 +181,7 @@ struct context
   } a, b, c;
 
   struct proxy *p;
+  sip_route_t const *lr;
   struct nat *nat;
 };
 
@@ -195,6 +201,9 @@ void free_events_in_list(struct context *,
 void free_event_in_list(struct context *ctx,
 			struct eventlist *list,
 			struct event *e);
+
+struct event *event_by_type(struct event *e, nua_event_t);
+size_t count_events(struct event const *e);
 
 #define CONDITION_PARAMS			\
   nua_event_t event,				\
@@ -319,6 +328,7 @@ int test_nua_init(struct context *ctx,
 int test_deinit(struct context *ctx);
 
 int test_nua_api_errors(struct context *ctx);
+int test_nua_destroy(struct context *ctx);
 int test_stack_errors(struct context *ctx);
 int test_tag_filter(void);
 int test_nua_params(struct context *ctx);

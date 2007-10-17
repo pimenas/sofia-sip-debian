@@ -62,6 +62,7 @@ MSG_HEADER_CLASS(msg_, multipart, NULL, "", mp_common, append, \
 
 #define msg_offsetof(s, f) ((unsigned short)offsetof(s ,f))
 
+
 msg_mclass_t const msg_multipart_mclass[1] = 
 {{
 # if defined (MSG_MULTIPART_HCLASS)
@@ -87,11 +88,7 @@ msg_mclass_t const msg_multipart_mclass[1] =
   {{ NULL, 0 }},
   NULL, 
   127, 
-#if SU_HAVE_EXPERIMENTAL
   7,
-#else
-  7,
-#endif
   {
     { NULL, 0 },
     { NULL, 0 },

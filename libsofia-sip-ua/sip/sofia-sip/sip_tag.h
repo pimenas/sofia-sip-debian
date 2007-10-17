@@ -97,7 +97,7 @@ SOFIAPUBVAR tag_typedef_t siptag_sip;
 #define SIPTAG_SIP_REF(x)   siptag_sip_ref, siptag_sip_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_sip_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline
 tag_value_t siptag_sip_v(sip_t const *v) { return (tag_value_t)v; }
 su_inline 
@@ -129,7 +129,7 @@ SOFIAPUBVAR tag_typedef_t siptag_header;
 #define SIPTAG_HEADER_REF(x)   siptag_header_ref, siptag_header_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_header_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_header_v(sip_header_t const *v)
 { return (tag_value_t)v; }
@@ -146,7 +146,7 @@ siptag_header_vr(sip_header_t const **vp)
  * Macro is used to include a tag item containing an unknown extension
  * header in the tag list, e.g.,
  * @code
- * SIPTAG_HEADER_STR("Remote-Party-ID: +358718008000")
+ * SIPTAG_HEADER_STR("P-Alternative-URL: <+358718008000>")
  * @endcode
  *
  * It is also possible to include multiple headers at once
@@ -231,7 +231,7 @@ SOFIAPUBVAR tag_typedef_t siptag_request_str;
 #define SIPTAG_REQUEST_STR_REF(x) siptag_request_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_request_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_request_v(sip_request_t const *v)
 { return (tag_value_t)v; }
@@ -301,7 +301,7 @@ SOFIAPUBVAR tag_typedef_t siptag_status_str;
 #define SIPTAG_STATUS_STR_REF(x) siptag_status_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_status_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_status_v(sip_status_t const *v)
 { return (tag_value_t)v; }
@@ -371,7 +371,7 @@ SOFIAPUBVAR tag_typedef_t siptag_via_str;
 #define SIPTAG_VIA_STR_REF(x) siptag_via_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_via_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_via_v(sip_via_t const *v)
 { return (tag_value_t)v; }
@@ -441,7 +441,7 @@ SOFIAPUBVAR tag_typedef_t siptag_route_str;
 #define SIPTAG_ROUTE_STR_REF(x) siptag_route_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_route_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_route_v(sip_route_t const *v)
 { return (tag_value_t)v; }
@@ -511,7 +511,7 @@ SOFIAPUBVAR tag_typedef_t siptag_record_route_str;
 #define SIPTAG_RECORD_ROUTE_STR_REF(x) siptag_record_route_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_record_route_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_record_route_v(sip_record_route_t const *v)
 { return (tag_value_t)v; }
@@ -581,7 +581,7 @@ SOFIAPUBVAR tag_typedef_t siptag_max_forwards_str;
 #define SIPTAG_MAX_FORWARDS_STR_REF(x) siptag_max_forwards_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_max_forwards_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_max_forwards_v(sip_max_forwards_t const *v)
 { return (tag_value_t)v; }
@@ -651,7 +651,7 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_require_str;
 #define SIPTAG_PROXY_REQUIRE_STR_REF(x) siptag_proxy_require_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_proxy_require_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_proxy_require_v(sip_proxy_require_t const *v)
 { return (tag_value_t)v; }
@@ -721,7 +721,7 @@ SOFIAPUBVAR tag_typedef_t siptag_from_str;
 #define SIPTAG_FROM_STR_REF(x) siptag_from_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_from_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_from_v(sip_from_t const *v)
 { return (tag_value_t)v; }
@@ -791,7 +791,7 @@ SOFIAPUBVAR tag_typedef_t siptag_to_str;
 #define SIPTAG_TO_STR_REF(x) siptag_to_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_to_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_to_v(sip_to_t const *v)
 { return (tag_value_t)v; }
@@ -861,7 +861,7 @@ SOFIAPUBVAR tag_typedef_t siptag_call_id_str;
 #define SIPTAG_CALL_ID_STR_REF(x) siptag_call_id_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_call_id_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_call_id_v(sip_call_id_t const *v)
 { return (tag_value_t)v; }
@@ -931,7 +931,7 @@ SOFIAPUBVAR tag_typedef_t siptag_cseq_str;
 #define SIPTAG_CSEQ_STR_REF(x) siptag_cseq_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_cseq_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_cseq_v(sip_cseq_t const *v)
 { return (tag_value_t)v; }
@@ -1001,7 +1001,7 @@ SOFIAPUBVAR tag_typedef_t siptag_contact_str;
 #define SIPTAG_CONTACT_STR_REF(x) siptag_contact_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_contact_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_contact_v(sip_contact_t const *v)
 { return (tag_value_t)v; }
@@ -1071,7 +1071,7 @@ SOFIAPUBVAR tag_typedef_t siptag_rseq_str;
 #define SIPTAG_RSEQ_STR_REF(x) siptag_rseq_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_rseq_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_rseq_v(sip_rseq_t const *v)
 { return (tag_value_t)v; }
@@ -1141,7 +1141,7 @@ SOFIAPUBVAR tag_typedef_t siptag_rack_str;
 #define SIPTAG_RACK_STR_REF(x) siptag_rack_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_rack_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_rack_v(sip_rack_t const *v)
 { return (tag_value_t)v; }
@@ -1211,7 +1211,7 @@ SOFIAPUBVAR tag_typedef_t siptag_request_disposition_str;
 #define SIPTAG_REQUEST_DISPOSITION_STR_REF(x) siptag_request_disposition_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_request_disposition_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_request_disposition_v(sip_request_disposition_t const *v)
 { return (tag_value_t)v; }
@@ -1281,7 +1281,7 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_contact_str;
 #define SIPTAG_ACCEPT_CONTACT_STR_REF(x) siptag_accept_contact_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_accept_contact_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_accept_contact_v(sip_accept_contact_t const *v)
 { return (tag_value_t)v; }
@@ -1351,7 +1351,7 @@ SOFIAPUBVAR tag_typedef_t siptag_reject_contact_str;
 #define SIPTAG_REJECT_CONTACT_STR_REF(x) siptag_reject_contact_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_reject_contact_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_reject_contact_v(sip_reject_contact_t const *v)
 { return (tag_value_t)v; }
@@ -1421,7 +1421,7 @@ SOFIAPUBVAR tag_typedef_t siptag_expires_str;
 #define SIPTAG_EXPIRES_STR_REF(x) siptag_expires_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_expires_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_expires_v(sip_expires_t const *v)
 { return (tag_value_t)v; }
@@ -1491,7 +1491,7 @@ SOFIAPUBVAR tag_typedef_t siptag_date_str;
 #define SIPTAG_DATE_STR_REF(x) siptag_date_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_date_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_date_v(sip_date_t const *v)
 { return (tag_value_t)v; }
@@ -1561,7 +1561,7 @@ SOFIAPUBVAR tag_typedef_t siptag_retry_after_str;
 #define SIPTAG_RETRY_AFTER_STR_REF(x) siptag_retry_after_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_retry_after_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_retry_after_v(sip_retry_after_t const *v)
 { return (tag_value_t)v; }
@@ -1631,7 +1631,7 @@ SOFIAPUBVAR tag_typedef_t siptag_timestamp_str;
 #define SIPTAG_TIMESTAMP_STR_REF(x) siptag_timestamp_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_timestamp_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_timestamp_v(sip_timestamp_t const *v)
 { return (tag_value_t)v; }
@@ -1701,7 +1701,7 @@ SOFIAPUBVAR tag_typedef_t siptag_min_expires_str;
 #define SIPTAG_MIN_EXPIRES_STR_REF(x) siptag_min_expires_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_min_expires_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_min_expires_v(sip_min_expires_t const *v)
 { return (tag_value_t)v; }
@@ -1771,7 +1771,7 @@ SOFIAPUBVAR tag_typedef_t siptag_subject_str;
 #define SIPTAG_SUBJECT_STR_REF(x) siptag_subject_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_subject_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_subject_v(sip_subject_t const *v)
 { return (tag_value_t)v; }
@@ -1841,7 +1841,7 @@ SOFIAPUBVAR tag_typedef_t siptag_priority_str;
 #define SIPTAG_PRIORITY_STR_REF(x) siptag_priority_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_priority_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_priority_v(sip_priority_t const *v)
 { return (tag_value_t)v; }
@@ -1911,7 +1911,7 @@ SOFIAPUBVAR tag_typedef_t siptag_call_info_str;
 #define SIPTAG_CALL_INFO_STR_REF(x) siptag_call_info_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_call_info_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_call_info_v(sip_call_info_t const *v)
 { return (tag_value_t)v; }
@@ -1981,7 +1981,7 @@ SOFIAPUBVAR tag_typedef_t siptag_organization_str;
 #define SIPTAG_ORGANIZATION_STR_REF(x) siptag_organization_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_organization_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_organization_v(sip_organization_t const *v)
 { return (tag_value_t)v; }
@@ -2051,7 +2051,7 @@ SOFIAPUBVAR tag_typedef_t siptag_server_str;
 #define SIPTAG_SERVER_STR_REF(x) siptag_server_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_server_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_server_v(sip_server_t const *v)
 { return (tag_value_t)v; }
@@ -2121,7 +2121,7 @@ SOFIAPUBVAR tag_typedef_t siptag_user_agent_str;
 #define SIPTAG_USER_AGENT_STR_REF(x) siptag_user_agent_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_user_agent_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_user_agent_v(sip_user_agent_t const *v)
 { return (tag_value_t)v; }
@@ -2191,7 +2191,7 @@ SOFIAPUBVAR tag_typedef_t siptag_in_reply_to_str;
 #define SIPTAG_IN_REPLY_TO_STR_REF(x) siptag_in_reply_to_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_in_reply_to_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_in_reply_to_v(sip_in_reply_to_t const *v)
 { return (tag_value_t)v; }
@@ -2261,7 +2261,7 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_str;
 #define SIPTAG_ACCEPT_STR_REF(x) siptag_accept_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_accept_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_accept_v(sip_accept_t const *v)
 { return (tag_value_t)v; }
@@ -2331,7 +2331,7 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_encoding_str;
 #define SIPTAG_ACCEPT_ENCODING_STR_REF(x) siptag_accept_encoding_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_accept_encoding_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_accept_encoding_v(sip_accept_encoding_t const *v)
 { return (tag_value_t)v; }
@@ -2401,7 +2401,7 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_language_str;
 #define SIPTAG_ACCEPT_LANGUAGE_STR_REF(x) siptag_accept_language_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_accept_language_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_accept_language_v(sip_accept_language_t const *v)
 { return (tag_value_t)v; }
@@ -2471,7 +2471,7 @@ SOFIAPUBVAR tag_typedef_t siptag_allow_str;
 #define SIPTAG_ALLOW_STR_REF(x) siptag_allow_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_allow_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_allow_v(sip_allow_t const *v)
 { return (tag_value_t)v; }
@@ -2541,7 +2541,7 @@ SOFIAPUBVAR tag_typedef_t siptag_require_str;
 #define SIPTAG_REQUIRE_STR_REF(x) siptag_require_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_require_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_require_v(sip_require_t const *v)
 { return (tag_value_t)v; }
@@ -2611,7 +2611,7 @@ SOFIAPUBVAR tag_typedef_t siptag_supported_str;
 #define SIPTAG_SUPPORTED_STR_REF(x) siptag_supported_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_supported_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_supported_v(sip_supported_t const *v)
 { return (tag_value_t)v; }
@@ -2681,7 +2681,7 @@ SOFIAPUBVAR tag_typedef_t siptag_unsupported_str;
 #define SIPTAG_UNSUPPORTED_STR_REF(x) siptag_unsupported_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_unsupported_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_unsupported_v(sip_unsupported_t const *v)
 { return (tag_value_t)v; }
@@ -2751,7 +2751,7 @@ SOFIAPUBVAR tag_typedef_t siptag_event_str;
 #define SIPTAG_EVENT_STR_REF(x) siptag_event_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_event_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_event_v(sip_event_t const *v)
 { return (tag_value_t)v; }
@@ -2821,7 +2821,7 @@ SOFIAPUBVAR tag_typedef_t siptag_allow_events_str;
 #define SIPTAG_ALLOW_EVENTS_STR_REF(x) siptag_allow_events_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_allow_events_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_allow_events_v(sip_allow_events_t const *v)
 { return (tag_value_t)v; }
@@ -2891,7 +2891,7 @@ SOFIAPUBVAR tag_typedef_t siptag_subscription_state_str;
 #define SIPTAG_SUBSCRIPTION_STATE_STR_REF(x) siptag_subscription_state_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_subscription_state_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_subscription_state_v(sip_subscription_state_t const *v)
 { return (tag_value_t)v; }
@@ -2961,7 +2961,7 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_authenticate_str;
 #define SIPTAG_PROXY_AUTHENTICATE_STR_REF(x) siptag_proxy_authenticate_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_proxy_authenticate_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_proxy_authenticate_v(sip_proxy_authenticate_t const *v)
 { return (tag_value_t)v; }
@@ -3031,7 +3031,7 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_authentication_info_str;
 #define SIPTAG_PROXY_AUTHENTICATION_INFO_STR_REF(x) siptag_proxy_authentication_info_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_proxy_authentication_info_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_proxy_authentication_info_v(sip_proxy_authentication_info_t const *v)
 { return (tag_value_t)v; }
@@ -3101,7 +3101,7 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_authorization_str;
 #define SIPTAG_PROXY_AUTHORIZATION_STR_REF(x) siptag_proxy_authorization_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_proxy_authorization_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_proxy_authorization_v(sip_proxy_authorization_t const *v)
 { return (tag_value_t)v; }
@@ -3171,7 +3171,7 @@ SOFIAPUBVAR tag_typedef_t siptag_authorization_str;
 #define SIPTAG_AUTHORIZATION_STR_REF(x) siptag_authorization_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_authorization_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_authorization_v(sip_authorization_t const *v)
 { return (tag_value_t)v; }
@@ -3241,7 +3241,7 @@ SOFIAPUBVAR tag_typedef_t siptag_www_authenticate_str;
 #define SIPTAG_WWW_AUTHENTICATE_STR_REF(x) siptag_www_authenticate_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_www_authenticate_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_www_authenticate_v(sip_www_authenticate_t const *v)
 { return (tag_value_t)v; }
@@ -3311,7 +3311,7 @@ SOFIAPUBVAR tag_typedef_t siptag_authentication_info_str;
 #define SIPTAG_AUTHENTICATION_INFO_STR_REF(x) siptag_authentication_info_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_authentication_info_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_authentication_info_v(sip_authentication_info_t const *v)
 { return (tag_value_t)v; }
@@ -3381,7 +3381,7 @@ SOFIAPUBVAR tag_typedef_t siptag_error_info_str;
 #define SIPTAG_ERROR_INFO_STR_REF(x) siptag_error_info_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_error_info_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_error_info_v(sip_error_info_t const *v)
 { return (tag_value_t)v; }
@@ -3451,7 +3451,7 @@ SOFIAPUBVAR tag_typedef_t siptag_warning_str;
 #define SIPTAG_WARNING_STR_REF(x) siptag_warning_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_warning_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_warning_v(sip_warning_t const *v)
 { return (tag_value_t)v; }
@@ -3521,7 +3521,7 @@ SOFIAPUBVAR tag_typedef_t siptag_refer_to_str;
 #define SIPTAG_REFER_TO_STR_REF(x) siptag_refer_to_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_refer_to_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_refer_to_v(sip_refer_to_t const *v)
 { return (tag_value_t)v; }
@@ -3591,7 +3591,7 @@ SOFIAPUBVAR tag_typedef_t siptag_referred_by_str;
 #define SIPTAG_REFERRED_BY_STR_REF(x) siptag_referred_by_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_referred_by_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_referred_by_v(sip_referred_by_t const *v)
 { return (tag_value_t)v; }
@@ -3661,7 +3661,7 @@ SOFIAPUBVAR tag_typedef_t siptag_replaces_str;
 #define SIPTAG_REPLACES_STR_REF(x) siptag_replaces_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_replaces_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_replaces_v(sip_replaces_t const *v)
 { return (tag_value_t)v; }
@@ -3731,7 +3731,7 @@ SOFIAPUBVAR tag_typedef_t siptag_session_expires_str;
 #define SIPTAG_SESSION_EXPIRES_STR_REF(x) siptag_session_expires_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_session_expires_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_session_expires_v(sip_session_expires_t const *v)
 { return (tag_value_t)v; }
@@ -3801,7 +3801,7 @@ SOFIAPUBVAR tag_typedef_t siptag_min_se_str;
 #define SIPTAG_MIN_SE_STR_REF(x) siptag_min_se_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_min_se_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_min_se_v(sip_min_se_t const *v)
 { return (tag_value_t)v; }
@@ -3871,7 +3871,7 @@ SOFIAPUBVAR tag_typedef_t siptag_path_str;
 #define SIPTAG_PATH_STR_REF(x) siptag_path_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_path_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_path_v(sip_path_t const *v)
 { return (tag_value_t)v; }
@@ -3941,7 +3941,7 @@ SOFIAPUBVAR tag_typedef_t siptag_service_route_str;
 #define SIPTAG_SERVICE_ROUTE_STR_REF(x) siptag_service_route_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_service_route_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_service_route_v(sip_service_route_t const *v)
 { return (tag_value_t)v; }
@@ -4011,7 +4011,7 @@ SOFIAPUBVAR tag_typedef_t siptag_reason_str;
 #define SIPTAG_REASON_STR_REF(x) siptag_reason_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_reason_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_reason_v(sip_reason_t const *v)
 { return (tag_value_t)v; }
@@ -4081,7 +4081,7 @@ SOFIAPUBVAR tag_typedef_t siptag_security_client_str;
 #define SIPTAG_SECURITY_CLIENT_STR_REF(x) siptag_security_client_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_security_client_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_security_client_v(sip_security_client_t const *v)
 { return (tag_value_t)v; }
@@ -4151,7 +4151,7 @@ SOFIAPUBVAR tag_typedef_t siptag_security_server_str;
 #define SIPTAG_SECURITY_SERVER_STR_REF(x) siptag_security_server_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_security_server_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_security_server_v(sip_security_server_t const *v)
 { return (tag_value_t)v; }
@@ -4221,7 +4221,7 @@ SOFIAPUBVAR tag_typedef_t siptag_security_verify_str;
 #define SIPTAG_SECURITY_VERIFY_STR_REF(x) siptag_security_verify_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_security_verify_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_security_verify_v(sip_security_verify_t const *v)
 { return (tag_value_t)v; }
@@ -4291,7 +4291,7 @@ SOFIAPUBVAR tag_typedef_t siptag_privacy_str;
 #define SIPTAG_PRIVACY_STR_REF(x) siptag_privacy_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_privacy_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_privacy_v(sip_privacy_t const *v)
 { return (tag_value_t)v; }
@@ -4361,7 +4361,7 @@ SOFIAPUBVAR tag_typedef_t siptag_etag_str;
 #define SIPTAG_ETAG_STR_REF(x) siptag_etag_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_etag_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_etag_v(sip_etag_t const *v)
 { return (tag_value_t)v; }
@@ -4431,7 +4431,7 @@ SOFIAPUBVAR tag_typedef_t siptag_if_match_str;
 #define SIPTAG_IF_MATCH_STR_REF(x) siptag_if_match_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_if_match_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_if_match_v(sip_if_match_t const *v)
 { return (tag_value_t)v; }
@@ -4501,7 +4501,7 @@ SOFIAPUBVAR tag_typedef_t siptag_mime_version_str;
 #define SIPTAG_MIME_VERSION_STR_REF(x) siptag_mime_version_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_mime_version_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_mime_version_v(sip_mime_version_t const *v)
 { return (tag_value_t)v; }
@@ -4571,7 +4571,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_type_str;
 #define SIPTAG_CONTENT_TYPE_STR_REF(x) siptag_content_type_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_content_type_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_content_type_v(sip_content_type_t const *v)
 { return (tag_value_t)v; }
@@ -4641,7 +4641,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_encoding_str;
 #define SIPTAG_CONTENT_ENCODING_STR_REF(x) siptag_content_encoding_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_content_encoding_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_content_encoding_v(sip_content_encoding_t const *v)
 { return (tag_value_t)v; }
@@ -4711,7 +4711,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_language_str;
 #define SIPTAG_CONTENT_LANGUAGE_STR_REF(x) siptag_content_language_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_content_language_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_content_language_v(sip_content_language_t const *v)
 { return (tag_value_t)v; }
@@ -4781,7 +4781,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_disposition_str;
 #define SIPTAG_CONTENT_DISPOSITION_STR_REF(x) siptag_content_disposition_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_content_disposition_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_content_disposition_v(sip_content_disposition_t const *v)
 { return (tag_value_t)v; }
@@ -4851,7 +4851,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_length_str;
 #define SIPTAG_CONTENT_LENGTH_STR_REF(x) siptag_content_length_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_content_length_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_content_length_v(sip_content_length_t const *v)
 { return (tag_value_t)v; }
@@ -4921,7 +4921,7 @@ SOFIAPUBVAR tag_typedef_t siptag_unknown_str;
 #define SIPTAG_UNKNOWN_STR_REF(x) siptag_unknown_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_unknown_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_unknown_v(sip_unknown_t const *v)
 { return (tag_value_t)v; }
@@ -4991,7 +4991,7 @@ SOFIAPUBVAR tag_typedef_t siptag_error_str;
 #define SIPTAG_ERROR_STR_REF(x) siptag_error_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_error_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_error_v(sip_error_t const *v)
 { return (tag_value_t)v; }
@@ -5061,7 +5061,7 @@ SOFIAPUBVAR tag_typedef_t siptag_separator_str;
 #define SIPTAG_SEPARATOR_STR_REF(x) siptag_separator_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_separator_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_separator_v(sip_separator_t const *v)
 { return (tag_value_t)v; }
@@ -5131,7 +5131,7 @@ SOFIAPUBVAR tag_typedef_t siptag_payload_str;
 #define SIPTAG_PAYLOAD_STR_REF(x) siptag_payload_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_payload_str_ref;
 
-#if SU_HAVE_INLINE
+#if SU_INLINE_TAG_CAST
 su_inline tag_value_t
 siptag_payload_v(sip_payload_t const *v)
 { return (tag_value_t)v; }

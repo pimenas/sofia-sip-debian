@@ -39,8 +39,8 @@
 #include <stddef.h>
 #include <string.h>
 
-#include <test_class.h>
-#include <test_protos.h>
+#include "test_class.h"
+#include "test_protos.h"
 #include <sofia-sip/msg_mime_protos.h>
 
 #include <sofia-sip/msg_mclass.h>
@@ -48,6 +48,7 @@
 
 
 #define msg_offsetof(s, f) ((unsigned short)offsetof(s ,f))
+
 
 msg_mclass_t const msg_test_mclass[1] = 
 {{
@@ -74,11 +75,7 @@ msg_mclass_t const msg_test_mclass[1] =
   {{ msg_multipart_class, msg_offsetof(msg_test_t, msg_multipart) }},
   NULL, 
   127, 
-#if SU_HAVE_EXPERIMENTAL
-  12,
-#else
-  12,
-#endif
+  14,
   {
     { NULL, 0 },
     { NULL, 0 },
@@ -114,7 +111,7 @@ msg_mclass_t const msg_test_mclass[1] =
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
-    { NULL, 0 },
+    { msg_auth_class, msg_offsetof(msg_test_t, msg_auth) },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
@@ -131,7 +128,7 @@ msg_mclass_t const msg_test_mclass[1] =
     { msg_accept_language_class, msg_offsetof(msg_test_t, msg_accept_language) },
     { NULL, 0 },
     { NULL, 0 },
-    { NULL, 0 },
+    { msg_numeric_class, msg_offsetof(msg_test_t, msg_numeric) },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },

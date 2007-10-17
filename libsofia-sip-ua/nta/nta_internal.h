@@ -26,7 +26,8 @@
 /** Defined when <nta_internal.h> has been included. */
 #define NTA_INTERNAL_H 
 
-/**@IFILE nta_internal.h
+/**@internal @file nta_internal.h
+ *
  * @brief Internals of NTA objects.
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
@@ -145,7 +146,7 @@ struct nta_agent_s
   size_t                sa_maxsize;
   
   /** Maximum size of outgoing UDP requests */
-  size_t                sa_udp_mtu;
+  unsigned              sa_udp_mtu;
 
   /** SIP T1 - initial interval of retransmissions (500 ms) */
   unsigned              sa_t1;
@@ -160,10 +161,13 @@ struct nta_agent_s
   /** Progress timer - interval between provisional responses sent */
   unsigned              sa_progress;
 
+  /** SIP timer C - interval between provisional responses receivedxs */
+  unsigned              sa_timer_c;
+
   /** Blacklisting period */
   unsigned              sa_blacklist;
 
-  /** NTA is used to test packet drop */
+    /** NTA is used to test packet drop */
   unsigned              sa_drop_prob : 10;
   /** NTA is acting as an User Agent server */
   unsigned              sa_is_a_uas : 1;
@@ -226,6 +230,9 @@ struct nta_agent_s
 
   /** Set when executing timer */
   unsigned              sa_in_timer:1;
+  
+  /** Set if application has set value for timer C */
+  unsigned              sa_use_timer_c:1;
 
   unsigned              :0;
 
@@ -250,32 +257,32 @@ struct nta_agent_s
 
   /* Statistics */
   struct {
-    uint32_t            as_recv_msg;
-    uint32_t            as_recv_request;
-    uint32_t            as_recv_response;
-    uint32_t            as_bad_message;
-    uint32_t            as_bad_request;
-    uint32_t            as_bad_response;
-    uint32_t            as_drop_request;
-    uint32_t            as_drop_response;
-    uint32_t            as_client_tr;
-    uint32_t            as_server_tr;
-    uint32_t            as_dialog_tr;
-    uint32_t            as_acked_tr;
-    uint32_t            as_canceled_tr;
-    uint32_t            as_trless_request;
-    uint32_t            as_trless_to_tr;
-    uint32_t            as_trless_response;
-    uint32_t            as_trless_200;
-    uint32_t            as_merged_request;
-    uint32_t            as_sent_msg;
-    uint32_t            as_sent_request;
-    uint32_t            as_sent_response;
-    uint32_t            as_retry_request;
-    uint32_t            as_retry_response;
-    uint32_t            as_recv_retry;
-    uint32_t            as_tout_request;
-    uint32_t            as_tout_response;
+    usize_t as_recv_msg;
+    usize_t as_recv_request;
+    usize_t as_recv_response;
+    usize_t as_bad_message;
+    usize_t as_bad_request;
+    usize_t as_bad_response;
+    usize_t as_drop_request;
+    usize_t as_drop_response;
+    usize_t as_client_tr;
+    usize_t as_server_tr;
+    usize_t as_dialog_tr;
+    usize_t as_acked_tr;
+    usize_t as_canceled_tr;
+    usize_t as_trless_request;
+    usize_t as_trless_to_tr;
+    usize_t as_trless_response;
+    usize_t as_trless_200;
+    usize_t as_merged_request;
+    usize_t as_sent_msg;
+    usize_t as_sent_request;
+    usize_t as_sent_response;
+    usize_t as_retry_request;
+    usize_t as_retry_response;
+    usize_t as_recv_retry;
+    usize_t as_tout_request;
+    usize_t as_tout_response;
   }                  sa_stats[1];
 
   /** Hash of dialogs. */
@@ -307,7 +314,7 @@ struct nta_agent_s
 
     /* Special queues (states) for outgoing INVITE transactions */
     outgoing_queue_t  inv_calling[1];	/* Timer B/A */
-    outgoing_queue_t  inv_proceeding[1];
+    outgoing_queue_t  inv_proceeding[1]; /* Timer C */
     outgoing_queue_t  inv_completed[1];	/* Timer D */
 
     /* Temporary queue for transactions waiting to be freed */
@@ -504,6 +511,7 @@ struct nta_outgoing_s
   unsigned orq_completed : 1;
   unsigned orq_delayed : 1;
   unsigned orq_stripped_uri : 1;
+  unsigned orq_user_tport : 1;	/**< Application provided tport - don't retry */
   unsigned orq_try_tcp_instead : 1;
   unsigned orq_try_udp_instead : 1;
   unsigned orq_reliable : 1; /**< Transport is reliable */
@@ -516,6 +524,7 @@ struct nta_outgoing_s
   unsigned orq_sigcomp_zap:1;	/**< Reset SigComp after completing */
   unsigned orq_must_100rel : 1;
   unsigned orq_timestamp : 1;	/**< Insert @Timestamp header. */
+  unsigned orq_100rel:1;	/**< Support 100rel */
   unsigned : 0;	/* pad */
 
 #if HAVE_SOFIA_SRESOLV
@@ -534,6 +543,8 @@ struct nta_outgoing_s
 
   char const           *orq_branch;	/**< Transaction branch */
   char const           *orq_via_branch;	/**< @Via branch */
+
+  int                  *orq_status2b;   /**< Delayed response */
 
   nta_outgoing_t       *orq_cancel;     /**< CANCEL transaction */
 

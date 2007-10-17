@@ -48,7 +48,10 @@
 /* ======================================================================== */
 /* MESSAGE */
 
-/** Send an instant message. 
+/**@fn void nua_message( \
+ *       nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...);
+ *
+ * Send an instant message. 
  *
  * Send an instant message using SIP MESSAGE method.
  *
@@ -61,7 +64,7 @@
  * @par Related Tags:
  *    NUTAG_URL() \n
  *    Tags of nua_set_hparams() \n
- *    Tags in <sip_tag.h>
+ *    Header tags defined in <sofia-sip/sip_tag.h>
  *
  * @par Events:
  *    #nua_r_message
