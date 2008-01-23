@@ -39,6 +39,7 @@
 #include <stdlib.h>
 
 #include <sofia-sip/su_alloc.h>
+#include <sofia-sip/su_errno.h>
 #include <sofia-sip/su_strlst.h>
 #include <sofia-sip/su_alloc_stat.h>
 
@@ -69,6 +70,7 @@ static int test_alloc(void)
 {
   exhome_t *h0, *h1, *h2, *h3;
   su_home_t home[1] = { SU_HOME_INIT(home) };
+  su_home_t home0[1];
   enum { N = 40 };
   void *m0[N], *m1[N], *m;
   char *c, *c0, *p0, *p1;
@@ -77,6 +79,11 @@ static int test_alloc(void)
   int d0, d1a, d1, d2, d3;
 
   BEGIN();
+
+  /* su_home_init() was not initializing suh_locks */
+  memset(home0, 0xff, sizeof home0);
+  TEST(su_home_init(home0), 0);
+  TEST_VOID(su_home_deinit(home0));
 
   TEST_1(h0 = su_home_new(sizeof(*h0)));
   TEST_1(h1 = su_home_clone(h0->home, sizeof(*h1)));
@@ -184,6 +191,42 @@ static int test_alloc(void)
     TEST_1(su_home_unref(h1));
     TEST(h1->suh_size, 13);
   }
+
+  END();
+}
+
+static int test_lock(void)
+{
+  su_home_t home[1] = { SU_HOME_INIT(home) };
+
+  BEGIN();
+
+  TEST(su_home_mutex_lock(home), -1);
+  TEST(su_home_mutex_unlock(home), -1);
+
+  TEST(su_home_lock(home), -1);
+  TEST(su_home_trylock(home), -1);
+  TEST(su_home_unlock(home), -1);
+
+  TEST(su_home_init(home), 0);
+
+  TEST(su_home_mutex_lock(home), 0);
+  TEST(su_home_trylock(home), -1);
+  TEST(su_home_mutex_unlock(home), 0);
+  TEST(su_home_trylock(home), -1);
+
+  TEST(su_home_threadsafe(home), 0);
+
+  TEST(su_home_mutex_lock(home), 0);
+  TEST(su_home_trylock(home), EBUSY);
+  TEST(su_home_mutex_unlock(home), 0);
+
+  TEST(su_home_lock(home), 0);
+  TEST(su_home_trylock(home), EBUSY);
+  TEST(su_home_unlock(home), 0);
+
+  TEST(su_home_trylock(home), 0);
+  TEST(su_home_unlock(home), 0);
 
   END();
 }
@@ -702,6 +745,7 @@ int main(int argc, char *argv[])
 #endif
 
   retval |= test_alloc();
+  retval |= test_lock();
   retval |= test_strdupcat();
   retval |= test_sprintf("%s.%s", "foo", "bar");
   retval |= test_strlst();
@@ -710,4 +754,3 @@ int main(int argc, char *argv[])
 
   return retval;
 }
-

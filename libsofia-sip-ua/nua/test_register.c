@@ -426,7 +426,7 @@ int test_register_c(struct context *ctx)
     printf("TEST NUA-2.3.3: REGISTER c\n");
 
   test_proxy_domain_set_expiration(ctx->c.domain, 600, 3600, 36000);
-  test_proxy_domain_set_authorize(ctx->c.domain, 2);
+  test_proxy_domain_set_authorize(ctx->c.domain, "test-proxy-0");
 
   TEST_1(c_reg->nh = nua_handle(c->nua, c_reg, TAG_END()));
 
@@ -453,7 +453,7 @@ int test_register_c(struct context *ctx)
   free_events_in_list(ctx, c->events);
 
   AUTHENTICATE(c, c_reg, c_reg->nh,
-	       NUTAG_AUTH("Digest:\"test-proxy\":charlie:secret"), TAG_END());
+	       NUTAG_AUTH("Digest:\"test-proxy-0\":charlie:secret"), TAG_END());
   run_abc_until(ctx, -1, save_events, -1, save_events, 
 		-1, save_until_final_response);
 
@@ -778,6 +778,23 @@ int test_connectivity(struct context *ctx)
 
     free_events_in_list(ctx, c->events);
 
+    /* Sneakily change the realm */  
+
+    TEST(test_proxy_domain_set_authorize(ctx->c.domain, "test-proxy"), 0);
+
+    AUTHENTICATE(c, c_call, c_call->nh,
+		 NUTAG_AUTH("Digest:\"test-proxy-0\":charlie:secret"),
+		 TAG_END());
+
+    run_abc_until(ctx, -1, NULL, -1, NULL, -1, save_until_final_response);
+
+    /* Client events: nua_options(), nua_r_options */
+    TEST_1(e = c->events->head); TEST_E(e->data->e_event, nua_r_options);
+    TEST(e->data->e_status, 407);
+    TEST_1(!e->next);
+
+    free_events_in_list(ctx, c->events);
+
     AUTHENTICATE(c, c_call, c_call->nh,
 		 NUTAG_AUTH("Digest:\"test-proxy\":charlie:secret"),
 		 TAG_END());
@@ -999,6 +1016,15 @@ int test_unregister(struct context *ctx)
     TEST_E(e->data->e_event, nua_r_unregister);
     if (e->data->e_status == 100) {
       TEST_1(e = e->next);
+      TEST_E(e->data->e_event, nua_r_unregister);
+    }
+    if (e->data->e_status == 401) {
+      TEST_1(!e->next);
+      free_events_in_list(ctx, c->events);
+      AUTHENTICATE(c, NULL, c->reg->nh,
+		   NUTAG_AUTH("Digest:\"test-proxy\":charlie:secret"), TAG_END());
+      run_c_until(ctx, -1, save_until_final_response);
+      TEST_1(e = c->events->head);
       TEST_E(e->data->e_event, nua_r_unregister);
     }
     TEST(e->data->e_status, 200);

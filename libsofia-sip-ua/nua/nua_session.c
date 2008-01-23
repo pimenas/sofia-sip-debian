@@ -1089,8 +1089,15 @@ int nua_invite_client_ack(nua_client_request_t *cr, tagi_t const *tags)
   char const *phrase = "OK", *reason = NULL;
   char const *invite_branch;
 
-  assert(ds->ds_leg);
   assert(cr->cr_orq);
+
+  if (!ds->ds_leg) {
+    /* XXX - fix nua_dialog_usage_remove_at() instead! */
+    nta_outgoing_destroy(cr->cr_orq);
+    return -1;
+  }
+
+  assert(ds->ds_leg);
 
   msg = nta_outgoing_getrequest(cr->cr_orq);
   sip = sip_object(msg);
@@ -2018,7 +2025,8 @@ int nua_invite_server_respond(nua_server_request_t *sr, tagi_t const *tags)
     reliable = 1, early_answer = 1;
   }
   else if (!nh->nh_soa || sr->sr_status >= 300) {
-    
+    if (sr->sr_neutral)
+      return nua_base_server_respond(sr, tags);
   }
   else if (tags && 100 < sr->sr_status && sr->sr_status < 200 && 
 	   !NHP_ISSET(nh->nh_prefs, early_answer)) {
@@ -2611,20 +2619,16 @@ int nua_prack_server_report(nua_server_request_t *sr, tagi_t const *tags)
   if (sri == NULL) {
     
   }
-  else if (su_msg_is_non_null(sri->sr_signal)) {
-    su_msg_r signal;
-    event_t *e;
+  else if (SR_HAS_SAVED_SIGNAL(sri)) {
+    nua_signal_data_t const *e;
     
-    su_msg_save(signal, sri->sr_signal);
-    
-    e = su_msg_data(signal);
+    e = nua_signal_data(sri->sr_signal);
+
     sri->sr_application = SR_STATUS(sri, e->e_status, e->e_phrase);
     
     nua_server_params(sri, e->e_tags);
     nua_server_respond(sri, e->e_tags);
     nua_server_report(sri);
-    
-    su_msg_destroy(signal);
   }
   else if (ss->ss_state < nua_callstate_ready
 	   && !ss->ss_alerting
@@ -3106,7 +3110,6 @@ static int nua_update_client_report(nua_client_request_t *cr,
   nua_handle_t *nh = cr->cr_owner;
   nua_dialog_usage_t *du = cr->cr_usage;
   nua_session_usage_t *ss = nua_dialog_usage_private(du);
-  unsigned next_state = ss->ss_state;
 
   nua_stack_event(nh->nh_nua, nh, 
 		  nta_outgoing_getresponse(orq),
@@ -3122,6 +3125,8 @@ static int nua_update_client_report(nua_client_request_t *cr,
     return 1;
 
   if (cr->cr_offer_sent) {
+    unsigned next_state = ss->ss_state;
+
     if (status < 200)
       ;
     else if (du->du_cr && du->du_cr->cr_orq && du->du_cr->cr_status >= 200) {

@@ -157,18 +157,23 @@ void zap(context_t *c, entry_t *e)
   su_free(c->c_home, e);
 }
 
+/* 
+ * Check that all n entries with hash h are in hash table 
+ * and they are stored in same order 
+ * in which they were added to the hash
+ */
 static unsigned long count(context_t *c, hash_value_t h)
 {
   entry_t *e, **ee;
-  unsigned long n;
+  unsigned long n, expect = 1;
 
   for (ee = htable_hash(c->c_hash, h), n = 0;
        (e = *ee); 
        ee = htable_next(c->c_hash, ee)) {
     if (e->e_value != h)
       continue;
-    if (e->e_n == n)
-      n++;
+    if (e->e_n == expect)
+      n++, expect++;
   }
 
   return n;
@@ -218,9 +223,9 @@ int table_test(int flags)
        for correct ordering */
     hash_value_t size = c->c_hash->ht_size, h = size - 1;
 
-    TEST_1(add(c, h, 0)); TEST_1(add(c, h, 1)); TEST_1(add(c, h, 2));
-    TEST_1(add(c, h, 3)); TEST_1(add(c, h, 4)); TEST_1(add(c, h, 5));
-    TEST_1(add(c, h, 6)); TEST_1(add(c, h, 7)); TEST_1(add(c, h, 8));
+    TEST_1(add(c, h, 1)); TEST_1(add(c, h, 2)); TEST_1(add(c, h, 3));
+    TEST_1(add(c, h, 4)); TEST_1(add(c, h, 5)); TEST_1(add(c, h, 6));
+    TEST_1(add(c, h, 7)); TEST_1(add(c, h, 8)); TEST_1(add(c, h, 9)); 
 
     TEST(count(c, h), 9);
     

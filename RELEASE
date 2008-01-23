@@ -1,75 +1,39 @@
 ==================================
-Release notes for Sofia-SIP 1.12.7
+Release notes for Sofia-SIP 1.12.8
 ==================================
 
 Changes since last release
 --------------------------
-The stack now compiles and runs on Symbian SDK with Open C support
-enabled.
 
-The stack supports specifying the outbound proxy by a set of Route
-headers as recommended by RFC3261. It also supports CR-LF-based keepalives
-on TCP connections.
+Beside bugfixes, a server graylisting was added to nta and a few
+improvements in event handling were made in nua interface.
 
-Bugs in call state machines, URI and SDP handling has been fixed.
-
+A check-based test program was added, too.
 
 API/ABI changes and versioning
 ------------------------------
 
-New features in API are marked with Doxytag macro @VERSION_1_12_7 or
-@NEW_1_12_7.
+New features in API are marked with Doxytag macro @NEW_1_12_8 or
+@VERSION_1_12_8.
 
 libsofia-sip-ua:
+- Added nta_sip_is_internal(), nta_msg_is_internal() function in
+  <sofia-sip/nta.h>. Deprecating nta_is_internal_msg().
+- Added su_msg_new(), su_msg_send_to() and su_msg_deinitializer() for more 
+  robust and light-weight message passing in <sofia-sip/su_wait.h>
+- Added su_home_lock(), su_home_trylock(), and su_home_unlock() in
+  <sofia-sip/su_alloc.h>
+- Added type-neutral template macros for hash tables HTABLE2_DECLARE2(), HTABLE2_PROTOS2(),
+  and HTABLE2_BODIES2().
+- Added sres_cache_set_srv_priority() in <sofia-resolv/sres_cache.h> and 
+  sres_set_cached_srv_priority() <sofia-resolv/sres.h> for graylisting
+  SRV records for inresponsive servers.
+- nua_create()/nta_agent_create()/tport_bind() now joins to multicast group
+  if "maddr" parameter is specified
 - This release is ABI/API compatible with applications linked against 
   any 1.12.x release. However, applications built against this release won't 
   work against an older library. The ABI has been tested with the nua module 
   unit test (test_nua) built against original 1.12.0 release.
-
-libsofia-sip-ua/nua:
-- Added tag NUTAG_INITIAL_ROUTE(), NUTAG_INITIAL_ROUTE_STR()
-
-libsofia-sip-ua/nta:
-- Added nta_incoming_received()
-- Added accessor function nta_outgoing_branch()
-- Added tag NTATAG_TIMER_C()
-- Deprecated nta_msg_ackbye()
-
-libsofia-sip-ua/iptsec:
-- Added tag AUTHTAG_MAX_NCOUNT()
-
-libsofia-sip-ua/sip:
-- Added SIPEXTHDRTAG_TYPEDEF() macro and tag class sipexthdrtag_class[]
-- Added SIP headers Alert-Info, Reply-To. Remote-Party-ID,
-  P-Asserted-Identity, and P-Preferred-Identity
-- Added sip_update_default_mclass() and sip_extend_mclass()
-- Added macros SIP_HAVE_XXXX for extra headers, e.g., SIP_HAVE_ALERT_INFO().
-
-libsofia-sip-ua/soa:
-- Added tags SOATAG_ORDERED_USER() and SOATAG_REUSE_REJECTED()
-
-libsofia-sip-ua/tport:
-- Updated transport timers
-  - Added TPTAG_KEEPALIVE(), TPTAG_PINGPONG(), TPTAG_PONG2PING()
-  - Added tport_is_clear_to_send(), tport_has_queued()
-- Updated timer handling
-  - Added abstract type su_timer_queue_t (typedef'd to SU_TIMER_QUEUE_T)
-  - Updated su_task_timers() and su_timer_expire() prototypes
-
-libsofia-sip-ua/stun:
-- Removed extra system headers from <sofia-sip/stun_common.h>
-
-libsofia-sip-ua/su:
-- Added su_nanotime_t and functions su_nanotime()/su_monotime()
-- Added function su_getsocktype()
-- Added heap template in <sofia-sip/heap.h>
-- Added configure option --disable-tag-cast and macro SU_INLINE_TAG_CAST
-- Added global variable su_socket_blocking. If it is set to true,
-  sockets are created as blocking.
-- Added access point selection functionality for Open C / Symbian
-- Added functions su_root_release(), su_root_obtain() and
-  su_root_has_thread(). A thread can release a su_root_t and another one can
-  obtain it.
 
 libsofia-sip-ua-glib:
 - No ABI/API changes, compatible with 1.12.0. Note, libsofia-sip-ua-glib
@@ -79,84 +43,69 @@ libsofia-sip-ua-glib:
 Contributors to this release
 ----------------------------
 
-- Mikhail Zabaluev (bug fixes)
-- Fabio Margarido (bug fixes)
-- Martti Mela (Open C port and extra functionality, bug fixes)
-- Kai Vehmanen (fixes to win32 VC6/2005 project files)
-- Pekka Pessi (everything else)
-
+- Bernhard Suttner contributed patch to soa for using a=inactive attribute
+  with call hold
+- Stefan Leuenberger from Netmodule contributed the hack for changing
+  priority of SRV records if a SIP server was inresponsive
+- Daniele Rondina contributed patches fixing crash in STUN discovery cleanup
+  and for transport handling with nta_outgoing_*create()
+- Youness Alaoui sent a iPhone build fix
+- Michael Jerris and Stefan Knoblich from Freeswitch project reported
+  numerous bugs and contributed fixes
+  
 See the AUTHORS file in the distribution package.
 
 Notes on new features
 ---------------------
 
-The route to the outbound proxy can now be specified as an explicit route
-set.
+* SIP Server Graylisting
 
-The TCP transport can use CR-LF keepalive and CR-LF PING-PONG messages.
+  The hack contributed by Stefan Leuenberger from Netmodule changes the
+  priority of SRV records which are used when SIP URI is resolved.
 
-IPv6 support can now be disabled in VC6/VC2005 builds, by setting
-SU_HAVE_IN6 to zero `win32/sofia-sip/su_configure.h'.
+  If your domain has multiple servers, you can define separate SRV records
+  for them. If any of them becomes unresponsive, a SIP request sent to it
+  times out or gets rejected because of network error and Sofia SIP
+  automatically retries with another server. However, as Sofia SIP does not
+  keep track of failed servers with the next request it may again try first
+  the failed server. The graylisting repriotizes the SRV records so that the
+  priority of the failed server gets reduced and it won't be tried again
+  until all other servers have failed, too. Note that the SIP URI resolver
+  may get confused when using this kind of repriotizing if a single SRV
+  record corresponds to multiple servers or servers with multiple addresses.
 
-Symbian Open C build and packaging (SIS) files for libsofia-sip-ua,
-libsofia-sip-ua-glib and for several test applications have been added under
-sofia-sip/open_c.
-
-The new SIP headers Alert-Info, Reply-To. Remote-Party-ID,
-P-Asserted-Identity, and P-Preferred-Identity are not available in the SIP
-parser by default in order to prevent problems with older applications
-looking for them in sip_unknown field. Applications must enable the new
-headers with sip_update_default_mclass() and sip_extend_mclass().
+  You can disable the reprioritizing hack by including tag
+  NTATAG_GREYLIST(0) with nua_create(), nua_set_params(), nta_agent_create()
+  or nta_agent_set_params().
 
 Bugs fixed in this release
 --------------------------
 
-- Fixed sf.net bug #1804248: nua_prack() now works. 
-  Thanks to Fabio Margarido for sending the patch.
-- Fixed sf.net bug #1810115: crash after failed outgoing request and
-  nta_destroy()
-  Thanks to Mikhail Zabaluev for reporting the problem.
-- Fixed sf.net bug #1804248: nua_prack() now works. 
-  Thanks to Fabio Margarido for sending the patch.
-- Fixed sf.net bug 1803686: nua_destroy() can now be called from inside 
-  nua event callback.
-  Thanks to Mikhail Zabaluev for reporting the problem.
-- SIP Content-Length structure was casted to one with 64-bit integer instead 
-  of 32-bit, so message body was not parsed on 64-bit big-endian platform.
-  Thanks to Martin Drasar for hunting down the bug.
-- Authentication scheme token was compared as case-sensitive on client side.
-  Thanks to Russell McConnachie for reporting this problem.
-- Fixed sf.net bug #1706629: in-dialog requests not routed according to the
-  dialog route. Problem was because the outbound proxy was not handles as
-  RECOMMENDED by RFC 3261. The new tag NUTAG_INITIAL_ROUTE() allows correct
-  handling of requests.
-- Fixed problems in nua state engines (call setup failing if some messages 
-  were re-ordered or crashing when they were lost)
-  Thanks to Michael Jerris, Anthony Minessale, and others in Freeswitch
-  project for hunting down these bugs and reporting them
-- When nua generates Contact URI, the user-specified URI parameters are now
-  overridden by actual transport parameters (e.g., transport=tcp)
-  Thanks to Mikhail Zabaluev for submitting the patch.
-- Fixed sf.net bug #1750691: used to send ACK&BYE when extra 200 OK is
-  received and the 200 OK did not match any client transaction.
-  Thanks to Mikhail Zabaluev for reporting the problem.
-- Fixed problem of un-escaping reserved characters in URIs 
-  Thanks to Jan van den Bosch, Fabio Margarido and Mikhail Zabaluev for
-  reporting the problem.
-- Fixed missing links in Doxygen-generated documentation
-  Thanks to Jerry Richards for reporting this problem.
-- Fixed timing problem with CANCELed INVITE transactions.
-  Thanks to Fabio Margarido for reporting this problem.
-- Fixed sf.net bug #1771243: tport_check_trunc() does not block anymore
-  Thanks to Erland Lwin for reporting the problem
-- Fixed sf.net bug #1733323: extra tag arguments were used by 
-  nta_outgoing_tcancel().
-  Thanks to Fabio Margarido for reporting this problem.
-- Fixed sf.net bug #1747149: sdp_session_cmp() ignored some m= lines
-  (e.g., new SDP in re-INVITE was sometimes ignored)
-  Thanks to Mikhail Zabaluev for reporting the problem.
-- Fixed sf.net bug #1726034: crash in msg_as_string() with too large messages 
-- Fixed sf.net bug #1472682: ACK did not find INVITE server transaction when
-  the To URI had been changed.
-- Do not block when making a TCP connect()ion in tport.
-  Thanks to Mikhail Zabaluev for submitting the patch.
+* Fixed su_home_init not initializing suh_lock.
+* Fixed memory leak when increasing hash table size
+* Fixed problems with multiple authentication challenges. 
+* Fixed sf.net bug #1816647: Outbound contact does not make it to dialogs.
+* Fixed problem with tagargs, amd64 and Sun CC.
+* Fixed nta_outgoing_*create() not using NTATAG_TPORT() if
+  NTATAG_DEFAULT_PROXY() was set. 
+* Fixed memory leak from nua operations.
+* Fixed crash when INVITE destroyed session before UPDATE or PRACK completed
+* Fixed crash in stun when destroying stun context during discovery callback
+* Fixed nta timer interval calculation ignoring some transactions
+* Fixed request merging when client is RFC 2543 proxy
+* Fixed request matching and merging if To/From URI does not match
+* Fixed problem with soa and overlapping INVITEs
+* Fixed handling of RFC 2848 subscriptions (without Event header)
+* Fixed problems with expiration time calculations if NOTIFY is sent before
+  SUBSCRIBE has been responded
+* Fixed su_getaddrinfo() with ephemeral (NULL or "0") service
+* Fixed IPv6 build with Vista SDK
+* Fixed sf.net bug #1867753 (avoid duplicating initial route set)
+* Fixed SCTP receive
+* Using tport_log and su_llog() when logging TLS warnings and errors
+* Removed asserts on hairy dialog shutdown cases.
+* Using remote activity mode derived from O/A result rather than mode based on remote
+  offer
+* Fixed mode in SDP offer while on hold
+* Fixed handling of REFER in nua when it gets redirected or challenged
+* Fixed memory corruption when sending of ACK request failed.

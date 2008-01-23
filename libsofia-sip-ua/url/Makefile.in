@@ -155,6 +155,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CHECK_CFLAGS = @CHECK_CFLAGS@
+CHECK_LIBS = @CHECK_LIBS@
 COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
 COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 COVERAGE_FLAGS = @COVERAGE_FLAGS@
@@ -188,6 +190,9 @@ GENPNG = @GENPNG@
 GLIB_CFLAGS = @GLIB_CFLAGS@
 GLIB_LIBS = @GLIB_LIBS@
 GLIB_VERSION = @GLIB_VERSION@
+GREP = @GREP@
+HAVE_CHECK_FALSE = @HAVE_CHECK_FALSE@
+HAVE_CHECK_TRUE = @HAVE_CHECK_TRUE@
 HAVE_DOXYGEN_FALSE = @HAVE_DOXYGEN_FALSE@
 HAVE_DOXYGEN_TRUE = @HAVE_DOXYGEN_TRUE@
 HAVE_GENPNG_FALSE = @HAVE_GENPNG_FALSE@
@@ -245,6 +250,7 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
@@ -253,14 +259,9 @@ STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
 VERSION = @VERSION@
 VER_LIBSOFIA_SIP_UA_MAJOR_MINOR = @VER_LIBSOFIA_SIP_UA_MAJOR_MINOR@
-ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
-ac_ct_LD = @ac_ct_LD@
-ac_ct_RANLIB = @ac_ct_RANLIB@
-ac_ct_STRIP = @ac_ct_STRIP@
-ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -277,26 +278,33 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
+datarootdir = @datarootdir@
+docdir = @docdir@
+dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
+htmldir = @htmldir@
 include_sofiadir = @include_sofiadir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 openssl_CFLAGS = @openssl_CFLAGS@
 openssl_LIBS = @openssl_LIBS@
+pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
+psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
@@ -342,34 +350,36 @@ EXTRA_DIST = url.docs $(BUILT_SOURCES) urlmap.c urlmap.h
 # ----------------------------------------------------------------------
 # Tests
 TESTS = torture_url
+sofiasrcdir = ${top_srcdir}/libsofia-sip-ua
+sofiabuilddir = ${top_builddir}/libsofia-sip-ua
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
 	$(openssl_CFLAGS) $(am__append_1)
 SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
-TAG_AWK = $(top_srcdir)/libsofia-sip-ua/su/tag_dll.awk
+TAG_AWK = ${sofiasrcdir}/su/tag_dll.awk
 SUFFIXES = _tag_ref.c _tag.c
 INTERNAL_INCLUDES = \
-	-I$(srcdir)/../features -I../features \
-	-I$(srcdir)/../ipt -I../ipt \
-	-I$(srcdir)/../iptsec -I../iptsec \
-	-I$(srcdir)/../bnf -I../bnf \
-	-I$(srcdir)/../http -I../http \
-	-I$(srcdir)/../msg -I../msg \
-	-I$(srcdir)/../nth -I../nth \
-	-I$(srcdir)/../nta -I../nta \
-	-I$(srcdir)/../nea -I../nea \
-	-I$(srcdir)/../nua -I../nua \
-	-I$(srcdir)/../soa -I../soa \
-	-I$(srcdir)/../sdp -I../sdp \
-	-I$(srcdir)/../sip -I../sip \
-	-I$(srcdir)/../soa -I../soa \
-	-I$(srcdir)/../sresolv -I../sresolv \
-	-I$(srcdir)/../tport -I../tport \
-	-I$(srcdir)/../stun -I../stun \
-	-I$(srcdir)/../url -I../url \
-	-I$(srcdir)/../su -I../su
+    -I${sofiasrcdir}/features -I${sofiabuilddir}/features \
+    -I${sofiasrcdir}/ipt -I${sofiabuilddir}/ipt \
+    -I${sofiasrcdir}/iptsec -I${sofiabuilddir}/iptsec \
+    -I${sofiasrcdir}/bnf -I${sofiabuilddir}/bnf \
+    -I${sofiasrcdir}/http -I${sofiabuilddir}/http \
+    -I${sofiasrcdir}/msg -I${sofiabuilddir}/msg \
+    -I${sofiasrcdir}/nth -I${sofiabuilddir}/nth \
+    -I${sofiasrcdir}/nta -I${sofiabuilddir}/nta \
+    -I${sofiasrcdir}/nea -I${sofiabuilddir}/nea \
+    -I${sofiasrcdir}/nua -I${sofiabuilddir}/nua \
+    -I${sofiasrcdir}/soa -I${sofiabuilddir}/soa \
+    -I${sofiasrcdir}/sdp -I${sofiabuilddir}/sdp \
+    -I${sofiasrcdir}/sip -I${sofiabuilddir}/sip \
+    -I${sofiasrcdir}/soa -I${sofiabuilddir}/soa \
+    -I${sofiasrcdir}/sresolv -I${sofiabuilddir}/sresolv \
+    -I${sofiasrcdir}/tport -I${sofiabuilddir}/tport \
+    -I${sofiasrcdir}/stun -I${sofiabuilddir}/stun \
+    -I${sofiasrcdir}/url -I${sofiabuilddir}/url \
+    -I${sofiasrcdir}/su -I${sofiabuilddir}/su
 
 PHONY = built-sources clean-built-sources $(am__append_3)
 VALGRIND = valgrind 
