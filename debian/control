@@ -6,8 +6,8 @@ Uploaders: George Danchev <danchev@spnet.net>, Kai Vehmanen <kai.vehmanen@nokia.
 Build-Depends: debhelper (>= 4.2.0), cdbs, pkg-config, libglib2.0-dev, libssl-dev, doxygen, graphviz, autotools-dev, dpkg-dev (>= 1.13.19)
 Standards-Version: 3.7.2
 Homepage: http://sofia-sip.sourceforge.net/
-XS-Vcs-Svn: svn://svn.debian.org/pkg-voip/sofia-sip/trunk/
-XS-Vcs-Browser: http://svn.debian.org/wsvn/pkg-voip/sofia-sip/?op=log
+Vcs-Svn: svn://svn.debian.org/pkg-voip/sofia-sip/trunk/
+Vcs-Browser: http://svn.debian.org/wsvn/pkg-voip/sofia-sip/?op=log
 
 Package: sofia-sip-bin
 Architecture: any

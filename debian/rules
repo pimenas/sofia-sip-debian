@@ -24,7 +24,7 @@ clean::
 # Update that sum when new releases occur, this
 # catches silent file content forges at the server side
 
-MD5TRUSTED := 8c24a9d58179f8fa7c7edd4af7dab104
+MD5TRUSTED := ae0d64b3131b8aae1c5750e7bfd5306d
 
 DEBVERSION:=$(DEB_VERSION)
 UPVERSION:=$(DEB_UPSTREAM_VERSION)
