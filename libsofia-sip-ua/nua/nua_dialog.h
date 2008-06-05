@@ -35,26 +35,11 @@
  * @date Created: Wed Mar  8 11:38:18 EET 2006  ppessi
  */
 
-#ifndef NUA_OWNER_T
-#define NUA_OWNER_T struct nua_owner_s
-#endif
-typedef NUA_OWNER_T nua_owner_t;
+#include <nua_types.h>
 
 #ifndef NTA_H
 #include <sofia-sip/nta.h>
 #endif
-
-typedef struct nua_dialog_state nua_dialog_state_t;
-typedef struct nua_dialog_usage nua_dialog_usage_t;
-typedef struct nua_server_request nua_server_request_t; 
-typedef struct nua_client_request nua_client_request_t; 
-typedef struct nua_dialog_peer_info nua_dialog_peer_info_t;
-
-#ifndef NUA_SAVED_SIGNAL_T
-#define NUA_SAVED_SIGNAL_T struct nua_saved_signal *
-#endif
-
-typedef NUA_SAVED_SIGNAL_T nua_saved_signal_t;
 
 typedef struct {
   sip_method_t sm_method; 
@@ -253,11 +238,11 @@ typedef struct {
 		    nta_outgoing_t *orq,
 		    tagi_t const *tags);
 
-  /** @a crm_deinit is called when a client-side request is destroyed.
+  /** @a crm_complete is called when a client-side request is destroyed.
    *
    * @return The return value should be 0. It is currently ignored.
    */
-  int (*crm_deinit)(nua_client_request_t *);
+  int (*crm_complete)(nua_client_request_t *);
 
 } nua_client_methods_t;
 
@@ -286,12 +271,12 @@ struct nua_client_request
 
   url_t              *cr_target;
 
-  uint32_t            cr_seq;
-
+  char const         *cr_phrase;        /**< Latest status phrase */
   unsigned short      cr_status;        /**< Latest status */
-
   unsigned short      cr_retry_count;   /**< Retry count for this request */
 
+  uint32_t            cr_seq;
+  
   /* Flags used with offer-answer */
   unsigned short      cr_answer_recv;   /**< Recv answer in response 
 					 *  with this status.
@@ -382,8 +367,14 @@ typedef struct {
 		   nua_dialog_usage_t *du);
   void (*usage_remove)(nua_owner_t *, 
 		       nua_dialog_state_t *ds,
-		       nua_dialog_usage_t *du);
+		       nua_dialog_usage_t *du,
+		       nua_client_request_t *cr,
+		       nua_server_request_t *sr);
   char const *(*usage_name)(nua_dialog_usage_t const *du);
+  void (*usage_update_params)(nua_dialog_usage_t const *du,
+			      nua_handle_preferences_t const *changed,
+			      nua_handle_preferences_t const *params,
+			      nua_handle_preferences_t const *defaults);
   void (*usage_peer_info)(nua_dialog_usage_t *du,
 			  nua_dialog_state_t const *ds,
 			  sip_t const *sip);
@@ -400,6 +391,8 @@ struct nua_dialog_usage {
   nua_usage_class const *du_class;
   nua_dialog_state_t *du_dialog;
   nua_client_request_t *du_cr;	        /**< Client request bound with usage */
+  sip_time_t   du_refquested;	        /**< When refreshed was requested */
+  sip_time_t   du_refresh;		/**< When to refresh */
 
   unsigned     du_ready:1;	        /**< Established usage */
   unsigned     du_shutdown:1;	        /**< Shutdown in progress */
@@ -409,8 +402,6 @@ struct nua_dialog_usage {
    * Non-zero if the usage is established, SIP_TIME_MAX if there no
    * expiration time.
    */
-
-  sip_time_t      du_refresh;		/**< When to refresh */
 
   sip_event_t const *du_event;		/**< Event of usage */
 
@@ -422,6 +413,8 @@ void nua_dialog_uas_route(nua_owner_t *, nua_dialog_state_t *ds,
 			  sip_t const *sip, int rtag);
 void nua_dialog_store_peer_info(nua_owner_t *, nua_dialog_state_t *ds,
 				sip_t const *sip);
+int nua_dialog_zap(nua_owner_t *own,
+		   nua_dialog_state_t *ds);
 int nua_dialog_remove(nua_owner_t *own,
 		      nua_dialog_state_t *ds,
 		      nua_dialog_usage_t *usage);
@@ -444,7 +437,19 @@ nua_dialog_usage_t *nua_dialog_usage_get(nua_dialog_state_t const *ds,
 
 void nua_dialog_usage_remove(nua_owner_t *, 
 			     nua_dialog_state_t *ds,
-			     nua_dialog_usage_t *du);
+			     nua_dialog_usage_t *du,
+			     nua_client_request_t *cr,
+			     nua_server_request_t *sr);
+
+void nua_dialog_update_params(nua_dialog_state_t *ds,
+			      nua_handle_preferences_t const *changed,
+			      nua_handle_preferences_t const *params,
+			      nua_handle_preferences_t const *defaults);
+
+void nua_base_usage_update_params(nua_dialog_usage_t const *du,
+				  nua_handle_preferences_t const *changed,
+				  nua_handle_preferences_t const *params,
+				  nua_handle_preferences_t const *defaults);
 
 void nua_dialog_deinit(nua_owner_t *own,
 		       nua_dialog_state_t *ds);
@@ -496,6 +501,9 @@ nua_dialog_usage_t *nua_dialog_usage_public(void const *p)
 #define nua_dialog_usage_public(p) ((p) ? (nua_dialog_usage_t*)(p) - 1 : NULL)
 #endif
 
+#define NUA_DIALOG_USAGE_PRIVATE(du) ((void *)((du) + 1))
+#define NUA_DIALOG_USAGE_PUBLIC(pu) ((void *)((nua_dialog_usage_t *)(pu) - 1))
+
 /* ---------------------------------------------------------------------- */
 
 int nua_client_create(nua_owner_t *owner,
@@ -513,6 +521,8 @@ void *nua_private_client_request(nua_client_request_t const *cr)
 {
   return (void *)(cr + 1);
 }
+
+void nua_client_request_complete(nua_client_request_t *);
 
 void nua_client_request_destroy(nua_client_request_t *);
 

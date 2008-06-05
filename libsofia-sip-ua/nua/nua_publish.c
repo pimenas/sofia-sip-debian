@@ -60,8 +60,10 @@ static int nua_publish_usage_add(nua_handle_t *nh,
 				  nua_dialog_state_t *ds,
 				  nua_dialog_usage_t *du);
 static void nua_publish_usage_remove(nua_handle_t *nh,
-				      nua_dialog_state_t *ds,
-				      nua_dialog_usage_t *du);
+				     nua_dialog_state_t *ds,
+				     nua_dialog_usage_t *du,
+				     nua_client_request_t *cr,
+				     nua_server_request_t *sr);
 static void nua_publish_usage_refresh(nua_handle_t *nh,
 				      nua_dialog_state_t *ds,
 				      nua_dialog_usage_t *du,
@@ -77,6 +79,7 @@ static nua_usage_class const nua_publish_usage[1] = {
     nua_publish_usage_add,
     nua_publish_usage_remove,
     nua_publish_usage_name,
+    nua_base_usage_update_params,
     NULL,
     nua_publish_usage_refresh,
     nua_publish_usage_shutdown,
@@ -101,10 +104,13 @@ int nua_publish_usage_add(nua_handle_t *nh,
 
 static
 void nua_publish_usage_remove(nua_handle_t *nh,
-			       nua_dialog_state_t *ds,
-			       nua_dialog_usage_t *du)
+			      nua_dialog_state_t *ds,
+			      nua_dialog_usage_t *du,
+			      nua_client_request_t *cr,
+			      nua_server_request_t *sr
+)
 {
-  struct publish_usage *pu = nua_dialog_usage_private(du);
+  struct publish_usage *pu = NUA_DIALOG_USAGE_PRIVATE(du);
 
   su_free(nh->nh_home, pu->pu_etag);
 
@@ -244,19 +250,21 @@ static int nua_publish_client_response(nua_client_request_t *cr,
 				       sip_t const *sip);
 
 static nua_client_methods_t const nua_publish_client_methods = {
-  SIP_METHOD_PUBLISH,
-  0,
-  {
+  SIP_METHOD_PUBLISH,		/* crm_method, crm_method_name */
+  0,				/* crm_extra */
+  {				/* crm_flags */
     /* create_dialog */ 0,
     /* in_dialog */ 0,
     /* target refresh */ 0
   },
-  nua_publish_client_template,
-  nua_publish_client_init,
-  nua_publish_client_request,
-  nua_publish_client_check_restart,
-  nua_publish_client_response,
-  /* nua_publish_client_preliminary */ NULL
+  nua_publish_client_template,	/* crm_template */
+  nua_publish_client_init,	/* crm_init */
+  nua_publish_client_request,	/* crm_send */
+  nua_publish_client_check_restart, /* crm_check_restart */
+  nua_publish_client_response,	/* crm_recv */
+  NULL,				/* crm_preliminary */
+  NULL,				/* crm_report */
+  NULL,				/* crm_complete */
 };
 
 /**@internal Send PUBLISH. */
@@ -431,7 +439,7 @@ static void nua_publish_usage_refresh(nua_handle_t *nh,
 		  nua_r_publish, NUA_ERROR_AT(__FILE__, __LINE__),
 		  NULL);
 
-  nua_dialog_usage_remove(nh, ds, du);
+  nua_dialog_usage_remove(nh, ds, du, NULL, NULL);
 }
 
 /** @interal Shut down PUBLISH usage.
@@ -452,7 +460,7 @@ static int nua_publish_usage_shutdown(nua_handle_t *nh,
   }
 
   /* XXX - report to user */
-  nua_dialog_usage_remove(nh, ds, du);
+  nua_dialog_usage_remove(nh, ds, du, NULL, NULL);
   return 200;
 }
 

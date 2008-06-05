@@ -59,7 +59,8 @@
 struct event_usage
 {
   enum nua_substate eu_substate;	/**< Subscription state */
-  sip_time_t eu_expires;	        /**< Proposed expiration time */
+  unsigned eu_delta;	                /**< Proposed expiration */
+  sip_time_t eu_expires;	        /**< Absolute expiration time */
   unsigned eu_notified;		        /**< Number of NOTIFYs received */
   unsigned eu_unsolicited:1;	        /**< Not SUBSCRIBEd or REFERed */
   unsigned eu_refer:1;		        /**< Implied subscription by refer */
@@ -73,7 +74,9 @@ static int nua_subscribe_usage_add(nua_handle_t *nh,
 				   nua_dialog_usage_t *du);
 static void nua_subscribe_usage_remove(nua_handle_t *nh, 
 				       nua_dialog_state_t *ds,
-				       nua_dialog_usage_t *du);
+				       nua_dialog_usage_t *du,
+				       nua_client_request_t *cr,
+				       nua_server_request_t *sr);
 static void nua_subscribe_usage_refresh(nua_handle_t *,
 					nua_dialog_state_t *,
 					nua_dialog_usage_t *,
@@ -88,6 +91,7 @@ static nua_usage_class const nua_subscribe_usage[1] = {
     nua_subscribe_usage_add,
     nua_subscribe_usage_remove,
     nua_subscribe_usage_name,
+    nua_base_usage_update_params,
     NULL,
     nua_subscribe_usage_refresh,
     nua_subscribe_usage_shutdown
@@ -112,7 +116,9 @@ int nua_subscribe_usage_add(nua_handle_t *nh,
 static 
 void nua_subscribe_usage_remove(nua_handle_t *nh, 
 			       nua_dialog_state_t *ds,
-			       nua_dialog_usage_t *du)
+			       nua_dialog_usage_t *du,
+				nua_client_request_t *cr,
+				nua_server_request_t *sr)
 {
   ds->ds_has_events--;	
   ds->ds_has_subscribes--;	
@@ -183,18 +189,21 @@ static int nua_subscribe_client_response(nua_client_request_t *cr,
 					 sip_t const *sip);
 
 static nua_client_methods_t const nua_subscribe_client_methods = {
-  SIP_METHOD_SUBSCRIBE,
-  0,
-  { 
+  SIP_METHOD_SUBSCRIBE,		/* crm_method, crm_method_name */
+  0,				/* crm_extra */
+  {				/* crm_flags */
     /* create_dialog */ 1,
     /* in_dialog */ 1,
     /* target refresh */ 1
   },
-  NULL,
-  nua_subscribe_client_init,
-  nua_subscribe_client_request,
-  /* nua_subscribe_client_check_restart */ NULL,
-  nua_subscribe_client_response
+  NULL,				/* crm_template */
+  nua_subscribe_client_init,	/* crm_init */
+  nua_subscribe_client_request,	/* crm_send */
+  NULL,				/* crm_check_restart */
+  nua_subscribe_client_response, /* crm_recv */
+  NULL,				/* crm_preliminary */
+  NULL,				/* crm_report */
+  NULL,				/* crm_complete */
 };
 
 int
@@ -240,14 +249,17 @@ static int nua_subscribe_client_request(nua_client_request_t *cr,
   nua_dialog_usage_t *du = cr->cr_usage; 
   sip_time_t expires = 0;
 
-  if (cr->cr_event != nua_r_subscribe ||
-      (du && du->du_shutdown) ||
-      (sip->sip_expires && sip->sip_expires->ex_delta == 0))
+  if (cr->cr_event != nua_r_subscribe || !du || du->du_shutdown)
     cr->cr_terminating = 1;
 
   if (du) {
     struct event_usage *eu = nua_dialog_usage_private(du);
     sip_event_t *o = sip->sip_event;
+
+    if (eu->eu_notified &&
+	sip->sip_expires &&
+	sip->sip_expires->ex_delta == 0)
+      cr->cr_terminating = 1;
 
     if (nua_client_bind(cr, du) < 0)
       return -1;
@@ -270,16 +282,16 @@ static int nua_subscribe_client_request(nua_client_request_t *cr,
     nua_dialog_usage_reset_refresh(du); /* during SUBSCRIBE transaction */
     
     if (cr->cr_terminating)
-      expires = eu->eu_expires = 0;
+      expires = eu->eu_delta = 0;
     else if (sip->sip_expires)
       /* Use value specified by application or negotiated with Min-Expires */
-      expires = eu->eu_expires = sip->sip_expires->ex_delta;
+      expires = eu->eu_delta = sip->sip_expires->ex_delta;
     else
     /* We just use common default value, but the default is actually
        package-specific according to the RFC 3265 section 4.4.4:
        [Event] packages MUST also define a
        default "Expires" value to be used if none is specified. */
-      expires = eu->eu_expires = 3600;
+      expires = eu->eu_delta = 3600;
 
     eu->eu_final_wait = 0;
 
@@ -362,11 +374,14 @@ static int nua_subscribe_client_response(nua_client_request_t *cr,
 
     if (eu->eu_substate != nua_substate_terminated)
       /* If there is no @Expires header, 
-	 use default value stored in eu_expires */
+	 use default value stored in eu_delta */
       delta = sip_contact_expires(NULL, sip->sip_expires, sip->sip_date, 
-				  eu->eu_expires, now);
+				  eu->eu_delta, now);
     else
       delta = 0;
+
+    if (delta > eu->eu_delta)
+      delta = eu->eu_delta;
 
     if (win_messenger_enable && !nua_dialog_is_established(nh->nh_ds)) {
       /* Notify from messanger does not match with dialog tag */ 
@@ -375,24 +390,30 @@ static int nua_subscribe_client_response(nua_client_request_t *cr,
 
     if (delta > 0) {
       nua_dialog_usage_set_refresh(du, delta);
+      eu->eu_expires = du->du_refquested + delta;
     } 
-    else if (!eu->eu_notified) {
-      /* This is a fetch: subscription was really terminated
-	 but we wait 32 seconds for NOTIFY. */
-      delta = 64 * NTA_SIP_T1 / 1000;
-
-      if (win_messenger_enable)
-	delta = 4 * 60; 	/* Wait 4 minutes for NOTIFY from Messenger */
-
-      eu->eu_final_wait = 1;
-	
-      if (eu->eu_substate == nua_substate_terminated)
-	eu->eu_substate = nua_substate_embryonic;
-
-      nua_dialog_usage_set_refresh_range(du, delta, delta);
-    }
     else {
-      eu->eu_substate = nua_substate_terminated;
+      if (eu->eu_substate == nua_substate_terminated) {
+	if (!eu->eu_notified)
+	  eu->eu_substate = nua_substate_embryonic;
+      }
+
+      if (eu->eu_substate != nua_substate_terminated) {
+	/* Wait 32 seconds for NOTIFY. */
+	delta = 64 * NTA_SIP_T1 / 1000;
+	
+	eu->eu_final_wait = 1;
+
+	if (!eu->eu_notified && win_messenger_enable)
+	  delta = 4 * 60; 	/* Wait 4 minutes for NOTIFY from Messenger */
+
+	nua_dialog_usage_set_refresh_range(du, delta, delta);
+      }
+      else {
+	nua_dialog_usage_reset_refresh(du); 
+      }
+
+      eu->eu_expires = du->du_refquested;
     }
 
     substate = eu->eu_substate;
@@ -433,7 +454,7 @@ static void nua_subscribe_usage_refresh(nua_handle_t *nh,
 		     NUTAG_SUBSTATE(nua_substate_terminated),
 		     SIPTAG_EVENT(du->du_event),
 		     TAG_END());
-    nua_dialog_usage_remove(nh, ds, du);
+    nua_dialog_usage_remove(nh, ds, du, NULL, NULL);
 
     return;
   }
@@ -456,7 +477,7 @@ static void nua_subscribe_usage_refresh(nua_handle_t *nh,
 		     SIPTAG_EVENT(du->du_event),
 		     TAG_END());
 
-  nua_dialog_usage_remove(nh, ds, du);
+  nua_dialog_usage_remove(nh, ds, du, NULL, NULL);
 }
 
 /** Terminate subscription.
@@ -479,7 +500,7 @@ static int nua_subscribe_usage_shutdown(nua_handle_t *nh,
       return 0;
   }
   
-  nua_dialog_usage_remove(nh, ds, du);
+  nua_dialog_usage_remove(nh, ds, du, NULL, NULL);
   return 200;
 }
 
@@ -586,7 +607,7 @@ int nua_notify_server_preprocess(nua_server_request_t *sr)
 
   if (subs == NULL) {
     /* Compatibility */
-    unsigned long delta = eu->eu_expires;
+    unsigned long delta = eu->eu_delta;
     if (sip->sip_expires) 
       delta = sip->sip_expires->ex_delta;
 
@@ -645,10 +666,12 @@ int nua_notify_server_report(nua_server_request_t *sr, tagi_t const *tags)
     substate = eu->eu_substate;
 
     if (substate == nua_substate_active || substate == nua_substate_pending) {
-      if (subs && subs->ss_expires)
-	delta = strtoul(subs->ss_expires, NULL, 10);
-      else
-	delta = eu->eu_expires;
+      if (subs && subs->ss_expires) {
+	sip_time_t now = sip_now();
+	sip_time_t delta0 = strtoul(subs->ss_expires, NULL, 10);
+	if (now + delta0 <= eu->eu_expires)
+	  delta = delta0;
+      }
     }
     else if (substate == nua_substate_embryonic) {
       if (subs && subs->ss_reason) {
@@ -686,7 +709,10 @@ int nua_notify_server_report(nua_server_request_t *sr, tagi_t const *tags)
     nua_dialog_usage_set_refresh_range(du, retry, retry + 5);
   }
   else {
-    nua_dialog_usage_set_refresh(du, delta);
+    if (delta < SIP_TIME_MAX) {
+      nua_dialog_usage_set_refresh(du, delta);
+      eu->eu_expires = du->du_refquested + delta;
+    }
   }
 
   return retval;
@@ -777,20 +803,21 @@ static int nua_refer_client_response(nua_client_request_t *cr,
 				     sip_t const *sip);
 
 static nua_client_methods_t const nua_refer_client_methods = {
-  SIP_METHOD_REFER,
-  0,
-  { 
+  SIP_METHOD_REFER,		/* crm_method, crm_method_name */
+  0,				/* crm_extra */
+  {				/* crm_flags */
     /* create_dialog */ 1,
     /* in_dialog */ 1,
     /* target refresh */ 1
   },
-  /*nua_refer_client_template*/ NULL,
-  nua_refer_client_init,
-  nua_refer_client_request,
-  /* nua_refer_client_check_restart */ NULL,
-  nua_refer_client_response,
-  nua_refer_client_response,	/* Preliminary */
-  NULL
+  NULL,				/* crm_template */
+  nua_refer_client_init,	/* crm_init */
+  nua_refer_client_request,	/* crm_send */
+  NULL,				/* crm_check_restart */
+  nua_refer_client_response,	/* crm_recv */
+  nua_refer_client_response,	/* crm_preliminary */
+  NULL,				/* crm_report */
+  NULL,				/* crm_complete */
 };
 
 int
@@ -855,7 +882,7 @@ static int nua_refer_client_request(nua_client_request_t *cr,
   }
 
   if (du0)
-    nua_dialog_usage_remove(nh, nh->nh_ds, du0);
+    nua_dialog_usage_remove(nh, nh->nh_ds, du0, NULL, NULL);
 
   eu = nua_dialog_usage_private(cr->cr_usage = du);
   eu ->eu_refer = 1;

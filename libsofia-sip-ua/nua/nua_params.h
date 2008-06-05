@@ -35,6 +35,8 @@
  * @date Created: Wed Mar  8 11:38:18 EET 2006  ppessi
  */
 
+#include <nua_types.h>
+
 /**@internal @brief NUA preferences. 
  *
  * This structure contains values for various preferences and a separate
@@ -50,7 +52,7 @@
  *
  * @see NHP_GET(), NH_PGET(), NHP_ISSET(), NH_PISSET()
  */
-typedef struct nua_handle_preferences
+struct nua_handle_preferences
 {
   unsigned         nhp_retry_count;	/**< times to retry a request */
   unsigned         nhp_max_subscriptions;
@@ -107,6 +109,7 @@ typedef struct nua_handle_preferences
 
   /* Subscriber state, i.e. nua_substate_pending */
   unsigned         nhp_substate;
+  unsigned         nhp_sub_expires;
 
   /* REGISTER keepalive intervals */
   unsigned         nhp_keepalive, nhp_keepalive_stream;
@@ -127,16 +130,22 @@ typedef struct nua_handle_preferences
   /** Outbound OPTIONS */
   char const         *nhp_outbound; 
   
-  /** Network detection: NONE, INFORMAL, TRY_FULL */
-  int                 nhp_detect_network_updates;
-  
   sip_allow_t        *nhp_appl_method;
 
   /** Initial route set */
   sip_route_t        *nhp_initial_route;
 
+  /** Next hop URI (used instead of route). */
+  url_string_t       *nhp_proxy;
+
   union { struct {
     /* A bit for each feature set by application */
+    /* NOTE: 
+       Some compilers behave weird if there are bitfields
+       together with width > 32 
+       So there should be a padding field (unsigned:0;) 
+       every 32 bits. 
+    */
     unsigned nhb_retry_count:1;
     unsigned nhb_max_subscriptions:1;
 
@@ -166,13 +175,15 @@ typedef struct nua_handle_preferences
     unsigned nhb_refer_with_id:1;
     unsigned nhb_refer_expires:1;
     unsigned nhb_substate:1;
+    unsigned nhb_sub_expires:1;
     unsigned nhb_keepalive:1;
     unsigned nhb_keepalive_stream:1;
     unsigned nhb_registrar:1;
 
     unsigned nhb_allow:1;
+    unsigned :0;		/* at most 32 bits before this point */
     unsigned nhb_supported:1;
-    unsigned :0;		/* at most 32 bits ... */
+
     unsigned nhb_allow_events:1;
     unsigned nhb_user_agent:1;
     unsigned nhb_organization:1;
@@ -183,16 +194,36 @@ typedef struct nua_handle_preferences
     unsigned nhb_m_features:1;
     unsigned nhb_instance:1;
     unsigned nhb_outbound:1;
-    unsigned nhb_detect_network_updates:1;
     unsigned nhb_appl_method:1;
     unsigned nhb_initial_route:1;
+    unsigned nhb_proxy:1;
     unsigned :0;
   } set_bits; 
     unsigned set_unsigned[2];
   } nhp_set_;
-} nua_handle_preferences_t;
+};
 
 #define nhp_set nhp_set_.set_bits
+
+/** Global preferences for nua. */
+struct nua_global_preferences {
+  /** Network detection: NONE, INFORMAL, TRY_FULL */
+  signed int ngp_detect_network_updates:3;
+  /** Pass events during shutdown, too */
+  int ngp_shutdown_events:1;
+
+  unsigned :0;			/* pad */
+  union { struct {
+    /* A bit for each feature set by application */
+    unsigned ngp_detect_network_updates:1;
+    unsigned ngp_shutdown_events:1;
+    unsigned :0;
+  } set_bits; 
+    unsigned set_unsigned[2];
+  } ngp_set_;
+};
+
+#define ngp_set ngp_set_.set_bits
 
 #define DNHP_GET(dnhp, pref) ((dnhp)->nhp_##pref)
 
@@ -213,7 +244,7 @@ typedef struct nua_handle_preferences
 
 /* Get preference from handle, if set, otherwise from default handle */
 #define NH_PGET(nh, pref)						\
-  NHP_GET((nh)->nh_prefs, (nh)->nh_nua->nua_dhandle->nh_prefs, pref)
+  NHP_GET((nh)->nh_prefs, (nh)->nh_dprefs, pref)
 
 /* Get preference from handle, if exists and set, 
    otherwise from default handle */
@@ -230,7 +261,7 @@ typedef struct nua_handle_preferences
   (NHP_ISSET((nh)->nh_prefs, pref) &&					\
    (nh)->nh_nua->nua_dhandle->nh_prefs != (nh)->nh_prefs)
 
-/* Check if preference has been set by applicationx */
+/* Check if preference has been set by application */
 #define NUA_PISSET(nua, nh, pref)					\
   (NHP_ISSET((nua)->nua_dhandle->nh_prefs, pref) ||			\
    ((nh) && NHP_ISSET((nh)->nh_prefs, pref)))

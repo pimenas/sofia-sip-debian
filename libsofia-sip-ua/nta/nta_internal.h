@@ -102,9 +102,9 @@ struct nta_agent_s
   nta_update_magic_t   *sa_update_magic;
   nta_update_tport_f   *sa_update_tport;
 
-  su_duration_t         sa_next; /**< Timestamp for next agent_timer. */
   su_time_t             sa_now;	 /**< Timestamp in microsecond resolution. */
-  uint32_t              sa_millisec; /**< Timestamp in milliseconds resolution. */
+  uint32_t              sa_next; /**< Timestamp for next agent_timer. */
+  uint32_t              sa_millisec; /**< Timestamp in milliseconds. */
 
   uint32_t              sa_nw_updates; /* Shall we enable network detector? */
 
@@ -144,6 +144,9 @@ struct nta_agent_s
 
   /** Maximum size of incoming messages */
   size_t                sa_maxsize;
+  
+  /** Maximum size of proceeding queue */
+  size_t                sa_max_proceeding;
   
   /** Maximum size of outgoing UDP requests */
   unsigned              sa_udp_mtu;
@@ -223,7 +226,7 @@ struct nta_agent_s
   /** If true, use rport at client */
   unsigned              sa_rport:1;
   /** If true, use rport at server */
-  unsigned              sa_server_rport:1;
+  unsigned              sa_server_rport:2;
   /** If true, use rport with tcp, too */
   unsigned              sa_tcp_rport:1;
 
@@ -416,8 +419,8 @@ struct nta_incoming_s
   sip_timestamp_t      *irq_timestamp;
   su_time_t             irq_received;
 
-  su_duration_t       	irq_timeout;    /**< Timer H, I, J */
-  su_duration_t       	irq_retry;      /**< Timer G */
+  uint32_t       	irq_timeout;    /**< Timer H, I, J */
+  uint32_t       	irq_retry;      /**< Timer G */
   unsigned short      	irq_interval;	/**< Next timer  */
 
   short               	irq_status;
@@ -496,8 +499,8 @@ struct nta_outgoing_s
   su_time_t             orq_sent;       /**< When request was sent? */
   unsigned              orq_delay;      /**< RTT estimate */
 
-  su_duration_t         orq_retry;	/**< Timer A, E */
-  su_duration_t       	orq_timeout;	/**< Timer B, D, F, K */
+  uint32_t		orq_retry;	/**< Timer A, E */
+  uint32_t		orq_timeout;	/**< Timer B, D, F, K */
 
   unsigned short      	orq_interval;	/**< Next timer A/E */
 

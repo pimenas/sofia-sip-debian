@@ -46,6 +46,8 @@ struct domain *test_proxy_add_domain(struct proxy *,
 				     url_t const *domain,
 				     tag_type_t, tag_value_t, ...);
 
+void test_proxy_set_logging(struct proxy *, int logging);
+
 void test_proxy_domain_set_expiration(struct domain *,
 				      sip_time_t min_expires, 
 				      sip_time_t expires, 
@@ -72,6 +74,11 @@ void test_proxy_domain_set_outbound(struct domain *d,
 				    int use_outbound);
 void test_proxy_domain_get_outbound(struct domain *d,
 				    int *return_use_outbound);
+
+void test_proxy_domain_set_record_route(struct domain *d,
+					int use_record_route);
+void test_proxy_domain_get_record_route(struct domain *d,
+					int *return_use_record_route);
 
 int test_proxy_close_tports(struct proxy *p);
 

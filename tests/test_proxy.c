@@ -46,6 +46,7 @@ struct binding;
 #define NTA_LEG_MAGIC_T union proxy_or_domain
 #define NTA_OUTGOING_MAGIC_T struct client_tr
 #define NTA_INCOMING_MAGIC_T struct proxy_tr
+#define SU_TIMER_ARG_T struct proxy_tr
 
 #include <sofia-sip/su_wait.h>
 #include <sofia-sip/nta.h>
@@ -64,7 +65,7 @@ struct binding;
 
 #define LIST_PROTOS(STORAGE, PREFIX, T)			 \
 STORAGE void PREFIX ##_insert(T **list, T *node),	 \
-        PREFIX ##_remove(T *node)			 
+  PREFIX ##_remove(T *node)
 
 #define LIST_BODIES(STORAGE, PREFIX, T, NEXT, PREV)	  \
 STORAGE void PREFIX ##_insert(T **list, T *node)   \
@@ -110,10 +111,12 @@ struct proxy {
 
   struct proxy_tr *stateless;
   struct proxy_tr *transactions;
+  struct proxy_tr *invite_waiting;
 
   struct domain *domains;
 
   struct {
+    unsigned t1x64;
     sip_time_t session_expires, min_se;
   } prefs;
 }; 
@@ -135,6 +138,7 @@ struct domain {
     sip_time_t min_expires, expires, max_expires;
     int outbound_tcp;		/**< Use inbound TCP connection as outbound */
     char const *authorize;	/**< Authorization realm to use */
+    int record_route;
   } prefs;  
 
   tagi_t *tags;
@@ -188,37 +192,40 @@ static int binding_is_active(struct binding const *b)
 
 LIST_PROTOS(static, proxy_tr, struct proxy_tr);
 struct proxy_tr *proxy_tr_new(struct proxy *);
+static void proxy_tr_timeout(struct proxy_tr *t);
 static void proxy_tr_destroy(struct proxy_tr *t);
 
 struct proxy_tr
 {
   struct proxy_tr *next, **prev;
 
-  struct proxy *proxy;		/* backpointer */
+  struct proxy *proxy;		/**< Backpointer to proxy */
 
-  struct domain *origin;	/* originating domain */
-  struct domain *domain;	/* destination domain */
+  struct domain *origin;	/**< Originating domain */
+  struct domain *domain;	/**< Destination domain */
 
-  sip_time_t now;		/* when received */
+  sip_time_t now;		/**< When received */
 
-  nta_incoming_t *server;	/* server transaction */
-  msg_t *msg;			/* request message */
-  sip_t *sip;			/* request headers */
+  nta_incoming_t *server;	/**< server transaction */
+  msg_t *msg;			/**< request message */
+  sip_t *sip;			/**< request headers */
 
-  sip_method_t method;		/* request method */
+  sip_method_t method;		/**< request method */
   char const *method_name;
-  int status;			/* best status */
-  url_t *target;		/* request-URI */
+  int status;			/**< best status */
+  url_t *target;		/**< request-URI */
 
-  struct client_tr *clients;	/* client transactions */
+  struct client_tr *clients;	/**< Client transactions */
 
   struct registration_entry *entry;
-				/* Registration entry */
+				/**< Registration entry */
 
-  auth_mod_t *am;		/* Authentication module */
-  auth_status_t *as;		/* Authentication status */
-  char const *realm;		/* Authentication realm to use */
-  unsigned use_auth;		/* Authentication method (401/407) to use */
+  auth_mod_t *am;		/**< Authentication module */
+  auth_status_t *as;		/**< Authentication status */
+  char const *realm;		/**< Authentication realm to use */
+  unsigned use_auth;		/**< Authentication method (401/407) to use */
+
+  su_timer_t *timer;		/**< Timer */
 
   unsigned rr:1;
 };
@@ -297,6 +304,9 @@ test_proxy_init(su_root_t *root, struct proxy *proxy)
 				  NTATAG_CLIENT_RPORT(1),
 				  TAG_NEXT(proxy->tags));
 
+  if (!proxy->agent)
+    return -1;
+
   proxy->transport_contacts = create_transport_contacts(proxy);
 
   proxy->defleg = nta_leg_tcreate(proxy->agent,
@@ -307,6 +317,11 @@ test_proxy_init(su_root_t *root, struct proxy *proxy)
 
   proxy->prefs.session_expires = 180;
   proxy->prefs.min_se = 90;
+  proxy->prefs.t1x64 = 64 * 500;
+
+  nta_agent_get_params(proxy->agent,
+		       NTATAG_SIP_T1X64_REF(proxy->prefs.t1x64),
+		       TAG_END());
 
   if (!proxy->defleg) 
     return -1;
@@ -416,6 +431,25 @@ char const *test_proxy_route_uri(struct proxy const *p,
   return p->lr_str;
 }
 
+struct _set_logging {
+  struct proxy *p;
+  int logging;
+};
+ 
+static int _set_logging(void *_a)
+{
+  struct _set_logging *a = _a;
+  return nta_agent_set_params(a->p->agent, TPTAG_LOG(a->logging), TAG_END());
+}
+
+void test_proxy_set_logging(struct proxy *p, int logging)
+{
+  if (p) {
+    struct _set_logging a[1] = {{ p, logging }};
+    su_task_execute(su_clone_task(p->clone), _set_logging, a, NULL);
+  }
+}
+
 void test_proxy_domain_set_expiration(struct domain *d,
 				      sip_time_t min_expires, 
 				      sip_time_t expires, 
@@ -475,6 +509,23 @@ void test_proxy_domain_get_outbound(struct domain *d,
   if (d) {
     if (return_use_outbound)
       *return_use_outbound = d->prefs.outbound_tcp;
+  }
+}
+
+void test_proxy_domain_set_record_route(struct domain *d,
+					int use_record_route)
+{
+  if (d) {
+    d->prefs.record_route = use_record_route;
+  }
+}
+
+void test_proxy_domain_get_record_route(struct domain *d,
+					int *return_use_record_route)
+{
+  if (d) {
+    if (return_use_record_route)
+      *return_use_record_route = d->prefs.record_route;
   }
 }
 
@@ -743,6 +794,9 @@ static int proxy_tr_with(struct proxy *proxy,
     if (t->method != sip_method_ack && t->method != sip_method_cancel)
       nta_incoming_bind(irq, proxy_ack_cancel, t);
 
+    if (domain && domain->prefs.record_route)
+      t->rr = 1;
+
     if (process(t) < 200)
       return 0;
 
@@ -818,6 +872,9 @@ static int originating_transaction(struct proxy_tr *t)
     t->use_auth = 407;
   }
 
+  if (o && o->prefs.record_route)
+    t->rr = 1;
+
   return 0;
 }
 
@@ -841,7 +898,6 @@ static int validate_transaction(struct proxy_tr *t)
 	  url_cmp(t->proxy->rr_uri, t->sip->sip_route->r_url) == 0)) {
     sip_route_remove(t->msg, t->sip);
     /* add record-route also to the forwarded request  */
-    t->rr = 1;			
   }
 
   if (t->use_auth)
@@ -947,12 +1003,17 @@ static int target_transaction(struct proxy_tr *t,
 
   msg_header_insert(c->msg, (msg_pub_t *)c->sip, (msg_header_t *)c->rq);
 
-  if (t->rr && 0) {
+  if (t->rr) {
     sip_record_route_t rr[1];
 
-    *sip_record_route_init(rr)->r_url = *t->proxy->rr_uri;
-
-    msg_header_add_dup(c->msg, (msg_pub_t *)c->sip, (msg_header_t *)rr);    
+    if (t->proxy->rr_uri) {
+      *sip_record_route_init(rr)->r_url = *t->proxy->rr_uri;
+      msg_header_add_dup(c->msg, (msg_pub_t *)c->sip, (msg_header_t *)rr);
+    }
+    else if (t->proxy->lr) {
+      *sip_record_route_init(rr)->r_url = *t->proxy->lr->r_url;
+      msg_header_add_dup(c->msg, (msg_pub_t *)c->sip, (msg_header_t *)rr);
+    }
   }
 
   if (c->rq)
@@ -1049,25 +1110,88 @@ int proxy_response(struct client_tr *c,
 		   nta_outgoing_t *client,
 		   sip_t const *sip)
 {
-  int final;
+  int final, timeout = 0;
 
   assert(c->t);
 
   if (sip) {
     msg_t *response = nta_outgoing_getresponse(client);
-    final = sip->sip_status->st_status >= 200;
+    if (c->t->method == sip_method_invite)
+      final = sip->sip_status->st_status >= 300, 
+	timeout = sip->sip_status->st_status >= 200;
+    else
+      final = sip->sip_status->st_status >= 200;
     sip_via_remove(response, sip_object(response));
     nta_incoming_mreply(c->t->server, response);
   }
   else {
+    int status = nta_outgoing_status(c->client);
+    char const *phrase;
+
+    if (status < 300 || status > 699)
+      status = 500;
+    phrase = sip_status_phrase(status);
+    respond_transaction(c->t, status, phrase, TAG_END());
     final = 1;
-    respond_transaction(c->t, SIP_408_REQUEST_TIMEOUT, TAG_END());
   }
 
   if (final)
     proxy_tr_destroy(c->t);
+  else if (timeout)
+    proxy_tr_timeout(c->t);
 
   return 0;
+}
+
+int proxy_late_response(struct client_tr *c,
+			nta_outgoing_t *client,
+			sip_t const *sip)
+{
+  assert(c->t);
+
+  if (sip &&
+      sip->sip_status->st_status >= 200 && 
+      sip->sip_status->st_status < 300) {
+    msg_t *response = nta_outgoing_getresponse(client);
+    sip_via_remove(response, sip_object(response));
+    nta_incoming_mreply(c->t->server, response);
+  }
+
+  return 0;
+}
+
+static void proxy_tr_remove_late(su_root_magic_t *magic,
+				 su_timer_t *timer,
+				 struct proxy_tr *t)
+{
+  proxy_tr_destroy(t);
+}
+
+
+/** Proxy only late responses 
+ *
+ * Keeping the invite transactions live
+ */
+static void proxy_tr_timeout(struct proxy_tr *t)
+{
+  struct client_tr *c;
+
+  if (t == t->proxy->stateless)
+    return;
+
+  for (c = t->clients; c; c = c->next) {
+    if (c->client && c->status < 300) {
+      nta_outgoing_bind(c->client, proxy_late_response, c);
+      if (c->status < 200) {
+	nta_outgoing_tcancel(c->client, NULL, NULL, TAG_END());
+      }
+    }
+  }
+
+  t->timer = su_timer_create(su_root_task(t->proxy->root), t->proxy->prefs.t1x64);
+  if (su_timer_set(t->timer, proxy_tr_remove_late, t) < 0) {
+    proxy_tr_destroy(t);
+  }
 }
 
 struct proxy_tr *
@@ -1102,6 +1226,8 @@ void proxy_tr_destroy(struct proxy_tr *t)
     msg_destroy(c->msg), c->msg = NULL;
     su_free(t->proxy->home, c);
   }
+
+  su_timer_destroy(t->timer), t->timer = NULL;
 
   msg_destroy(t->msg);
 

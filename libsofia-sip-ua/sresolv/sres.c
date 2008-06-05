@@ -141,7 +141,7 @@ int sres_close(sres_socket_t s)
   return closesocket(s);
 }
 
-#if !defined(IPPROTO_IPV6)
+#if !defined(IPPROTO_IPV6) && (_WIN32_WINNT < 0x0600)
 #if HAVE_SIN6
 #include <tpipv6.h>
 #else
@@ -166,10 +166,14 @@ struct sockaddr_storage {
 #define SRES_TIME_MAX ((time_t)LONG_MAX)
 
 #if !HAVE_INET_PTON
-int inet_pton(int af, char const *src, void *dst);
+int su_inet_pton(int af, char const *src, void *dst);
+#else
+#define su_inet_pton inet_pton
 #endif
 #if !HAVE_INET_NTOP
-const char *inet_ntop(int af, void const *src, char *dst, size_t size);
+const char *su_inet_ntop(int af, void const *src, char *dst, size_t size);
+#else
+#define su_inet_ntop inet_ntop
 #endif
 
 #if defined(va_copy)
@@ -549,7 +553,6 @@ static int m_get_domain(char *d, int n, sres_message_t *m, uint16_t offset);
 #include <winreg.h>
 #endif
 
-#if DOXYGEN_ONLY
 /**@ingroup sresolv_env
  *
  * Environment variable determining the debug log level for @b sresolv
@@ -560,7 +563,8 @@ static int m_get_domain(char *d, int n, sres_message_t *m, uint16_t offset);
  * 
  * @sa <sofia-sip/su_debug.h>, sresolv_log, SOFIA_DEBUG
  */
-extern SRESOLV_DEBUG;
+#ifdef DOXYGEN
+extern char const SRESOLV_DEBUG[]; /* dummy declaration for Doxygen */
 #endif
 
 #ifndef SU_DEBUG
@@ -1022,7 +1026,10 @@ sres_search(sres_resolver_t *res,
   if (res->res_n_servers == 0)
     return (void)su_seterrno(ENETDOWN), (sres_query_t *)NULL;
 
-  if (sres_has_search_domain(res))
+  if (domain[dlen - 1] == '.')
+    /* Domain ends with dot - do not search */
+    dots = res->res_config->c_opt.ndots;
+  else if (sres_has_search_domain(res))
     for (dots = 0, dot = strchr(domain, '.');
 	 dots < res->res_config->c_opt.ndots && dot; 
 	 dots++, dot = strchr(dot + 1, '.'))
@@ -1041,6 +1048,8 @@ sres_search(sres_resolver_t *res,
       char const *const *domains = res->res_config->c_search;
       char search[SRES_MAXDNAME + 1];
 
+      assert(dlen < SRES_MAXDNAME);
+
       memcpy(search, domain, dlen);
       search[dlen++] = '.';
       search[dlen] = '\0';
@@ -1058,7 +1067,9 @@ sres_search(sres_resolver_t *res,
 	  sub = sres_query_alloc(res, sres_answer_subquery, (void *)query,
 				 type, search);
 
-	  if (sres_send_dns_query(res, sub) == 0) {
+	  if (sub == NULL) {
+	  }
+	  else if (sres_send_dns_query(res, sub) == 0) {
 	    query->q_subqueries[i] = sub;
 	  }
 	  else {
@@ -1426,7 +1437,10 @@ sres_filter_answers(sres_resolver_t *res,
 {		    
   int i, n;
 
-  for (n = 0, i = 0; answers && answers[i]; i++) {
+  if (res == NULL || answers == NULL)
+    return su_seterrno(EFAULT);
+
+  for (n = 0, i = 0; answers[i]; i++) {
     if (answers[i]->sr_record->r_status ||
 	answers[i]->sr_record->r_class != sres_class_in ||
 	(type != 0 && answers[i]->sr_record->r_type != type)) {
@@ -2006,6 +2020,10 @@ static int sres_parse_win32_reg_parse_dnsserver(sres_config_t *c, HKEY key, LPCT
     if (name_servers_length > MAX_DATALEN) break;
 
     name_servers = su_realloc(home, name_servers, name_servers_length);
+    if (name_servers == NULL) {
+      ret = ERROR_BUFFER_OVERFLOW;
+      break;
+    }
   }
 
   /* if reading the key was succesful, continue */
@@ -2186,6 +2204,8 @@ sres_config_t *sres_parse_resolv_conf(sres_resolver_t *res,
   return c;
 }
 
+uint16_t _sres_default_port = 53;
+
 /** Parse config file. 
  *
  * @return Number of search domains, if successful.
@@ -2208,7 +2228,7 @@ int sres_parse_config(sres_config_t *c, FILE *f)
   c->c_opt.check_names = 1;
   c->c_opt.timeout = SRES_RETRY_INTERVAL;
   c->c_opt.attempts = SRES_MAX_RETRY_COUNT;
-  c->c_port = 53;
+  c->c_port = _sres_default_port;
 
   if (f != NULL) {  
     for (line = 1; fgets(buf, sizeof(buf), f); line++) {
@@ -2419,14 +2439,14 @@ int sres_parse_nameserver(sres_config_t *c, char const *server)
   if (strchr(server, ':')) {
     struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sa;
     memset(sa, 0, ns->ns_addrlen = sizeof *sin6);
-    err = inet_pton(sa->sa_family = AF_INET6, server, &sin6->sin6_addr);
+    err = su_inet_pton(sa->sa_family = AF_INET6, server, &sin6->sin6_addr);
   } 
   else 
 #endif
     {
       struct sockaddr_in *sin = (struct sockaddr_in *)sa;
       memset(sa, 0, ns->ns_addrlen = sizeof *sin);
-      err = inet_pton(sa->sa_family = AF_INET, server, &sin->sin_addr);
+      err = su_inet_pton(sa->sa_family = AF_INET, server, &sin->sin_addr);
     }
 
   if (err <= 0) {
@@ -2514,7 +2534,7 @@ sres_server_t **sres_servers_new(sres_resolver_t *res,
     dns->dns_socket = INVALID_SOCKET;
     ns = c->c_nameservers[i];
     memcpy(dns->dns_addr, ns->ns_addr, dns->dns_addrlen = ns->ns_addrlen);
-    inet_ntop(dns->dns_addr->ss_family, SS_ADDR(dns->dns_addr), 
+    su_inet_ntop(dns->dns_addr->ss_family, SS_ADDR(dns->dns_addr), 
 	      dns->dns_name, sizeof dns->dns_name);
     dns->dns_edns = c->c_opt.edns;
     servers[i] = dns++;
@@ -2599,12 +2619,12 @@ sres_socket_t sres_server_socket(sres_resolver_t *res, sres_server_t *dns)
 
     if (family == AF_INET) {
       void *addr = &((struct sockaddr_in *)dns->dns_addr)->sin_addr;
-      inet_ntop(family, addr, ipaddr, sizeof ipaddr);
+      su_inet_ntop(family, addr, ipaddr, sizeof ipaddr);
     }
 #if HAVE_SIN6
     else if (family == AF_INET6) {
       void *addr = &((struct sockaddr_in6 *)dns->dns_addr)->sin6_addr;
-      inet_ntop(family, addr, ipaddr, sizeof ipaddr);
+      su_inet_ntop(family, addr, ipaddr, sizeof ipaddr);
       lb = "[", rb = "]";
     }
 #endif
@@ -3213,7 +3233,7 @@ int sres_resolver_error(sres_resolver_t *res, int socket)
 
 	snprintf(info + strlen(info), sizeof(info) - strlen(info), 
 		 " reported by ");
-	inet_ntop(from->ss_family, SS_ADDR(from), 
+	su_inet_ntop(from->ss_family, SS_ADDR(from), 
 		  info + strlen(info), sizeof(info) - strlen(info));
       }
 
@@ -3277,13 +3297,13 @@ sres_resolver_report_error(sres_resolver_t *res,
     if (remote->ss_family == AF_INET) {
       struct sockaddr_in const *sin = (struct sockaddr_in *)remote;
       uint8_t const *in_addr = (uint8_t*)&sin->sin_addr;
-      inet_ntop(AF_INET, in_addr, buf, sizeof(buf));
+      su_inet_ntop(AF_INET, in_addr, buf, sizeof(buf));
     } 
 #if HAVE_SIN6
     else if (remote->ss_family == AF_INET6) {
       struct sockaddr_in6 const *sin6 = (struct sockaddr_in6 *)remote;
       uint8_t const *in_addr = (uint8_t*)&sin6->sin6_addr;
-      inet_ntop(AF_INET6, in_addr, buf, sizeof(buf));
+      su_inet_ntop(AF_INET6, in_addr, buf, sizeof(buf));
     }
 #endif
   }
@@ -3405,23 +3425,26 @@ void sres_log_response(sres_resolver_t const *res,
 #define ADDRSIZE 48
 #endif
     char host[ADDRSIZE] = "*";
+    uint16_t port = 0;
 
     if (from == NULL)
       ;
     else if (from->ss_family == AF_INET) {
       struct sockaddr_in const *sin = (void *)from;
-      inet_ntop(AF_INET, &sin->sin_addr, host, sizeof host);
+      su_inet_ntop(AF_INET, &sin->sin_addr, host, sizeof host);
+      port = sin->sin_port;
     } 
 #if HAVE_SIN6
     else if (from->ss_family == AF_INET6) {
       struct sockaddr_in6 const *sin6 = (void *)from;
-      inet_ntop(AF_INET6, &sin6->sin6_addr, host, sizeof host);
+      su_inet_ntop(AF_INET6, &sin6->sin6_addr, host, sizeof host);
+      port = sin6->sin6_port;
     }
 #endif
 
     SU_DEBUG_5(("sres_resolver_receive(%p, %p) id=%u (from [%s]:%u)\n", 
 		(void *)res, (void *)query, m->m_id, 
-		host, ntohs(((struct sockaddr_in *)from)->sin_port)));
+		host, ntohs(port)));
   }
 }
 
@@ -3441,7 +3464,7 @@ sres_decode_msg(sres_resolver_t *res,
 {
   sres_record_t *rr = NULL, **answers = NULL, *error = NULL;
   sres_query_t *query = NULL, **hq;
-  su_home_t *chome = CHOME(res->res_cache);
+  su_home_t *chome;
   hash_value_t hash;
   int err;
   unsigned i, total, errorcount = 0;
@@ -3449,6 +3472,7 @@ sres_decode_msg(sres_resolver_t *res,
   assert(res && m && return_answers);
 
   time(&res->res_now);
+  chome = CHOME(res->res_cache);
 
   *qq = NULL;
   *return_answers = NULL;
@@ -3731,8 +3755,9 @@ static sres_record_t *sres_init_rr_a6(sres_cache_t *cache,
     a6->a6_suffix.u6_addr[i] = m_get_uint8(m);
 
   if (a6->a6_prelen > 0) {
-    /* Zero pad bits */
-    a6->a6_suffix.u6_addr[16 - suffixlen] &= 0xff >> (a6->a6_prelen & 7);
+    if (suffixlen > 0)
+      /* Zero pad bits */
+      a6->a6_suffix.u6_addr[16 - suffixlen] &= 0xff >> (a6->a6_prelen & 7);
 
     offset = m->m_offset, prefixlen = m_get_domain(NULL, 0, m, 0) + 1;
 

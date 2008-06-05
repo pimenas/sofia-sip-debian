@@ -107,7 +107,7 @@
  *   #nua_i_info, #nua_i_update, #nua_i_message, #nua_i_subscribe,
  *   #nua_i_notify, #nua_i_method, #nua_i_register
  *  Settings:
- * - NUTAG_APPL_METHOD()
+ * - NUTAG_APPL_METHOD(), NUTAG_PROXY()
  * - NUTAG_ALLOW(), SIPTAG_ALLOW(), and SIPTAG_ALLOW_STR()
  * - NUTAG_SUPPORTED(), SIPTAG_SUPPORTED(), and SIPTAG_SUPPORTED_STR()
  *
@@ -227,21 +227,22 @@
  * - NUTAG_ALLOW_EVENTS(), SIPTAG_ALLOW_EVENTS(), and
  *                          SIPTAG_ALLOW_EVENTS_STR()
  * - NUTAG_MAX_SUBSCRIPTIONS()
- * - NUTAG_SUBSTATE()
+ * - NUTAG_SUBSTATE(), NUTAG_SUB_EXPIRES()
  * @par Specifications
  * - @RFC3265
  *
  * @par SIP Event Subscriber
  * - nua_subscribe(), #nua_r_subscribe, #nua_i_notify, NUTAG_SUBSTATE(),
- *   SIPTAG_EVENT(), SIPTAG_EXPIRES(),
+ *   SIPTAG_EVENT(), SIPTAG_EXPIRES()
  * - nua_unsubscribe(), #nua_r_unsubscribe()
  * @par Specifications
  * - @RFC3265
  *
  * @par SIP Event Notifier
  * - #nua_i_subscribe(), nua_notify(), #nua_r_notify,
- *   NUTAG_SUBSTATE(), SIPTAG_EVENT()
+ *   NUTAG_SUBSTATE(), NUTAG_SUB_EXPIRES(), SIPTAG_EVENT()
  * Settings:
+ * - NUTAG_SUB_EXPIRES()
  * - NUTAG_ALLOW_EVENTS(), SIPTAG_ALLOW_EVENTS(), and
  *                          SIPTAG_ALLOW_EVENTS_STR()
  * - NUTAG_ALLOW("SUBSCRIBE"), NUTAG_APPL_METHOD("SUBSCRIBE")
@@ -267,6 +268,8 @@
  * Settings:
  * - NUTAG_ALLOW(x), NUTAG_APPL_METHOD(x)
  *
+ * @par Server Shutdown
+ * - nua_shutdown(), NUTAG_SHUTDOWN_EVENTS(), nua_destroy().
  */
 
 /* @par S/MIME
@@ -595,6 +598,8 @@ tag_typedef_t nutag_soa_name = STRTAG_TYPEDEF(soa_name);
  * Retry count determines how many times stack will automatically retry
  * after an recoverable error response, like 302, 401 or 407.
  *
+ * Note that the first request does not count as retry.
+ *
  * @par Used with
  *    nua_create(), nua_set_params(), nua_handle(), nua_set_hparams(),
  *    nua_get_params(), nua_get_hparams(),
@@ -610,7 +615,9 @@ tag_typedef_t nutag_soa_name = STRTAG_TYPEDEF(soa_name);
  *    unsigned
  *
  * @par Values
- *    @c 0   Never retry automatically \n
+ * - 0 - Never retry automatically \n
+ * - Otherwise, number of extra transactions initiated after initial
+ *   transaction failed with recoverable error response
  *
  * @NEW_1_12_4.
  *
@@ -767,14 +774,14 @@ tag_typedef_t nutag_answer_sent = BOOLTAG_TYPEDEF(answer_sent);
  *
  * @par Used with
  * - with nua_create(), nua_set_params(), nua_get_params(),
- *    nua_handle(), nua_set_hparams(), nua_get_hparams(), and
- *    nua_notifier() to change the default subscription state returned by
- *    the intenal event server
+ *   nua_handle(), nua_set_hparams(), nua_get_hparams(), and
+ *   nua_notifier() to change the default subscription state returned by
+ *   the internal event server
  * - with nua_notify() and nua_respond() to SUBSCRIBE to determine the
- *    subscription state (if application include @SubscriptionState
- *    header in the tag list, the NUTAG_SUBSTATE() value is ignored)
+ *   subscription state (if application include @SubscriptionState
+ *   header in the tag list, the NUTAG_SUBSTATE() value is ignored)
  * - with #nua_r_subscribe, #nua_i_notify, #nua_i_subscribe, and #nua_r_notify
- *    to indicate the current subscription state
+ *   to indicate the current subscription state
  *
  * @par Parameter type
  *    int
@@ -806,6 +813,41 @@ tag_typedef_t nutag_substate = INTTAG_TYPEDEF(substate);
  */
 
 
+/**@def NUTAG_SUB_EXPIRES()
+ *
+ * Default expiration time of subscriptions.
+ *
+ * @par Used with
+ * - with nua_create(), nua_set_params(), nua_get_params(), nua_handle(),
+ *   nua_set_hparams(), nua_get_hparams(), nua_respond(), nua_notify(), and
+ *   nua_notifier() to change the default expiration time of subscriptions
+ *
+ * @par Parameter type
+ *    unsigned int
+ *
+ * @par Values
+ *   - default expiration time in seconds
+ *
+ * Note that the expires parameter in @SubscriptionState or @Expires header
+ * in the nua_response() to the SUBSCRIBE overrides the default subscription
+ * expiration specified by NUTAG_SUB_EXPIRES().
+ *
+ * @sa @RFC3265, NUTAG_REFER_EXPIRES(), @Expires, SIPTAG_EXPIRES(),
+ * SIPTAG_EXPIRES_STR(), @SubscriptionState, nua_respond(), nua_notifier(),
+ * #nua_r_subscribe, #nua_i_subscribe, #nua_r_refer, #nua_r_notify,
+ * #nua_i_notify.
+ *
+ * Corresponding tag taking reference parameter is NUTAG_SUB_EXPIRES_REF().
+ *
+ * @NEW_1_12_9.
+ */
+tag_typedef_t nutag_sub_expires = UINTTAG_TYPEDEF(substate);
+
+/**@def NUTAG_SUB_EXPIRES_REF(x) 
+ * Reference tag for NUTAG_SUB_EXPIRES().
+ */
+
+
 /**@def NUTAG_NEWSUB()
  *
  * Send unsolicited NOTIFY request.
@@ -833,7 +875,7 @@ tag_typedef_t nutag_substate = INTTAG_TYPEDEF(substate);
  *
  * Corresponding tag taking reference parameter is NUTAG_NEWSUB_REF().
  *
- * @since @NEW_1_12_5.
+ * @NEW_1_12_5.
  */
 tag_typedef_t nutag_newsub = BOOLTAG_TYPEDEF(newsub);
 
@@ -1075,17 +1117,17 @@ tag_typedef_t nutag_update_refresh = BOOLTAG_TYPEDEF(update_refresh);
  * REFER.
  *
  * @par Used with
- *    nua_set_params() \n
- *    nua_get_params() \n
- *    nua_set_hparams() \n
- *    nua_get_hparams() \n
+ *    nua_handle(), nua_respond() \n
+ *    nua_set_params() or nua_set_hparams() \n
+ *    nua_get_params() or nua_get_hparams()
  *
  * @par Parameter type
  *    unsigned int
  *
  * @par Values
- *    @c 0  disable \n
- *    @c >0 interval in seconds
+ *    - default interval in seconds
+ *
+ * @sa NUTAG_SUB_EXPIRES()
  *
  * Corresponding tag taking reference parameter is NUTAG_REFER_EXPIRES_REF().
  */
@@ -1233,7 +1275,8 @@ tag_typedef_t nutag_autoack = BOOLTAG_TYPEDEF(autoACK);
 
 /**@def NUTAG_ENABLEINVITE(x)
  *
- * Enable incoming INVITE
+ * Enable incoming INVITE.
+ *
  *
  * @par Used with
  *    nua_set_params() \n
@@ -1569,6 +1612,9 @@ extern msg_hclass_t sip_route_class[];
  * If a tag list contains multiple NUTAG_INITIAL_ROUTE() or
  * NUTAG_INITIAL_ROUTE_STR() tags, the route set is constructed from them
  * all.
+ *
+ * The initial route is inserted into request message before the route
+ * entries set with SIPTAG_ROUTE() or SIPTAG_ROUTE_STR().
  *
  * @par Used with
  *    nua_set_params() \n
@@ -2531,7 +2577,8 @@ tag_typedef_t nutag_path_enable = BOOLTAG_TYPEDEF(path_enable);
 
 /**@def NUTAG_SERVICE_ROUTE_ENABLE(x) 
  *
- * Use route from @ServiceRoute header in response to REGISTER.
+ * Use route taken from the @ServiceRoute header in the 200 class response
+ * to REGISTER.
  *
  * @par Used with
  * - nua_create(), nua_set_params(), nua_get_params()
@@ -2693,7 +2740,7 @@ tag_typedef_t nutag_dialog = UINTTAG_TYPEDEF(dialog);
 
 /**@def NUTAG_PROXY(x)
  *
- * Outbound proxy URL
+ * Outbound proxy URL.
  *
  * Same tag as NTATAG_DEFAULT_PROXY()
  *
@@ -2701,11 +2748,23 @@ tag_typedef_t nutag_dialog = UINTTAG_TYPEDEF(dialog);
  *    nua_set_params() \n
  *    nua_get_params() \n
  *    nua_create()
+ * @note
+ * Since @VERSION_1_12_9, NUTAG_PROXY()/NTATAG_DEFAULT_PROXY() can be used
+ * to set handle-specific outbound route. The route is set with \n
+ *    nua_set_hparams(), \n
+ *    nua_invite(), nua_prack(), nua_ack(), nua_update(), nua_respond(), \n
+ *    nua_info(), nua_cancel(), nua_bye(), \n
+ *    nua_register(), nua_unregister(), nua_publish(), nua_unpublish(), \n
+ *    nua_subscribe(), nua_unsubscribe(), nua_refer(), nua_notify(), \n
+ *    nua_options(), nua_message(), nua_method()
  *
  * @par Parameter type
  *    url_string_t const * (either char const * or url_t *)
  *
  * @par Values
+ *    NULL implies routing based on request-URI or Route header.
+ *    Non-NULL is used as invisible routing URI, ie., routing URI that is
+ *    not included in the request.
  *
  * Corresponding tag taking reference parameter is NUTAG_PROXY_REF().
  */
@@ -2735,6 +2794,39 @@ tag_typedef_t nutag_dialog = UINTTAG_TYPEDEF(dialog);
 /**@def NUTAG_SIP_PARSER_REF(x) 
  * Reference tag for NUTAG_SIP_PARSER().
  */
+
+
+/**@def NUTAG_SHUTDOWN_EVENTS(x)
+ *
+ * Allow passing of normal events when stack is being shut down.
+ *
+ * By default, only #nua_r_shutdown events are passed to application after
+ * calling nua_shutdown(). If application is interested in nua events during
+ * shutdown, it should give NUTAG_SHUTDOWN_EVENTS(1) to nua_create() or
+ * nua_set_params() called before nua_shutdown().
+ *
+ * @par Used with
+ *    nua_create(), nua_set_params().
+ *
+ * @par Parameter type
+ *    int (boolean)
+ *
+ * @par Values
+ *    @c 0   False \n
+ *    @c !=0 True
+ *
+ * Corresponding tag taking reference parameter is NUTAG_SHUTDOWN_EVENTS_REF().
+ *
+ * @sa nua_shutdown(), nua_destroy().
+ * 
+ * @NEW_1_12_9.
+ */
+tag_typedef_t nutag_shutdown_events = BOOLTAG_TYPEDEF(shutdown_events);
+
+/**@def NUTAG_SHUTDOWN_EVENTS_REF(x) 
+ * Reference tag for NUTAG_SHUTDOWN_EVENTS().
+ */
+
 
 /* ---------------------------------------------------------------------- */
 

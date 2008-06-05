@@ -111,7 +111,10 @@ int sres_blocking_update(sres_blocking_t *b,
 			 sres_socket_t new_socket,
 			 sres_socket_t old_socket)
 {
-  int i, N = b->n_sockets;
+  int i, N;
+
+  if (b == NULL)
+    return -1;
 
   if (old_socket == new_socket) {
     if (old_socket == INVALID_SOCKET) {
@@ -119,6 +122,8 @@ int sres_blocking_update(sres_blocking_t *b,
     }
     return 0;
   }
+
+  N = b->n_sockets;
 
   if (old_socket != INVALID_SOCKET) {
     for (i = 0; i < N; i++) {
@@ -233,11 +238,13 @@ sres_blocking_t *sres_set_blocking(sres_resolver_t *res)
   /* Create a synchronous (blocking) interface towards resolver */
   b = calloc(1, sizeof *b);
 
-  for (i = 0; i < SRES_MAX_NAMESERVERS; i++)
-    b->fds[i].fd = INVALID_SOCKET;
+  if (b) {
+    for (i = 0; i < SRES_MAX_NAMESERVERS; i++)
+      b->fds[i].fd = INVALID_SOCKET;
   
-  if (!sres_resolver_set_async(res, sres_blocking_update, b, 0)) {
-    free(b), b = NULL;
+    if (!sres_resolver_set_async(res, sres_blocking_update, b, 0)) {
+      free(b), b = NULL;
+    }
   }
 
   return b;

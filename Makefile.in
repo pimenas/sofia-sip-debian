@@ -59,7 +59,8 @@ DIST_COMMON = README $(am__configure_deps) $(dist_man_MANS) \
 	$(top_srcdir)/libsofia-sip-ua/features/sofia-sip/sofia_features.h.in \
 	$(top_srcdir)/libsofia-sip-ua/su/sofia-sip/su_configure.h.in \
 	$(top_srcdir)/rules/lcov.am AUTHORS COPYING ChangeLog TODO \
-	config.guess config.sub depcomp install-sh ltmain.sh missing
+	compile config.guess config.sub depcomp install-sh ltmain.sh \
+	missing
 @HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_1 = --frames
 @HAVE_LCOV_TRUE@am__append_2 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
 subdir = .
@@ -131,6 +132,7 @@ CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DOXYGEN = @DOXYGEN@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -199,6 +201,7 @@ MINGW_ENVIRONMENT = @MINGW_ENVIRONMENT@
 MOSTLYCLEANFILES = @MOSTLYCLEANFILES@
 NDEBUG_FALSE = @NDEBUG_FALSE@
 NDEBUG_TRUE = @NDEBUG_TRUE@
+NMEDIT = @NMEDIT@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@

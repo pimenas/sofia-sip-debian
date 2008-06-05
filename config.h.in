@@ -64,8 +64,14 @@
 /* Define to 1 if you have the `flock' function. */
 #undef HAVE_FLOCK
 
+/* Define to 1 if you have the <fnmatch.h> header file. */
+#undef HAVE_FNMATCH_H
+
 /* Define to 1 if you have the `freeaddrinfo' function. */
 #undef HAVE_FREEADDRINFO
+
+/* Define this as 1 if your c library does not crash with free(0) */
+#undef HAVE_FREE_NULL
 
 /* Define to 1 if the C compiler supports __func__ */
 #undef HAVE_FUNC
@@ -150,6 +156,9 @@
 
 /* Define to 1 if you have IP_ADD_MEMBERSHIP */
 #undef HAVE_IP_ADD_MEMBERSHIP
+
+/* Define to 1 if you have IP_MTU_DISCOVER */
+#undef HAVE_IP_MTU_DISCOVER
 
 /* Define to 1 if you have IP_MULTICAST_LOOP */
 #undef HAVE_IP_MULTICAST_LOOP

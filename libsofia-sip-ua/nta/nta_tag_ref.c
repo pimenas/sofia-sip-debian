@@ -71,6 +71,9 @@ EXPORT tag_typedef_t ntatag_remote_cseq_ref =
 extern tag_typedef_t ntatag_maxsize;
 EXPORT tag_typedef_t ntatag_maxsize_ref = 
   REFTAG_TYPEDEF(ntatag_maxsize);
+extern tag_typedef_t ntatag_max_proceeding;
+EXPORT tag_typedef_t ntatag_max_proceeding_ref = 
+  REFTAG_TYPEDEF(ntatag_max_proceeding);
 extern tag_typedef_t ntatag_udp_mtu;
 EXPORT tag_typedef_t ntatag_udp_mtu_ref = 
   REFTAG_TYPEDEF(ntatag_udp_mtu);
@@ -319,9 +322,9 @@ EXPORT tag_type_t nta_tag_list[] =
   ntatag_sip_t4,
   ntatag_server_rport,
   ntatag_smime,
+  ntatag_timeout_408,
   ntatag_debug_drop_prob,
   ntatag_ack_branch,
-  ntatag_timeout_408,
   ntatag_method,
   ntatag_cancel_2543,
   ntatag_timer_c,
@@ -370,6 +373,7 @@ EXPORT tag_type_t nta_tag_list[] =
   ntatag_progress,
   ntatag_incomplete,
   ntatag_s_bad_response,
+  ntatag_max_proceeding,
   ntatag_s_retry_request,
   ntatag_rseq,
   ntatag_cancel_487,

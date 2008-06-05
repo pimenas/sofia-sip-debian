@@ -80,6 +80,9 @@ EXPORT tag_typedef_t nutag_answer_sent_ref =
 extern tag_typedef_t nutag_substate;
 EXPORT tag_typedef_t nutag_substate_ref = 
   REFTAG_TYPEDEF(nutag_substate);
+extern tag_typedef_t nutag_sub_expires;
+EXPORT tag_typedef_t nutag_sub_expires_ref = 
+  REFTAG_TYPEDEF(nutag_sub_expires);
 extern tag_typedef_t nutag_newsub;
 EXPORT tag_typedef_t nutag_newsub_ref = 
   REFTAG_TYPEDEF(nutag_newsub);
@@ -263,6 +266,9 @@ EXPORT tag_typedef_t nutag_with_ref =
 extern tag_typedef_t nutag_dialog;
 EXPORT tag_typedef_t nutag_dialog_ref = 
   REFTAG_TYPEDEF(nutag_dialog);
+extern tag_typedef_t nutag_shutdown_events;
+EXPORT tag_typedef_t nutag_shutdown_events_ref = 
+  REFTAG_TYPEDEF(nutag_shutdown_events);
 extern tag_typedef_t nutag_soa_session;
 EXPORT tag_typedef_t nutag_soa_session_ref = 
   REFTAG_TYPEDEF(nutag_soa_session);
@@ -300,8 +306,8 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_early_media,
   nutag_service_route_enable,
   nutag_allow_events,
-  nutag_only183_100rel,
   nutag_smime_message_digest,
+  nutag_only183_100rel,
   nutag_use_dialog,
   nutag_outbound,
   nutag_outbound_set1,
@@ -317,6 +323,7 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_max_subscriptions,
   nutag_smime_enable,
   nutag_answer_recv,
+  nutag_shutdown_events,
   nutag_session_refresher,
   nutag_user_agent,
   nutag_soa_name,
@@ -357,6 +364,7 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_callstate,
   nutag_autoack,
   nutag_offer_sent,
+  nutag_sub_expires,
   nutag_autoalert,
   NULL
 };

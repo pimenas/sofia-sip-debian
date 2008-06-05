@@ -155,6 +155,12 @@ NTA_DLL extern tag_typedef_t ntatag_udp_mtu;
 NTA_DLL extern tag_typedef_t ntatag_udp_mtu_ref;
 #define NTATAG_UDP_MTU_REF(x) ntatag_udp_mtu_ref, tag_uint_vr(&(x))
 
+NTA_DLL extern tag_typedef_t ntatag_max_proceeding;
+#define NTATAG_MAX_PROCEEDING(x) ntatag_max_proceeding, tag_usize_v((x))
+
+NTA_DLL extern tag_typedef_t ntatag_max_proceeding_ref;
+#define NTATAG_MAX_PROCEEDING_REF(x) ntatag_max_proceeding_ref, tag_usize_vr(&(x))
+
 NTA_DLL extern tag_typedef_t ntatag_max_forwards;
 #define NTATAG_MAX_FORWARDS(x) ntatag_max_forwards, tag_uint_v((x))
 
@@ -352,10 +358,10 @@ NTA_DLL extern tag_typedef_t ntatag_client_rport_ref;
 #define NTATAG_RPORT_REF(x) ntatag_client_rport_ref, tag_bool_vr(&(x))
 
 NTA_DLL extern tag_typedef_t ntatag_server_rport;
-#define NTATAG_SERVER_RPORT(x) ntatag_server_rport, tag_bool_v((x))
+#define NTATAG_SERVER_RPORT(x) ntatag_server_rport, tag_uint_v((x))
 
 NTA_DLL extern tag_typedef_t ntatag_server_rport_ref;
-#define NTATAG_SERVER_RPORT_REF(x) ntatag_server_rport_ref, tag_bool_vr(&(x))
+#define NTATAG_SERVER_RPORT_REF(x) ntatag_server_rport_ref, tag_uint_vr(&(x))
 
 NTA_DLL extern tag_typedef_t ntatag_tcp_rport;
 #define NTATAG_TCP_RPORT(x) ntatag_tcp_rport, tag_bool_v((x))

@@ -154,6 +154,7 @@ struct nua_handle_s
   nua_handle_t   *nh_identity;	/**< Identity */
 
   nua_handle_preferences_t *nh_prefs; /**< Preferences */
+#define nh_dprefs nh_nua->nua_dhandle->nh_prefs
 
   /* Handle type is determined by special event and flags. */
   nua_event_t     nh_special;	/**< Special event */
@@ -207,7 +208,8 @@ typedef struct nua_event_frame_s nua_event_frame_t;
 extern char const nua_internal_error[];
 
 #define NUA_INTERNAL_ERROR 900, nua_internal_error
-#define NUA_ERROR_AT(file, line) 900, "Internal error at " file ":" #line
+#define _NUA_INTERNAL_ERROR_AT(file, line) "Internal error at " file ":" #line
+#define NUA_ERROR_AT(file, line) 900, _NUA_INTERNAL_ERROR_AT(file, line)
 
 struct nua_s {
   su_home_t            nua_home[1];
@@ -217,28 +219,31 @@ struct nua_s {
   su_clone_r   	       nua_clone;
   su_task_r            nua_client;
 
-  su_network_changed_t *nua_nw_changed;
-
   nua_callback_f       nua_callback;
   nua_magic_t         *nua_magic;
 
   nua_event_frame_t   *nua_current;
   nua_saved_event_t    nua_signal[1];
 
+  /**< Used by stop-and-wait args calls */
+  tagi_t const        *nua_args;
+
   /* Engine state flags */
+  sip_time_t           nua_shutdown;
+
   unsigned             nua_shutdown_started:1; /**< Shutdown initiated */
   unsigned             nua_shutdown_final:1; /**< Shutdown is complete */
 
   unsigned             nua_from_is_set;
   unsigned :0;
   
-  /**< Used by stop-and-wait args calls */
-  tagi_t const        *nua_args;
-
   /**< Local SIP address. Contents are kept around for ever. */
-  sip_from_t          nua_from[1];
+  sip_from_t           nua_from[1];
+
+  /* ---------------------------------------------------------------------- */
 
   /* Protocol (server) side */
+  su_network_changed_t *nua_nw_changed;
 
   nua_registration_t *nua_registrations; /**< Active registrations */
 
@@ -250,21 +255,8 @@ struct nua_s {
   nta_agent_t        *nua_nta;
   su_timer_t         *nua_timer;
 
-  void         	      *nua_sip_parser;
-
-  sip_time_t           nua_shutdown;
-
-  /* Route */
-  sip_service_route_t *nua_service_route;
-
   /* User-agent parameters */
-  unsigned             nua_media_enable:1;
-
-  unsigned     	       :0;
-
-#if HAVE_SMIME		/* Start NRC Boston */
-  sm_object_t          *sm;
-#endif                  /* End NRC Boston */
+  nua_global_preferences_t nua_prefs[1];
 
   nua_handle_t        *nua_handles;
   nua_handle_t       **nua_handles_tail;
@@ -390,6 +382,9 @@ sip_replaces_t *nua_stack_handle_make_replaces(nua_handle_t *handle,
 nua_handle_t *nua_stack_handle_by_replaces(nua_t *nua,
 					   sip_replaces_t const *r);
 
+nua_handle_t *nua_stack_handle_by_call_id(nua_t *nua, const char *call_id);
+
+
 /* ---------------------------------------------------------------------- */
 
 int nua_stack_set_defaults(nua_handle_t *nh, nua_handle_preferences_t *nhp);
@@ -436,8 +431,6 @@ extern char const nua_application_sdp[];
 extern tag_typedef_t _nutag_add_contact;
 
 /* ---------------------------------------------------------------------- */
-
-typedef unsigned longlong ull;
 
 #define SET_STATUS(_status, _phrase) status = _status, phrase = _phrase
 

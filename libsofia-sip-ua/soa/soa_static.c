@@ -731,10 +731,11 @@ int soa_sdp_upgrade(soa_session_t *ss,
   o_media = su_zalloc(home, (Ns + 1) * (sizeof *o_media));
   u_media = su_zalloc(home, (Nu + 1) * (sizeof *u_media));
   r_media = su_zalloc(home, (Nr + 1) * (sizeof *r_media));
+  if (!s_media || !o_media || !u_media || !r_media)
+    return -1;
 
   um = sdp_media_dup_all(home, user->sdp_media, session); 
-
-  if (!s_media || !u_media || !r_media || !um)
+  if (!um && user->sdp_media)
     return -1;
 
   u2s = su_alloc(home, (Nu + 1) * sizeof(*u2s));
@@ -805,33 +806,37 @@ int soa_sdp_upgrade(soa_session_t *ss,
 	soa_sdp_media_upgrade_rtpmaps(ss, m, rm);
     }
   }
-  else if (sss->sss_ordered_user) {
-    /* Update session with unused media in u_media */
-
-    if (!sss->sss_reuse_rejected) {
-      /* Mark previously used slots */
-      for (i = 0; i < Ns; i++) {
-	if (s_media[i])
-	  continue;
-	s_media[i] = soa_sdp_make_rejected_media(home, o_media[i], session, 0);
-      }
-    }
-
-    for (j = 0; j < Nu; j++) {
-      if (u_media[j] == SDP_MEDIA_NONE)
-	continue;
-
-      for (i = 0; i < size - 1; i++) {
-	if (s_media[i] != NULL)
-	  continue;
-	s_media[i] = u_media[j], u_media[j] = SDP_MEDIA_NONE;
-	u2s[j] = i, s2u[i] = j;
-      }
-
-      assert(i != size);
-    }
-  }
   else {
+
+    if (sss->sss_ordered_user) {
+      /* Update session with unused media in u_media */
+
+      if (!sss->sss_reuse_rejected) {
+	/* Mark previously used slots */
+	for (i = 0; i < Ns; i++) {
+	  if (s_media[i])
+	    continue;
+	  s_media[i] = 
+	    soa_sdp_make_rejected_media(home, o_media[i], session, 0);
+	}
+      }
+
+      for (j = 0; j < Nu; j++) {
+	if (u_media[j] == SDP_MEDIA_NONE)
+	  continue;
+
+	for (i = 0; i < size - 1; i++) {
+	  if (s_media[i] == NULL) {
+	    s_media[i] = u_media[j], u_media[j] = SDP_MEDIA_NONE;
+	    u2s[j] = i, s2u[i] = j;
+	    break;
+	  }
+	}
+
+	assert(i != size - 1);
+      }
+    }
+
     /* Match unused user media by media types with the existing session */
     for (i = 0; i < Ns; i++) {
       if (s_media[i])
@@ -863,11 +868,6 @@ int soa_sdp_upgrade(soa_session_t *ss,
     m = s_media[i]; *mm = m; mm = &m->m_next;
   }
   *mm = NULL;
-
-#ifndef NDEBUG
-  for (j = i; j < size; j++)
-    assert(s2u[j] == U2S_NOT_USED);
-#endif
 
   s2u[size = i] = U2S_SENTINEL;
   *return_u2s = u2s;
@@ -1022,7 +1022,16 @@ int soa_sdp_mode_set(sdp_session_t const *user,
 
     for (j = 0, um = user->sdp_media; j != s2u[i]; um = um->m_next, j++)
       assert(um);
-    assert(um);
+    if (um == NULL) {
+      if (dryrun)
+	return 1;
+      else
+	retval = 1;
+      sm->m_rejected = 1;
+      sm->m_mode = sdp_inactive;
+      sm->m_port = 0;
+      continue;
+    }
 
     send_mode = um->m_mode & sdp_sendonly;
     if (rm)
@@ -1050,10 +1059,11 @@ int soa_sdp_mode_set(sdp_session_t const *user,
       }
     }
 
-    if (sm->m_mode != (unsigned)(recv_mode | send_mode))
-      retval = 1;
-
-    if (!dryrun) {
+    if (sm->m_mode != (unsigned)(recv_mode | send_mode)) {
+      if (dryrun)
+	return 1;
+      else
+	retval = 1;
       sm->m_mode = recv_mode | send_mode;
     }
   }
@@ -1107,6 +1117,8 @@ static int offer_answer_step(soa_session_t *ss,
 
   if (action == generate_offer)
     remote = NULL;
+  else if (remote == NULL)
+    return soa_set_status(ss, 500, "No remote SDP");
 
   /* Pre-negotiation Step: Expand truncated remote SDP */
   if (local && remote) switch (action) {
@@ -1117,6 +1129,8 @@ static int offer_answer_step(soa_session_t *ss,
       SU_DEBUG_5(("%s: remote %s is truncated: expanding\n",
 		  by, action == generate_answer ? "offer" : "answer"));
       remote = soa_sdp_expand_media(tmphome, remote, local);
+      if (remote == NULL)
+	return soa_set_status(ss, 500, "Cannot expand remote session");
     }
   default:
     break;
@@ -1162,7 +1176,8 @@ static int offer_answer_step(soa_session_t *ss,
       *local0 = *local, local = local0;
     SU_DEBUG_7(("soa_static(%p, %s): %s\n", (void *)ss, by, 
 		"upgrade with local description"));
-    soa_sdp_upgrade(ss, tmphome, local, user, NULL, &u2s, &s2u);
+    if (soa_sdp_upgrade(ss, tmphome, local, user, NULL, &u2s, &s2u) < 0)
+      goto internal_error;
     break;
   case generate_answer:
     /* Upgrade local SDP based on remote SDP */
@@ -1174,7 +1189,8 @@ static int offer_answer_step(soa_session_t *ss,
 	*local0 = *local, local = local0;
       SU_DEBUG_7(("soa_static(%p, %s): %s\n", (void *)ss, by,
 		  "upgrade with remote description"));
-      soa_sdp_upgrade(ss, tmphome, local, user, remote, &u2s, &s2u);
+      if (soa_sdp_upgrade(ss, tmphome, local, user, remote, &u2s, &s2u) < 0)
+	goto internal_error;
     }
     break;
   case process_answer:

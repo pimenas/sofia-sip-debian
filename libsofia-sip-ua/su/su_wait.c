@@ -186,16 +186,18 @@ int su_wait_destroy(su_wait_t *waitobj)
 {
 #if SU_HAVE_WINSOCK
   su_wait_t w0 = NULL;
-  if (*waitobj)
+  assert(waitobj != NULL);
+  if (*waitobj) {
     WSACloseEvent(*waitobj);
-#elif SU_HAVE_POLL || HAVE_SELECT
-  su_wait_t w0 = { INVALID_SOCKET, 0, 0 };
+    *waitobj = w0;
+  }
 #else
   su_wait_t w0 = { INVALID_SOCKET, 0, 0 };
-#endif
   assert(waitobj != NULL);
-  *waitobj = w0;
-
+  if (waitobj) {
+    *waitobj = w0;
+  }
+#endif
   return waitobj ? 0 : -1;
 }
 

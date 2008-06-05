@@ -35,14 +35,14 @@ EPOCALLOWDLLDATA
 #endif
 
 MACRO       SYMBIAN
-MACRO       IN_LIBSOFIA_SIP_UA
-MACRO       IN_LIBSOFIA_SRES
+//MACRO       IN_LIBSOFIA_SIP_UA
+//MACRO       IN_LIBSOFIA_SRES
 
 // Source files
 SOURCEPATH 			..\..\libsofia-sip-ua\su
 SOURCE              memmem.c
 
-SOURCEPATH 			..\..\libsofia-sip-ua\nua
+SOURCEPATH 			..\..\tests
 SOURCE              test_nua.c
 SOURCE          test_ops.c
 SOURCE          test_init.c

@@ -52,7 +52,9 @@
  * 
  * @sa TPORT_DUMP, TPORT_DEBUG, tport_log
  */
+#ifdef DOXYGEN
 extern char const TPORT_LOG[];	/* dummy declaration for Doxygen */
+#endif
 
 /**@var TPORT_DUMP
  *
@@ -64,7 +66,9 @@ extern char const TPORT_LOG[];	/* dummy declaration for Doxygen */
  * 
  * @sa TPORT_LOG, TPORT_DEBUG, tport_log
  */
+#ifdef DOXYGEN
 extern char const TPORT_DUMP[];	/* dummy declaration for Doxygen */
+#endif
 
 /**@var TPORT_DEBUG
  *
@@ -75,7 +79,9 @@ extern char const TPORT_DUMP[];	/* dummy declaration for Doxygen */
  * 
  * @sa <sofia-sip/su_debug.h>, tport_log, SOFIA_DEBUG
  */
+#ifdef DOXYGEN
 extern char const TPORT_DEBUG[]; /* dummy declaration for Doxygen */
+#endif
 
 /**Debug log for @b tport module. 
  * 
@@ -88,30 +94,43 @@ su_log_t tport_log[] = {
 
 
 /** Initialize logging. */
-void tport_open_log(tport_master_t *mr, tagi_t *tags)
+int tport_open_log(tport_master_t *mr, tagi_t *tags)
 {
-  char const *log = NULL;
-  int log_msg = 0;
-
-  tl_gets(tags, TPTAG_LOG_REF(log_msg), TAG_END());
+  int log_msg = mr->mr_log != 0;
+  char const *dump = NULL;
+  int n;
+  
+  n = tl_gets(tags,
+	      TPTAG_LOG_REF(log_msg), 
+	      TPTAG_DUMP_REF(dump),
+	      TAG_END());
 
   if (getenv("MSG_STREAM_LOG") != NULL || getenv("TPORT_LOG") != NULL)
     log_msg = 1;
-
   mr->mr_log = log_msg ? MSG_DO_EXTRACT_COPY : 0;
 
-  tl_gets(tags, TPTAG_DUMP_REF(log), TAG_END());
-
   if (getenv("MSG_DUMP"))
-    log = getenv("MSG_DUMP");
+    dump = getenv("MSG_DUMP");
   if (getenv("TPORT_DUMP"))
-    log = getenv("TPORT_DUMP");
+    dump = getenv("TPORT_DUMP");
 
-  if (log) {
+  if (dump) {
     time_t now;
+    char *dumpname;
 
-    if (strcmp(log, "-")) 
-      mr->mr_dump_file = fopen(log, "ab"); /* XXX */
+    if (mr->mr_dump && strcmp(dump, mr->mr_dump) == 0)
+      return n;
+    dumpname = su_strdup(mr->mr_home, dump);
+    if (dumpname == NULL)
+      return n;
+    su_free(mr->mr_home, mr->mr_dump);
+    mr->mr_dump = dumpname;
+
+    if (mr->mr_dump_file && mr->mr_dump_file != stdout)
+      fclose(mr->mr_dump_file), mr->mr_dump_file = NULL;
+
+    if (strcmp(dumpname, "-")) 
+      mr->mr_dump_file = fopen(dumpname, "ab"); /* XXX */
     else
       mr->mr_dump_file = stdout;
 
@@ -120,6 +139,8 @@ void tport_open_log(tport_master_t *mr, tagi_t *tags)
       fprintf(mr->mr_dump_file, "dump started at %s\n\n", ctime(&now));
     }
   }
+
+  return n;
 }
 
 /** Create log stamp */
@@ -131,12 +152,16 @@ void tport_stamp(tport_t const *self, msg_t *msg,
   char label[24] = "";
   char *comp = "";
   char name[SU_ADDRSIZE] = "";
-  su_sockaddr_t const *su = msg_addr(msg);
+  su_sockaddr_t const *su;
   unsigned short second, minute, hour;
+
+  assert(self); assert(msg);
 
   second = (unsigned short)(now.tv_sec % 60);
   minute = (unsigned short)((now.tv_sec / 60) % 60);
   hour = (unsigned short)((now.tv_sec / 3600) % 24);
+
+  su = msg_addr(msg);
 
 #if SU_HAVE_IN6
   if (su->su_family == AF_INET6) {
@@ -148,7 +173,7 @@ void tport_stamp(tport_t const *self, msg_t *msg,
   if (msg_addrinfo(msg)->ai_flags & TP_AI_COMPRESSED)
     comp = ";comp=sigcomp";
 
-  inet_ntop(su->su_family, SU_ADDR(su), name, sizeof(name));
+  su_inet_ntop(su->su_family, SU_ADDR(su), name, sizeof(name));
 
   snprintf(stamp, 128,
 	   "%s "MOD_ZU" bytes %s %s/[%s]:%u%s%s at %02u:%02u:%02u.%06lu:\n",
@@ -162,10 +187,13 @@ void tport_dump_iovec(tport_t const *self, msg_t *msg,
 		      size_t n, su_iovec_t const iov[], size_t iovused,
 		      char const *what, char const *how)
 {
-  tport_master_t *mr = self->tp_master;
+  tport_master_t *mr;
   char stamp[128];
   size_t i;
 
+  assert(self); assert(msg);
+
+  mr = self->tp_master;
   if (!mr->mr_dump_file)
     return;
 
