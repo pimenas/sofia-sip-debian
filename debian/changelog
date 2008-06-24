@@ -1,3 +1,11 @@
+sofia-sip (1.12.9-1) unstable; urgency=low
+
+  * New upstream release
+  * missing-dependency-on-libc: Add Depends: ${shlibs:Depends},
+    ${misc:Depends}
+
+ -- Mark Purcell <msp@debian.org>  Tue, 24 Jun 2008 21:25:48 +1000
+
 sofia-sip (1.12.8-1) unstable; urgency=low
 
   [ Kai Vehmanen ]
