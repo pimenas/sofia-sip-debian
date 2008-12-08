@@ -176,6 +176,9 @@ EXPORT tag_typedef_t ntatag_server_rport_ref =
 extern tag_typedef_t ntatag_tcp_rport;
 EXPORT tag_typedef_t ntatag_tcp_rport_ref = 
   REFTAG_TYPEDEF(ntatag_tcp_rport);
+extern tag_typedef_t ntatag_tls_rport;
+EXPORT tag_typedef_t ntatag_tls_rport_ref = 
+  REFTAG_TYPEDEF(ntatag_tls_rport);
 extern tag_typedef_t ntatag_preload;
 EXPORT tag_typedef_t ntatag_preload_ref = 
   REFTAG_TYPEDEF(ntatag_preload);
@@ -313,6 +316,7 @@ EXPORT tag_type_t nta_tag_list[] =
   ntatag_s_trless_to_tr,
   ntatag_s_server_tr,
   ntatag_s_bad_message,
+  ntatag_tls_rport,
   ntatag_sigcomp_algorithm,
   ntatag_s_tout_request,
   ntatag_sip_t1,

@@ -265,6 +265,10 @@ static nua_handle_t *make_auth_natted_register(
   m = s2_wait_for_request(SIP_METHOD_REGISTER);
   fail_if(!m);
   fail_if(!m->sip->sip_authorization);
+  /* should not unregister the previous contact
+   * as it has not been successfully registered */
+  fail_if(!m->sip->sip_contact);
+  fail_if(m->sip->sip_contact->m_next);
   s2_save_register(m);
 
   s2_respond_to(m, NULL,
@@ -717,7 +721,7 @@ TCase *register_tcase(void)
     tcase_add_test(tc, register_1_3_2_1);
     tcase_add_test(tc, register_1_3_2_2);
   }
-  tcase_set_timeout(tc, 5);
+  tcase_set_timeout(tc, 10);
   return tc;
 }
 
@@ -729,7 +733,7 @@ TCase *pingpong_tcase(void)
   {
     tcase_add_test(tc, register_1_3_3_1);
   }
-  tcase_set_timeout(tc, 5);
+  tcase_set_timeout(tc, 10);
   return tc;
 }
 

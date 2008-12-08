@@ -1,44 +1,27 @@
-==================================
-Release notes for Sofia-SIP 1.12.9
-==================================
+===================================
+Release notes for Sofia-SIP 1.12.10
+===================================
 
-Changes since last release
---------------------------
+Changes since release 1.12.9
+----------------------------
 
-Stack now supports some load control with NTATAG_MAX_PROCEEDING(), limiting
-number of initial INVITE transactions being served concurrently.
-
-The NAT traversal support in NUA has been improved. It is now possible to
-force rport use at server end with NTATAG_SERVER_RPORT(2), and fource
-routing of requests to a natted transport address detected by application
-with NTATAG_DEFAULT_PROXY().
-
-Bugs with SDP offer/answer overlap, BYE handling and event fetch/poll
-(SUBSCRIBE with Expires: 0) have been fixed in nua. Bugs with timer
-handling, RFC2543 dialog/transaction matching and gray list handling have
-been fixed in nta.
-
-Problems with SDP session handling by soa when media lines are deleted or
-their type is changes have been fixed.
-
+Numerous bugs has been fixed. The SDP parser has been updated to accept
+syntax according to RFC 4566. The TLS certificate verfication can now be
+controlled through offical API.
 
 API/ABI changes and versioning
 ------------------------------
 
 libsofia-sip-ua:
-- Added nta_outgoing_bind() to <sofia-sip/nta.h>.
-- Allow changing TPTAG_LOG() and TPTAG_DUMP() values after tport_create()
-- Added NUTAG_SHUTDOWN_EVENTS(). If NUTAG_SHUTDOWN_EVENTS(1) nua setting is
-  used, nua sends events to application normally during shutdown, too.
-- Added NUTAG_SUB_EXPIRES() - default expiration time of subscription
-- Added NTATAG_MAX_PROCEEDING() - limit number of requests accepted in 
-  proceeding queue.
-- Using NUTAG_PROXY()/NTATAG_DEFAULT_PROXY() as handle-specific tag. 
-- Added nua_handle_by_call_id(), nta_leg_by_call_id().
-- Using NTATAG_SERVER_RPORT(2) to force rport usage on server side
-- This release is ABI/API compatible with applications linked against 
-  any 1.12.x release. However, applications built against this release won't 
-  work against an older library. The ABI has been tested with the nua module 
+  New tags added:
+  - TPTAG_TLS_VERIFY_PEER()
+  - NUTAG_REFRESH_WITHOUT_SDP()
+  Tag behavour updated:
+  - NTATAG_SERVER_RPORT(2) now includes and uses rport even if client does not
+
+- This release is ABI/API compatible with applications linked against
+  any 1.12.x release. However, applications built against this release won't
+  work against an older library. The ABI has been tested with the nua module
   unit test (test_nua) built against original 1.12.0 release.
 
 libsofia-sip-ua-glib:
@@ -49,60 +32,40 @@ libsofia-sip-ua-glib:
 Contributors to this release
 ----------------------------
 
-- Michael Jerris: fixes, new features NTATAG_MAX_PROCEEDING(),
-  NTATAG_SERVER_RPORT(2), nua_handle_by_call_id(), nta_leg_by_call_id()
-- Colin Whittaker: re-calculating subscription duration when receiving NOTIFY
-- Jerry Richards: fix to sip_header_as_string()
-- Jussi Mutanen: fix to soa handling within nua
-- Bernhard Suttner: fix to Replaces URI handling
+Tiago Katcipis <katcipis AT inf DOT ufcs DOT br>
+Mikhail Zabaluev
+Paulo Pizarro <paulo -dot pizarro -at gmail -dot com>
+Filippo Della Betta
+Jarod Neuner <janeuner@networkharbor.com>
+Fabio Ferrari <fabioferrari AT gmail DOT com>
+Jeff Lenk <jlenk at frontiernet dot net>
+Brian Czapiga <rys at evool dot com>
+Stefano Sabatini
+Fabio Margarido <fabiomargarido AT gmail DOT com>
 
 See the AUTHORS file in the distribution package.
-
-
-Notes on new features
----------------------
-
-The NUTAG_PROXY()/NTATAG_DEFAULT_PROXY() is now handle-specific. Previously,
-it was ignored on nua calls except nua_create() and nua_set_params(). Now it
-is stored per-handle and used for all outgoing requests.
-
-The NTATAG_SERVER_RPORT() used to accept only boolean values (0 or 1) and
-the binary code compiled agains older Sofia SIP versions foces the tag value
-to boolean. The updated tag function in version 1.12.9 accepts values 0, 1
-or 2, however.
 
 
 Bugs fixed in this release
 --------------------------
 
-- Fixed sf.net bug #1827511: BYE can now be authenticated with 
-  nua_authenticate().
-- Fixed problems re-calculating the subscription duration upon NOTIFY.
-  Thanks to Colin Whittaker for reporting the problem and proposing a fix to
-  the problem.
-- Fixed crash when SOATAG_ORDERED_USER(1) was used and multiple m= lines were
-  added to the session.
-- Fixed problem with an error response terminating the session usage but
-  not triggering nua_i_state event reporting that to application.
-  Thanks to AlienPenguin for reporting the problem
-- Fixed crash and general lossage with event fetch (SUBSCRIBE with Expires: 0)
-  Thanks to Jarkko Riekki for reporting the problem.
-- Handle NULL argument to su_free() gracefully even if free() does not.
-  Thanks for Michael Jerris for submitting the patch.
-- Do not use PT 9 (G722) as invalid PT (currently use 19).
-- Fixed problems handling míllisecond timers in nta on 64-bit platforms.
-  Thanks to David Knell and Michael Jerris for reporting it.
-- Allow-Events is now included by nua in messages initiating dialogs.
-  Thanks to Jerry Richards for pointing out the problem.
-- Now checking that pointer is not NULL before calling free()
-  Thanks to Michail Jerris for submitting patch.
-- Fixed bug in sip_header_as_string() converting longish header to string
-  Thanks to Jerry Richards for submitting a patch
-- Fixed problem with soa session activation.
-  Thanks to Jussi Mutanen for patch.
-- Fixed problems handling host:port in user-supplied Via headers.
-- Fixed sf.net bug #1930055: nat detection did not un-REGISTER natted contact
-  if fist response to REGISTER was 200 OK.
-- Fixed crashes in soa if m= lines were removed from user sdp.
-- Fixed problem detecting CANCEL with To-tag copied from a provisional
-  response
+- Configure script options --enable-ndebug and enable-expensive-checks fixed.
+  Patch by Fabio Margarido
+- When using session-timers, expire session only at the end of negotiated
+  expiration time.
+- Fixed #1930055: Unregister when a new public binding is detected.
+  Patch by Mikhail Zabaluev.
+- Use SIPS scheme in Contact URI if registering with SIPS. Patch by Jarod
+  Neuner.
+- Using lower-case "udptl" transport name in SDP. Be bug-compatible.
+  Report by Timo Bruhn.
+- Fixed mutex handle leak on Windows. Patch by Jeff Lenk.
+- Accept requests with invalid Supported header. Patch by Brian Czapiga.
+- When doing event fetch (SUBSCRIBE with Expires: 0) Wait until NOTIFY is
+  received.
+- Fixed memory leak when destroying incomplete INVITE transactions in nua.
+- Not using OPTIONS keepalive on TCP.
+- Fixed bug with To-tags in response to CANCEL.
+- Fixed #2041747: crash when using SIPTAG_ORGANIZATION_TAG_STR
+- Fixed #1904805: build with Vista PlatformSDK
+- Fixed #2037585: crash when call terminated

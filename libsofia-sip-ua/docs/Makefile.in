@@ -17,7 +17,7 @@
 # common Makefile targets for libsofia-sip-ua(-glib) modules
 # ----------------------------------------------------------
 
-# 
+#
 # run tests with valgrind
 #
 
@@ -42,7 +42,7 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-# 
+#
 # Generate lcov output
 #
 
@@ -297,7 +297,7 @@ EXTRA_DIST = Doxyfile.aliases Doxyfile.conf \
 	pictures/autotools.gif \
 	pictures/autotools.vsd \
 	pictures/nta-receiving-message.eps \
-	pictures/nta-receiving-message.gif 
+	pictures/nta-receiving-message.gif
 
 BUILT_SOURCES = Doxyfile.rfc
 CLEANFILES = Doxyfile.rfc *.doxytags
@@ -333,7 +333,7 @@ INTERNAL_INCLUDES = \
     -I${sofiasrcdir}/su -I${sofiabuilddir}/su
 
 PHONY = built-sources clean-built-sources $(am__append_3)
-VALGRIND = valgrind 
+VALGRIND = valgrind
 VALGRINDFLAGS = --tool=memcheck
 
 # Scripts
@@ -569,7 +569,7 @@ valcheck-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) valcheck-TESTS
 
-# Run tests with valgrind in 
+# Run tests with valgrind in
 valcheck-TESTS:	$(TESTS)
 	@failed=0; all=0; xfail=0; xpass=0; skip=0; \
 	srcdir=$(srcdir); export srcdir; \
@@ -661,7 +661,7 @@ valcheck-TESTS:	$(TESTS)
 @HAVE_LCOV_TRUE@	rm -rf $$odir ; mkdir -p $$odir && \
 @HAVE_LCOV_TRUE@	${LCOV_REPORT} ${GENHTML_OPTIONS} \
 @HAVE_LCOV_TRUE@          --title "${PACKAGE_NAME}-${PACKAGE_VERSION}$$sub" \
-@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir 
+@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir
 
 # Rerun checks before generating report
 @HAVE_LCOV_TRUE@lcov-rerun: clean-lcov

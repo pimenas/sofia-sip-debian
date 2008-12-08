@@ -24,7 +24,7 @@
 
 #ifndef MSG_PROTOS_H
 /** Defined when <sofia-sip/msg_protos.h> has been included. */
-#define MSG_PROTOS_H 
+#define MSG_PROTOS_H
 
 /**@ingroup msg_headers
  * @file sofia-sip/msg_protos.h
@@ -52,13 +52,13 @@ enum {
 
 /* Declare internal prototypes for unknown headers */
 
-/**@addtogroup msg_unknown 
- * @{ 
+/**@addtogroup msg_unknown
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of unknown headers. @internal */
-  msg_unknown_hash = -3 
+  msg_unknown_hash = -3
 };
 
 /** Parse a unknown headers. @internal */
@@ -68,41 +68,41 @@ MSG_DLL msg_parse_f msg_unknown_d;
 MSG_DLL msg_print_f msg_unknown_e;
 
 /**Header class for unknown headers.
- * 
- * The header class msg_unknown_class defines how a 
+ *
+ * The header class msg_unknown_class defines how a
  * unknown headers header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the msg_unknown_t header structure.
- * 
+ *
  */
 MSG_DLL extern msg_hclass_t msg_unknown_class[];
 
 /**Initializer for structure msg_unknown_t.
- * 
+ *
  * A static msg_unknown_t structure must be initialized
  * with the MSG_UNKNOWN_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_unknown_t msg_unknown = MSG_UNKNOWN_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_UNKNOWN_INIT() MSG_HDR_INIT(unknown)
 
 /**Initialize a structure msg_unknown_t.
- * 
+ *
  * An msg_unknown_t structure can be initialized with the
  * msg_unknown_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_unknown_t msg_unknown;
- * 
+ *
  *  msg_unknown_init(&msg_unknown);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to msg_unknown_t structure 
+ *
+ * @param x pointer to msg_unknown_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_unknown_t *msg_unknown_init(msg_unknown_t x[1])
@@ -115,13 +115,13 @@ su_inline msg_unknown_t *msg_unknown_init(msg_unknown_t x[1])
 #endif
 
 /**Test if header object is instance of msg_unknown_t.
- * 
+ *
  * The function msg_is_unknown() returns true (nonzero) if
  * the header class is an instance of unknown headers
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return
  * The function msg_is_unknown() returns true (nonzero) if
  * the header object is an instance of header unknown and
@@ -138,27 +138,27 @@ int msg_is_unknown(msg_header_t const *header);
 #endif
 
 /**Duplicate (deep copy) @c msg_unknown_t.
- * 
+ *
  * The function msg_unknown_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   unknown = msg_unknown_dup(home, msg->msg_unknown);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_unknown_dup() returns a pointer to the
  * newly duplicated msg_unknown_t header structure, or NULL
@@ -167,45 +167,45 @@ int msg_is_unknown(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_unknown_t *msg_unknown_dup(su_home_t *home, 
+msg_unknown_t *msg_unknown_dup(su_home_t *home,
 				 msg_unknown_t const *header)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-msg_unknown_t *msg_unknown_dup(su_home_t *home, 
+msg_unknown_t *msg_unknown_dup(su_home_t *home,
 				 msg_unknown_t const *header)
 {
   return (msg_unknown_t *)
-    msg_header_dup_as(home, msg_unknown_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_unknown_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy a msg_unknown_t header structure.
- * 
+ *
  * The function msg_unknown_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   unknown = msg_unknown_copy(home, msg->msg_unknown);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_unknown_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -213,33 +213,33 @@ msg_unknown_t *msg_unknown_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_unknown_t *msg_unknown_copy(su_home_t *home, 
+msg_unknown_t *msg_unknown_copy(su_home_t *home,
 				  msg_unknown_t const *header)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-msg_unknown_t *msg_unknown_copy(su_home_t *home, 
+msg_unknown_t *msg_unknown_copy(su_home_t *home,
 				  msg_unknown_t const *header)
 {
   return (msg_unknown_t *)
-    msg_header_copy_as(home, msg_unknown_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_unknown_class, (msg_header_t const *)header);
 }
 #endif
 
 /**Make a header structure msg_unknown_t.
- * 
+ *
  * The function msg_unknown_make() makes a new
  * msg_unknown_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function is usually implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_unknown_make() returns a pointer to
  * newly maked msg_unknown_t header structure, or NULL upon
@@ -256,25 +256,25 @@ msg_unknown_t *msg_unknown_make(su_home_t *home, char const *s)
 #endif
 
 /**Make a unknown headers from formatting result.
- * 
+ *
  * The function msg_unknown_format() makes a new
  * unknown headers object using formatting result as its
  * value.  The function first prints the arguments according to
  * the format @a fmt specified.  Then it allocates a new header
  * structure, and uses the formatting result as the header
  * value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function is usually implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_unknown_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -288,11 +288,11 @@ su_inline msg_unknown_t *msg_unknown_format(su_home_t *home, char const *fmt, ..
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_unknown_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_unknown_t*)h;
 }
 #endif
@@ -301,13 +301,13 @@ su_inline msg_unknown_t *msg_unknown_format(su_home_t *home, char const *fmt, ..
 
 /* Declare internal prototypes for erroneous headers */
 
-/**@addtogroup msg_error 
- * @{ 
+/**@addtogroup msg_error
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of erroneous headers. @internal */
-  msg_error_hash = -4 
+  msg_error_hash = -4
 };
 
 /** Parse a erroneous headers. @internal */
@@ -317,41 +317,41 @@ MSG_DLL msg_parse_f msg_error_d;
 MSG_DLL msg_print_f msg_error_e;
 
 /**Header class for erroneous headers.
- * 
- * The header class msg_error_class defines how a 
+ *
+ * The header class msg_error_class defines how a
  * erroneous headers header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the msg_error_t header structure.
- * 
+ *
  */
 MSG_DLL extern msg_hclass_t msg_error_class[];
 
 /**Initializer for structure msg_error_t.
- * 
+ *
  * A static msg_error_t structure must be initialized
  * with the MSG_ERROR_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_error_t msg_error = MSG_ERROR_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_ERROR_INIT() MSG_HDR_INIT(error)
 
 /**Initialize a structure msg_error_t.
- * 
+ *
  * An msg_error_t structure can be initialized with the
  * msg_error_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_error_t msg_error;
- * 
+ *
  *  msg_error_init(&msg_error);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to msg_error_t structure 
+ *
+ * @param x pointer to msg_error_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_error_t *msg_error_init(msg_error_t x[1])
@@ -364,13 +364,13 @@ su_inline msg_error_t *msg_error_init(msg_error_t x[1])
 #endif
 
 /**Test if header object is instance of msg_error_t.
- * 
+ *
  * The function msg_is_error() returns true (nonzero) if
  * the header class is an instance of erroneous headers
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return
  * The function msg_is_error() returns true (nonzero) if
  * the header object is an instance of header error and
@@ -387,27 +387,27 @@ int msg_is_error(msg_header_t const *header);
 #endif
 
 /**Duplicate (deep copy) @c msg_error_t.
- * 
+ *
  * The function msg_error_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   error = msg_error_dup(home, msg->msg_error);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_error_dup() returns a pointer to the
  * newly duplicated msg_error_t header structure, or NULL
@@ -416,45 +416,45 @@ int msg_is_error(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_error_t *msg_error_dup(su_home_t *home, 
+msg_error_t *msg_error_dup(su_home_t *home,
 				 msg_error_t const *header)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-msg_error_t *msg_error_dup(su_home_t *home, 
+msg_error_t *msg_error_dup(su_home_t *home,
 				 msg_error_t const *header)
 {
   return (msg_error_t *)
-    msg_header_dup_as(home, msg_error_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_error_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy a msg_error_t header structure.
- * 
+ *
  * The function msg_error_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   error = msg_error_copy(home, msg->msg_error);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_error_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -462,33 +462,33 @@ msg_error_t *msg_error_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_error_t *msg_error_copy(su_home_t *home, 
+msg_error_t *msg_error_copy(su_home_t *home,
 				  msg_error_t const *header)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-msg_error_t *msg_error_copy(su_home_t *home, 
+msg_error_t *msg_error_copy(su_home_t *home,
 				  msg_error_t const *header)
 {
   return (msg_error_t *)
-    msg_header_copy_as(home, msg_error_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_error_class, (msg_header_t const *)header);
 }
 #endif
 
 /**Make a header structure msg_error_t.
- * 
+ *
  * The function msg_error_make() makes a new
  * msg_error_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function is usually implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_error_make() returns a pointer to
  * newly maked msg_error_t header structure, or NULL upon
@@ -505,25 +505,25 @@ msg_error_t *msg_error_make(su_home_t *home, char const *s)
 #endif
 
 /**Make a erroneous headers from formatting result.
- * 
+ *
  * The function msg_error_format() makes a new
  * erroneous headers object using formatting result as its
  * value.  The function first prints the arguments according to
  * the format @a fmt specified.  Then it allocates a new header
  * structure, and uses the formatting result as the header
  * value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function is usually implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_error_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -537,11 +537,11 @@ su_inline msg_error_t *msg_error_format(su_home_t *home, char const *fmt, ...)
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_error_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_error_t*)h;
 }
 #endif
@@ -550,13 +550,13 @@ su_inline msg_error_t *msg_error_format(su_home_t *home, char const *fmt, ...)
 
 /* Declare internal prototypes for separator line between headers and body */
 
-/**@addtogroup msg_separator 
- * @{ 
+/**@addtogroup msg_separator
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of separator line between headers and body. @internal */
-  msg_separator_hash = -5 
+  msg_separator_hash = -5
 };
 
 /** Parse a separator line between headers and body. @internal */
@@ -566,41 +566,41 @@ MSG_DLL msg_parse_f msg_separator_d;
 MSG_DLL msg_print_f msg_separator_e;
 
 /**Header class for separator line between headers and body.
- * 
- * The header class msg_separator_class defines how a 
+ *
+ * The header class msg_separator_class defines how a
  * separator line between headers and body header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the msg_separator_t header structure.
- * 
+ *
  */
 MSG_DLL extern msg_hclass_t msg_separator_class[];
 
 /**Initializer for structure msg_separator_t.
- * 
+ *
  * A static msg_separator_t structure must be initialized
  * with the MSG_SEPARATOR_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_separator_t msg_separator = MSG_SEPARATOR_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_SEPARATOR_INIT() MSG_HDR_INIT(separator)
 
 /**Initialize a structure msg_separator_t.
- * 
+ *
  * An msg_separator_t structure can be initialized with the
  * msg_separator_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_separator_t msg_separator;
- * 
+ *
  *  msg_separator_init(&msg_separator);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to msg_separator_t structure 
+ *
+ * @param x pointer to msg_separator_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_separator_t *msg_separator_init(msg_separator_t x[1])
@@ -613,13 +613,13 @@ su_inline msg_separator_t *msg_separator_init(msg_separator_t x[1])
 #endif
 
 /**Test if header object is instance of msg_separator_t.
- * 
+ *
  * The function msg_is_separator() returns true (nonzero) if
  * the header class is an instance of separator line between headers and body
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return
  * The function msg_is_separator() returns true (nonzero) if
  * the header object is an instance of header separator and
@@ -636,27 +636,27 @@ int msg_is_separator(msg_header_t const *header);
 #endif
 
 /**Duplicate (deep copy) @c msg_separator_t.
- * 
+ *
  * The function msg_separator_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   separator = msg_separator_dup(home, msg->msg_separator);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_separator_dup() returns a pointer to the
  * newly duplicated msg_separator_t header structure, or NULL
@@ -665,45 +665,45 @@ int msg_is_separator(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_separator_t *msg_separator_dup(su_home_t *home, 
+msg_separator_t *msg_separator_dup(su_home_t *home,
 				 msg_separator_t const *header)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-msg_separator_t *msg_separator_dup(su_home_t *home, 
+msg_separator_t *msg_separator_dup(su_home_t *home,
 				 msg_separator_t const *header)
 {
   return (msg_separator_t *)
-    msg_header_dup_as(home, msg_separator_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_separator_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy a msg_separator_t header structure.
- * 
+ *
  * The function msg_separator_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   separator = msg_separator_copy(home, msg->msg_separator);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_separator_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -711,33 +711,33 @@ msg_separator_t *msg_separator_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_separator_t *msg_separator_copy(su_home_t *home, 
+msg_separator_t *msg_separator_copy(su_home_t *home,
 				  msg_separator_t const *header)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-msg_separator_t *msg_separator_copy(su_home_t *home, 
+msg_separator_t *msg_separator_copy(su_home_t *home,
 				  msg_separator_t const *header)
 {
   return (msg_separator_t *)
-    msg_header_copy_as(home, msg_separator_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_separator_class, (msg_header_t const *)header);
 }
 #endif
 
 /**Make a header structure msg_separator_t.
- * 
+ *
  * The function msg_separator_make() makes a new
  * msg_separator_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function is usually implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_separator_make() returns a pointer to
  * newly maked msg_separator_t header structure, or NULL upon
@@ -754,25 +754,25 @@ msg_separator_t *msg_separator_make(su_home_t *home, char const *s)
 #endif
 
 /**Make a separator line between headers and body from formatting result.
- * 
+ *
  * The function msg_separator_format() makes a new
  * separator line between headers and body object using formatting result as its
  * value.  The function first prints the arguments according to
  * the format @a fmt specified.  Then it allocates a new header
  * structure, and uses the formatting result as the header
  * value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function is usually implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_separator_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -786,11 +786,11 @@ su_inline msg_separator_t *msg_separator_format(su_home_t *home, char const *fmt
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_separator_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_separator_t*)h;
 }
 #endif
@@ -799,13 +799,13 @@ su_inline msg_separator_t *msg_separator_format(su_home_t *home, char const *fmt
 
 /* Declare internal prototypes for message payload */
 
-/**@addtogroup msg_payload 
- * @{ 
+/**@addtogroup msg_payload
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of message payload. @internal */
-  msg_payload_hash = -6 
+  msg_payload_hash = -6
 };
 
 /** Parse a message payload. @internal */
@@ -815,41 +815,41 @@ MSG_DLL msg_parse_f msg_payload_d;
 MSG_DLL msg_print_f msg_payload_e;
 
 /**Header class for message payload.
- * 
- * The header class msg_payload_class defines how a 
+ *
+ * The header class msg_payload_class defines how a
  * message payload header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the msg_payload_t header structure.
- * 
+ *
  */
 MSG_DLL extern msg_hclass_t msg_payload_class[];
 
 /**Initializer for structure msg_payload_t.
- * 
+ *
  * A static msg_payload_t structure must be initialized
  * with the MSG_PAYLOAD_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_payload_t msg_payload = MSG_PAYLOAD_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_PAYLOAD_INIT() MSG_HDR_INIT(payload)
 
 /**Initialize a structure msg_payload_t.
- * 
+ *
  * An msg_payload_t structure can be initialized with the
  * msg_payload_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_payload_t msg_payload;
- * 
+ *
  *  msg_payload_init(&msg_payload);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to msg_payload_t structure 
+ *
+ * @param x pointer to msg_payload_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_payload_t *msg_payload_init(msg_payload_t x[1])
@@ -862,13 +862,13 @@ su_inline msg_payload_t *msg_payload_init(msg_payload_t x[1])
 #endif
 
 /**Test if header object is instance of msg_payload_t.
- * 
+ *
  * The function msg_is_payload() returns true (nonzero) if
  * the header class is an instance of message payload
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return
  * The function msg_is_payload() returns true (nonzero) if
  * the header object is an instance of header payload and
@@ -885,27 +885,27 @@ int msg_is_payload(msg_header_t const *header);
 #endif
 
 /**Duplicate (deep copy) @c msg_payload_t.
- * 
+ *
  * The function msg_payload_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   payload = msg_payload_dup(home, msg->msg_payload);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_payload_dup() returns a pointer to the
  * newly duplicated msg_payload_t header structure, or NULL
@@ -914,45 +914,45 @@ int msg_is_payload(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_payload_t *msg_payload_dup(su_home_t *home, 
+msg_payload_t *msg_payload_dup(su_home_t *home,
 				 msg_payload_t const *header)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-msg_payload_t *msg_payload_dup(su_home_t *home, 
+msg_payload_t *msg_payload_dup(su_home_t *home,
 				 msg_payload_t const *header)
 {
   return (msg_payload_t *)
-    msg_header_dup_as(home, msg_payload_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_payload_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy a msg_payload_t header structure.
- * 
+ *
  * The function msg_payload_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   payload = msg_payload_copy(home, msg->msg_payload);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_payload_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -960,33 +960,33 @@ msg_payload_t *msg_payload_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_payload_t *msg_payload_copy(su_home_t *home, 
+msg_payload_t *msg_payload_copy(su_home_t *home,
 				  msg_payload_t const *header)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-msg_payload_t *msg_payload_copy(su_home_t *home, 
+msg_payload_t *msg_payload_copy(su_home_t *home,
 				  msg_payload_t const *header)
 {
   return (msg_payload_t *)
-    msg_header_copy_as(home, msg_payload_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_payload_class, (msg_header_t const *)header);
 }
 #endif
 
 /**Make a header structure msg_payload_t.
- * 
+ *
  * The function msg_payload_make() makes a new
  * msg_payload_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function is usually implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_payload_make() returns a pointer to
  * newly maked msg_payload_t header structure, or NULL upon
@@ -1003,25 +1003,25 @@ msg_payload_t *msg_payload_make(su_home_t *home, char const *s)
 #endif
 
 /**Make a message payload from formatting result.
- * 
+ *
  * The function msg_payload_format() makes a new
  * message payload object using formatting result as its
  * value.  The function first prints the arguments according to
  * the format @a fmt specified.  Then it allocates a new header
  * structure, and uses the formatting result as the header
  * value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function is usually implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_payload_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -1035,11 +1035,11 @@ su_inline msg_payload_t *msg_payload_format(su_home_t *home, char const *fmt, ..
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_payload_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_payload_t*)h;
 }
 #endif

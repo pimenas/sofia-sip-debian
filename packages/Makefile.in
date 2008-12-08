@@ -45,7 +45,7 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 
-# We should probably have something here telling 
+# We should probably have something here telling
 # if we have gobject support or not
 @HAVE_GLIB_TRUE@am__append_1 = sofia-sip-ua-glib.pc
 subdir = packages

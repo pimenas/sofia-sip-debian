@@ -77,7 +77,7 @@ struct outbound {
     unsigned gruuize:1;		/**< Establish a GRUU */
     unsigned outbound:1;	/**< Try to use outbound */
     unsigned natify:1;		/**< Try to detect NAT */
-    unsigned okeepalive:1;	/**< Connection keepalive with OPTIONS */
+    signed okeepalive:2;	/**< Connection keepalive with OPTIONS */
     unsigned validate:1;	/**< Validate registration with OPTIONS */
     /* How to detect NAT binding or connect to outbound: */
     unsigned use_connect:1;	/**< Use HTTP connect */
@@ -102,7 +102,7 @@ struct outbound {
   /* The registration state machine. */
   /** Initial REGISTER containing ob_rcontact has been sent */
   unsigned ob_registering:1;
-  /** 2XX response to REGISTER containg ob_rcontact has been received */
+  /** 2XX response to REGISTER containing ob_rcontact has been received */
   unsigned ob_registered:1;
   /** The registration has been validated:
    *  We have successfully sent OPTIONS to ourselves.
@@ -200,7 +200,7 @@ outbound_new(outbound_owner_t *owner,
     return NULL;
 
   ob = su_home_clone((su_home_t *)owner, sizeof *ob);
-  
+
   if (ob) {
     su_md5_t md5[1];
     uint8_t digest[SU_MD5_DIGEST_SIZE];
@@ -224,7 +224,7 @@ outbound_new(outbound_owner_t *owner,
     su_md5_update(md5, (void *)guid, sizeof guid);
     su_md5_digest(md5, digest);
     token64_e(ob->ob_cookie, sizeof ob->ob_cookie, digest, sizeof digest);
-    
+
     if (instance && !ob->ob_instance)
       su_home_unref(ob->ob_home), ob = NULL;
   }
@@ -270,7 +270,7 @@ int outbound_set_options(outbound_t *ob,
   prefs->gruuize = 1;
   prefs->outbound = 0;
   prefs->natify = 1;
-  prefs->okeepalive = 1;
+  prefs->okeepalive = -1;
   prefs->validate = 1;
   prefs->use_rport = 1;
 
@@ -310,7 +310,7 @@ int outbound_set_options(outbound_t *ob,
   su_free(NULL, options);
 
   if (invalid) {
-    SU_DEBUG_1(("outbound(%p): invalid options \"%s\"\n", 
+    SU_DEBUG_1(("outbound(%p): invalid options \"%s\"\n",
 		(void *)ob->ob_owner, options));
     return -1;
   }
@@ -354,21 +354,13 @@ int outbound_set_proxy(outbound_t *ob,
 /* ---------------------------------------------------------------------- */
 
 /** Obtain contacts for REGISTER */
-int outbound_get_contacts(outbound_t *ob, 
-			  sip_contact_t **return_current_contact, 
+int outbound_get_contacts(outbound_t *ob,
+			  sip_contact_t **return_current_contact,
 			  sip_contact_t **return_previous_contact)
 {
   if (ob) {
     if (ob->ob_contacts)
       *return_current_contact = ob->ob_rcontact;
-    else {
-      sip_contact_t *contact = *return_current_contact;
-      if (contact) {
-	if (ob->ob_rcontact)
-	  msg_header_free_all(ob->ob_home, (msg_header_t*)ob->ob_rcontact);
-	ob->ob_rcontact = sip_contact_dup(ob->ob_home, contact);
-      }
-    }
     *return_previous_contact = ob->ob_previous;
   }
   return 0;
@@ -396,27 +388,31 @@ int outbound_register_response(outbound_t *ob,
   if (terminating) {
     ob->ob_registering = ob->ob_registered = 0;
     return 0;			/* Cleanup is done separately */
-  }  
+  }
 
   if (!response || !request)
     return 0;
 
   assert(request->sip_request); assert(response->sip_status);
-  
-  reregister = outbound_check_for_nat(ob, request, response);
-  if (reregister)
-    return reregister;
 
   status = response->sip_status->st_status;
 
   if (status < 300) {
-    if (request->sip_contact && response->sip_contact)
+    if (request->sip_contact && response->sip_contact) {
+      if (ob->ob_rcontact != NULL)
+        msg_header_free(ob->ob_home, (msg_header_t *)ob->ob_rcontact);
+      ob->ob_rcontact = sip_contact_dup(ob->ob_home, request->sip_contact);
       ob->ob_registered = ob->ob_registering;
-    else
+    } else
       ob->ob_registered = 0;
+  }
 
-    if (ob->ob_previous)
-      msg_header_free(ob->ob_home, (void *)ob->ob_previous);
+  reregister = outbound_check_for_nat(ob, request, response);
+  if (reregister)
+    return reregister;
+
+  if (ob->ob_previous && status < 300) {
+    msg_header_free(ob->ob_home, (void *)ob->ob_previous);
     ob->ob_previous = NULL;
   }
 
@@ -449,7 +445,7 @@ int outbound_check_for_nat(outbound_t *ob,
   if (!ob->ob_by_stack)
     return ob_no_nat;
 
-  /* Application does not want us to do any NAT traversal */ 
+  /* Application does not want us to do any NAT traversal */
   if (!ob->ob_prefs.natify)
     return ob_no_nat;
 
@@ -615,7 +611,7 @@ int outbound_gruuize(outbound_t *ob, sip_t const *sip)
   }
 
   gruu = (char *)msg_header_find_param(m->m_common, "pub-gruu=");
-  
+
   if (gruu == NULL || gruu[0] == '\0')
     gruu = (char *)msg_header_find_param(m->m_common, "gruu=");
 
@@ -647,6 +643,11 @@ static int keepalive_options_with_registration_probe(outbound_t *ob);
 static int response_to_keepalive_options(outbound_t *ob,
 					 nta_outgoing_t *orq,
 					 sip_t const *sip);
+static int process_response_to_keepalive_options(outbound_t *ob,
+						 nta_outgoing_t *orq,
+						 sip_t const *sip,
+						 int status,
+						 char const *phrase);
 
 static void keepalive_timer(su_root_magic_t *root_magic,
 			    su_timer_t *t,
@@ -657,16 +658,22 @@ void outbound_start_keepalive(outbound_t *ob,
 			      nta_outgoing_t *register_transaction)
 {
   unsigned interval = 0;
-  int need_to_validate;
+  int need_to_validate, udp;
 
   if (!ob)
     return;
 
-  if (ob->ob_prefs.natify && ob->ob_prefs.okeepalive)
+  udp = ob->ob_via && ob->ob_via->v_protocol == sip_transport_udp;
+
+  if (/* ob->ob_prefs.natify && */
+      /* On UDP, use OPTIONS keepalive by default */
+      (udp ? ob->ob_prefs.okeepalive != 0
+       /* Otherwise, only if requested */
+       : ob->ob_prefs.okeepalive > 0))
     interval = ob->ob_prefs.interval;
   need_to_validate = ob->ob_prefs.validate && !ob->ob_validated;
 
-  if (!ob->ob_nat_detected || !register_transaction ||
+  if (!register_transaction ||
       !(need_to_validate || interval != 0)) {
     outbound_stop_keepalive(ob);
     return;
@@ -681,7 +688,7 @@ void outbound_start_keepalive(outbound_t *ob,
 
   ob->ob_keepalive.interval = interval;
 
-  if (!ob->ob_validated && ob->ob_keepalive.sipstun 
+  if (!ob->ob_validated && ob->ob_keepalive.sipstun
       && 0 /* Stun is disabled for now */) {
     nta_tport_keepalive(register_transaction);
   }
@@ -743,7 +750,7 @@ static int create_keepalive_message(outbound_t *ob, sip_t const *regsip)
       s = su_strdup(msg_home(msg), s);
       msg_header_add_param(msg_home(msg), ac->cp_common, s);
     }
-    
+
     if (features)
       msg_header_insert(msg, NULL, (void *)ac);
     else
@@ -828,10 +835,6 @@ static int response_to_keepalive_options(outbound_t *ob,
 {
   int status = 408;
   char const *phrase = sip_408_Request_timeout;
-  int binding_check;
-  int challenged = 0, credentials = 0;
-  msg_t *_reqmsg = nta_outgoing_getrequest(orq);
-  sip_t *request = sip_object(_reqmsg); msg_destroy(_reqmsg);
 
   if (sip && sip->sip_status) {
     status = sip->sip_status->st_status;
@@ -842,8 +845,26 @@ static int response_to_keepalive_options(outbound_t *ob,
     /* This probably means that we are in trouble. whattodo, whattodo */
   }
 
-  if (status < 200)
-    return 0;
+  if (status >= 200) {
+    if (orq == ob->ob_keepalive.orq)
+      ob->ob_keepalive.orq = NULL;
+    process_response_to_keepalive_options(ob, orq, sip, status, phrase);
+    nta_outgoing_destroy(orq);
+  }
+
+  return 0;
+}
+
+static int process_response_to_keepalive_options(outbound_t *ob,
+						 nta_outgoing_t *orq,
+						 sip_t const *sip,
+						 int status,
+						 char const *phrase)
+{
+  int binding_check;
+  int challenged = 0, credentials = 0;
+  msg_t *_reqmsg = nta_outgoing_getrequest(orq);
+  sip_t *request = sip_object(_reqmsg); msg_destroy(_reqmsg);
 
   if (sip == NULL) {
     SU_DEBUG_3(("outbound(%p): keepalive %u %s\n", (void *)ob->ob_owner,
@@ -870,10 +891,6 @@ static int response_to_keepalive_options(outbound_t *ob,
 
   binding_check = outbound_nat_detect(ob, request, sip);
 
-  if (orq == ob->ob_keepalive.orq)
-    ob->ob_keepalive.orq = NULL;
-  nta_outgoing_destroy(orq);
-
   if (binding_check > 1) {
     /* Bindings have changed */
     if (outbound_contacts_from_via(ob, sip->sip_via) == 0) {
@@ -896,36 +913,36 @@ static int response_to_keepalive_options(outbound_t *ob,
 
     if (status < 300 && ob->ob_keepalive.validated) {
       loglevel = 5;
-      if (ob->ob_validated) 
+      if (ob->ob_validated)
 	loglevel = 99;		/* only once */
       ob->ob_validated = ob->ob_once_validated = 1;
     }
-    else if (status == 401 || status == 407 || status == 403) 
+    else if (status == 401 || status == 407 || status == 403)
       loglevel = 5, failed = 1;
     else
       loglevel = 3, failed = 1;
-      
+
     if (loglevel >= SU_LOG->log_level) {
       sip_contact_t const *m = ob->ob_rcontact;
 
       if  (m)
-	su_llog(SU_LOG, loglevel,       
+	su_llog(SU_LOG, loglevel,
 		"outbound(%p): %s <" URL_PRINT_FORMAT ">\n",
 		(void *)ob->ob_owner,
 		failed ? "FAILED to validate" : "validated",
 		URL_PRINT_ARGS(m->m_url));
       else
-	su_llog(SU_LOG, loglevel,       
+	su_llog(SU_LOG, loglevel,
 		"outbound(%p): %s registration\n",
 		(void *)ob->ob_owner,
 		failed ? "FAILED to validate" : "validated");
 
       if (failed)
-	su_llog(SU_LOG, loglevel, "outbound(%p): FAILED with %u %s\n", 
+	su_llog(SU_LOG, loglevel, "outbound(%p): FAILED with %u %s\n",
 		(void *)ob->ob_owner, status, phrase);
     }
 
-    if (failed) 
+    if (failed)
       ob->ob_oo->oo_probe_error(ob->ob_owner, ob, status, phrase, TAG_END());
   }
   else if (status == 408) {
@@ -1006,7 +1023,7 @@ static int keepalive_options_with_registration_probe(outbound_t *ob)
 /** Check if request should be processed by outbound */
 int outbound_targeted_request(sip_t const *sip)
 {
-  return 
+  return
     sip && sip->sip_request &&
     sip->sip_request->rq_method == sip_method_options &&
     sip->sip_accept &&
@@ -1015,7 +1032,7 @@ int outbound_targeted_request(sip_t const *sip)
 }
 
 /** Answer to the connectivity probe OPTIONS */
-int outbound_process_request(outbound_t *ob, 
+int outbound_process_request(outbound_t *ob,
 			     nta_incoming_t *irq,
 			     sip_t const *sip)
 {
@@ -1024,7 +1041,7 @@ int outbound_process_request(outbound_t *ob,
     return 0;
 
   if (ob->ob_keepalive.validating) {
-    SU_DEBUG_5(("outbound(%p): registration check OPTIONS received\n", 
+    SU_DEBUG_5(("outbound(%p): registration check OPTIONS received\n",
 		(void *)ob->ob_owner));
     ob->ob_keepalive.validated = 1;
   }
@@ -1042,7 +1059,7 @@ int outbound_process_request(outbound_t *ob,
 /**@internal
  * Create contacts for outbound.
  *
- * There are two contacts: 
+ * There are two contacts:
  * one suitable for registrations (ob_rcontact) and another that can be used
  * in dialogs (ob_dcontact).
  */
@@ -1050,7 +1067,6 @@ int outbound_contacts_from_via(outbound_t *ob, sip_via_t const *via)
 {
   su_home_t *home = ob->ob_home;
   sip_contact_t *rcontact, *dcontact;
-  int reg_id = 0;
   char reg_id_param[20] = "";
   sip_contact_t *previous_previous, *previous_rcontact, *previous_dcontact;
   sip_via_t *v, v0[1], *previous_via;
@@ -1061,16 +1077,16 @@ int outbound_contacts_from_via(outbound_t *ob, sip_via_t const *via)
 
   v = v0; *v0 = *via; v0->v_next = NULL;
 
-  dcontact = ob->ob_oo->oo_contact(ob->ob_owner, home, 1, 
+  dcontact = ob->ob_oo->oo_contact(ob->ob_owner, home, 1,
 				   v, v->v_protocol, NULL);
 
   if (ob->ob_instance && ob->ob_reg_id != 0)
     snprintf(reg_id_param, sizeof reg_id_param, ";reg-id=%u", ob->ob_reg_id);
 
   rcontact = ob->ob_oo->oo_contact(ob->ob_owner, home, 0,
-				   v, v->v_protocol, 
+				   v, v->v_protocol,
 				   ob->ob_instance, reg_id_param, NULL);
-    
+
   v = sip_via_dup(home, v);
 
   if (!rcontact || !dcontact || !v) {
@@ -1089,8 +1105,10 @@ int outbound_contacts_from_via(outbound_t *ob, sip_via_t const *via)
     previous_dcontact = ob->ob_dcontact;
     previous_via = ob->ob_via;
 
-    if (ob->ob_registering &&
-        (reg_id == 0 || ob->ob_info.outbound < outbound_feature_supported))
+    if (ob->ob_registered
+        /* && (ob->ob_reg_id == 0 || ob->ob_info.outbound < outbound_feature_supported)
+         * XXX - multiple connections not yet supported
+	 */)
       previous_rcontact = NULL, ob->ob_previous = ob->ob_rcontact;
     else
       previous_rcontact = ob->ob_rcontact, ob->ob_previous = NULL;
@@ -1150,14 +1168,14 @@ int outbound_set_contact(outbound_t *ob,
   if (terminating) {
     if (ob->ob_by_stack && application_contact == NULL)
       return 0;
-    
+
     if (ob->ob_contacts)
       previous = ob->ob_rcontact;
   }
   else if (application_contact) {
     rcontact = sip_contact_dup(home, application_contact);
 
-    if (!ob->ob_rcontact || 
+    if (!ob->ob_rcontact ||
 	url_cmp_all(ob->ob_rcontact->m_url, application_contact->m_url)) {
       contact_uri_changed = 1;
       previous = ob->ob_contacts ? ob->ob_rcontact : NULL;
@@ -1167,10 +1185,10 @@ int outbound_set_contact(outbound_t *ob,
     return 0;    /* Xyzzy - nothing happens */
   }
   else if (v) {
-    char const *tport = !v->v_next ? v->v_protocol : NULL; 
+    char const *tport = !v->v_next ? v->v_protocol : NULL;
     char reg_id_param[20];
 
-    dcontact = ob->ob_oo->oo_contact(ob->ob_owner, home, 1, 
+    dcontact = ob->ob_oo->oo_contact(ob->ob_owner, home, 1,
 				     v, tport, NULL);
     if (!dcontact)
       return -1;
@@ -1179,18 +1197,18 @@ int outbound_set_contact(outbound_t *ob,
       snprintf(reg_id_param, sizeof reg_id_param, ";reg-id=%u", ob->ob_reg_id);
 
     rcontact = ob->ob_oo->oo_contact(ob->ob_owner, home, 0,
-				     v, v->v_protocol, 
+				     v, v->v_protocol,
 				     ob->ob_instance, reg_id_param, NULL);
     if (!rcontact)
       return -1;
 
-    if (!ob->ob_rcontact || 
+    if (!ob->ob_rcontact ||
 	url_cmp_all(ob->ob_rcontact->m_url, rcontact->m_url)) {
       contact_uri_changed = 1;
       previous = ob->ob_contacts ? ob->ob_rcontact : NULL;
     }
   }
-    
+
   ob->ob_by_stack = application_contact == NULL;
 
   ob->ob_contacts = rcontact != NULL;

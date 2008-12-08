@@ -2,9 +2,9 @@ PROJECT_NAME         = "sofia-sip/su-glib"
 
 OUTPUT_DIRECTORY     = ../docs/html/su-glib
 
-INPUT 		     = ../../../libsofia-sip-ua-glib/su-glib/su_glib.docs ../../../libsofia-sip-ua-glib/su-glib . ../../../libsofia-sip-ua-glib/su-glib/sofia-sip
+INPUT 		     = ./su_glib.docs . . ./sofia-sip
 
-@INCLUDE_PATH        = ../../../libsofia-sip-ua-glib/su-glib .
+@INCLUDE_PATH        = . .
 @INCLUDE             = ../docs/Doxyfile.conf
 
 GENERATE_TAGFILE     = ../docs/su_glib.doxytags

@@ -36,6 +36,9 @@
 /* Define to 1 if you have the `clock_gettime' function. */
 #undef HAVE_CLOCK_GETTIME
 
+/* Define to 1 if you have CLOCK_MONOTONIC */
+#undef HAVE_CLOCK_MONOTONIC
+
 /* Defined when gcov is enabled to force by changing config.h */
 #undef HAVE_COVERAGE
 
@@ -189,6 +192,9 @@
 
 /* Define to 1 if you have the `memcspn' function. */
 #undef HAVE_MEMCSPN
+
+/* Define to 1 for memory-leak-related logging */
+#undef HAVE_MEMLEAK_LOG
 
 /* Define to 1 if you have the `memmem' function. */
 #undef HAVE_MEMMEM
