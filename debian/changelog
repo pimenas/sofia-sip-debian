@@ -1,3 +1,17 @@
+sofia-sip (1.12.10-1) experimental; urgency=low
+
+  * New upstream release
+
+  [ Patrick Matthäi ]
+  * Bumped Standards-Version to 3.8.0.
+  * Removed various whitespaces at EOL.
+
+  [ Mark Purcell ]
+  * Fix debhelper-but-no-misc-depends sofia-sip-doc
+  * Update MD5TRUSTED
+
+ -- Mark Purcell <msp@debian.org>  Sat, 03 Jan 2009 12:21:12 +1100
+
 sofia-sip (1.12.9-1) unstable; urgency=low
 
   * New upstream release
