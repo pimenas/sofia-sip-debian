@@ -1,3 +1,15 @@
+sofia-sip (1.12.10-2) experimental; urgency=low
+
+  * added symbol files: libsofia-sip-ua-glib3.symbols and
+    libsofia-sip-ua0.symbols.ARCH (only i386 is currently 
+    done, the rest would need the diffs of autobuilders logs) 
+  * libsofia-sip-ua-glib0.install removed, no such package anymore
+  * added DEB_DH_MAKESHLIBS_ARGS_ALL := -- -c4
+  * get-orig-source: change wget options to 
+    --no-check-certificate --quiet -nv -T20 -t3 -O
+
+ -- George Danchev <danchev@spnet.net>  Sun, 04 Jan 2009 15:47:56 +0200
+
 sofia-sip (1.12.10-1) experimental; urgency=low
 
   * New upstream release

@@ -10,6 +10,7 @@ include /usr/share/cdbs/1/class/autotools.mk
 DEB_MAKE_CLEAN_TARGET 		= clean
 DEB_DH_INSTALL_SOURCEDIR 	= debian/tmp
 DEB_INSTALL_DOCS_sofia-sip-doc  := libsofia-sip-ua/docs/html
+DEB_DH_MAKESHLIBS_ARGS_ALL      := -- -c4
 
 common-build-indep::
 	$(MAKE) doxygen
@@ -41,8 +42,8 @@ get-orig-source:
 	@@[ -d ../tarballs/. ]||mkdir -p ../tarballs
 
 	-@if [ ! -f ../tarballs/$(DEFILE) ] ; then \
-		echo "Downloading $(URL)/$(UPFILE) from $(URL)/$(UPFILE) ..." ; \
-		wget -N -nv -T10 -t3 -O ../tarballs/$(DEFILE) $(URL)/$(UPFILE) ; \
+		echo "Downloading $(URL)/$(UPFILE) ..." ; \
+		wget --no-check-certificate --quiet -nv -T20 -t3 -O ../tarballs/$(DEFILE) $(URL)/$(UPFILE) ; \
 	else \
 		echo "Upstream source tarball have been already downloaded" ; \
 	fi

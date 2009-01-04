@@ -1,0 +1,7 @@
+libsofia-sip-ua-glib.so.3 #MINVER#
+ su_glib_prefer_gsource@Base 1.12.10
+ su_glib_root_create@Base 1.12.10
+ su_glib_root_gsource@Base 1.12.10
+ su_root_source_create@Base 1.12.10
+ su_source_port_lock@Base 1.12.10
+ su_source_port_unlock@Base 1.12.10
