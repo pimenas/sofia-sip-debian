@@ -10,7 +10,7 @@ include /usr/share/cdbs/1/class/autotools.mk
 DEB_MAKE_CLEAN_TARGET 		= clean
 DEB_DH_INSTALL_SOURCEDIR 	= debian/tmp
 DEB_INSTALL_DOCS_sofia-sip-doc  := libsofia-sip-ua/docs/html
-DEB_DH_MAKESHLIBS_ARGS_ALL      := -- -c4
+DEB_DH_MAKESHLIBS_ARGS_ALL      := -- -c1
 
 common-build-indep::
 	$(MAKE) doxygen

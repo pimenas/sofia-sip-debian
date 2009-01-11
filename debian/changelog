@@ -1,3 +1,26 @@
+sofia-sip (1.12.10-3) experimental; urgency=low
+
+  * "Steal symbol diffs from experimental buildd' logs" release
+  
+  * Fix the header of libsofia-sip-ua-glib3.symbols (Closes: #512699)
+  * Downgrade dpkg-gensymbols check to -c1, since we want to fail
+    only when some symbols have disappeared (Closes: #512700).
+  * Add new symbols:
+      libsofia-sip-ua0.symbols.arm
+      libsofia-sip-ua0.symbols.armel
+      libsofia-sip-ua0.symbols.amd64
+      libsofia-sip-ua0.symbols.powerpc
+      libsofia-sip-ua0.symbols.ia64
+      libsofia-sip-ua0.symbols.sparc
+      libsofia-sip-ua0.symbols.s390
+      libsofia-sip-ua0.symbols.hppa
+      libsofia-sip-ua0.symbols.mips
+  * Add new files:
+      libsofia-sip-ua0.symbols.kfreebsd-i386
+      libsofia-sip-ua0.symbols.kfreebsd-amd64
+
+ -- George Danchev <danchev@spnet.net>  Sun, 11 Jan 2009 05:21:36 +0200
+
 sofia-sip (1.12.10-2) experimental; urgency=low
 
   * added symbol files: libsofia-sip-ua-glib3.symbols and
