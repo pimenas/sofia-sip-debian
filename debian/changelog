@@ -1,3 +1,25 @@
+sofia-sip (1.12.10-4~bpo50+1) lenny-backports; urgency=low
+
+  * Rebuild for lenny.
+  * Add myself as an uploader.
+
+ -- Andres Salomon <dilinger@debian.org>  Thu, 15 Oct 2009 19:19:40 +0000
+
+sofia-sip (1.12.10-4) unstable; urgency=low
+
+  * Upload to unstable.
+  * Add new symbols from experimental buildd logs:
+      libsofia-sip-ua0.symbols.alpha
+      libsofia-sip-ua0.symbols.mipsel
+  * Remove empty symbol files for unofficial architectures (will
+    be added eventually later as access to such buildd logs is available):
+      libsofia-sip-ua0.symbols.kfreebsd-i386
+      libsofia-sip-ua0.symbols.kfreebsd-amd64
+  * fix copyright link to point to LGPL-2.1 (though sources mention 
+    LGPL version 2.1 or optionally any later)
+
+ -- George Danchev <danchev@spnet.net>  Sun, 15 Feb 2009 18:02:43 +0200
+
 sofia-sip (1.12.10-3) experimental; urgency=low
 
   * "Steal symbol diffs from experimental buildd' logs" release
