@@ -47,7 +47,7 @@ else
 fi
 
 AC_ARG_ENABLE(experimental,
-[  --enable-experimental       enable experimental features (disabled)],
+[  --enable-experimental   enable experimental features [[disabled]]],
  , enable_experimental=no)
 
 if test $enable_experimental = yes ; then
@@ -77,9 +77,10 @@ case "$ac_cv_c_inline" in
 		Define to 1 if you have inline functions.
 	])dnl
   ;;
-  no)  SAC_SU_DEFINE(su_inline, static)dnl
-       SAC_SU_DEFINE(SU_INLINE)dnl
-       SAC_SU_DEFINE(SU_HAVE_INLINE)dnl
+  no | "" )
+       SAC_SU_DEFINE(su_inline, static)dnl
+       SAC_SU_DEFINE(SU_INLINE, /*inline*/)dnl
+       SAC_SU_DEFINE(SU_HAVE_INLINE, 0)dnl
   ;;
   *)   SAC_SU_DEFINE_UNQUOTED(su_inline, static $ac_cv_c_inline)dnl
        SAC_SU_DEFINE_UNQUOTED(SU_INLINE, $ac_cv_c_inline)dnl
@@ -88,7 +89,7 @@ case "$ac_cv_c_inline" in
 esac
 
 AC_ARG_ENABLE(size-compat,
-[  --disable-size-compat            use compatibility size_t types (enabled)],
+[  --disable-size-compat   use compatibility size_t types [[enabled]]],
  , enable_size_compat=yes)
 
 if test X$enable_size_compat != Xyes; then
@@ -112,7 +113,8 @@ dnl ======================================================================
 dnl SAC_ENABLE_COREFOUNDATION
 dnl ======================================================================
 AC_ARG_ENABLE(corefoundation,
-[  --enable-corefoundation     compile with OSX COREFOUNDATION (disabled)],
+[  --enable-corefoundation 
+                          compile with OSX COREFOUNDATION [[disabled]]],
  , enable_corefoundation=no)
 AM_CONDITIONAL(COREFOUNDATION, test $enable_corefoundation = yes)
 
@@ -194,13 +196,18 @@ if test "$ac_cv_sa_len" = yes ;then
 	        [Define to 1 if you have sa_len in struct sockaddr])
 fi
 
-AC_REQUIRE([AC_STRUCT_SIN6])
+AC_ARG_ENABLE([ip6],
+[  --disable-ip6          disable IPv6 functionality [[enabled]]],,enable_ip6=yes)
+
+if ! test no$enable_ip6 = nono ; then
+AC_STRUCT_SIN6
 case $ac_cv_sin6 in 
 yes) SAC_SU_DEFINE(SU_HAVE_IN6, 1, [
 	Define to 1 if you have struct sockaddr_in6]) ;;
  no) ;;
   *) AC_MSG_ERROR([Inconsistent struct sockaddr_sin6 test]) ;;
 esac
+fi
 
 AC_CHECK_HEADERS([unistd.h sys/time.h])
 
@@ -239,7 +246,7 @@ dnl no winsock2
 
 SAC_SU_DEFINE([SU_HAVE_BSDSOCK], 1, [Define to 1 if you have BSD socket interface])
 AC_CHECK_HEADERS([sys/socket.h sys/ioctl.h sys/filio.h sys/sockio.h \
-		  sys/select.h sys/epoll.h])
+		  sys/select.h sys/epoll.h sys/devpoll.h])
 AC_CHECK_HEADERS([netinet/in.h arpa/inet.h netdb.h \
                   net/if.h net/if_types.h ifaddr.h netpacket/packet.h],,,
 		[
@@ -443,7 +450,7 @@ AC_FUNC_ALLOCA
 
 AC_CHECK_FUNCS([gettimeofday strerror random initstate tcsetattr flock \
                 socketpair gethostname gethostbyname getipnodebyname \
-                poll epoll_create select if_nameindex \
+                poll epoll_create kqueue select if_nameindex \
 		signal alarm \
 	        getaddrinfo getnameinfo freeaddrinfo gai_strerror getifaddrs \
                 getline getdelim getpass])
@@ -484,9 +491,9 @@ fi
 # ===========================================================================
 
 AC_ARG_ENABLE(poll-port,
-[  --disable-poll-port              disable su_poll_port (enabled)
-                                   Use this option in systems emulating poll
-                                   with select], , enable_poll_port=maybe)
+[  --disable-poll-port     disable su_poll_port [[enabled]]
+                          Use this option in systems emulating poll with select],
+ , enable_poll_port=maybe)
 
 if test $enable_poll_port = maybe ; then
   if test $ac_cv_func_poll = yes ; then

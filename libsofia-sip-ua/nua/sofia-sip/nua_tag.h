@@ -157,6 +157,9 @@ SOFIAPUBVAR tag_typedef_t nutag_with;
  */
 #define NUTAG_WITH_THIS(nua) nutag_with, tag_ptr_v(nua_current_request((nua)))
 
+#define NUTAG_WITH_CURRENT(nua) \
+   nutag_with, tag_ptr_v(nua_current_request((nua)))
+
 /**Specify request to respond to.
  *
  * @par Used with
@@ -173,6 +176,26 @@ SOFIAPUBVAR tag_typedef_t nutag_with;
  * @sa nua_save_event(), NUTAG_WITH(), NUTAG_WITH_THIS()
  */
 #define NUTAG_WITH_SAVED(e) nutag_with, tag_ptr_v(nua_saved_event_request((e)))
+
+/**An (extension) method is used to create dialog or refresh target.
+ *
+ * @par Used with
+ *    nua_method()
+ *
+ * @par Parameter type
+ *    unsigned int (0, 1, 2) 
+ *
+ * @par Values
+ *   - 0 if dialog target is not refreshed
+ *   - 1 if dialog target is refreshed
+ *   - > 1 if dialog is to be created 
+ *
+ * @NEW_1_12_6.
+ *
+ * @sa nua_method(), #nua_i_method
+ */
+#define NUTAG_DIALOG(b) nutag_dialog, tag_uint_v((b))
+SOFIAPUBVAR tag_typedef_t nutag_dialog;
 
 /**Set request retry count.
  *
@@ -451,8 +474,8 @@ SOFIAPUBVAR tag_typedef_t nutag_include_extra_sdp_ref;
  *
  * @par Used with
  *    nua_invite() \n
- *    nua_set_params() \n
- *    nua_get_params()
+ *    nua_set_params(), nua_set_hparams(),
+ *    nua_get_params(), nua_get_hparams()
  *
  * @par Parameter type
  *    int (enum nua_af)
@@ -471,46 +494,58 @@ SOFIAPUBVAR tag_typedef_t nutag_invite_timer_ref;
 
 /**Default session timer in seconds.
  *
- * Set default session timer in seconds when using session timer extension. 
- * The value given here is the proposed session expiration time in seconds.
- * Note that the session timer extension is ponly used 
+ * Set default value for session timer in seconds when the session timer
+ * extension is used. The tag value is the proposed session expiration time
+ * in seconds, the session is refreshed twice during the expiration time.
  *
  * @par Sending INVITE and UPDATE Requests 
  *
- * If NUTAG_SESSION_TIMER() is used with non-zero value, the value is
- * used in the @SessionExpires header included in the INVITE or UPDATE
- * requests. The intermediate proxies or the ultimate destination can lower
- * the interval in @SessionExpires header. If the value is too low, they can
+ * If NUTAG_SESSION_TIMER() is used with non-zero value, the value is used
+ * in the @SessionExpires header included in the INVITE or UPDATE requests. 
+ * The intermediate proxies or the ultimate destination can lower the
+ * interval in @SessionExpires header. If the value is too low, they can
  * reject the request with the status code <i>422 Session Timer Too
- * Small</i>. When Re-INVITE will be sent in given intervals. In that case,
- * @b nua retries the request automatically.
- * 
- * @par Returning Response to the INVITE and UPDATE Requests 
+ * Small</i>. In that case, @b nua increases the value of @SessionExpires
+ * header and retries the request automatically.
+ *
+ * @par Returning a Response to the INVITE and UPDATE Requests 
  *
  * The NUTAG_SESSION_TIMER() value is also used when sending the final
  * response to the INVITE or UPDATE requests. If the NUTAG_SESSION_TIMER()
- * value is 0 or the value in the @SessionExpires header of the requeast is
+ * value is 0 or the value in the @SessionExpires header of the request is
  * lower than the value in NUTAG_SESSION_TIMER(), the value from the
  * incoming @SessionExpires header is used. However, if the value in
  * @SessionExpires is lower than the minimal acceptable session expiration
  * interval specified with the tag NUTAG_MIN_SE() the request is
  * automatically rejected with <i>422 Session Timer Too Small</i>.
  *
+ * @par Refreshes
+ *
+ * After the initial INVITE request, the SIP session is refreshed at the
+ * intervals indicated by the @SessionExpires header returned in the 2XX
+ * response. The party indicated with the "refresher" parameter of the
+ * @SessionExpires header sends a re-INVITE requests (or an UPDATE
+ * request if NUTAG_UPDATE_REFRESH(1) parameter tag has been set).
+ * 
  * @par When to Use NUTAG_SESSION_TIMER()?
  *
  * The session time extension is enabled ("timer" feature tag is included in
  * @Supported header) but not activated by default (no @SessionExpires
  * header is included in the requests or responses by default). Using
- * non-zero value with NUTAG_SESSION_TIMER() activates it. When the
- * extension is activated, @nua refreshes the call state by sending periodic
- * re-INVITE or UPDATE requests unless the remote end indicated that it will
- * take care of refreshes.
+ * non-zero value with NUTAG_SESSION_TIMER() or NUTAG_SESSION_REFRESHER()
+ * activates it. When the extension is activated, @nua refreshes the call
+ * state by sending periodic re-INVITE or UPDATE requests unless the remote
+ * end indicated that it will take care of refreshes.
  *
  * The session timer extension is mainly useful for proxies or back-to-back
  * user agents that keep call state. The call state is "soft" meaning that
  * if no call-related SIP messages are processed for certain time the state
  * will be destroyed. An ordinary user-agent can also make use of session
  * timer if it cannot get any activity feedback from RTP or other media.
+ *
+ * @note The session timer extension is used only if the feature
+ * tag "timer" is listed in the @Supported header, set by NUTAG_SUPPORTED(),
+ * SIPTAG_SUPPORTED(), or SIPTAG_SUPPORTED_STR() tags.
  *
  * @par Used with
  *    nua_invite(), nua_update(), nua_respond() \n
@@ -530,8 +565,8 @@ SOFIAPUBVAR tag_typedef_t nutag_invite_timer_ref;
  * Corresponding tag taking reference parameter is NUTAG_SESSION_TIMER_REF()
  *
  * @sa NUTAG_SUPPORTED(), NUTAG_MIN_SE(), NUTAG_SESSION_REFRESHER(),
- * nua_invite(), #nua_r_invite, #nua_i_invite, nua_update(), #nua_r_update,
- * #nua_i_update, 
+ * nua_invite(), #nua_r_invite, #nua_i_invite, nua_respond(), 
+ * nua_update(), #nua_r_update, #nua_i_update, 
  * NUTAG_UPDATE_REFRESH(), @RFC4028, @SessionExpires, @MinSE
  */
 #define NUTAG_SESSION_TIMER(x)  nutag_session_timer, tag_uint_v((x))
@@ -571,6 +606,7 @@ SOFIAPUBVAR tag_typedef_t nutag_min_se;
 #define NUTAG_MIN_SE_REF(x)     nutag_min_se_ref, tag_uint_vr((&(x)))
 SOFIAPUBVAR tag_typedef_t nutag_min_se_ref;
 
+/** Enumeration type of NUTAG_SESSION_REFRESHER(). */
 enum nua_session_refresher {
   nua_no_refresher,		/**< Disable session timer. */
   nua_local_refresher,		/**< Session refresh by local end. */
@@ -1246,6 +1282,40 @@ SOFIAPUBVAR tag_typedef_t nutag_auth;
 #define NUTAG_AUTH_REF(x)	    nutag_auth_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t nutag_auth_ref;
 
+/** Authentication caching policy
+ *
+ * @par Used with
+ *    nua_set_params(), nua_set_hparams() \n
+ *    nua_get_params(), nua_get_hparams() \n
+ *    @NUA_HPARAM_CALLS 
+ *
+ * @par Parameter type
+ *    enum nua_auth_cache
+ *
+ * @par Values
+ *    - nua_auth_cache_dialog (0) - include credentials within dialog
+ *    - nua_auth_cache_challenged (1) - include credentials only when 
+ *                                      challenged
+ *    
+ * Corresponding tag taking reference parameter is NUTAG_AUTH_CACHE_REF().
+ *
+ * @NEW_1_12_6
+ */
+#define NUTAG_AUTH_CACHE(x)   nutag_auth_cache, tag_int_v(x)
+SOFIAPUBVAR tag_typedef_t nutag_auth_cache;
+
+#define NUTAG_AUTH_CACHE_REF(x) nutag_auth_cache_ref, tag_int_vr(&(x))
+SOFIAPUBVAR tag_typedef_t nutag_auth_cache_ref;
+
+/** Authentication caching policy. @NEW_1_12_6 */
+enum nua_auth_cache {
+  /** Include credentials within dialog (default) */
+  nua_auth_cache_dialog = 0,
+  /** Include credentials only when challenged */
+  nua_auth_cache_challenged = 1,
+  _nua_auth_cache_invalid
+};
+
 /** Keepalive interval in milliseconds.
  *
  * This setting applies to OPTIONS/STUN keepalives. See documentation 
@@ -1747,7 +1817,8 @@ SOFIAPUBVAR tag_typedef_t nutag_allow_ref;
  *
  * Corresponding tag taking reference parameter is NUTAG_APPL_METHOD_REF()
  *
- * @since Working since @VERSION_1_12_5. 
+ * @since Working since @VERSION_1_12_5. Handling of client-side PRACK and
+ * UPDATE was fixed in @VERSION_1_12_6.
  */
 #define NUTAG_APPL_METHOD(x)     nutag_appl_method, tag_str_v(x)
 SOFIAPUBVAR tag_typedef_t nutag_appl_method;

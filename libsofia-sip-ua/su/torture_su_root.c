@@ -37,7 +37,7 @@
 
 #include "config.h"
 
-char const *name = "su_root_test";
+char const *name = "torture_su_root";
 
 #include <stdio.h>
 #include <string.h>
@@ -97,7 +97,10 @@ struct root_test_s {
 };
 
 /** Test root initialization */
-int init_test(root_test_t *rt)
+int init_test(root_test_t *rt,
+	      char const *preference,
+	      su_port_create_f *create,
+	      su_clone_start_f *start)
 {
   su_sockaddr_t su[1] = {{ 0 }};
   int i;
@@ -106,9 +109,14 @@ int init_test(root_test_t *rt)
 
   su_init();
 
-  su->su_family = rt->rt_family;
+  su_port_prefer(create, start);
 
   TEST_1(rt->rt_root = su_root_create(rt));
+
+  printf("%s: testing %s (%s) implementation\n",
+	 name, preference, su_root_name(rt->rt_root));
+
+  su->su_family = rt->rt_family;
 
   for (i = 0; i < 5; i++) {
     test_ep_t *ep = rt->rt_ep[i];
@@ -524,11 +532,12 @@ static int clone_test(root_test_t rt[1])
   END();
 }
 
-void usage(void)
+void usage(int exitcode)
 {
   fprintf(stderr, 
-	  "usage: %s [-v]\n", 
+	  "usage: %s [-v] [-a]\n", 
 	  name);
+  exit(exitcode);
 }
 
 int main(int argc, char *argv[])
@@ -540,14 +549,20 @@ int main(int argc, char *argv[])
   struct {
     su_port_create_f *create;
     su_clone_start_f *start;
-    char const *preference;
+    char const *name;
   } prefer[] =
       {
 	{ NULL, NULL, "default" },
-#if HAVE_POLL_PORT
 #if HAVE_EPOLL
 	{ su_epoll_port_create, su_epoll_clone_start, "epoll", },
 #endif
+#if HAVE_KQUEUE
+	{ su_kqueue_port_create, su_kqueue_clone_start, "kqueue", },
+#endif
+#if HAVE_SYS_DEVPOLL_H
+	{ su_devpoll_port_create, su_devpoll_clone_start, "devpoll", },
+#endif
+#if HAVE_POLL_PORT
 	{ su_poll_port_create, su_poll_clone_start, "poll" },
 #endif
 #if HAVE_SELECT
@@ -562,23 +577,22 @@ int main(int argc, char *argv[])
   for (i = 1; argv[i]; i++) {
     if (strcmp(argv[i], "-v") == 0)
       rt->rt_flags |= tst_verbatim;
+    else if (strcmp(argv[i], "-a") == 0)
+      rt->rt_flags |= tst_abort;
 #if SU_HAVE_IN6
     else if (strcmp(argv[i], "-6") == 0)
       rt->rt_family = AF_INET6;
 #endif
     else
-      usage();
+      usage(1);
   }
 
   i = 0;
 
   do {
     rt = rt1, *rt = *rt0;
-    printf("%s: testing %s implementation\n",
-	   name, prefer[i].preference);
-    su_port_prefer(prefer[i].create, prefer[i].start);
 
-    retval |= init_test(rt);
+    retval |= init_test(rt, prefer[i].name, prefer[i].create, prefer[i].start);
     retval |= register_test(rt);
     retval |= event_test(rt);
     su_root_threading(rt->rt_root, 1);

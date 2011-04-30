@@ -59,6 +59,9 @@ MSG_HEADER_CLASS(msg_, multipart, NULL, "", mp_common, append, \
 	         msg_multipart, msg_multipart)
 
 
+
+#define msg_offsetof(s, f) ((unsigned short)offsetof(s ,f))
+
 msg_mclass_t const msg_multipart_mclass[1] = 
 {{
 # if defined (MSG_MULTIPART_HCLASS)
@@ -75,12 +78,12 @@ msg_mclass_t const msg_multipart_mclass[1] =
 #endif
   sizeof (msg_multipart_t),
   msg_multipart_extract_body,
-  {{ msg_request_class, offsetof(msg_multipart_t, mp_request) }},
-  {{ msg_status_class, offsetof(msg_multipart_t, mp_status) }},
-  {{ msg_separator_class, offsetof(msg_multipart_t, mp_separator) }},
-  {{ msg_payload_class, offsetof(msg_multipart_t, mp_payload) }},
-  {{ msg_unknown_class, offsetof(msg_multipart_t, mp_unknown) }},
-  {{ msg_error_class, offsetof(msg_multipart_t, mp_error) }},
+  {{ msg_request_class, msg_offsetof(msg_multipart_t, mp_request) }},
+  {{ msg_status_class, msg_offsetof(msg_multipart_t, mp_status) }},
+  {{ msg_separator_class, msg_offsetof(msg_multipart_t, mp_separator) }},
+  {{ msg_payload_class, msg_offsetof(msg_multipart_t, mp_payload) }},
+  {{ msg_unknown_class, msg_offsetof(msg_multipart_t, mp_unknown) }},
+  {{ msg_error_class, msg_offsetof(msg_multipart_t, mp_error) }},
   {{ NULL, 0 }},
   NULL, 
   127, 
@@ -95,7 +98,7 @@ msg_mclass_t const msg_multipart_mclass[1] =
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
-    { msg_content_language_class, offsetof(msg_multipart_t, mp_content_language) },
+    { msg_content_language_class, msg_offsetof(msg_multipart_t, mp_content_language) },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
@@ -114,7 +117,7 @@ msg_mclass_t const msg_multipart_mclass[1] =
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
-    { msg_content_location_class, offsetof(msg_multipart_t, mp_content_location) },
+    { msg_content_location_class, msg_offsetof(msg_multipart_t, mp_content_location) },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
@@ -135,7 +138,7 @@ msg_mclass_t const msg_multipart_mclass[1] =
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
-    { msg_content_type_class, offsetof(msg_multipart_t, mp_content_type) },
+    { msg_content_type_class, msg_offsetof(msg_multipart_t, mp_content_type) },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
@@ -161,13 +164,13 @@ msg_mclass_t const msg_multipart_mclass[1] =
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
-    { msg_content_encoding_class, offsetof(msg_multipart_t, mp_content_encoding) },
+    { msg_content_encoding_class, msg_offsetof(msg_multipart_t, mp_content_encoding) },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
-    { msg_content_disposition_class, offsetof(msg_multipart_t, mp_content_disposition) },
+    { msg_content_disposition_class, msg_offsetof(msg_multipart_t, mp_content_disposition) },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
@@ -196,11 +199,11 @@ msg_mclass_t const msg_multipart_mclass[1] =
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
-    { msg_content_transfer_encoding_class, offsetof(msg_multipart_t, mp_content_transfer_encoding) },
+    { msg_content_transfer_encoding_class, msg_offsetof(msg_multipart_t, mp_content_transfer_encoding) },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
-    { msg_content_id_class, offsetof(msg_multipart_t, mp_content_id) },
+    { msg_content_id_class, msg_offsetof(msg_multipart_t, mp_content_id) },
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },

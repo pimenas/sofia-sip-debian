@@ -354,7 +354,7 @@ int test_basic(void)
     su_home_t home[1] = { SU_HOME_INIT(home) };
     char const *display;
     url_t url[1];
-    char const * const *params;
+    msg_param_t const *params;
     char const *comment;
     char const na[] = "Raaka Arska <tel:+358501970>;param=1;humppa (test) ";
     char const na2[] = "tel:+358501970;param=1;humppa (test) ";
@@ -417,7 +417,7 @@ int test_basic(void)
     su_free(home, f);
 
     TEST_1(t = sip_to_create(home, (void *)"<sip:joe@bar;tag=bar> (joe)"));
-    TEST_1(sip_is_to((sip_header_t*)f));
+    TEST_1(sip_is_to((sip_header_t*)t));
     TEST_1(sip_to_tag(home, t, "tag=jxahudsf") == 0);
     TEST_S(t->a_tag, "jxahudsf");
     TEST(msg_header_replace_param(home, t->a_common, "tag=bar"), 1);
@@ -516,7 +516,7 @@ int test_basic(void)
 
     v = sip_via_make(home, "SIP/2.0/UDP domain.invalid:5060"); TEST_1(v);
     s = sip_contact_string_from_via(home, v, NULL, v->v_protocol);
-    TEST_S(s, "<sip:domain.invalid:5060;transport=udp>");
+    TEST_S(s, "<sip:domain.invalid;transport=udp>");
     su_free(home, v), su_free(home, s);
 
     TEST_1(sip_transport_has_tls("SIP/2.0/TLS-SCTP"));
@@ -744,8 +744,6 @@ int test_sip_msg_class(msg_mclass_t const *mc)
   }
 
   END();
-
-  return 0;
 }
 
 msg_t *read_message(int flags, char const buffer[])
@@ -2537,6 +2535,7 @@ int test_request_disposition(void)
 }
 
 #include <float.h>
+#include <math.h>
 
 int test_caller_prefs(void)
 {
@@ -2652,7 +2651,7 @@ int test_caller_prefs(void)
     
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_range);
-  TEST_D(sp->sp_range.spr_lower, DBL_MIN);
+  TEST_D(sp->sp_range.spr_lower, -DBL_MAX);
   TEST_D(sp->sp_range.spr_upper, 3.0);
   TEST_1(sip_prefs_match(sp, sp));
   TEST_1(!negate);
@@ -2670,7 +2669,7 @@ int test_caller_prefs(void)
 
   TEST_1(sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_range);
-  TEST_D(sp->sp_range.spr_lower, DBL_MIN);
+  TEST_D(sp->sp_range.spr_lower, -DBL_MAX);
   TEST_D(sp->sp_range.spr_upper, 6.0);
   TEST_1(sip_prefs_match(sp, sp));
   TEST_1(negate);
@@ -2688,6 +2687,46 @@ int test_caller_prefs(void)
 
   TEST_1(!sip_prefs_parse(sp, &s, &negate));
   TEST(sp->sp_type, sp_init);
+
+  /* Numeric */
+  s = "\" !#="
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111."
+
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111"
+    "1111111111111111111111111111111111111111,"
+    " #<=-16"
+    "\"";
+
+  negate = 0; memset(sp, 0, sizeof sp);
+
+  TEST_1(sip_prefs_parse(sp, &s, &negate));
+  TEST(sp->sp_type, sp_range);
+  TEST_D(sp->sp_range.spr_lower, DBL_MAX);
+  TEST_D(sp->sp_range.spr_upper, DBL_MAX);
+  TEST_1(sip_prefs_match(sp, sp));
+  TEST_1(negate);
+
+  TEST_1(sip_prefs_parse(sp, &s, &negate));
+  TEST(sp->sp_type, sp_range);
+  TEST_D(sp->sp_range.spr_lower, -DBL_MAX);
+  TEST_D(sp->sp_range.spr_upper, -16.0);
+  TEST_1(sip_prefs_match(sp, sp));
+  TEST_1(!negate);
 
   error = 12;
 
@@ -3217,11 +3256,12 @@ static int test_utils(void)
   END();
 }
 
-void usage(void)
+void usage(int exitcode)
 {
   fprintf(stderr, 
-	  "usage: %s [-v]\n", 
+	  "usage: %s [-v] [-a]\n", 
 	  name);
+  exit(exitcode);
 }
 
 char *lastpart(char *path)
@@ -3242,8 +3282,10 @@ int main(int argc, char *argv[])
   for (i = 1; argv[i]; i++) {
     if (strcmp(argv[i], "-v") == 0)
       tstflags |= tst_verbatim;
+    else if (strcmp(argv[i], "-a") == 0)
+      tstflags |= tst_abort;
     else
-      usage();
+      usage(1);
   }
 
   if (!test_mclass)

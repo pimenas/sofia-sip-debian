@@ -622,18 +622,20 @@ static int nua_register_client_init(nua_client_request_t *cr,
     return -1;
   nr = nua_dialog_usage_private(du);
 
-  nua_registration_add(&nh->nh_nua->nua_registrations, nr);
-
   if (nua_client_bind(cr, du) < 0)
     return -1;
 
-  if (aor == NULL)
-    aor = sip->sip_from;
-  if (aor == NULL)
-    aor = nh->nh_nua->nua_from;
+  if (!nr->nr_list) {
+    nua_registration_add(&nh->nh_nua->nua_registrations, nr);
 
-  if (nua_registration_set_aor(nh->nh_home, nr, aor) < 0)
-    return -1;
+    if (aor == NULL)
+      aor = sip->sip_from;
+    if (aor == NULL)
+      aor = nh->nh_nua->nua_from;
+
+    if (nua_registration_set_aor(nh->nh_home, nr, aor) < 0)
+      return -1;
+  }
 
   if (nua_registration_set_contact(nh, nr, sip->sip_contact, unreg) < 0)
     return -1;
@@ -800,7 +802,7 @@ static int nua_register_client_check_restart(nua_client_request_t *cr,
 
   /* Restart only if nua_base_client_check_restart() did not try to restart */
   if (restart && retry_count == cr->cr_retry_count)
-    return nua_client_restart(cr, status, phrase);
+    return nua_client_restart(cr, 100, "Outbound NAT Detected");
   
   return 0;
 }
@@ -879,7 +881,7 @@ static int nua_register_client_response(nua_client_request_t *cr,
     if (mindelta == SIP_TIME_MAX)
       mindelta = 3600;
 
-    nua_dialog_usage_set_expires(du, mindelta);
+    nua_dialog_usage_set_refresh(du, mindelta);
 
   /*  RFC 3608 Section 6.1 Procedures at the UA
 
@@ -933,7 +935,7 @@ static int nua_register_client_response(nua_client_request_t *cr,
     nua_registration_set_ready(nr, 1);
   }
   else if (du) {
-    nua_dialog_usage_set_expires(du, 0);
+    nua_dialog_usage_set_refresh(du, 0);
 
     su_free(nh->nh_home, nr->nr_route);
     nr->nr_route = NULL;
@@ -960,8 +962,7 @@ static void nua_register_usage_refresh(nua_handle_t *nh,
   nua_client_request_t *cr = du->du_cr;
 
   if (cr) {
-    if (nua_client_is_queued(cr) /* Already registering. */
-	|| nua_client_resend_request(cr, 0, NULL) >= 0)
+    if (nua_client_resend_request(cr, 0) >= 0)
       return;
   }
 
@@ -987,7 +988,7 @@ static int nua_register_usage_shutdown(nua_handle_t *nh,
     if (nua_client_is_queued(cr)) /* Already registering. */
       return -1;
     cr->cr_event = nua_r_unregister;
-    if (nua_client_resend_request(cr, 1, NULL) >= 0)
+    if (nua_client_resend_request(cr, 1) >= 0)
       return 0;
   }
 
@@ -1884,10 +1885,11 @@ sip_contact_t *nua_handle_contact_by_via(nua_handle_t *nh,
     /* Make transport parameter lowercase */
     if (strlen(transport) < (sizeof _transport)) {
       char *s = strcpy(_transport, transport);
+      short c;
 
-      for (s = _transport; *s && *s != ';'; s++)
-	if (isupper(*s))
-	  *s = tolower(*s);
+      for (s = _transport; (c = *s) && c != ';'; s++)
+	if (isupper(c))
+	  *s = tolower(c);
 
       transport = _transport;
     }

@@ -122,7 +122,7 @@ static int tstflags = 0;
 #if HAVE_WINSOCK2_H
 
 /* Posix send() */
-static inline 
+su_inline 
 ssize_t sres_send(sres_socket_t s, void *b, size_t length, int flags)
 {
   if (length > INT_MAX)
@@ -130,7 +130,7 @@ ssize_t sres_send(sres_socket_t s, void *b, size_t length, int flags)
   return (ssize_t)send(s, b, (int)length, flags);
 }
 
-static inline 
+su_inline 
 ssize_t sres_sendto(sres_socket_t s, void *b, size_t length, int flags,
 		    struct sockaddr const *sa, socklen_t salen)
 {
@@ -140,7 +140,7 @@ ssize_t sres_sendto(sres_socket_t s, void *b, size_t length, int flags,
 }
 
 /* Posix recvfrom() */
-static inline 
+su_inline 
 ssize_t sres_recvfrom(sres_socket_t s, void *buffer, size_t length, int flags,
 		      struct sockaddr *from, socklen_t *fromlen)
 {
@@ -166,7 +166,7 @@ static sres_socket_t sres_socket(int af, int socktype, int protocol)
   return socket(af, socktype, protocol);
 }
 
-static inline
+su_inline
 int sres_close(sres_socket_t s)
 {
   return closesocket(s);
@@ -1926,8 +1926,8 @@ int test_conf_errors(sres_context_t *ctx, char const *conf_file)
     
   TEST(sres_resolver_sockets(res, &socket, 1), n);
 
-#if HAVE_SA_LEN			
-  /* We fail this test in BSD systems */
+#if !__linux
+  /* We fail this test in most systems */
   /* conf_file looks like this:
 --8<--8<--8<--8<--8<--8<--8<--8<--8<--8<--8<--8<--
 nameserver 0.0.0.2
@@ -1964,11 +1964,16 @@ static RETSIGTYPE sig_alarm(int s)
 }
 #endif
 
-void usage(void)
+void usage(int exitcode)
 {
   fprintf(stderr, 
-	  "usage: %s [-v] [-l level] [-] [conf-file] [error-conf-file]\n", 
+	  "usage: %s OPTIONS [-] [conf-file] [error-conf-file]\n"
+	  "\twhere OPTIONS are\n"
+	  "\t    -v be verbose\n"
+	  "\t    -a abort on error\n"
+	  "\t    -l level\n",
 	  name);
+  exit(exitcode);
 }
 
 #include <sofia-sip/su_log.h>
@@ -1990,6 +1995,8 @@ int main(int argc, char **argv)
     }
     else if (strcmp(argv[i], "-v") == 0)
       tstflags |= tst_verbatim;
+    else if (strcmp(argv[i], "-a") == 0)
+      tstflags |= tst_abort;
     else if (strcmp(argv[i], "--no-alarm") == 0) {
       o_alarm = 0;
     }
@@ -2008,11 +2015,11 @@ int main(int argc, char **argv)
 	level = 3, rest = "";
 
       if (rest == NULL || *rest)
-	usage();
+	usage(1);
       
       su_log_set_level(sresolv_log, level);
     } else
-      usage();
+      usage(1);
   }
 
   if (o_attach) {

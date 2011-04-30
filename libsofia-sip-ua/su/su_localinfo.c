@@ -363,7 +363,7 @@ li_scope4(uint32_t ip4)
 
 #if HAVE_WINSOCK2_H
 #define IN6_IS_ADDR_LOOPBACK SU_IN6_IS_ADDR_LOOPBACK
-static inline int
+su_inline int
 IN6_IS_ADDR_LOOPBACK(void const *ip6)
 {
   uint8_t const *u = ip6;
@@ -1220,7 +1220,25 @@ int win_localinfo(su_localinfo_t const hints[1], su_localinfo_t **rresult)
       error = GetAdaptersAddresses(hints->li_family, flags, NULL, iaa0, &iaa_size);
   }
   if (error) {
-    SU_DEBUG_1(("su_localinfo: GetAdaptersAddresses failed: %d\n", error));
+    char const *empty = "";
+    LPTSTR msg = empty;
+
+    if (error == ERROR_NO_DATA) {
+      error = ELI_NOADDRESS;
+      goto err;
+    }
+
+    if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+	               FORMAT_MESSAGE_FROM_SYSTEM | 
+	               FORMAT_MESSAGE_IGNORE_INSERTS,
+	  	       NULL,
+	  	       error,
+		       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		       msg, 0, NULL))
+      msg = empty;
+ 
+    SU_DEBUG_1(("su_localinfo: GetAdaptersAddresses: %s (%d)\n", msg, error));
+    if (msg != empty) LocalFree((LPVOID)msg);
     error = ELI_SYSTEM;
     goto err;
   }

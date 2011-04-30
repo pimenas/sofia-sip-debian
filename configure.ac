@@ -11,14 +11,14 @@ dnl information on the package
 dnl ---------------------------
 
 dnl update both the version for AC_INIT and the LIBSOFIA_SIP_UA_MAJOR_MINOR
-AC_INIT([sofia-sip], [1.12.5])
+AC_INIT([sofia-sip], [1.12.6])
 AC_CONFIG_SRCDIR([libsofia-sip-ua/sip/sofia-sip/sip.h])
 AC_SUBST(VER_LIBSOFIA_SIP_UA_MAJOR_MINOR, [1.12])
 dnl Includedir specific to this sofia version
 AC_SUBST(include_sofiadir, '${includedir}/sofia-sip-1.12')
-AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [4])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [5])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_REV, [0])
-AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [4])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [5])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_SOVER, [0]) # CUR-AGE
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_CUR, [3])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_REV, [0])
@@ -53,8 +53,15 @@ SAC_ENABLE_EXPENSIVE_CHECKS
 dnl Add parameters for aclocal
 AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
 
-AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [echo])
-AM_CONDITIONAL([HAVE_DOXYGEN], [test $DOXYGEN = doxygen])
+AC_ARG_WITH(doxygen,
+[  --with-doxygen[[=CMD]]    use doxygen command CMD [[doxygen]]],[
+case $enable_doxygen in 
+yes ) doxygen=doxygen ;;
+no ) doxygen=echo ;;
+esac], doxygen=doxygen)
+
+AC_CHECK_PROG([DOXYGEN], [doxygen], [$doxygen], [echo])
+AM_CONDITIONAL([HAVE_DOXYGEN], [test $DOXYGEN != echo])
 
 ### checks for libraries
 ### --------------------
@@ -71,7 +78,7 @@ AC_DEFINE([HAVE_SOFIA_SRESOLV], 1, [Define to 1 if we use DNS library])
 AC_DEFINE([HAVE_SOFIA_SMIME], 0, [Define to 1 if we use S/MIME library])
 
 AC_ARG_ENABLE(stun,
-[  --disable-stun              disable stun module (enabled)],
+[  --disable-stun          disable stun module (enabled)],
  , enable_stun=yes)
 
 if test x$enable_stun = xno ; then
@@ -86,7 +93,7 @@ fi
 AM_CONDITIONAL([HAVE_STUN], [test "x$enable_stun" = xyes])
 
 AC_ARG_ENABLE(nth,
-[  --disable-nth              disable nth and http modules (enabled)],
+[  --disable-nth           disable nth and http modules (enabled)],
  , enable_nth=yes)
 AM_CONDITIONAL([HAVE_NTH], [test "x$enable_nth" = xyes])
 if test x$enable_nth = xyes ; then
@@ -95,7 +102,7 @@ fi
 
 dnl Disable NTLM support by default
 AC_ARG_ENABLE(ntlm,
-[  --enable-ntlm               enable NTLM support (disabled)],
+[  --enable-ntlm           enable NTLM support [[disabled]]],
  , enable_ntlm=no)
 
 if test x$enable_ntlm = xyes ; then
@@ -118,13 +125,92 @@ AC_HEADER_STDC
 ### ----------------
 
 AC_TYPE_SIGNAL
-AC_TYPE_LONGLONG([
-AC_DEFINE([LLU], ["%llu"], [Define to format (%llu) for unsigned long long])dnl
-AC_DEFINE([LLI], ["%lli"], [Define to format (%lli) for long long])dnl
-AC_DEFINE([LLX], ["%llx"], [Define to format (%llx) for long long hex])dnl
+AC_TYPE_LONGLONG
+
+dnl
+dnl Define HAVE_C99_FORMAT to 1 if the formatted IO functions (printf/scanf
+dnl et.al.) support the C99 'size specifiers', namely ll, hh, j, z, t
+dnl (representing long long int, char, intmax_t, size_t, ptrdiff_t). Some C
+dnl compilers supported these specifiers prior to C99 as an extension.
+dnl
+AC_CACHE_CHECK([whether IO functions support C99 size specifiers],
+[ac_cv_c_c99_format],[
+
+ac_cv_c_c99_format=yes
+
+AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],
+[[char buf[64];
+ if (sprintf(buf, "%lld%hhd%jd%zd%td", (long long int)1, (char)2, (intmax_t)3, (size_t)4, (ptrdiff_t)5) != 5)
+  exit(1);
+ else if (strcmp(buf, "12345"))
+  exit(2);]])],
+ [ac_cv_c_c99_format=yes],
+ [ac_cv_c_c99_format=no],
+ [ac_cv_c_c99_format=yes])
 ])
-AC_DEFINE([MOD_ZD], ["%zd"], [Define printf() modifier for ssize_t])
-AC_DEFINE([MOD_ZU], ["%zu"], [Define printf() modifier for size_t])
+
+if test $ac_cv_c_c99_format = yes; then
+  AC_DEFINE([HAVE_C99_FORMAT], [1], [Define to 1 if printf supports C99 size specifiers])dnl
+
+  AC_DEFINE([LLU], ["%llu"], [Format (%llu) for unsigned long long])dnl
+  AC_DEFINE([LLI], ["%lli"], [Format (%lli) for long long])dnl
+  AC_DEFINE([LLX], ["%llx"], [Format (%llx) for long long hex])dnl
+  AC_DEFINE([MOD_ZD], ["%zd"], [Define printf() modifier for ssize_t])dnl
+  AC_DEFINE([MOD_ZU], ["%zu"], [Define printf() modifier for size_t])dnl
+
+else
+
+AC_CACHE_CHECK([whether IO functions support size specifier for long long],
+[ac_cv_c_ll_format],[
+
+ac_cv_c_ll_format=yes
+
+AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],
+[[char buf[64];
+ if (sprintf(buf, "%lld", (long long int)1) != 1)
+  exit(1);
+ else if (strcmp(buf, "1"))
+  exit(2);]])],
+ [ac_cv_c_ll_format=yes],
+ [ac_cv_c_ll_format=no],
+ [ac_cv_c_ll_format=yes])
+])
+
+if test $ac_cv_c_ll_format = yes; then
+  AC_DEFINE([LLU], ["%llu"], [Format (%llu) for unsigned long long])dnl
+  AC_DEFINE([LLI], ["%lli"], [Format (%lli) for long long])dnl
+  AC_DEFINE([LLX], ["%llx"], [Format (%llx) for long long hex])dnl
+else
+  AC_MSG_ERROR("printf cannot handle 64-bit integers")
+fi
+
+AC_CACHE_CHECK([whether IO functions support size specifier for size_t],
+[ac_cv_c_z_format],[
+
+ac_cv_c_z_format=yes
+
+AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],
+[[char buf[64];
+ if (sprintf(buf, "%zd", (size_t)1) != 1)
+  exit(1);
+ else if (strcmp(buf, "1"))
+  exit(2);]])],
+ [ac_cv_c_z_format=yes],
+ [ac_cv_c_z_format=no],
+ [ac_cv_c_z_format=yes])
+])
+
+if test $ac_cv_c_z_format = yes; then
+  AC_DEFINE([MOD_ZD], ["%ld"], [Define printf() modifier for ssize_t])dnl
+  AC_DEFINE([MOD_ZU], ["%lu"], [Define printf() modifier for size_t])dnl
+else 
+  dnl Cross fingers
+  AC_MSG_WARN("printf cannot handle size_t, using long instead")
+  AC_DEFINE([MOD_ZD], ["%ld"], [Define printf() modifier for ssize_t])dnl
+  AC_DEFINE([MOD_ZU], ["%lu"], [Define printf() modifier for size_t])dnl
+fi 
+
+fi
 
 ### checks for structures
 ### ---------------------
@@ -143,7 +229,6 @@ AC_C_KEYWORD_STRUCT
 AC_HEADER_TIME
 AC_TYPE_SIZE_T
 
-AC_STRUCT_SIN6
 AC_SYS_SA_LEN
 
 ### checks for library functions
@@ -164,31 +249,51 @@ packages/sofia-sip-ua.pc
 packages/sofia-sip-ua-glib.pc
 libsofia-sip-ua/Makefile
 libsofia-sip-ua/bnf/Makefile
+libsofia-sip-ua/bnf/Doxyfile
 libsofia-sip-ua/docs/Makefile
+libsofia-sip-ua/docs/Doxyfile
 libsofia-sip-ua/docs/Doxyfile.version
 libsofia-sip-ua/docs/sofia-footer.html
+libsofia-sip-ua/features/Doxyfile
 libsofia-sip-ua/features/Makefile
+libsofia-sip-ua/http/Doxyfile
 libsofia-sip-ua/http/Makefile
+libsofia-sip-ua/ipt/Doxyfile
 libsofia-sip-ua/ipt/Makefile
+libsofia-sip-ua/iptsec/Doxyfile
 libsofia-sip-ua/iptsec/Makefile
+libsofia-sip-ua/msg/Doxyfile
 libsofia-sip-ua/msg/Makefile
+libsofia-sip-ua/nea/Doxyfile
 libsofia-sip-ua/nea/Makefile
+libsofia-sip-ua/nta/Doxyfile
 libsofia-sip-ua/nta/Makefile
+libsofia-sip-ua/nth/Doxyfile
 libsofia-sip-ua/nth/Makefile
+libsofia-sip-ua/nua/Doxyfile
 libsofia-sip-ua/nua/Makefile
+libsofia-sip-ua/sdp/Doxyfile
 libsofia-sip-ua/sdp/Makefile
+libsofia-sip-ua/sip/Doxyfile
 libsofia-sip-ua/sip/Makefile
+libsofia-sip-ua/soa/Doxyfile
 libsofia-sip-ua/soa/Makefile
+libsofia-sip-ua/sresolv/Doxyfile
 libsofia-sip-ua/sresolv/Makefile 
+libsofia-sip-ua/stun/Doxyfile
 libsofia-sip-ua/stun/Makefile
+libsofia-sip-ua/su/Doxyfile
 libsofia-sip-ua/su/Makefile
+libsofia-sip-ua/tport/Doxyfile
 libsofia-sip-ua/tport/Makefile
+libsofia-sip-ua/url/Doxyfile
 libsofia-sip-ua/url/Makefile
 libsofia-sip-ua/features/sofia-sip/sofia_features.h
 libsofia-sip-ua-glib/Makefile
 libsofia-sip-ua-glib/su-glib/Makefile
+libsofia-sip-ua-glib/su-glib/Doxyfile
 utils/Makefile
-utils/Doxyfile.build
+utils/Doxyfile
 win32/Makefile
 win32/config.h
 ])

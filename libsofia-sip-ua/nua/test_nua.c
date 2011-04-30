@@ -248,8 +248,15 @@ int main(int argc, char *argv[])
   }
 #if HAVE_ALARM
   else if (o_alarm) {
-    alarm(o_expensive ? 60 : 120);
     signal(SIGALRM, sig_alarm);
+    if (o_expensive) {
+      printf("%s: extending timeout to %u because expensive tests\n",
+	     name, 240);
+      alarm(240);
+    }
+    else {
+      alarm(120);
+    }
   }
 #endif
 
@@ -307,22 +314,17 @@ int main(int argc, char *argv[])
 
     while (retval == 0) {
       retval |= test_basic_call(ctx); SINGLE_FAILURE_CHECK();
-      retval |= test_reject_a(ctx); SINGLE_FAILURE_CHECK();
-      retval |= test_reject_b(ctx); SINGLE_FAILURE_CHECK();
-      retval |= test_reject_302(ctx); SINGLE_FAILURE_CHECK();
-      retval |= test_reject_401(ctx); SINGLE_FAILURE_CHECK();
-      retval |= test_mime_negotiation(ctx); SINGLE_FAILURE_CHECK();
-      retval |= test_call_timeouts(ctx); SINGLE_FAILURE_CHECK();
-      retval |= test_reject_401_aka(ctx); SINGLE_FAILURE_CHECK();
+      retval |= test_rejects(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_call_cancel(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_call_destroy(ctx); SINGLE_FAILURE_CHECK();
+      retval |= test_offer_answer(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_early_bye(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_reinvites(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_session_timer(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_refer(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_100rel(ctx); SINGLE_FAILURE_CHECK();
-      retval |= test_events(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_simple(ctx); SINGLE_FAILURE_CHECK();
+      retval |= test_events(ctx); SINGLE_FAILURE_CHECK();
       retval |= test_extension(ctx); SINGLE_FAILURE_CHECK();
       if (!o_loop)
 	break;

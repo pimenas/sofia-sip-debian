@@ -108,7 +108,7 @@ typedef struct register_usage nua_registration_t;
 #define nua_handle_ref(nh) nua_handle_ref_by((nh), __func__)
 #define nua_handle_unref(nh) nua_handle_unref_by((nh), __func__)
 
-static inline nua_handle_t *nua_handle_ref_by(nua_handle_t *nh,
+su_inline nua_handle_t *nua_handle_ref_by(nua_handle_t *nh,
 					      char const *by)
 {
   if (nh)
@@ -118,7 +118,7 @@ static inline nua_handle_t *nua_handle_ref_by(nua_handle_t *nh,
   return (nua_handle_t *)su_home_ref((su_home_t *)nh);
 }
 
-static inline int nua_handle_unref_by(nua_handle_t *nh, char const *by)
+su_inline int nua_handle_unref_by(nua_handle_t *nh, char const *by)
 {
   if (nh)
     SU_DEBUG_0(("nua_handle_unref(%p) => "MOD_ZU" by %s\n", nh, 
@@ -191,7 +191,7 @@ struct nua_handle_s
 
 #define NH_IS_DEFAULT(nh) ((nh) == (nh)->nh_nua->nua_handles)
 
-static inline
+su_inline
 int nh_is_special(nua_handle_t *nh)
 {
   return nh == NULL || nh->nh_special;
@@ -335,8 +335,6 @@ nua_handle_t *nua_stack_incoming_handle(nua_t *nua,
 					nta_incoming_t *irq,
 					sip_t const *sip,
 					int create_dialog);
-
-enum { create_dialog = 1 };
 
 int nua_stack_init_handle(nua_t *nua, nua_handle_t *nh, 
 			  tag_type_t tag, tag_value_t value, ...);

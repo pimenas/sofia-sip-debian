@@ -1,8 +1,11 @@
-PROJECT_NAME         = "nua"
-OUTPUT_DIRECTORY     = ../docs/html/nua
+PROJECT_NAME         = "soa"
+OUTPUT_DIRECTORY     = ../docs/html/soa
 
-INPUT 		     = nua.docs . sofia-sip
+INPUT 		     = @srcdir@/soa.docs @srcdir@/sofia-sip/soa.h 
+INPUT               += @srcdir@/sofia-sip/soa_add.h @srcdir@/soa.c
+INPUT		    += @srcdir@/sofia-sip/soa_tag.h @srcdir@/soa_tag.c
 
+@INCLUDE_PATH	     = . @srcdir@
 @INCLUDE             = ../docs/Doxyfile.conf
 
 TAGFILES            += ../docs/docs.doxytags=../docs
@@ -15,21 +18,13 @@ TAGFILES            += ../docs/sip.doxytags=../sip
 TAGFILES            += ../docs/sresolv.doxytags=../sresolv
 TAGFILES            += ../docs/tport.doxytags=../tport
 TAGFILES            += ../docs/nta.doxytags=../nta
-TAGFILES            += ../docs/soa.doxytags=../soa
-TAGFILES            += ../docs/nea.doxytags=../nea
 TAGFILES            += ../docs/sdp.doxytags=../sdp
+TAGFILES            += ../docs/nua.doxytags=../nua
 
-GENERATE_TAGFILE     = ../docs/nua.doxytags
+GENERATE_TAGFILE     = ../docs/soa.doxytags
 
-ALIASES             += CFILE="@internal @file" IFILE="@internal @file"
-
-ALIASES 	    += nua="@ref index \"nua\""
+ALIASES 	    += soa="@ref index \"soa\""
 # When GENERATE_TAGFILE=YES, we should use \ref main
-#ALIASES 	    += nua="@ref main \"nua\""
+#ALIASES 	    += soa="@ref main \"soa\""
 
-ALIASES		    += NUA_EVENT="@var nua_event_e::"
-ALIASES		    += END_NUA_EVENT="@par &nbsp;"
-
-VERBATIM_HEADERS     = NO
-
-@INCLUDE             = ../sip/sip.doxyaliases
+@INCLUDE = ../sip/sip.doxyaliases
