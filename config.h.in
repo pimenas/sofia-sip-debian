@@ -148,6 +148,12 @@
 /* Define to 1 if you have IPV6_RECVERR in <netinet/in6.h> */
 #undef HAVE_IPV6_RECVERR
 
+/* Define to 1 if you have IP_ADD_MEMBERSHIP */
+#undef HAVE_IP_ADD_MEMBERSHIP
+
+/* Define to 1 if you have IP_MULTICAST_LOOP */
+#undef HAVE_IP_MULTICAST_LOOP
+
 /* Define to 1 if you have IP_RECVERR in <netinet/in.h> */
 #undef HAVE_IP_RECVERR
 
@@ -266,6 +272,9 @@
 /* Define to 1 if you have the `socketpair' function. */
 #undef HAVE_SOCKETPAIR
 
+/* Define to 1 if we use HTTP parser library */
+#undef HAVE_SOFIA_HTTP
+
 /* Define to 1 if we use NTH library */
 #undef HAVE_SOFIA_NTH
 
@@ -286,6 +295,12 @@
 
 /* Define to 1 if we use STUN library */
 #undef HAVE_SOFIA_STUN
+
+/* Define to 1 if you have socket option SO_RCVBUFFORCE */
+#undef HAVE_SO_RCVBUFFORCE
+
+/* Define to 1 if you have socket option SO_SNDBUFFORCE */
+#undef HAVE_SO_SNDBUFFORCE
 
 /* Define to 1 if we use SRTP */
 #undef HAVE_SRTP
@@ -406,7 +421,7 @@
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
-   automatically deduced at run-time.
+   automatically deduced at runtime.
 	STACK_DIRECTION > 0 => grows toward higher addresses
 	STACK_DIRECTION < 0 => grows toward lower addresses
 	STACK_DIRECTION = 0 => direction of growth unknown */
@@ -442,5 +457,5 @@
 /* Define to a at least 64-bit int type */
 #undef longlong
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t

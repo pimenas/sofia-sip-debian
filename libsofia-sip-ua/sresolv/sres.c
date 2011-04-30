@@ -563,12 +563,16 @@ static int m_get_domain(char *d, int n, sres_message_t *m, uint16_t offset);
 extern SRESOLV_DEBUG;
 #endif
 
+#ifndef SU_DEBUG
+#define SU_DEBUG 3
+#endif
+
 /**Debug log for @b sresolv module. 
  * 
  * The sresolv_log is the log object used by @b sresolv module. The level of
  * #sresolv_log is set using #SRESOLV_DEBUG environment variable.
  */
-su_log_t sresolv_log[] = { SU_LOG_INIT("sresolv", "SRESOLV_DEBUG", 3) };
+su_log_t sresolv_log[] = { SU_LOG_INIT("sresolv", "SRESOLV_DEBUG", SU_DEBUG) };
 
 /** Internal errors */
 enum {
@@ -1338,6 +1342,47 @@ sres_cached_answers_sockaddr(sres_resolver_t *res,
 
   return result;
 }
+
+/** Set the priority of the matching cached SRV record.
+ *
+ * The SRV records with the domain name, target and port are matched and
+ * their priority value is adjusted. This function is used to implement
+ * greylisting of SIP servers.
+ *
+ * @param res      pointer to resolver
+ * @param domain   domain name of the SRV record(s) to modify
+ * @param target   SRV target of the SRV record(s) to modify
+ * @param port     port number of SRV record(s) to modify 
+ *                 (in host byte order) 
+ * @param ttl      new ttl for SRV records of the domain
+ * @param priority new priority value (0=highest, 65535=lowest)
+ *
+ * @sa sres_cache_set_srv_priority()
+ * 
+ * @NEW_1_12_8
+ */
+int sres_set_cached_srv_priority(sres_resolver_t *res,
+				 char const *domain,
+				 char const *target,
+				 uint16_t port,
+				 uint32_t ttl,
+				 uint16_t priority)
+{
+  char rooted_domain[SRES_MAXDNAME];
+
+  if (res == NULL || res->res_cache == NULL)
+    return su_seterrno(EFAULT);
+
+  domain = sres_toplevel(rooted_domain, sizeof rooted_domain, domain);
+
+  if (!domain)
+    return -1;
+
+  return sres_cache_set_srv_priority(res->res_cache, 
+				     domain, target, port, 
+				     ttl, priority);
+}
+
 
 /** Sort answers. */
 int

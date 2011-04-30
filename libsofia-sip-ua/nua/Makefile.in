@@ -24,6 +24,9 @@
 # ----------------------------------------------------------------------
 # Header paths
 
+# ----------------------------------------------------------------------
+# Build targets
+
 # common Makefile targets for libsofia-sip-ua(-glib) modules
 # ----------------------------------------------------------
 
@@ -116,24 +119,29 @@ am_libnua_la_OBJECTS = nua.lo nua_common.lo nua_stack.lo \
 	nua_message.lo nua_publish.lo nua_subnotref.lo nua_notifier.lo \
 	nua_event_server.lo nua_tag.lo nua_tag_ref.lo
 libnua_la_OBJECTS = $(am_libnua_la_OBJECTS)
-am_test_nua_OBJECTS = test_nua.$(OBJEXT) test_ops.$(OBJEXT) \
-	test_init.$(OBJEXT) test_nua_api.$(OBJEXT) \
-	test_nua_params.$(OBJEXT) test_register.$(OBJEXT) \
-	test_basic_call.$(OBJEXT) test_offer_answer.$(OBJEXT) \
-	test_call_reject.$(OBJEXT) test_cancel_bye.$(OBJEXT) \
-	test_call_hold.$(OBJEXT) test_session_timer.$(OBJEXT) \
-	test_refer.$(OBJEXT) test_100rel.$(OBJEXT) \
-	test_simple.$(OBJEXT) test_sip_events.$(OBJEXT) \
-	test_extension.$(OBJEXT) test_proxy.$(OBJEXT) \
-	test_nat.$(OBJEXT) test_nat_tags.$(OBJEXT)
+libtestnat_la_LIBADD =
+am_libtestnat_la_OBJECTS = test_nat.lo test_nat_tags.lo
+libtestnat_la_OBJECTS = $(am_libtestnat_la_OBJECTS)
+libtestnua_la_LIBADD =
+am_libtestnua_la_OBJECTS = test_ops.lo test_init.lo test_nua_api.lo \
+	test_nua_params.lo test_register.lo test_basic_call.lo \
+	test_offer_answer.lo test_call_reject.lo test_cancel_bye.lo \
+	test_call_hold.lo test_session_timer.lo test_refer.lo \
+	test_100rel.lo test_simple.lo test_sip_events.lo \
+	test_extension.lo
+libtestnua_la_OBJECTS = $(am_libtestnua_la_OBJECTS)
+libtestproxy_la_LIBADD =
+am_libtestproxy_la_OBJECTS = test_proxy.lo
+libtestproxy_la_OBJECTS = $(am_libtestproxy_la_OBJECTS)
+am_test_nua_OBJECTS = test_nua.$(OBJEXT)
 test_nua_OBJECTS = $(am_test_nua_OBJECTS)
-test_nua_LDADD = $(LDADD)
-test_nua_DEPENDENCIES = libnua.la ../iptsec/libiptsec.la \
-	../ipt/libipt.la ../nea/libnea.la ../nta/libnta.la \
-	../sresolv/libsresolv.la ../tport/libtport.la \
-	../stun/libstun.la ../soa/libsoa.la ../sdp/libsdp.la \
-	../sip/libsip.la ../http/libhttp.la ../msg/libmsg.la \
-	../url/liburl.la ../bnf/libbnf.la ../su/libsu.la
+test_nua_DEPENDENCIES = libnua.la libtestnua.la libtestproxy.la \
+	libtestnat.la ../iptsec/libiptsec.la ../ipt/libipt.la \
+	../nea/libnea.la ../nta/libnta.la ../sresolv/libsresolv.la \
+	../tport/libtport.la ../stun/libstun.la ../soa/libsoa.la \
+	../sdp/libsdp.la ../sip/libsip.la ../http/libhttp.la \
+	../msg/libmsg.la ../url/liburl.la ../bnf/libbnf.la \
+	../su/libsu.la
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir) -I$(top_builddir)/libsofia-sip-ua/su/sofia-sip
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -145,8 +153,12 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libnua_la_SOURCES) $(test_nua_SOURCES)
-DIST_SOURCES = $(libnua_la_SOURCES) $(test_nua_SOURCES)
+SOURCES = $(libnua_la_SOURCES) $(libtestnat_la_SOURCES) \
+	$(libtestnua_la_SOURCES) $(libtestproxy_la_SOURCES) \
+	$(test_nua_SOURCES)
+DIST_SOURCES = $(libnua_la_SOURCES) $(libtestnat_la_SOURCES) \
+	$(libtestnua_la_SOURCES) $(libtestproxy_la_SOURCES) \
+	$(test_nua_SOURCES)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -172,6 +184,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CHECK_CFLAGS = @CHECK_CFLAGS@
+CHECK_LIBS = @CHECK_LIBS@
 COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
 COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 COVERAGE_FLAGS = @COVERAGE_FLAGS@
@@ -205,6 +219,9 @@ GENPNG = @GENPNG@
 GLIB_CFLAGS = @GLIB_CFLAGS@
 GLIB_LIBS = @GLIB_LIBS@
 GLIB_VERSION = @GLIB_VERSION@
+GREP = @GREP@
+HAVE_CHECK_FALSE = @HAVE_CHECK_FALSE@
+HAVE_CHECK_TRUE = @HAVE_CHECK_TRUE@
 HAVE_DOXYGEN_FALSE = @HAVE_DOXYGEN_FALSE@
 HAVE_DOXYGEN_TRUE = @HAVE_DOXYGEN_TRUE@
 HAVE_GENPNG_FALSE = @HAVE_GENPNG_FALSE@
@@ -262,6 +279,7 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
@@ -270,14 +288,9 @@ STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
 VERSION = @VERSION@
 VER_LIBSOFIA_SIP_UA_MAJOR_MINOR = @VER_LIBSOFIA_SIP_UA_MAJOR_MINOR@
-ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
-ac_ct_LD = @ac_ct_LD@
-ac_ct_RANLIB = @ac_ct_RANLIB@
-ac_ct_STRIP = @ac_ct_STRIP@
-ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -294,26 +307,33 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
+datarootdir = @datarootdir@
+docdir = @docdir@
+dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
+htmldir = @htmldir@
 include_sofiadir = @include_sofiadir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 openssl_CFLAGS = @openssl_CFLAGS@
 openssl_LIBS = @openssl_LIBS@
+pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
+psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
@@ -322,26 +342,7 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
-INCLUDES = -I$(srcdir)/../bnf -I../bnf \
-	 		-I$(srcdir)/../ipt -I../ipt \
-	 		-I$(srcdir)/../iptsec -I../iptsec \
-	 		-I$(srcdir)/../http -I../http \
-			-I$(srcdir)/../msg -I../msg \
-			-I$(srcdir)/../nea -I../nea \
-			-I$(srcdir)/../nta -I../nta \
-			-I$(srcdir)/../nth -I../nth \
-			-I$(srcdir)/../sdp -I../sdp \
-			-I$(srcdir)/../sip -I../sip \
-			-I$(srcdir)/../soa -I../soa \
-			-I$(srcdir)/../tport -I../tport \
-			-I$(srcdir)/../stun -I../stun \
-			-I$(srcdir)/../url -I../url \
-			-I$(srcdir)/../su -I../su
-
-
-# ----------------------------------------------------------------------
-# Build targets
-noinst_LTLIBRARIES = libnua.la
+noinst_LTLIBRARIES = libnua.la libtestnua.la libtestproxy.la libtestnat.la
 TESTS = test_nua
 CLEANFILES = tmp_sippasswd.??????
 
@@ -364,7 +365,22 @@ libnua_la_SOURCES = nua.c nua_stack.h nua_common.c nua_stack.c \
 			nua_tag.c nua_tag_ref.c
 
 COVERAGE_INPUT = $(libnua_la_SOURCES) $(include_sofia_HEADERS)
-LDADD = libnua.la \
+test_nua_LDFLAGS = -static
+libtestnua_la_SOURCES = test_nua.h test_ops.c \
+			test_init.c \
+			test_nua_api.c test_nua_params.c \
+			test_register.c test_basic_call.c \
+			test_offer_answer.c \
+			test_call_reject.c test_cancel_bye.c \
+			test_call_hold.c test_session_timer.c \
+			test_refer.c test_100rel.c \
+			test_simple.c test_sip_events.c \
+			test_extension.c
+
+libtestproxy_la_SOURCES = test_proxy.h test_proxy.c
+libtestnat_la_SOURCES = test_nat.h test_nat.c test_nat_tags.c
+test_nua_SOURCES = test_nua.c 
+test_nua_LDADD = libnua.la libtestnua.la libtestproxy.la libtestnat.la \
 			../iptsec/libiptsec.la \
 			../ipt/libipt.la \
 			../nea/libnea.la \
@@ -381,52 +397,40 @@ LDADD = libnua.la \
 			../bnf/libbnf.la \
 			../su/libsu.la
 
-test_nua_LDFLAGS = -static
-test_nua_SOURCES = test_nua.c test_nua.h test_ops.c \
-			test_init.c \
-			test_nua_api.c test_nua_params.c \
-			test_register.c test_basic_call.c \
-			test_offer_answer.c \
-			test_call_reject.c test_cancel_bye.c \
-			test_call_hold.c test_session_timer.c \
-			test_refer.c test_100rel.c \
-			test_simple.c test_sip_events.c \
-			test_extension.c \
-			test_proxy.h test_proxy.c \
-			test_nat.h test_nat.c test_nat_tags.c
-
 
 # ----------------------------------------------------------------------
 # Install and distribution rules
 EXTRA_DIST = nua.docs $(BUILT_SOURCES)
+sofiasrcdir = ${top_srcdir}/libsofia-sip-ua
+sofiabuilddir = ${top_builddir}/libsofia-sip-ua
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
 	$(openssl_CFLAGS) $(am__append_1)
 SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
-TAG_AWK = $(top_srcdir)/libsofia-sip-ua/su/tag_dll.awk
+TAG_AWK = ${sofiasrcdir}/su/tag_dll.awk
 SUFFIXES = _tag_ref.c _tag.c
 INTERNAL_INCLUDES = \
-	-I$(srcdir)/../features -I../features \
-	-I$(srcdir)/../ipt -I../ipt \
-	-I$(srcdir)/../iptsec -I../iptsec \
-	-I$(srcdir)/../bnf -I../bnf \
-	-I$(srcdir)/../http -I../http \
-	-I$(srcdir)/../msg -I../msg \
-	-I$(srcdir)/../nth -I../nth \
-	-I$(srcdir)/../nta -I../nta \
-	-I$(srcdir)/../nea -I../nea \
-	-I$(srcdir)/../nua -I../nua \
-	-I$(srcdir)/../soa -I../soa \
-	-I$(srcdir)/../sdp -I../sdp \
-	-I$(srcdir)/../sip -I../sip \
-	-I$(srcdir)/../soa -I../soa \
-	-I$(srcdir)/../sresolv -I../sresolv \
-	-I$(srcdir)/../tport -I../tport \
-	-I$(srcdir)/../stun -I../stun \
-	-I$(srcdir)/../url -I../url \
-	-I$(srcdir)/../su -I../su
+    -I${sofiasrcdir}/features -I${sofiabuilddir}/features \
+    -I${sofiasrcdir}/ipt -I${sofiabuilddir}/ipt \
+    -I${sofiasrcdir}/iptsec -I${sofiabuilddir}/iptsec \
+    -I${sofiasrcdir}/bnf -I${sofiabuilddir}/bnf \
+    -I${sofiasrcdir}/http -I${sofiabuilddir}/http \
+    -I${sofiasrcdir}/msg -I${sofiabuilddir}/msg \
+    -I${sofiasrcdir}/nth -I${sofiabuilddir}/nth \
+    -I${sofiasrcdir}/nta -I${sofiabuilddir}/nta \
+    -I${sofiasrcdir}/nea -I${sofiabuilddir}/nea \
+    -I${sofiasrcdir}/nua -I${sofiabuilddir}/nua \
+    -I${sofiasrcdir}/soa -I${sofiabuilddir}/soa \
+    -I${sofiasrcdir}/sdp -I${sofiabuilddir}/sdp \
+    -I${sofiasrcdir}/sip -I${sofiabuilddir}/sip \
+    -I${sofiasrcdir}/soa -I${sofiabuilddir}/soa \
+    -I${sofiasrcdir}/sresolv -I${sofiabuilddir}/sresolv \
+    -I${sofiasrcdir}/tport -I${sofiabuilddir}/tport \
+    -I${sofiasrcdir}/stun -I${sofiabuilddir}/stun \
+    -I${sofiasrcdir}/url -I${sofiabuilddir}/url \
+    -I${sofiasrcdir}/su -I${sofiabuilddir}/su
 
 PHONY = built-sources clean-built-sources $(am__append_3)
 VALGRIND = valgrind 
@@ -448,6 +452,7 @@ VALGRINDFLAGS = --tool=memcheck
 
 # ----------------------------------------------------------------------
 # Sofia specific rules
+INCLUDES = ${INTERNAL_INCLUDES}
 TAG_DLL_FLAGS = LIST=nua_tag_list
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -496,6 +501,12 @@ clean-noinstLTLIBRARIES:
 	done
 libnua.la: $(libnua_la_OBJECTS) $(libnua_la_DEPENDENCIES) 
 	$(LINK)  $(libnua_la_LDFLAGS) $(libnua_la_OBJECTS) $(libnua_la_LIBADD) $(LIBS)
+libtestnat.la: $(libtestnat_la_OBJECTS) $(libtestnat_la_DEPENDENCIES) 
+	$(LINK)  $(libtestnat_la_LDFLAGS) $(libtestnat_la_OBJECTS) $(libtestnat_la_LIBADD) $(LIBS)
+libtestnua.la: $(libtestnua_la_OBJECTS) $(libtestnua_la_DEPENDENCIES) 
+	$(LINK)  $(libtestnua_la_LDFLAGS) $(libtestnua_la_OBJECTS) $(libtestnua_la_LIBADD) $(LIBS)
+libtestproxy.la: $(libtestproxy_la_OBJECTS) $(libtestproxy_la_DEPENDENCIES) 
+	$(LINK)  $(libtestproxy_la_LDFLAGS) $(libtestproxy_la_OBJECTS) $(libtestproxy_la_LIBADD) $(LIBS)
 
 clean-checkPROGRAMS:
 	@list='$(check_PROGRAMS)'; for p in $$list; do \
@@ -531,26 +542,26 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_tag.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nua_tag_ref.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/outbound.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_100rel.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_basic_call.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_call_hold.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_call_reject.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_cancel_bye.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_extension.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_init.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nat.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nat_tags.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_100rel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_basic_call.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_call_hold.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_call_reject.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_cancel_bye.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_extension.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_init.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nat.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nat_tags.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nua.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nua_api.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nua_params.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_offer_answer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_ops.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_proxy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_refer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_register.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_session_timer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_simple.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_sip_events.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nua_api.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nua_params.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_offer_answer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_ops.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_proxy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_refer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_register.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_session_timer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_simple.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_sip_events.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
