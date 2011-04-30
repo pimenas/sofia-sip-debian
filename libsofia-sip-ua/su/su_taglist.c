@@ -316,7 +316,7 @@ tagi_t *tl_adup(su_home_t *home, tagi_t const lst[])
 
   d = tl_dup(newlst, lst, &b);
 
-  assert(b == end); assert(tend == d);
+  assert(b == end); assert(tend == d); (void)end; (void)tend;
 
   return newlst;
 }
@@ -345,7 +345,7 @@ tagi_t *tl_find_last(tagi_t const lst[], tag_type_t tt)
 {
   tagi_t const *last, *next;
   
-  for (next = last = t_find(tt, lst); next; next = t_find(tt, last))
+  for (next = last = t_find(tt, lst); next; next = t_find(tt, t_next(last)))
     last = next;
 
   return (tagi_t *)last;

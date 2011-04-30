@@ -46,12 +46,14 @@ tag_typedef_t nutag_any = NSTAG_TYPEDEF(*);
 
 tag_typedef_t nutag_url = URLTAG_TYPEDEF(url);
 tag_typedef_t nutag_address = STRTAG_TYPEDEF(address);
+tag_typedef_t nutag_method = STRTAG_TYPEDEF(method);
 tag_typedef_t nutag_uicc = STRTAG_TYPEDEF(uicc);
 tag_typedef_t nutag_media_features = BOOLTAG_TYPEDEF(media_features);
 tag_typedef_t nutag_callee_caps = BOOLTAG_TYPEDEF(callee_caps);
 tag_typedef_t nutag_early_media = BOOLTAG_TYPEDEF(early_media);
 tag_typedef_t nutag_only183_100rel = BOOLTAG_TYPEDEF(only183_100rel);
 tag_typedef_t nutag_early_answer = BOOLTAG_TYPEDEF(early_answer);
+tag_typedef_t nutag_include_extra_sdp = BOOLTAG_TYPEDEF(include_extra_sdp);
 tag_typedef_t nutag_media_enable = BOOLTAG_TYPEDEF(media_enable);
 
 tag_typedef_t nutag_soa_session = PTRTAG_TYPEDEF(soa_session);
@@ -135,12 +137,15 @@ tag_typedef_t nutag_refer_event = SIPHDRTAG_NAMED_TYPEDEF(refer_event, event);
 tag_typedef_t nutag_refer_pause = BOOLTAG_TYPEDEF(refer_pause);
 tag_typedef_t nutag_user_agent = STRTAG_TYPEDEF(user_agent);
 tag_typedef_t nutag_allow = STRTAG_TYPEDEF(allow);
+tag_typedef_t nutag_allow_events = STRTAG_TYPEDEF(allow_events);
 tag_typedef_t nutag_supported = STRTAG_TYPEDEF(supported);
 tag_typedef_t nutag_path_enable = BOOLTAG_TYPEDEF(path_enable);
 tag_typedef_t nutag_service_route_enable = 
   BOOLTAG_TYPEDEF(service_route_enable);
 
 tag_typedef_t nutag_detect_network_updates = UINTTAG_TYPEDEF(detect_network_updates);
+
+tag_typedef_t nutag_with = PTRTAG_TYPEDEF(with);
 
 tag_typedef_t _nutag_add_contact = BOOLTAG_TYPEDEF(add_contact);
 tag_typedef_t _nutag_copy = BOOLTAG_TYPEDEF(copy);

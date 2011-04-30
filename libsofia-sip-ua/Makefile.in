@@ -110,6 +110,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -192,6 +194,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -653,8 +656,8 @@ doxygen: built-sources
 	  test -r $$d/Doxyfile \
 	  && pushd $$d > /dev/null \
 	  && echo running ${DOXYGEN} first time in $$d \
-          && ${DOXYGEN} | fgrep -v -e resolve \
-	  | fgrep -v -e 'Warning: Unsupported xml/html tag' \
+          && ${DOXYGEN} 2>&1 \
+	  | egrep -v -i -e 'Warning: (unsupported (xml/)?html tag|unable to resolve reference)' \
           ; popd > /dev/null ; \
 	  test -r docs/$$d.doxytags && \
 	  sed '2,10s!<name>index</name>!<name>'$$d'_index</name>!' \
@@ -666,7 +669,8 @@ doxygen: built-sources
 	  test -r $$d/Doxyfile \
 	  && pushd $$d > /dev/null \
 	  && echo running ${DOXYGEN} in second time in $$d \
-          && ${DOXYGEN} | fgrep -v -e 'Warning: Unsupported xml/html tag' \
+          && ${DOXYGEN} 2>&1 \
+	   | egrep -v -i -e 'Warning: Unsupported (xml/)?html tag' \
           ; popd > /dev/null ; \
 	  test -r docs/$$d.doxytags && \
 	  sed '2,10s!<name>index</name>!<name>'$$d'_index</name>!' \

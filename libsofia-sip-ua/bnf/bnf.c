@@ -69,6 +69,42 @@ unsigned char const _bnf_table[256] = {
   alpha, alpha, alpha, sep,   0,     sep,   mtok,  0,     /* xyz{|}~  */
 };
 
+
+#define BM(c, m00, m32, m64, m96)			   \
+  ((c < 64)						   \
+   ? ((c < 32)						   \
+      ? (m00 & (1 << (31 - c)))				   \
+      : (m32 & (1 << (63 - c))))			   \
+   : ((c < 96)						   \
+      ? (m64 & (1 << (95 - c)))				   \
+      : (m96 & (1 << (127 - c)))))
+
+/** Span of a token */
+size_t bnf_span_token(char const *s)
+{
+  char const *e = s;
+  unsigned const m32 = 0x4536FFC0U, m64 = 0x7FFFFFE1U, m96 = 0xFFFFFFE2U;
+
+  while (BM(*e, 0, m32, m64, m96))
+    e++;
+
+  return e - s;
+}
+
+/** Span of a token */
+size_t bnf_span_token4(char const *s)
+{
+  char const *e = s; 
+  while (_bnf_table[(unsigned char)(*e)] & bnf_token)
+    e++; 
+  return e - s; 
+}
+
+char * bnf_span_token_end(char const *s)
+{
+  return (char *)s;
+}
+
 /** Return length of decimal-octet */
 static inline int span_ip4_octet(char const *host)
 {
@@ -740,15 +776,25 @@ int host_is_valid(char const *string)
  */
 int host_is_local(char const *host)
 {
-  if (host_ip6_reference(host))
+  size_t n;
+
+  if (host_is_ip6_reference(host))
     return (strcmp(host, "[::1]") == 0);
   else if (host_is_ip6_address(host))
     return (strcmp(host, "::1") == 0);
   else if (host_is_ip4_address(host))
     return (strncmp(host, "127.", 4) == 0);
-  else 
-    return (strcasecmp(host, "localhost") == 0 ||
-	    strcasecmp(host, "localhost.localdomain") == 0);
+
+  n = span_domain(host);
+
+  return 
+    n >= 9 /* strlen("localhost") */ &&
+    strncasecmp(host, "localhost", 9) == 0 &&
+    (n == 9 || 
+     ((n == 10 || /* localhost. */
+       n == 21 || /* strlen("localhost.localdomain") */
+       n == 22) && /* strlen("localhost.localdomain.") */
+      strncasecmp(host + 9, ".localdomain.", n - 9) == 0));
 }
 
 /** Return true if @a string has domain name in "invalid." domain.
@@ -769,4 +815,99 @@ int host_has_domain_invalid(char const *string)
   }
 
   return 0;
+}
+
+#include <sofia-sip/su.h>
+
+static size_t convert_ip_address(char const *s,
+				 uint8_t addr[16],
+				 size_t *return_addrlen)
+{
+  size_t len;
+  int canonize = 0;
+
+#if SU_HAVE_IN6
+  char buf[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"];
+
+  len = span_ip6_reference(s);
+  if (len) {
+    assert(len - 2 < sizeof buf); assert(len > 2);
+
+    if (s[len])
+      return 0;
+
+    len = len - 2;
+    s = memcpy(buf, s + 1, len), buf[len] = '\0';
+  }
+  else
+    len = span_ip6_address(s);
+
+  if (len) {
+    if (s[len] == '\0' && inet_pton(AF_INET6, s, addr) == 1) {
+      if (SU_IN6_IS_ADDR_V4MAPPED(addr) ||
+	  SU_IN6_IS_ADDR_V4COMPAT(addr)) {
+	memcpy(addr, addr + 12, 4);
+	return (void)(*return_addrlen = 4), len;
+      }
+      return (void)(*return_addrlen = 16), len;
+    }
+    else
+      return 0;
+  }
+#endif
+
+  len = span_canonic_ip4_address(s, &canonize);
+  if (len) {
+    if (canonize) {
+      char *tmp = buf;
+      s = memcpy(tmp, s, len + 1);
+      scan_ip4_address(&tmp);      
+    }
+    if (s[len] == '\0' && inet_pton(AF_INET, s, addr) == 1)
+      return (void)(*return_addrlen = 4), len;
+    else
+      return 0;
+  }
+
+  return 0;
+}
+
+/** Compare two host names or IP addresses
+ *
+ * Converts valid IP addresses to the binary format before comparing them. 
+ * Note that IP6-mapped IP4 addresses and IP6-compatible IP4 addresses are
+ * compared as IP4 addresses; that is, ::ffff:127.0.0.1, ::127.0.0.1 and
+ * 127.0.0.1 all are all equal.
+ *
+ * @param a IP address or domain name
+ * @param b IP address or domain name
+ * 
+ * @retval -1 if a < b
+ * @retval 0 if a == b
+ * @retval 1 if a > b
+ *
+ * @since New in @VERSION_1_12_4.
+ */
+int host_cmp(char const *a, char const *b)
+{
+  uint8_t a6[16], b6[16];
+  size_t alen, blen, asize = 0, bsize = 0;
+
+  if (a == NULL || b == NULL)
+    return (a != NULL) - (b != NULL);
+
+  alen = convert_ip_address(a, a6, &asize);
+  blen = convert_ip_address(b, b6, &bsize);
+
+  if (alen > 0 && blen > 0) {
+    if (asize < bsize)
+      return -1;
+    else if (asize > bsize)
+      return 1;
+    else
+      return memcmp(a6, b6, asize);
+  }
+  else {
+    return strcasecmp(a, b);
+  }
 }

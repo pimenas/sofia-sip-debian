@@ -75,8 +75,9 @@ libsoa_la_OBJECTS = $(am_libsoa_la_OBJECTS)
 test_soa_SOURCES = test_soa.c
 test_soa_OBJECTS = test_soa.$(OBJEXT)
 test_soa_LDADD = $(LDADD)
-test_soa_DEPENDENCIES = libsoa.la ../sip/libsip.la ../sdp/libsdp.la \
-	../ipt/libipt.la ../bnf/libbnf.la ../su/libsu.la
+test_soa_DEPENDENCIES = libsoa.la ../sip/libsip.la ../msg/libmsg.la \
+	../url/liburl.la ../sdp/libsdp.la ../ipt/libipt.la \
+	../bnf/libbnf.la ../su/libsu.la
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir) -I$(top_builddir)/libsofia-sip-ua/su/sofia-sip
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -114,6 +115,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -196,6 +199,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -253,6 +257,8 @@ target_os = @target_os@
 target_vendor = @target_vendor@
 INCLUDES = -I$(srcdir)/../sdp -I../sdp \
 			-I$(srcdir)/../sip -I../sip \
+			-I$(srcdir)/../msg -I../msg \
+			-I$(srcdir)/../url -I../url \
 			-I$(srcdir)/../ipt -I../ipt \
 			-I$(srcdir)/../bnf -I../bnf \
 			-I$(srcdir)/../su -I../su
@@ -276,6 +282,8 @@ libsoa_la_SOURCES = soa.c soa_static.c \
 COVERAGE_INPUT = $(libsoa_la_SOURCES) $(include_sofia_HEADERS)
 LDADD = libsoa.la \
 			../sip/libsip.la \
+			../msg/libmsg.la \
+			../url/liburl.la \
 			../sdp/libsdp.la \
 			../ipt/libipt.la \
 			../bnf/libbnf.la \
@@ -286,6 +294,8 @@ test_soa_LDFLAGS = -static
 # ----------------------------------------------------------------------
 # Install and distribution rules
 EXTRA_DIST = Doxyfile soa.docs $(BUILT_SOURCES)
+AM_CFLAGS = $(SOFIA_CFLAGS)
+DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
 TAG_AWK = $(top_srcdir)/libsofia-sip-ua/su/tag_dll.awk
@@ -613,6 +623,7 @@ clean-generic:
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

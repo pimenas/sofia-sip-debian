@@ -141,7 +141,7 @@ char *sip_event_dup_one(sip_header_t *dst, sip_header_t const *src,
   char *end = b + xtra;
   b = msg_params_dup(&o_dst->o_params, o_src->o_params, b, xtra);
   MSG_STRING_DUP(b, o_dst->o_type, o_src->o_type);
-  assert(b <= end);
+  assert(b <= end); (void)end;
 
   return b;
 }
@@ -175,8 +175,14 @@ static int sip_event_update(msg_common_t *h,
  *    Allow-Events = ( "Allow-Events" | "u" ) ":" 1#event-type
  * @endcode
  *
- *
  * The parsed Allow-Events header is stored in #sip_allow_events_t structure.
+ *
+ * Note that the event name is case-sensitive. The event "Presence" is
+ * different from "presence". However, it is very unwise to use such event
+ * names.
+ *
+ * @sa @Event, @RFC3265, msg_header_find_item(), msg_header_replace_item(),
+ * msg_header_remove_item()
  */
 
 /**@ingroup sip_allow_events
@@ -214,7 +220,7 @@ issize_t sip_allow_events_e(char b[], isize_t bsiz, sip_header_t const *h, int f
  *
  * @note This function @b does @b duplicate @p event.
  *
- * @deprecated Use msg_header_replace_param() directly.
+ * @deprecated Use msg_header_replace_item() directly.
  */
 int sip_allow_events_add(su_home_t *home, 
 			 sip_allow_events_t *ae, 
@@ -223,7 +229,7 @@ int sip_allow_events_add(su_home_t *home,
   event = su_strdup(home, event);
   if (!event)
     return -1;
-  return msg_header_replace_param(home, ae->k_common, event);
+  return msg_header_replace_item(home, ae->k_common, event);
 }
 
 /* ====================================================================== */
@@ -295,12 +301,12 @@ issize_t sip_subscription_state_d(su_home_t *home, sip_header_t *h,
    sip_subscription_state_t *ss = h->sh_subscription_state;
    ss->ss_substate = s;
    
-   skip_token(&s); /* forwards the pointer to the end of substate-value */
+   s += span_token(s); /* forwards the pointer to the end of substate-value */
    if (s == ss->ss_substate)
      return -1;
-   if (IS_LWS(*s))		
-     *s++ = '\0';/* NUL-terminate substate */
-   skip_lws(&s); /* Skip any extra white space (advance pointer) */
+   if (IS_LWS(*s)) { 
+     *s = '\0'; s += span_lws(s + 1) + 1;
+   }
    
    /* check if parameters are present and if so parse them */
    if (*s  == ';') {
@@ -347,7 +353,7 @@ char *sip_subscription_state_dup_one(sip_header_t *dst, sip_header_t const *src,
    
   b = msg_params_dup(&ss_dst->ss_params, ss_src->ss_params, b, xtra);
   MSG_STRING_DUP(b, ss_dst->ss_substate, ss_src->ss_substate);
-  assert(b <= end);
+  assert(b <= end); (void)end;
 
   return b;
 }

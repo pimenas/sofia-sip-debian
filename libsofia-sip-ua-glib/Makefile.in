@@ -72,8 +72,10 @@ libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 = su-glib/libsu-glib.la
 @HAVE_GOBJECT_TRUE@am__DEPENDENCIES_2 = nua-glib/libnua-glib.la
+am__DEPENDENCIES_3 =
 libsofia_sip_ua_glib_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
+	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3)
 am_libsofia_sip_ua_glib_la_OBJECTS =
 libsofia_sip_ua_glib_la_OBJECTS =  \
 	$(am_libsofia_sip_ua_glib_la_OBJECTS)
@@ -111,6 +113,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -193,6 +197,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -254,7 +259,9 @@ GLIB_TARGETS = su-glib/libsu-glib.la
 @HAVE_GOBJECT_TRUE@GOBJECT_TARGETS = nua-glib/libnua-glib.la
 lib_LTLIBRARIES = $(am__append_1)
 libsofia_sip_ua_glib_la_SOURCES = 
-libsofia_sip_ua_glib_la_LIBADD = $(GLIB_TARGETS) $(GOBJECT_TARGETS)
+libsofia_sip_ua_glib_la_LIBADD = $(GLIB_TARGETS) $(GOBJECT_TARGETS) \
+	$(GOBJECT_LIBS) $(GLIB_LIBS)
+
 
 # set the libtool version info version:revision:age for libsofia-sip-ua-glib
 # - soname to 'libsofia-sip-ua-glib.so.(CUR-AGE)'

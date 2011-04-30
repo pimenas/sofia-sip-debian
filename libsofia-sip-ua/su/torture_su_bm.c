@@ -36,6 +36,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
 #include <sofia-sip/tstdef.h>
 
 char const *name = "torture_su_bm";
@@ -176,7 +178,7 @@ char const Needle[] =
 "ULLAMCORPER PRETIUM LOREM. VESTIBULUM ANTE IPSUM PRIMIS IN FAUCIBUS ORCI "
 "LUCTUS ET ULTRICES POSUERE CUBILIA CURAE;\n";
 
-    int nlen = strlen(needle);
+    size_t nlen = strlen(needle);
 
     bm_fwd_table_t *fwd;
 

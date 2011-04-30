@@ -71,10 +71,6 @@
 
 #include <assert.h>
 
-#if !defined(random) && defined(_WIN32)
-#define random rand
-#endif
-
 /* ======================================================================== */
 /* Registrations and contacts */
 
@@ -111,9 +107,13 @@ static void nua_register_usage_remove(nua_handle_t *nh,
 static void nua_register_usage_peer_info(nua_dialog_usage_t *du,
 					 nua_dialog_state_t const *ds,
 					 sip_t const *sip);
-static void nua_register_usage_refresh(nua_handle_t *, nua_dialog_usage_t *,
+static void nua_register_usage_refresh(nua_handle_t *,
+				       nua_dialog_state_t *,
+				       nua_dialog_usage_t *,
 				       sip_time_t);
-static int nua_register_usage_shutdown(nua_handle_t *, nua_dialog_usage_t *);
+static int nua_register_usage_shutdown(nua_handle_t *,
+				       nua_dialog_state_t *,
+				       nua_dialog_usage_t *);
 
 /** REGISTER usage, aka nua_registration_t */
 struct register_usage {
@@ -282,7 +282,7 @@ outbound_owner_vtable nua_stack_outbound_callbacks = {
  * @par Related tags:
  *     NUTAG_REGISTRAR(), NUTAG_INSTANCE(), NUTAG_OUTBOUND(),
  *     NUTAG_KEEPALIVE(), NUTAG_KEEPALIVE_STREAM(), NUTAG_M_USERNAME(),
- *     NUTAG_M_PARAMS(), NUTAG_M_FEATURES()
+ *     NUTAG_M_DISPLAY(), NUTAG_M_PARAMS(), NUTAG_M_FEATURES(), 
  *
  * @par Events:
  *     #nua_r_register, #nua_i_outbound
@@ -418,7 +418,7 @@ outbound_owner_vtable nua_stack_outbound_callbacks = {
  * validate the registration and initiate the keepalive mechanism, too. The
  * user-agent validates the registration by sending a OPTIONS requests to
  * itself. If there is an error, nua_register() will indicate that to the
- * application using nua_i_outbound event, and start unregistration
+ * application using #nua_i_outbound event, and start unregistration
  * procedure (unless that has been explicitly disabled).
  *
  * You can disable validation by inserting "no-validate" into
@@ -440,37 +440,44 @@ outbound_owner_vtable nua_stack_outbound_callbacks = {
  * the desired transport-layer keepalive interval for stream-based
  * transports like TLS and TCP.
  *
- * @sa NUTAG_OUTBOUND() and tags.
+ * @sa #nua_r_register, nua_unregister(), #nua_r_unregister, 
+ * #nua_i_register,
+ * @RFC3261 section 10,
+ * @Expires, @Contact, @CallID, @CSeq,
+ * @Path, @RFC3327, @ServiceRoute, @RFC3608, @RFC3680,
+ *     NUTAG_REGISTRAR(), NUTAG_INSTANCE(), NUTAG_OUTBOUND(),
+ *     NUTAG_KEEPALIVE(), NUTAG_KEEPALIVE_STREAM(), 
+ *     SIPTAG_CONTACT(), SIPTAG_CONTACT_STR(), NUTAG_M_USERNAME(),
+ *     NUTAG_M_DISPLAY(), NUTAG_M_PARAMS(), NUTAG_M_FEATURES(), 
  */
 
-/** @var nua_event_e::nua_r_register
+/** @NUA_EVENT nua_r_register
  *
- * Answer to outgoing REGISTER.
+ * Response to an outgoing REGISTER.
  *
  * The REGISTER may be sent explicitly by nua_register() or implicitly by
- * NUA state machines. The @a status may be 100 even if the real response
- * status returned is different if the REGISTER request has been restarted.
+ * NUA state machines. 
+ * 
+ * When REGISTER request has been restarted the @a status may be 100 even
+ * while the real response status returned is different.
  *
- * @param nh     operation handle associated with the call
- * @param hmagic operation magic associated with the call
- * @param status registration status
- * @param sip    response to REGISTER request or NULL upon an error
- *               (error code and message are in status an phrase parameters)
+ * @param status response status code
+ *               (if the request is retried, @a status is 100, the @a
+ *               sip->sip_status->st_status contain the real status code
+ *               from the response message, e.g., 302, 401, or 407)
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the registration
+ * @param hmagic application context associated with the registration
+ * @param sip    response message to REGISTER request or NULL upon an error
+ *               (status code is in @a status and 
+ *                descriptive message in @a phrase parameters)
  * @param tags   empty
- */
-
-/** @var nua_event_e::nua_i_outbound
  *
- * Answer to outgoing REGISTER.
- *
- * The REGISTER may be sent explicitly by nua_register() or
- * implicitly by NUA state machine.
- *
- * @param nh     operation handle associated with the call
- * @param hmagic operation magic associated with the call
- * @param sip    response to REGISTER request or NULL upon an error
- *               (error code and message are in status an phrase parameters)
- * @param tags   empty
+ * @sa nua_register(), nua_unregister(), #nua_r_unregister,
+ * @Contact, @CallID, @CSeq, @RFC3261 section 10,
+ * @Path, @RFC3327, @ServiceRoute, @RFC3608, @RFC3680
+ * 
+ * @END_NUA_EVENT
  */
 
 /**@fn void nua_unregister(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...);
@@ -496,17 +503,38 @@ outbound_owner_vtable nua_stack_outbound_callbacks = {
  *
  * @par Events:
  *     #nua_r_unregister
+ *
+ * @sa nua_register(), #nua_r_register, nua_handle_destroy(), nua_shutdown(),
+ * #nua_i_register,
+ * @Expires, @Contact, @CallID, @CSeq, @RFC3261 section 10,
+ * @Path, @RFC3327, @ServiceRoute, @RFC3608, @RFC3680,
+ *     NUTAG_REGISTRAR(), NUTAG_INSTANCE(), NUTAG_OUTBOUND(),
+ *     NUTAG_KEEPALIVE(), NUTAG_KEEPALIVE_STREAM(), 
+ *     SIPTAG_CONTACT(), SIPTAG_CONTACT_STR(), NUTAG_M_USERNAME(),
+ *     NUTAG_M_DISPLAY(), NUTAG_M_PARAMS(), NUTAG_M_FEATURES(), 
  */
 
-/** @var nua_event_e::nua_r_unregister
+/** @NUA_EVENT nua_r_unregister
  *
  * Answer to outgoing un-REGISTER.
  *
- * @param nh     operation handle associated with the call
- * @param hmagic operation magic associated with the call
- * @param sip    response to REGISTER request or NULL upon an error
- *               (error code and message are in status and phrase parameters)
+ * @param status response status code
+ *               (if the request is retried, @a status is 100, the @a
+ *               sip->sip_status->st_status contain the real status code
+ *               from the response message, e.g., 302, 401, or 407)
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the registration
+ * @param hmagic application context associated with the registration
+ * @param sip    response message to REGISTER request or NULL upon an error
+ *               (status code is in @a status and 
+ *                descriptive message in @a phrase parameters)
  * @param tags   empty
+ *
+ * @sa nua_unregister(), nua_register(), #nua_r_register,
+ * @Contact, @CallID, @CSeq, @RFC3261 section 10,
+ * @Path, @RFC3327, @ServiceRoute, @RFC3608, @RFC3680
+ * 
+ * @END_NUA_EVENT
  */
 
 int
@@ -516,18 +544,17 @@ nua_stack_register(nua_t *nua, nua_handle_t *nh, nua_event_t e,
   nua_dialog_usage_t *du;
   nua_registration_t *nr = NULL;
   outbound_t *ob = NULL;
-  struct nua_client_request *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   msg_t *msg = NULL;
   sip_t *sip;
   int terminating = e != nua_r_register;
 
-  if (nh->nh_special && nh->nh_special != nua_r_register)
+  if (nua_stack_set_handle_special(nh, nh_has_register, nua_r_register) < 0)
     return UA_EVENT2(e, 900, "Invalid handle for REGISTER");
   if (cr->cr_orq)
     return UA_EVENT2(e, 900, "Request already in progress");
 
-  nua_stack_init_handle(nua, nh, nh_has_register, "", TAG_NEXT(tags));
-  nh->nh_special = nua_r_register;
+  nua_stack_init_handle(nua, nh, TAG_NEXT(tags));
 
   du = nua_dialog_usage_add(nh, nh->nh_ds, nua_register_usage, NULL);
   if (!du)
@@ -556,18 +583,22 @@ nua_stack_register(nua_t *nua, nua_handle_t *nh, nua_event_t e,
       goto error;
   }
 
-  du->du_terminating = terminating;
-
-  if (du->du_msg == NULL)
-    du->du_msg = msg_ref_create(cr->cr_msg); /* Save original message */
-
   if (terminating)
     /* Add Expires: 0 and remove the expire parameters from contacts */
     unregister_expires_contacts(msg, sip);
 
-  if (nua_registration_set_contact(nh, nr, sip->sip_contact, terminating) < 0)
+  if (!sip->sip_contact && cr->cr_has_contact) {
+    terminating = 1;
+  }
+  else if (nua_registration_set_contact(nh, nr, sip->sip_contact, terminating)
+	   < 0)
     goto error;
-  
+
+  du->du_terminating = terminating;
+
+  if (du->du_msg == NULL && !terminating)
+    du->du_msg = msg_ref_create(cr->cr_msg); /* Save original message */
+
   ob = nr->nr_ob;
   
   if (!ob && (NH_PGET(nh, outbound) || NH_PGET(nh, instance))) {
@@ -621,7 +652,7 @@ nua_stack_register(nua_t *nua, nua_handle_t *nh, nua_event_t e,
 static void
 restart_register(nua_handle_t *nh, tagi_t *tags)
 {
-  struct nua_client_request *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   msg_t *msg;
   nua_dialog_usage_t *du = cr->cr_usage;
   nua_registration_t *nr = nua_dialog_usage_private(du);
@@ -661,11 +692,12 @@ restart_register(nua_handle_t *nh, tagi_t *tags)
 /** Refresh registration */
 static
 void nua_register_usage_refresh(nua_handle_t *nh,
+				nua_dialog_state_t *ds,
 				nua_dialog_usage_t *du,
 				sip_time_t now)
 {
   nua_t *nua = nh->nh_nua;
-  nua_client_request_t *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   nua_registration_t *nr = nua_dialog_usage_private(du);
   msg_t *msg;
   sip_t *sip;
@@ -718,10 +750,12 @@ void nua_register_usage_refresh(nua_handle_t *nh,
  * Called when stack is shut down or handle is destroyed. Unregister.
  */
 static
-int nua_register_usage_shutdown(nua_handle_t *nh, nua_dialog_usage_t *du)
+int nua_register_usage_shutdown(nua_handle_t *nh, 
+				nua_dialog_state_t *ds,
+				nua_dialog_usage_t *du)
 {
   nua_t *nua = nh->nh_nua;
-  nua_client_request_t *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   nua_registration_t *nr = nua_dialog_usage_private(du);
   msg_t *msg;
   sip_t *sip;
@@ -776,7 +810,7 @@ int process_response_to_register(nua_handle_t *nh,
 				 nta_outgoing_t *orq,
 				 sip_t const *sip)
 {
-  struct nua_client_request *cr = nh->nh_cr;
+  nua_client_request_t *cr = nh->nh_ds->ds_cr;
   nua_dialog_usage_t *du = cr->cr_usage;
   nua_registration_t *nr = nua_dialog_usage_private(du);
   int status, ready, reregister, terminating;
@@ -1148,7 +1182,7 @@ nua_stack_init_registrations(nua_t *nua)
     du = ds->ds_usage;
 
     if (ds->ds_has_register == 1 && du->du_class->usage_refresh) {
-      nua_dialog_usage_refresh(*nh_list, du, 1);
+      nua_dialog_usage_refresh(*nh_list, ds, du, 1);
     }
   }
 
@@ -1326,7 +1360,7 @@ nua_registration_t *nua_registration_by_aor(nua_registration_t const *list,
     alt_aor = memcpy(_alt_aor, aor, sizeof _alt_aor);
 
   for (nr = list; nr; nr = nr->nr_next) {
-    if (!nr->nr_ready)
+    if (!nr->nr_ready || !nr->nr_contact)
       continue;
     if (nr->nr_aor) {
       if (aor && url_cmp(nr->nr_aor->a_url, aor->a_url) == 0)
@@ -1334,8 +1368,11 @@ nua_registration_t *nua_registration_by_aor(nua_registration_t const *list,
       if (!namewise && alt_aor && url_cmp(nr->nr_aor->a_url, aor->a_url) == 0)
 	namewise = nr;
     }
-    if (!sipswise && ((sips_aor || sips_uri) ? nr->nr_secure : !nr->nr_secure))
-      sipswise = nr;
+    else {
+      if (!sipswise && ((sips_aor || sips_uri) ? 
+			nr->nr_secure : !nr->nr_secure))
+	sipswise = nr;
+    }
     if (!public && nr->nr_public)
       public = nr;
     if (!any)
@@ -1378,6 +1415,7 @@ nua_registration_for_response(nua_registration_t const *list,
 			      sip_record_route_t const *record_route,
 			      sip_contact_t const *remote_contact)
 {
+  nua_registration_t *nr;
   sip_to_t const *aor = NULL;
   url_t const *uri = NULL;
 
@@ -1393,7 +1431,9 @@ nua_registration_for_response(nua_registration_t const *list,
   else if (sip && sip->sip_from)
     uri = sip->sip_from->a_url;
 
-  return nua_registration_by_aor(list, aor, uri, 0);
+  nr = nua_registration_by_aor(list, aor, uri, 0);
+
+  return nr;
 }
 
 
@@ -1443,7 +1483,8 @@ int nua_registration_add_contact_to_request(nua_handle_t *nh,
     nr = nua_registration_for_request(nh->nh_nua->nua_registrations, sip);
 
   return nua_registration_add_contact_and_route(nr, msg, sip, 
-						add_contact, add_service_route);
+						add_contact, 
+						add_service_route);
 }
 
 /** Add a Contact header to response.
@@ -1598,6 +1639,7 @@ int nua_registration_set_contact(nua_handle_t *nh,
 /** Mark registration as ready */
 void nua_registration_set_ready(nua_registration_t *nr, int ready)
 {
+  assert(!ready || nr->nr_contact);
   nr->nr_ready = ready;
 }
 
@@ -1670,16 +1712,40 @@ void unregister_expires_contacts(msg_t *msg, sip_t *sip)
 }
 
 
-/** Outbound requests us to refres registration */
+/** Outbound requests us to refresh registration */
 static int nua_stack_outbound_refresh(nua_handle_t *nh,
 				      outbound_t *ob)
 {
-  nua_dialog_usage_t *du = nua_dialog_usage_get(nh->nh_ds, nua_register_usage, NULL);
+  nua_dialog_state_t *ds = nh->nh_ds;
+  nua_dialog_usage_t *du;
+
+  du = nua_dialog_usage_get(ds, nua_register_usage, NULL);
+
   if (du)
-    nua_dialog_usage_refresh(nh, du, 1);
+    nua_dialog_usage_refresh(nh, ds, du, 1);
+
   return 0;
 }
 
+/** @NUA_EVENT nua_i_outbound
+ *
+ * Status from outbound engine.
+ *
+ * @param status SIP status code or NUA status code (>= 900)
+ *               describing the outbound state
+ * @param phrase a short textual description of @a status code
+ * @param nh     operation handle associated with the outbound engine
+ * @param hmagic application context associated with the handle
+ * @param sip    NULL or response message to an keepalive message or 
+ *               registration probe
+ *               (error code and message are in status an phrase parameters)
+ * @param tags   empty
+ *
+ * @sa NUTAG_OUTBOUND(), NUTAG_KEEPALIVE(), NUTAG_KEEPALIVE_STREAM(), 
+ * nua_register(), #nua_r_register, nua_unregister(), #nua_r_unregister
+ *
+ * @END_NUA_EVENT
+ */
 
 /** @internal Callback from outbound_t */
 static int nua_stack_outbound_status(nua_handle_t *nh, outbound_t *ob,

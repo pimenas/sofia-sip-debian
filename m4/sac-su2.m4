@@ -2,12 +2,6 @@ dnl ======================================================================
 dnl su module
 dnl ======================================================================
 
-dnl This is in a separate file because otherwise AM_CONFIG_HEADER in
-dnl SAC_SOFIA_SU confuses autoheader. If SAC_SOFIA_SU is included to a
-dnl aclocal.m4 of another package, autoheader returns a spurious error and
-dnl automake complains about missing
-dnl libsofia-sip-ua/su/sofia-sip/su_configure.h.
-
 AC_DEFUN([SAC_SOFIA_SU], [
 # Beginning of SAC_SOFIA_SU
 
@@ -103,6 +97,21 @@ else
        SAC_SU_DEFINE(ISSIZE_MAX, INT_MAX)dnl
        SAC_SU_DEFINE(SOFIA_USIZE_T, unsigned)dnl
        SAC_SU_DEFINE(USIZE_MAX, UINT_MAX)dnl
+fi
+
+
+dnl ======================================================================
+dnl SAC_ENABLE_COREFOUNDATION
+dnl ======================================================================
+AC_ARG_ENABLE(corefoundation,
+[  --enable-corefoundation     compile with OSX COREFOUNDATION (disabled)],
+ , enable_corefoundation=no)
+AM_CONDITIONAL(COREFOUNDATION, test $enable_corefoundation = yes)
+
+if test $enable_corefoundation = yes ; then
+   SAC_SU_DEFINE([SU_HAVE_OSX_CF_API], 1, [
+Define as 1 if you have OSX CoreFoundation interface])
+   LIBS="-framework CoreFoundation -framework SystemConfiguration $LIBS"
 fi
 
 
@@ -265,13 +274,13 @@ AC_CACHE_CHECK([for field ifr_index in struct ifreq],
 [ac_cv_struct_ifreq_ifr_index],[
 ac_cv_struct_ifreq_ifr_index=no
 if test "1${ac_cv_header_arpa_inet_h}2${ac_cv_header_netdb_h}3${ac_cv_header_sys_socket_h}4${ac_cv_header_net_if_h}" = 1yes2yes3yes4yes; then
-AC_TRY_COMPILE([#include <sys/types.h>
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/socket.h>
-#include <net/if.h>], [
+#include <net/if.h>]], [[
 struct ifreq ifreq; int index; index = ifreq.ifr_index;
-], [ac_cv_struct_ifreq_ifr_index=yes])
+]])],[ac_cv_struct_ifreq_ifr_index=yes],[])
 else
   ac_cv_struct_ifreq_ifr_index='net/if.h missing'
 fi # arpa/inet.h && netdb.h && sys/socket.h && net/if.h
@@ -284,13 +293,13 @@ AC_CACHE_CHECK([for field ifr_ifindex in struct ifreq],
 [ac_cv_struct_ifreq_ifr_ifindex],[
 ac_cv_struct_ifreq_ifr_ifindex=no
 if test "1${ac_cv_header_arpa_inet_h}2${ac_cv_header_netdb_h}3${ac_cv_header_sys_socket_h}4${ac_cv_header_net_if_h}" = 1yes2yes3yes4yes; then
-AC_TRY_COMPILE([#include <sys/types.h>
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/socket.h>
-#include <net/if.h>], [
+#include <net/if.h>]], [[
 struct ifreq ifreq; int index; index = ifreq.ifr_ifindex;
-], ac_cv_struct_ifreq_ifr_ifindex=yes)
+]])],[ac_cv_struct_ifreq_ifr_ifindex=yes],[])
 else
   ac_cv_struct_ifreq_ifr_ifindex='net/if.h missing'
 fi # arpa/inet.h && netdb.h && sys/socket.h && net/if.h
@@ -436,12 +445,17 @@ AC_SEARCH_LIBS(getaddrinfo, xnet socket nsl)
 
 AC_CHECK_FUNCS([gettimeofday strerror random initstate tcsetattr flock alarm \
                 socketpair gethostname gethostbyname getipnodebyname \
-                poll epoll select if_nameindex \
+                poll epoll_create select if_nameindex \
 	        getaddrinfo getnameinfo freeaddrinfo gai_strerror getifaddrs \
                 getline getdelim getpass])
 # getline getdelim getpass are _GNU_SOURCE stuff
+
 if test $ac_cv_func_poll = yes ; then
   SAC_SU_DEFINE([SU_HAVE_POLL], 1, [Define to 1 if you have poll().])
+fi
+
+if test $ac_cv_func_epoll_create = yes ; then
+  AC_DEFINE([HAVE_EPOLL], 1, [Define to 1 if you have epoll interface.])
 fi
 
 if test $ac_cv_func_if_nameindex = yes ; then
@@ -505,7 +519,7 @@ case "$target" in
 	[Define to 1 if you have /proc/net/if_inet6 control file]) ;;
 esac
 
-AM_CONFIG_HEADER([libsofia-sip-ua/su/sofia-sip/su_configure.h])
+AC_CONFIG_HEADERS([libsofia-sip-ua/su/sofia-sip/su_configure.h])
 
 # End of SAC_SOFIA_SU
 ])
@@ -520,6 +534,7 @@ AC_DEFUN([SAC_COMMA_APPEND],[$1="`test -n "$$1" && echo "$$1, "`$2"])
 # Set VARIABLE to VALUE, verbatim, or 1.  Remember the value
 # and if VARIABLE is affected the same VALUE, do nothing, else
 # die.  The third argument is used by autoheader.
+
 m4_define([SAC_SU_DEFINE],[
 cat >>confdefs.h <<\_AXEOF
 [@%:@define] $1 m4_if($#, 2, [$2], $#, 3, [$2], 1)

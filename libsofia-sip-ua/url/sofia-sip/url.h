@@ -147,7 +147,7 @@ SOFIAPUBFUN isize_t url_param(char const *params, char const *tag,
 /** Check for a parameter. */
 SOFIAPUBFUN int url_has_param(url_t const *url, char const *name);
 
-/** Check for a presence of a parameter. */
+/** Check for a presence of a parameter in string. */
 SOFIAPUBFUN isize_t url_have_param(char const *params, char const *tag);
 
 /** Add a parameter. */
@@ -156,8 +156,18 @@ SOFIAPUBFUN int url_param_add(su_home_t *h, url_t *url, char const *param);
 /** Strip transport-specific stuff away from URI. */
 SOFIAPUBFUN int url_strip_transport(url_t *u);
 
+/** Strip parameter away from URI. */
+SOFIAPUBFUN char *url_strip_param_string(char *params, char const *name);
+
 /** Test if url has any transport-specific stuff. */
 SOFIAPUBFUN int url_have_transport(url_t const *u);
+
+/* ---------------------------------------------------------------------- */
+/* Query handling */
+
+/** Convert a URL query to a header string. */
+SOFIAPUBFUN char *url_query_as_header_string(su_home_t *home, 
+					     char const *query);
 
 /* ---------------------------------------------------------------------- */
 /* Handling url-escque strings */
@@ -169,10 +179,15 @@ SOFIAPUBFUN int url_reserved_p(char const *s);
 SOFIAPUBFUN char *url_escape(char *d, char const *s, char const reserved[]);
 
 /** Calculate length of string when escaped. */
-SOFIAPUBFUN int url_esclen(char const *s, char const reserved[]);
+SOFIAPUBFUN isize_t url_esclen(char const *s, char const reserved[]);
+
+/** Unescape characters from string */
+SOFIAPUBFUN size_t url_unescape_to(char *d, char const *s, size_t n);
 
 /** Unescape a string */
 SOFIAPUBFUN char *url_unescape(char *d, char const *s);
+
+#define URL_RESERVED_CHARS ";/?:@&=+$,"
 
 /* ---------------------------------------------------------------------- */
 /* Initializing */

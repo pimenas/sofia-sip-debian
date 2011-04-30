@@ -29,6 +29,9 @@ EXPORT tag_typedef_t nutag_url_ref =
 extern tag_typedef_t nutag_address;
 EXPORT tag_typedef_t nutag_address_ref = 
   REFTAG_TYPEDEF(nutag_address);
+extern tag_typedef_t nutag_method;
+EXPORT tag_typedef_t nutag_method_ref = 
+  REFTAG_TYPEDEF(nutag_method);
 extern tag_typedef_t nutag_uicc;
 EXPORT tag_typedef_t nutag_uicc_ref = 
   REFTAG_TYPEDEF(nutag_uicc);
@@ -47,6 +50,9 @@ EXPORT tag_typedef_t nutag_only183_100rel_ref =
 extern tag_typedef_t nutag_early_answer;
 EXPORT tag_typedef_t nutag_early_answer_ref = 
   REFTAG_TYPEDEF(nutag_early_answer);
+extern tag_typedef_t nutag_include_extra_sdp;
+EXPORT tag_typedef_t nutag_include_extra_sdp_ref = 
+  REFTAG_TYPEDEF(nutag_include_extra_sdp);
 extern tag_typedef_t nutag_media_enable;
 EXPORT tag_typedef_t nutag_media_enable_ref = 
   REFTAG_TYPEDEF(nutag_media_enable);
@@ -230,6 +236,9 @@ EXPORT tag_typedef_t nutag_user_agent_ref =
 extern tag_typedef_t nutag_allow;
 EXPORT tag_typedef_t nutag_allow_ref = 
   REFTAG_TYPEDEF(nutag_allow);
+extern tag_typedef_t nutag_allow_events;
+EXPORT tag_typedef_t nutag_allow_events_ref = 
+  REFTAG_TYPEDEF(nutag_allow_events);
 extern tag_typedef_t nutag_supported;
 EXPORT tag_typedef_t nutag_supported_ref = 
   REFTAG_TYPEDEF(nutag_supported);
@@ -242,6 +251,9 @@ EXPORT tag_typedef_t nutag_service_route_enable_ref =
 extern tag_typedef_t nutag_detect_network_updates;
 EXPORT tag_typedef_t nutag_detect_network_updates_ref = 
   REFTAG_TYPEDEF(nutag_detect_network_updates);
+extern tag_typedef_t nutag_with;
+EXPORT tag_typedef_t nutag_with_ref = 
+  REFTAG_TYPEDEF(nutag_with);
 extern tag_typedef_t _nutag_add_contact;
 EXPORT tag_typedef_t _nutag_add_contact_ref = 
   REFTAG_TYPEDEF(_nutag_add_contact);
@@ -261,9 +273,9 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_path_enable,
   nutag_certificate_dir,
   nutag_authtime,
+  nutag_smime_signature,
   nutag_enableinvite,
   nutag_answer_sent,
-  nutag_smime_signature,
   nutag_smime_message_encryption,
   _nutag_copy,
   nutag_keepalive,
@@ -274,8 +286,9 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_notify_refer,
   nutag_early_media,
   nutag_service_route_enable,
-  nutag_only183_100rel,
+  nutag_allow_events,
   nutag_smime_message_digest,
+  nutag_only183_100rel,
   nutag_use_dialog,
   nutag_outbound,
   nutag_outbound_set1,
@@ -300,6 +313,7 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_m_display,
   nutag_refer_with_id,
   nutag_address,
+  nutag_include_extra_sdp,
   nutag_media_features,
   nutag_certificate_phrase,
   nutag_m_features,
@@ -316,7 +330,9 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_callee_caps,
   nutag_hold,
   nutag_smime_key_encryption,
+  nutag_with,
   nutag_supported,
+  nutag_method,
   nutag_smime_protection_mode,
   nutag_early_answer,
   nutag_event,

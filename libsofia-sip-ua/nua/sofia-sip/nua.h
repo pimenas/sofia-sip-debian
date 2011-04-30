@@ -79,12 +79,15 @@ typedef enum nua_nw_detector_e {
 
 /** Events */
 typedef enum nua_event_e {
+  /* Event used by stack internally */
+  nua_i_none = -1,
+
   /* Indications */
   nua_i_error,			/**< Error indication */
 
-  nua_i_invite,			/**< Incoming call */
+  nua_i_invite,			/**< Incoming call INVITE */
   nua_i_cancel,			/**< Incoming INVITE has been cancelled */
-  nua_i_ack,			/**< Response to INVITE has been ACKed */
+  nua_i_ack,			/**< Final response to INVITE has been ACKed */
   nua_i_fork,			/**< Outgoing call has been forked */
   nua_i_active,			/**< A call has been activated */
   nua_i_terminated,		/**< A call has been terminated */
@@ -92,24 +95,25 @@ typedef enum nua_event_e {
 
   nua_i_outbound,		/**< Status from outbound processing */
 
-  nua_i_bye,			/**< Incoming call hangup */
-  nua_i_options,		/**< Incoming options */
-  nua_i_refer,			/**< Incoming call transfer */
+  nua_i_bye,			/**< Incoming BYE call hangup */
+  nua_i_options,		/**< Incoming OPTIONS */
+  nua_i_refer,			/**< Incoming REFER call transfer */
   nua_i_publish,		/**< Incoming PUBLISH */
   nua_i_prack,			/**< Incoming PRACK */
   nua_i_info,			/**< Incoming session INFO */
   nua_i_update,			/**< Incoming session UPDATE */
   nua_i_message,		/**< Incoming MESSAGE */
   nua_i_chat,			/**< Incoming chat MESSAGE  */
-  nua_i_subscribe,		/**< Incoming subscription */
+  nua_i_subscribe,		/**< Incoming SUBSCRIBE  */
   nua_i_subscription,		/**< Incoming subscription to be authorized */
-  nua_i_notify,			/**< Incoming event */
+  nua_i_notify,			/**< Incoming event NOTIFY */
   nua_i_method,			/**< Incoming, unknown method */
 
   nua_i_media_error,		/**< Offer-answer error indication */
 
   /* Responses */
-  nua_r_set_params,		/**< Answer to nua_set_params() */
+  nua_r_set_params,		/**< Answer to nua_set_params() or 
+				 * nua_get_hparams(). */
   nua_r_get_params,		/**< Answer to nua_get_params() or 
 				 * nua_get_hparams(). */
   nua_r_shutdown,		/**< Answer to nua_shutdown() */
@@ -137,8 +141,9 @@ typedef enum nua_event_e {
   nua_r_notify,			/**< Answer to outgoing NOTIFY */
   nua_r_method,			/**< Answer to unknown outgoing method */
  
+  nua_r_authenticate,		/**< Answer to nua_authenticate() */
+
   /* Internal events: nua hides them from application */
-  nua_r_authenticate,
   nua_r_redirect,
   nua_r_destroy,
   nua_r_respond,
@@ -147,12 +152,9 @@ typedef enum nua_event_e {
 
   /* NOTE: Post 1.12 release events come here (below) to keep ABI
      compatibility! */
-  nua_i_network_changed,        /**< Local IP(v6) address has changed */
-
-  
-  /* Event used by stack internally */
-  nua_i_none
-
+  nua_i_network_changed,        /**< Local IP(v6) address has changed. 
+				   @NEW_1_12_2 */
+  nua_i_register,		/**< Incoming REGISTER. @NEW_1_12_4. */
 } nua_event_t;
 
 typedef struct event_s {
@@ -190,6 +192,9 @@ SOFIAPUBFUN void nua_shutdown(nua_t *nua);
 /** Destroy the NUA stack. */
 SOFIAPUBFUN void nua_destroy(nua_t *nua);
 
+/** Fetch callback context from nua. */
+SOFIAPUBFUN nua_magic_t *nua_magic(nua_t *nua);
+
 /** Set NUA parameters. */
 SOFIAPUBFUN void nua_set_params(nua_t *, tag_type_t, tag_value_t, ...);
 
@@ -214,6 +219,9 @@ SOFIAPUBFUN int nua_handle_unref(nua_handle_t *);
 
 /** Bind a callback context to an operation handle. */
 SOFIAPUBFUN void nua_handle_bind(nua_handle_t *nh, nua_hmagic_t *magic);
+
+/** Fetch a callback context from an operation handle. */
+SOFIAPUBFUN nua_hmagic_t *nua_handle_magic(nua_handle_t *nh);
 
 /** Set handle parameters. */
 SOFIAPUBFUN void nua_set_hparams(nua_handle_t *, tag_type_t, tag_value_t, ...);
@@ -313,7 +321,7 @@ SOFIAPUBFUN void nua_bye(nua_handle_t *, tag_type_t, tag_value_t, ...);
 
 /** Cancel an INVITE operation */
 SOFIAPUBFUN void nua_cancel(nua_handle_t *, tag_type_t, tag_value_t, ...);
- 
+
 /** Authenticate an operation. */
 SOFIAPUBFUN void nua_authenticate(nua_handle_t *, tag_type_t, tag_value_t, ...);
 
@@ -322,6 +330,9 @@ SOFIAPUBFUN void nua_authorize(nua_handle_t *, tag_type_t, tag_value_t, ...);
 
 /*# Redirect an operation. @deprecated */
 SOFIAPUBFUN void nua_redirect(nua_handle_t *, tag_type_t, tag_value_t, ...);
+
+/** Extension request method. */
+SOFIAPUBFUN void nua_method(nua_handle_t *, tag_type_t, tag_value_t, ...);
 
 /** Respond with given status. */
 SOFIAPUBFUN void nua_respond(nua_handle_t *nh, 
@@ -348,6 +359,20 @@ SOFIAPUBFUN nua_event_data_t const *nua_event_data(nua_saved_event_t const saved
 
 /** Destroy a save nua event */
 SOFIAPUBFUN void nua_destroy_event(nua_saved_event_t *saved);
+
+/** Get request message from saved nua event. */
+SOFIAPUBFUN msg_t *nua_saved_event_request(nua_saved_event_t const *saved);
+
+/** Get current request message. */
+SOFIAPUBFUN  msg_t *nua_current_request(nua_t const *nua);
+
+SOFIAPUBFUN sip_replaces_t *nua_handle_make_replaces(nua_handle_t *nh, 
+						     su_home_t *home,
+						     int early_only);
+
+SOFIAPUBFUN nua_handle_t *nua_handle_by_replaces(nua_t *nua,
+						 sip_replaces_t const *rp);
+
 
 SOFIA_END_DECLS
 

@@ -38,14 +38,6 @@
 #include <su_config.h>
 #endif
 
-#if HAVE_UICC_H
-#include <uicc.h>
-#endif
-
-#if SU_HAVE_PTHREADS
-#include <pthread.h>
-#endif
-
 #ifndef SU_OS_NW_H
 #include <sofia-sip/su_os_nw.h>
 #endif
@@ -87,94 +79,7 @@ typedef struct event_s event_t;
 
 #define       NONE ((void *)-1)
 
-enum nh_kind {
-  nh_has_nothing,
-  nh_has_invite,
-  nh_has_subscribe,
-  nh_has_notify,
-  nh_has_register,
-  nh_has_streaming
-};
-
-typedef struct nua_client_request nua_client_request_t; 
-typedef struct nua_server_request nua_server_request_t; 
-
-typedef void nua_creq_restart_f(nua_handle_t *, tagi_t *tags);
-
 typedef struct register_usage nua_registration_t;
-
-struct nua_client_request
-{
-  nua_event_t         cr_event;		/**< Request event */
-  nua_creq_restart_f *cr_restart;
-  nta_outgoing_t     *cr_orq;
-  msg_t              *cr_msg;
-  nua_dialog_usage_t *cr_usage;
-  unsigned short      cr_retry_count;   /**< Retry count for this request */
-
-  unsigned short      cr_answer_recv;   /**< Recv answer in response 
-					 *  with this status.
-					 */
-  unsigned            cr_offer_sent:1;  /**< Sent offer in this request */
-
-  unsigned            cr_offer_recv:1;  /**< Recv offer in a response */
-  unsigned            cr_answer_sent:1; /**< Sent answer in (PR)ACK */
-};
-
-typedef struct nua_session_state
-{
-  /** Session-related state */
-  unsigned        ss_active:1;		/**< Session is currently active. */
-  
-  /* enum nua_callstate */
-  unsigned        ss_state:4;		/**< Session status (enum nua_callstate) */
-  
-  unsigned        ss_100rel:1;	        /**< Use 100rel, send 183 */
-  unsigned        ss_alerting:1;	/**< 180 is sent/received */
-  
-  unsigned        ss_update_needed:2;	/**< Send an UPDATE (do O/A if > 1) */
-
-  unsigned        ss_precondition:1;	/**< Precondition required */
-
-  unsigned        ss_hold_remote:1;	/**< We are holding remote */
-
-  unsigned        ss_timer_set:1;       /**< We have active session timer. */
-  unsigned        : 0;
-  
-  unsigned        ss_session_timer;	/**< Value of Session-Expires (delta) */
-  unsigned        ss_min_se;		/**< Minimum session expires */
-  enum nua_session_refresher ss_refresher; /**< none, local or remote */
-
-  char const     *ss_ack_needed;	/**< Send an ACK
-					 * (do O/A, if "offer" or "answer")
-					 */
-
-  nua_dialog_usage_t *ss_usage;
-
-  /* Outgoing invite */
-  struct nua_client_request ss_crequest[1];
-
-  /* Incoming invite */
-  struct nua_server_request {
-
-  /** Respond to an incoming INVITE transaction.
-   *
-   * When the application responds to an incoming INVITE transaction with
-   * nua_respond(), the ss_respond_to_invite() is called (if non-NULL).
-   */
-    void (*sr_respond)(nua_t *nua, nua_handle_t *nh,
-		       int status, char const *phrase, 
-		       tagi_t const *tags);
-    nta_incoming_t *sr_irq;
-    msg_t *sr_msg;		/**< Request message */
-
-    unsigned sr_offer_recv:1;	/**< We have received an offer */
-    unsigned sr_answer_sent:2;	/**< We have answered (reliably, if >1) */
-
-    unsigned sr_offer_sent:1;	/**< We have offered SDP */
-    unsigned sr_answer_recv:1;	/**< We have received SDP answer */
-  } ss_srequest[1];
-} nua_session_state_t;
 
 #define \
   NH_ACTIVE_MEDIA_TAGS(include, soa)					\
@@ -218,24 +123,24 @@ struct nua_handle_s
 
   nua_handle_preferences_t *nh_prefs; /**< Preferences */
 
-  /* Handle state */
+  /* Handle type is determined by special event and flags. */
   nua_event_t     nh_special;	/**< Special event */
+  unsigned        nh_has_invite:1;     /**< Has call */
+  unsigned        nh_has_subscribe:1;  /**< Has watcher */
+  unsigned        nh_has_notify:1;     /**< Has notifier */
+  unsigned        nh_has_register:1;   /**< Has registration */
+
+  /* Call status */
+  unsigned        nh_active_call:1;
+  unsigned        nh_hold_remote:1;
 
   unsigned        nh_ref_by_stack:1;	/**< Has stack used the handle? */
   unsigned        nh_ref_by_user:1;	/**< Has user used the handle? */
   unsigned        nh_init:1;	        /**< Handle has been initialized */
   unsigned        nh_used_ptags:1;	/**< Ptags has been used */
-
-  unsigned        nh_has_invite:1;     /**< Has call */
-  unsigned        nh_has_subscribe:1;  /**< Has watcher */
-  unsigned        nh_has_notify:1;     /**< Has notifier */
-  unsigned        nh_has_register:1;   /**< Has registration */
-  unsigned        nh_has_streaming:1;  /**< Has RTSP-related session */
-
-  struct nua_client_request nh_cr[1];
+  unsigned :0;
 
   nua_dialog_state_t nh_ds[1];
-  nua_session_state_t nh_ss[1];
 
   auth_client_t  *nh_auth;	/**< Authorization objects */
 
@@ -263,15 +168,6 @@ int nh_is_special(nua_handle_t *nh)
 {
   return nh == NULL || nh->nh_special;
 }
-
-static inline
-int nh_has_session(nua_handle_t const *nh)
-{
-  return nh != NULL && 
-    nh->nh_ss->ss_state > nua_callstate_init &&
-    nh->nh_ss->ss_state < nua_callstate_terminated;
-}
-
 
 extern char const nua_internal_error[];
 
@@ -404,11 +300,28 @@ int nua_stack_event(nua_t *nua, nua_handle_t *nh, msg_t *msg,
 nua_handle_t *nh_create_handle(nua_t *nua, nua_hmagic_t *hmagic,
 			       tagi_t *tags);
 
-nua_handle_t *nua_stack_incoming_handle(nua_t *nua, 
+nua_handle_t *nua_stack_incoming_handle(nua_t *nua,
 					nta_incoming_t *irq,
 					sip_t const *sip,
-					enum nh_kind kind,
 					int create_dialog);
+
+enum { create_dialog = 1 };
+
+int nua_stack_init_handle(nua_t *nua, nua_handle_t *nh, 
+			  tag_type_t tag, tag_value_t value, ...);
+
+enum nh_kind {
+  nh_has_nothing,
+  nh_has_invite,
+  nh_has_subscribe,
+  nh_has_notify,
+  nh_has_register,
+  nh_has_streaming
+};
+
+int nua_stack_set_handle_special(nua_handle_t *nh,
+				 enum nh_kind kind,
+				 nua_event_t special);
 
 int nua_handle_save_tags(nua_handle_t *h, tagi_t *tags);
 
@@ -416,16 +329,20 @@ void nh_destroy(nua_t *nua, nua_handle_t *nh);
 
 nua_handle_t *nh_validate(nua_t *nua, nua_handle_t *maybe);
 
+sip_replaces_t *nua_stack_handle_make_replaces(nua_handle_t *handle, 
+					       su_home_t *home,
+					       int early_only);
+
+nua_handle_t *nua_stack_handle_by_replaces(nua_t *nua,
+					   sip_replaces_t const *r);
+
+/* ---------------------------------------------------------------------- */
+
 int nua_stack_set_defaults(nua_handle_t *nh, nua_handle_preferences_t *nhp);
 
 int nua_stack_set_from(nua_t *, int initial, tagi_t const *tags);
 
 int nua_stack_init_instance(nua_handle_t *nh, tagi_t const *tags);
-
-int nua_stack_init_handle(nua_t *nua, nua_handle_t *nh, 
-			  enum nh_kind kind,
-			  char const *default_allow,
-			  tag_type_t tag, tag_value_t value, ...);
 
 int nua_stack_process_request(nua_handle_t *nh,
 			      nta_leg_t *leg,
@@ -433,7 +350,7 @@ int nua_stack_process_request(nua_handle_t *nh,
 			      sip_t const *sip);
 
 int nua_stack_process_response(nua_handle_t *nh,
-			       struct nua_client_request *cr,
+			       nua_client_request_t *cr,
 			       nta_outgoing_t *orq,
 			       sip_t const *sip,
 			       tag_type_t tag, tag_value_t value, ...);
@@ -441,36 +358,38 @@ int nua_stack_process_response(nua_handle_t *nh,
 int nua_stack_launch_network_change_detector(nua_t *nua);
 
 msg_t *nua_creq_msg(nua_t *nua, nua_handle_t *nh,
-		    struct nua_client_request *cr,
+		    nua_client_request_t *cr,
 		    int restart, 
 		    sip_method_t method, char const *name,
 		    tag_type_t tag, tag_value_t value, ...);
 
+int nua_tagis_have_contact_tag(tagi_t const *t);
+
 int nua_creq_check_restart(nua_handle_t *nh,
-			   struct nua_client_request *cr,
+			   nua_client_request_t *cr,
 			   nta_outgoing_t *orq,
 			   sip_t const *sip,
 			   nua_creq_restart_f *f);
 
 int nua_creq_restart_with(nua_handle_t *nh,
-			  struct nua_client_request *cr,
+			  nua_client_request_t *cr,
 			  nta_outgoing_t *orq,
 			  int status, char const *phrase,
 			  nua_creq_restart_f *f, 
 			  tag_type_t tag, tag_value_t value, ...);
 
 int nua_creq_save_restart(nua_handle_t *nh,
-			  struct nua_client_request *cr,
+			  nua_client_request_t *cr,
 			  nta_outgoing_t *orq,
 			  int status, char const *phrase,
 			  nua_creq_restart_f *f);
 
 int nua_creq_restart(nua_handle_t *nh,
-		     struct nua_client_request *cr,
+		     nua_client_request_t *cr,
 		     nta_response_f *cb,
 		     tagi_t *tags);
 
-void nua_creq_deinit(struct nua_client_request *cr, nta_outgoing_t *orq);
+void nua_creq_deinit(nua_client_request_t *cr, nta_outgoing_t *orq);
 
 sip_contact_t const *nua_stack_get_contact(nua_registration_t const *nr);
 
@@ -508,6 +427,30 @@ nua_stack_process_request_t nua_stack_process_subscribe;
 nua_stack_process_request_t nua_stack_process_notify;
 nua_stack_process_request_t nua_stack_process_refer;
 nua_stack_process_request_t nua_stack_process_unknown;
+nua_stack_process_request_t nua_stack_process_register;
+nua_stack_process_request_t nua_stack_process_method;
+
+nua_client_request_t
+  *nua_client_request_pending(nua_client_request_t const *),
+  *nua_client_request_restarting(nua_client_request_t const *),
+  *nua_client_request_by_orq(nua_client_request_t const *cr,
+			     nta_outgoing_t const *orq);
+
+nua_server_request_t *nua_server_request(nua_t *nua,
+					 nua_handle_t *nh,
+					 nta_incoming_t *irq,
+					 sip_t const *sip,
+					 nua_server_request_t *sr,
+					 size_t size,
+					 nua_server_respond_f *respond,
+					 int create_dialog);
+
+int nua_stack_server_event(nua_t *nua,
+			   nua_server_request_t *sr,
+			   nua_event_t event,
+			   tag_type_t tag, tag_value_t value, ...);
+
+/* ---------------------------------------------------------------------- */
 
 #ifndef SDP_MIME_TYPE
 #define SDP_MIME_TYPE nua_application_sdp

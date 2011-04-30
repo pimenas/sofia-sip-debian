@@ -11,18 +11,18 @@ dnl information on the package
 dnl ---------------------------
 
 dnl update both the version for AC_INIT and the LIBSOFIA_SIP_UA_MAJOR_MINOR
-AC_INIT([sofia-sip], [1.12.3])
+AC_INIT([sofia-sip], [1.12.4])
 AC_CONFIG_SRCDIR([libsofia-sip-ua/sip/sofia-sip/sip.h])
 AC_SUBST(VER_LIBSOFIA_SIP_UA_MAJOR_MINOR, [1.12])
 dnl Includedir specific to this sofia version
 AC_SUBST(include_sofiadir, '${includedir}/sofia-sip-1.12')
-AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [2])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [3])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_REV, [0])
-AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [2])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [3])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_SOVER, [0]) # CUR-AGE
-AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_CUR, [1])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_CUR, [2])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_REV, [0])
-AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_AGE, [1])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_AGE, [2])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_SOVER, [0]) # CUR-AGE
 					    
 # dnl calls AC_CANONICAL_ macros that are required by AM_INIT_AUTOMAKE
@@ -30,24 +30,25 @@ SAC_CANONICAL_SYSTEM_CACHE_CHECK
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
-AM_CONFIG_HEADER(config.h)
-
-SAC_ENABLE_NDEBUG
-SAC_ENABLE_EXPENSIVE_CHECKS
+AC_CONFIG_HEADERS([config.h])
 
 AC_GNU_SOURCE
 
 ### checks for programs
 ### -------------------
+AC_LANG([C])
 AC_CHECK_COMPILATION_ENVIRONMENT
 
-AX_TOOL_CC
+SAC_TOOL_CC
 AC_PROG_INSTALL
 AC_PROG_CPP
 AC_CHECK_PROG(ETAGS, etags, etags, echo)
 AC_CHECK_TOOL(AR, ar, ar)
 AC_CHECK_TOOL(LD, ld, ld)
 AC_PROG_LIBTOOL
+
+SAC_ENABLE_NDEBUG
+SAC_ENABLE_EXPENSIVE_CHECKS
 
 dnl Add parameters for aclocal
 AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
@@ -197,5 +198,8 @@ utils/Doxyfile.build
 win32/Makefile
 win32/config.h
 ])
+
+AC_CONFIG_COMMANDS([version],,[PACKAGE_VERSION=${PACKAGE_VERSION}])
+AC_CONFIG_FILES([packages/sofia-sip-${PACKAGE_VERSION}.spec:packages/sofia-sip.spec.in])
 
 AC_OUTPUT

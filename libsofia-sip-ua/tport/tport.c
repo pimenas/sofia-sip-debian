@@ -137,11 +137,12 @@ struct tport_pending_s {
   void               *p_client;
   tport_pending_error_f *p_callback;
   msg_t              *p_msg;
-  unsigned            p_reported;
+  unsigned short      p_reported;
+  unsigned short      p_on_success;
 };
 
 /** Return true if transport is master. */
-inline int tport_is_master(tport_t const *self)
+int tport_is_master(tport_t const *self)
 {
   return 
     self && 
@@ -149,7 +150,7 @@ inline int tport_is_master(tport_t const *self)
 }
 
 /** Return true if transport is primary. */
-inline int tport_is_primary(tport_t const *self)
+int tport_is_primary(tport_t const *self)
 {
   return 
     self && 
@@ -157,7 +158,7 @@ inline int tport_is_primary(tport_t const *self)
 }
 
 /** Return true if transport is secondary. */
-inline int tport_is_secondary(tport_t const *self)
+int tport_is_secondary(tport_t const *self)
 {
   return 
     self && 
@@ -166,31 +167,31 @@ inline int tport_is_secondary(tport_t const *self)
 }
 
 /** Test if transport has been registered */
-inline int tport_is_registered(tport_t const *self)
+int tport_is_registered(tport_t const *self)
 {
   return self->tp_index != 0;
 }
 
 /** Test if transport is stream. */
-inline int tport_is_stream(tport_t const *self)
+int tport_is_stream(tport_t const *self)
 {
   return self->tp_addrinfo->ai_socktype == SOCK_STREAM;
 }
  
 /** Test if transport is dgram. */
-inline int tport_is_dgram(tport_t const *self)
+int tport_is_dgram(tport_t const *self)
 {
   return self->tp_addrinfo->ai_socktype == SOCK_DGRAM;
 }
  
 /** Test if transport is udp. */
-inline int tport_is_udp(tport_t const *self)
+int tport_is_udp(tport_t const *self)
 {
   return self->tp_addrinfo->ai_protocol == IPPROTO_UDP;
 }
  
 /** Test if transport is tcp. */
-inline int tport_is_tcp(tport_t const *self)
+int tport_is_tcp(tport_t const *self)
 {
   return self->tp_addrinfo->ai_protocol == IPPROTO_TCP;
 }
@@ -260,14 +261,20 @@ int tport_is_updating(tport_t const *self)
   return 0;
 }
 
-/** Test if transport has been closed */
-static inline int tport_is_closed(tport_t const *self)
+/** Test if transport has been closed.
+ *
+ * @since New in @VERSION_1_12_4
+ */
+inline int tport_is_closed(tport_t const *self)
 {
   return self->tp_closed;
 }
 
-/** Test if transport has been shut down */
-static inline int tport_is_shutdown(tport_t const *self)
+/** Test if transport has been shut down.
+ *
+ * @since New in @VERSION_1_12_4
+ */
+inline int tport_is_shutdown(tport_t const *self)
 {
   return self->tp_closed || self->tp_send_close || self->tp_recv_close;
 }
@@ -3115,7 +3122,8 @@ int tport_prepare_and_send(tport_t *self, msg_t *msg,
 
 /** Send a message.
  *
- * 
+ * @retval 0 when succesful
+ * @retval -1 upon an error
  */
 int tport_send_msg(tport_t *self, msg_t *msg, 
 		   tp_name_t const *tpn, 
@@ -3123,7 +3131,7 @@ int tport_send_msg(tport_t *self, msg_t *msg,
 {
   msg_iovec_t *iov, auto_iov[40];
   size_t iovlen, iovused, i, total;
-  ssize_t n;
+  size_t n;
   ssize_t nerror;
   int sdwn_after, close_after;
   su_time_t now;
@@ -3181,7 +3189,7 @@ int tport_send_msg(tport_t *self, msg_t *msg,
 	iov[i].mv_len -= (su_ioveclen_t)(n - total);
 	iov[i].mv_base = (char *)iov[i].mv_base + (n - total);
 	if (tport_queue_rest(self, msg, &iov[i], iovused - i) >= 0)
-	  return n;
+	  return 0;
       }
       else {
 	char const *comp = tpn->tpn_comp;
@@ -3210,7 +3218,7 @@ int tport_send_msg(tport_t *self, msg_t *msg,
   if (close_after || sdwn_after)
     tport_shutdown(self, close_after ? 2 : 1);
 
-  return n;
+  return 0;
 }
 
 static 

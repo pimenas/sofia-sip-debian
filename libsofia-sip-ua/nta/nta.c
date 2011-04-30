@@ -66,6 +66,8 @@
 #include <sofia-sip/sip_util.h>
 #include <sofia-sip/sip_status.h>
 
+#include <sofia-sip/hostdomain.h>
+
 #include <sofia-sip/msg_addr.h>
 #include <sofia-sip/msg_parser.h>
 
@@ -2327,7 +2329,7 @@ int agent_aliases(nta_agent_t const *agent, url_t url[], tport_t *tport)
     if (url->url_type != m->m_url->url_type)
       continue;
 
-    if (strcasecmp(url->url_host, m->m_url->url_host))
+    if (host_cmp(url->url_host, m->m_url->url_host))
       continue;
 
     if (url->url_port == NULL)
@@ -2959,8 +2961,13 @@ int nta_msg_ackbye(nta_agent_t *agent, msg_t *msg)
  * @param method_name  method name (if @a method == #sip_method_unknown)
  * @param request_uri  request URI
  *
+ * If @a request_uri contains query part, the query part is converted as SIP
+ * headers and added to the request.
+ *
  * @retval 0  when successful
  * @retval -1 upon an error
+ *
+ * @sa nta_outgoing_mcreate(), nta_outgoing_tcreate()
  */
 int nta_msg_request_complete(msg_t *msg,
 			     nta_leg_t *leg,
@@ -2970,40 +2977,14 @@ int nta_msg_request_complete(msg_t *msg,
 {
   su_home_t *home = msg_home(msg);
   sip_t *sip = sip_object(msg);
+  sip_to_t const *to;
   sip_cseq_t *cseq;
   uint32_t seq;
   url_t reg_url[1];
+  url_string_t const *original = request_uri;
 
   if (!leg || !msg)
     return -1;
-
-  if (!sip->sip_max_forwards)
-    sip_add_dup(msg, sip, (sip_header_t *)leg->leg_agent->sa_max_forwards);
-
-  if (!sip->sip_call_id) {
-    if (leg->leg_id)
-      sip->sip_call_id = sip_call_id_dup(home, leg->leg_id);
-    else
-      sip->sip_call_id = sip_call_id_create(home, NULL);
-  }
-
-  if (!sip->sip_from)
-    sip->sip_from = sip_from_dup(home, leg->leg_local);
-  else if (leg->leg_local && leg->leg_local->a_tag &&
-	   (!sip->sip_from->a_tag ||
-	    strcasecmp(sip->sip_from->a_tag, leg->leg_local->a_tag)))
-    sip_from_tag(home, sip->sip_from, leg->leg_local->a_tag);
-
-  if (sip->sip_from && !sip->sip_from->a_tag) {
-    sip_fragment_clear(sip->sip_from->a_common);
-    sip_from_add_param(home, sip->sip_from,
-		       nta_agent_newtag(home, "tag=%s", leg->leg_agent));
-  }
-
-  if (!sip->sip_to)
-    sip->sip_to = sip_to_dup(home, leg->leg_remote);
-  else if (leg->leg_remote && leg->leg_remote->a_tag)
-    sip_to_tag(home, sip->sip_to, leg->leg_remote->a_tag);
 
   if (!sip->sip_route && leg->leg_route) {
     if (leg->leg_loose_route) {
@@ -3030,21 +3011,27 @@ int nta_msg_request_complete(msg_t *msg,
 
   if (!request_uri && sip->sip_request)
     request_uri = (url_string_t *)sip->sip_request->rq_url;
-  if (!request_uri && sip->sip_to) {
+
+  to = sip->sip_to ? sip->sip_to : leg->leg_remote;
+  
+  if (!request_uri && to) {
     if (method != sip_method_register)
-      request_uri = (url_string_t *)sip->sip_to->a_url;
+      request_uri = (url_string_t *)to->a_url;
     else {
       /* Remove user part from REGISTER requests */
-      *reg_url = *sip->sip_to->a_url;
+      *reg_url = *to->a_url;
       reg_url->url_user = reg_url->url_password = NULL;
       request_uri = (url_string_t *)reg_url;
     }
   }
+
   if (!request_uri)
     return -1;
 
   if (method || method_name) {
     sip_request_t *rq = sip->sip_request;
+    int use_headers = 
+      request_uri == original || (url_t *)request_uri == rq->rq_url;
 
     if (!rq
 	|| request_uri != (url_string_t *)rq->rq_url
@@ -3057,24 +3044,89 @@ int nta_msg_request_complete(msg_t *msg,
       if (msg_header_insert(msg, (msg_pub_t *)sip, (msg_header_t *)rq) < 0)
 	return -1;
     }
+
+    /* @RFC3261 table 1 (page 152): 
+     * Req-URI cannot contain method parameter or headers 
+     */
+    if (rq->rq_url->url_params) {
+      rq->rq_url->url_params = 
+	url_strip_param_string((char *)rq->rq_url->url_params, "method");
+      sip_fragment_clear(rq->rq_common);
+    }
+
+    if (rq->rq_url->url_headers) {
+      if (use_headers) {
+	char *s = url_query_as_header_string(msg_home(msg),
+					     rq->rq_url->url_headers);
+	if (!s)
+	  return -1;
+	msg_header_parse_str(msg, (msg_pub_t*)sip, s);
+      }
+      rq->rq_url->url_headers = NULL, sip_fragment_clear(rq->rq_common);
+    }
   }
 
   if (!sip->sip_request)
     return -1;
 
+  if (!sip->sip_max_forwards)
+    sip_add_dup(msg, sip, (sip_header_t *)leg->leg_agent->sa_max_forwards);
+
+  if (!sip->sip_call_id) {
+    if (leg->leg_id)
+      sip->sip_call_id = sip_call_id_dup(home, leg->leg_id);
+    else
+      sip->sip_call_id = sip_call_id_create(home, NULL);
+  }
+
+  if (!sip->sip_from)
+    sip->sip_from = sip_from_dup(home, leg->leg_local);
+  else if (leg->leg_local && leg->leg_local->a_tag &&
+	   (!sip->sip_from->a_tag ||
+	    strcasecmp(sip->sip_from->a_tag, leg->leg_local->a_tag)))
+    sip_from_tag(home, sip->sip_from, leg->leg_local->a_tag);
+
+  if (sip->sip_from && !sip->sip_from->a_tag) {
+    sip_fragment_clear(sip->sip_from->a_common);
+    sip_from_add_param(home, sip->sip_from,
+		       nta_agent_newtag(home, "tag=%s", leg->leg_agent));
+  }
+
+  if (sip->sip_to) {
+    if (leg->leg_remote && leg->leg_remote->a_tag)
+      sip_to_tag(home, sip->sip_to, leg->leg_remote->a_tag);
+  }
+  else if (leg->leg_remote) {
+    sip->sip_to = sip_to_dup(home, leg->leg_remote);
+  }
+  else {
+    sip_to_t *to = sip_to_create(home, request_uri);
+    if (to) sip_aor_strip(to->a_url);
+    sip->sip_to = to;
+  }
+
+  if (!sip->sip_from || !sip->sip_from || !sip->sip_to)
+    return -1;
+
   method = sip->sip_request->rq_method;
   method_name = sip->sip_request->rq_method_name;
 
-  if (sip->sip_cseq &&
-      (method == sip_method_ack || method == sip_method_cancel))
-    seq = sip->sip_cseq->cs_seq;
-  else if (method == sip_method_ack || method == sip_method_cancel)
-    seq = leg->leg_seq;
-  else
+  if (method == sip_method_ack || method == sip_method_cancel)
+    seq = sip->sip_cseq ? sip->sip_cseq->cs_seq : leg->leg_seq; 
+  else if (leg->leg_seq)
     seq = ++leg->leg_seq;
+  else if (sip->sip_cseq) /* Obtain initial value from existing CSeq header */
+    seq = leg->leg_seq = sip->sip_cseq->cs_seq;
+  else
+    seq = leg->leg_seq = (sip_now() >> 1) & 0x7ffffff;
 
-  if (!(cseq = sip_cseq_create(home, seq, method, method_name)) ||
-      msg_header_insert(msg, (msg_pub_t *)sip, (msg_header_t *)cseq) < 0)
+  if ((!sip->sip_cseq || 
+       seq != sip->sip_cseq->cs_seq ||
+       method != sip->sip_cseq->cs_method ||
+       (method == sip_method_unknown && 
+	strcmp(method_name, sip->sip_cseq->cs_method_name) != 0)) &&
+      (!(cseq = sip_cseq_create(home, seq, method, method_name)) ||
+       msg_header_insert(msg, (msg_pub_t *)sip, (msg_header_t *)cseq) < 0))
     return -1;
 
   return 0;
@@ -3184,7 +3236,7 @@ nta_leg_t *nta_leg_tcreate(nta_agent_t *agent,
   int no_dialog = 0;
   unsigned rseq = 0;
   /* RFC 3261 section 12.2.1.1 */
-  uint32_t seq = (sip_now() >> 1) & 0x7ffffff;
+  uint32_t seq = 0;
   ta_list ta;
   nta_leg_t *leg;
   su_home_t *home;
@@ -3254,6 +3306,7 @@ nta_leg_t *nta_leg_tcreate(nta_agent_t *agent,
     sip_contact_t m[1];
     sip_contact_init(m);
     *m->m_url = *contact->m_url;
+    m->m_url->url_headers = NULL;
     leg->leg_target = sip_contact_dup(home, m);
   }
 
@@ -3749,7 +3802,7 @@ int addr_cmp(url_t const *a, url_t const *b)
     return 0;
   else
     return
-      str0casecmp(a->url_host, b->url_host)
+      host_cmp(a->url_host, b->url_host)
       || str0cmp(a->url_port, b->url_port)
       || str0cmp(a->url_user, b->url_user);
 }
@@ -4035,13 +4088,22 @@ int leg_route(nta_leg_t *leg,
     leg->leg_loose_route = url_has_param(r->r_url, "lr");
 
   if (contact) {
-    sip_contact_t m[1], *m0;
-
-    m0 = leg->leg_target;
+    sip_contact_t *target, m[1], *m0;
 
     sip_contact_init(m);
     *m->m_url = *contact->m_url;
-    leg->leg_target = sip_contact_dup(leg->leg_home, m);
+    m->m_url->url_headers = NULL;
+    target = sip_contact_dup(leg->leg_home, m);
+
+    if (target && target->m_url->url_params) {
+      /* Remove ttl, method. @RFC3261 table 1, page 152 */
+      char *p = (char *)target->m_url->url_params;
+      p = url_strip_param_string(p, "method");
+      p = url_strip_param_string(p, "ttl");
+      target->m_url->url_params = p;
+    }
+
+    m0 = leg->leg_target, leg->leg_target = target;
 
     if (m0)
       su_free(leg->leg_home, m0);
@@ -4063,7 +4125,7 @@ leg_callback_default(nta_leg_magic_t *magic,
   nta_incoming_treply(irq,
 		      SIP_501_NOT_IMPLEMENTED,
 		      TAG_END());
-  return 0;
+  return 501;
 }
 
 /* ====================================================================== */
@@ -4377,8 +4439,9 @@ void nta_incoming_destroy(nta_incoming_t *irq)
     irq->irq_callback = NULL;
     irq->irq_magic = NULL;
     irq->irq_destroyed = 1;
-    if ((irq->irq_terminated && !irq->irq_in_callback) || irq->irq_default)
-      incoming_free(irq);
+    if (!irq->irq_in_callback)
+      if (irq->irq_terminated || irq->irq_default)
+	incoming_free(irq);
   }
 }
 
@@ -4670,8 +4733,13 @@ char const *nta_incoming_tag(nta_incoming_t *irq, char const *tag)
     return NULL;
 
   if (!irq->irq_tag) {
-    if (tag == NULL)
+    if (tag)
+      tag = su_strdup(irq->irq_home, tag);
+    else
       tag = nta_agent_newtag(irq->irq_home, NULL, irq->irq_agent);
+
+    if (!tag)
+      return tag;
 
     irq->irq_tag = tag;
     irq->irq_tag_set = 1;
@@ -5322,6 +5390,9 @@ int nta_incoming_treply(nta_incoming_t *irq,
  * @note
  * The ownership of @a msg is taken over by the function even if the
  * function fails.
+ *
+ * @retval 0 when succesful
+ * @retval -1 upon an error
  */
 int nta_incoming_mreply(nta_incoming_t *irq, msg_t *msg) 
 {
@@ -6190,6 +6261,7 @@ nta_outgoing_t *nta_outgoing_tcancel(nta_outgoing_t *orq,
   msg_t *msg;
   int cancel_2543, cancel_408;
   ta_list ta;
+  int delay_sending;
 
   if (orq == NULL || orq == NONE)
     return NULL;
@@ -6224,6 +6296,8 @@ nta_outgoing_t *nta_outgoing_tcancel(nta_outgoing_t *orq,
 
   cancel_408 = 0;		/* Don't really CANCEL, this is timeout. */
   cancel_2543 = orq->orq_agent->sa_cancel_2543;
+  /* CANCEL may be sent only after a provisional response has been received. */
+  delay_sending = orq->orq_status < 100;
 
   ta_start(ta, tag, value);
 
@@ -6232,9 +6306,6 @@ nta_outgoing_t *nta_outgoing_tcancel(nta_outgoing_t *orq,
 	  NTATAG_CANCEL_2543_REF(cancel_2543),
 	  TAG_END());
 
-  if (cancel_2543 || cancel_408)
-    outgoing_reply(orq, SIP_487_REQUEST_CANCELLED, 1);
-
   if (!cancel_408)
     msg = outgoing_ackmsg(orq, SIP_METHOD_CANCEL, ta_args(ta));
   else
@@ -6242,14 +6313,12 @@ nta_outgoing_t *nta_outgoing_tcancel(nta_outgoing_t *orq,
 
   ta_end(ta);
 
+  if ((cancel_2543 || cancel_408) && 
+      !orq->orq_stateless && !orq->orq_destroyed)
+    outgoing_reply(orq, SIP_487_REQUEST_CANCELLED, 1);
+
   if (msg) {
     nta_outgoing_t *cancel;
-    /*
-     * CANCEL may be sent only after a provisional response has been
-     * received.
-     */
-    int delay_sending = orq->orq_status < 100;
-
     if (cancel_2543)		/* Follow RFC 2543 semantics for CANCEL */
       delay_sending = 0;
 
@@ -7780,7 +7849,7 @@ int outgoing_recv(nta_outgoing_t *orq,
   else if (orq->orq_method != sip_method_ack) {
     /* Non-INVITE */
     if (orq->orq_queue == sa->sa_out.trying) {
-      assert(orq_status < 200);
+      assert(orq_status < 200); (void)orq_status;
 
       if (status < 200) {
 	if (!orq->orq_reliable)
@@ -8064,9 +8133,11 @@ int outgoing_reply(nta_outgoing_t *orq, int status, char const *phrase,
     return 0;
   }
 
-  if (orq->orq_queue == NULL ||
-      orq->orq_queue == orq->orq_agent->sa_out.resolving ||
-      orq->orq_queue == orq->orq_agent->sa_out.delayed) 
+  if (orq->orq_stateless)
+    ;
+  else if (orq->orq_queue == NULL ||
+	   orq->orq_queue == orq->orq_agent->sa_out.resolving ||
+	   orq->orq_queue == orq->orq_agent->sa_out.delayed) 
     outgoing_trying(orq);
 
   /** Insert a dummy Via header */
@@ -8114,8 +8185,9 @@ int outgoing_reply(nta_outgoing_t *orq, int status, char const *phrase,
   else if (orq->orq_stateless && orq->orq_callback == outgoing_default_cb) {
     /* Xyzzy */
     orq->orq_status = status;
-    orq->orq_completed = 1;
-  } else {
+    outgoing_complete(orq);
+  }
+  else {
     /*
      * The thread creating outgoing transaction must return to application
      * before transaction callback can be invoked. Therefore processing an
@@ -9288,7 +9360,7 @@ static
 int reliable_final(nta_incoming_t *irq, msg_t *msg, sip_t *sip)
 {
   nta_reliable_t *r;
-
+  unsigned already_in_callback;
   /*
    * We delay sending final response if it's 2XX and
    * an unpracked reliable response contains session description
@@ -9303,11 +9375,12 @@ int reliable_final(nta_incoming_t *irq, msg_t *msg, sip_t *sip)
       }
 
   /* Flush unsent responses. */
+  already_in_callback = irq->irq_in_callback;
   irq->irq_in_callback = 1;
   reliable_flush(irq);
-  irq->irq_in_callback = 0;
+  irq->irq_in_callback = already_in_callback;
 
-  if (irq->irq_completed && irq->irq_destroyed) {
+  if (!already_in_callback && irq->irq_terminated && irq->irq_destroyed) {
     incoming_free(irq);
     msg_destroy(msg);
     return 0;

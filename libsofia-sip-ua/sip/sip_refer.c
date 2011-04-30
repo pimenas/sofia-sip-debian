@@ -91,13 +91,32 @@ SIP_HEADER_CLASS(refer_to, "Refer-To", "r", r_params, single, refer_to);
 
 issize_t sip_refer_to_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
-  sip_refer_to_t *r = h->sh_refer_to;
+  issize_t retval;
+  sip_refer_to_t *r = (sip_refer_to_t *)h;
 
-  return sip_name_addr_d(home, &s,
-			 &r->r_display,
-			 r->r_url,
-			 &r->r_params,
-			 NULL);
+  retval = sip_name_addr_d(home, &s,
+			   &r->r_display,
+			   r->r_url,
+			   &r->r_params,
+			   NULL);
+  if (retval < 0)
+    return retval;
+
+  if (*s == '?' && !r->r_display && !r->r_url->url_headers) {
+    /* Missing <> around URL */
+    *s++ = '\0';
+    r->r_url->url_headers = s;
+    s += strcspn(s, " \t;,");
+    if (IS_LWS(*s))
+      *s++ = '\0', skip_lws(&s);
+    if (*s)
+      return -1;
+    r->r_display = s;	/* Put empty string in display so that we encode using <> */
+  }
+  else if (*s)
+    return -1;
+
+  return retval;
 }
 
 issize_t sip_refer_to_e(char b[], isize_t bsiz, sip_header_t const *h, int flags)
@@ -207,7 +226,7 @@ issize_t sip_referred_by_d(su_home_t *home, sip_header_t *h, char *s, isize_t sl
 		      &b->b_display,
 		      b->b_url,
 		      &b->b_params,
-		      NULL) < 0)
+		      NULL) < 0 || *s /* Extra stuff? */)
     return -1;
 
   if (b->b_params)
@@ -385,7 +404,7 @@ char *sip_replaces_dup_one(sip_header_t *dst, sip_header_t const *src,
   b = msg_params_dup(&rp_dst->rp_params, rp_src->rp_params, b, xtra);
   MSG_STRING_DUP(b, rp_dst->rp_call_id, rp_src->rp_call_id);
 
-  assert(b <= end);
+  assert(b <= end); (void)end;
 
   return b;
 }

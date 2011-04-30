@@ -41,6 +41,7 @@ char const *name = "su_root_test";
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define TSTFLAGS rt->rt_flags
 #include <sofia-sip/tstdef.h>
@@ -193,7 +194,7 @@ static int register_test(root_test_t *rt)
 {
   int i;
   int s;
-  char msg[3] = "foo";
+  char *msg = "foo";
 
   BEGIN();
 
@@ -203,13 +204,13 @@ static int register_test(root_test_t *rt)
     rt->rt_ep[i]->registered = 
       su_root_register(rt->rt_root, rt->rt_ep[i]->wait, 
 		       wakeups[i], rt->rt_ep[i], 0);
-    TEST(rt->rt_ep[i]->registered, i + 1);
+    TEST(rt->rt_ep[i]->registered, i + 1 + SU_HAVE_PTHREADS);
   }
 
   for (i = 0; i < 5; i++) {
     test_ep_t *ep = rt->rt_ep[i];
-    TEST(sendto(s, msg, sizeof(msg), 0, &ep->addr->su_sa, ep->addrlen), 
-	 sizeof(msg));
+    TEST_SIZE(su_sendto(s, msg, sizeof(msg), 0, ep->addr, ep->addrlen), 
+	      sizeof(msg));
     test_run(rt);
     TEST(rt->rt_received, i);
     TEST(rt->rt_wakeup, i);
@@ -217,7 +218,8 @@ static int register_test(root_test_t *rt)
 
   for (i = 0; i < 5; i++) {
     TEST(su_root_unregister(rt->rt_root, rt->rt_ep[i]->wait, 
-			    wakeups[i], rt->rt_ep[i]), i + 1);
+			    wakeups[i], rt->rt_ep[i]), 
+	 rt->rt_ep[i]->registered);
   }
 
 
@@ -230,8 +232,8 @@ static int register_test(root_test_t *rt)
 
   for (i = 0; i < 5; i++) {
     test_ep_t *ep = rt->rt_ep[i];
-    TEST(sendto(s, msg, sizeof(msg), 0, &ep->addr->su_sa, ep->addrlen), 
-	 sizeof(msg));
+    TEST_SIZE(su_sendto(s, msg, sizeof(msg), 0, ep->addr, ep->addrlen), 
+	      sizeof(msg));
     test_run(rt);
     TEST(rt->rt_received, i);
     TEST(rt->rt_wakeup, i);
@@ -253,8 +255,8 @@ static int register_test(root_test_t *rt)
 
   for (i = 0; i < 5; i++) {
     test_ep_t *ep = rt->rt_ep[i];
-    TEST(sendto(s, msg, sizeof(msg), 0, &ep->addr->su_sa, ep->addrlen), 
-	 sizeof(msg));
+    TEST_SIZE(su_sendto(s, msg, sizeof(msg), 0, ep->addr, ep->addrlen), 
+	      sizeof(msg));
     test_run(rt);
     TEST(rt->rt_received, i);
     TEST(rt->rt_wakeup, i);

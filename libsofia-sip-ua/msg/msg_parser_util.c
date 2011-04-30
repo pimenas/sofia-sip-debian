@@ -535,7 +535,7 @@ char *msg_params_dup(msg_param_t const **d, msg_param_t const s[],
   }
   pp[i] = NULL;
  
-  assert(b <= end);
+  assert(b <= end); (void)end;
  
   *d = (msg_param_t const *)pp;
 
@@ -812,94 +812,209 @@ char const *msg_header_find_param(msg_common_t const *h, char const *name)
   return NULL;
 }
 
-/** Add a parameter to a header.
+/**Modify a parameter value or list item in a header.
  * 
- * A header parameter @a param is a string of format name "=" value or just
- * name. The caller of msg_header_add_param() should have allocated it from
- * memory home associated with header @a h.
+ * A header parameter @a param can be just a C-string (@a is_item > 0), or
+ * it can have internal format <i>name [ "=" value]</i>. In the latter case,
+ * the value part following = is ignored when replacing or removing the
+ * parameter.
+ *
+ * @param home      memory home used to re-allocate parameter list in header
+ * @param h         pointer to a header
+ * @param param     parameter to be replaced or added
+ * @param is_item   how to interpret @a param:
+ *                  - 1 case-sensitive, no structure
+ *                  - 0 case-insensitive, <i>name [ "=" value ]</i>
+ * @param remove_replace_add  what operation to do:
+ *                  - -1 remove
+ *                  - 0 replace
+ *                  - 1 add
+ *
+ * @retval 1 if parameter was replaced or removed successfully
+ * @retval 0 if parameter was added successfully, 
+ *           or there was nothing to remove
+ * @retval -1 upon an error
+ */
+static 
+int msg_header_param_modify(su_home_t *home, msg_common_t *h,
+			    char const *param,
+			    int is_item,
+			    int remove_replace_add)
+{
+  msg_param_t *params, **pointer_to_params;
+  size_t plen, n;
+
+  if (!h || !h->h_class->hc_params || !param)
+    return -1;
+
+  pointer_to_params = (msg_param_t **)((char *)h + h->h_class->hc_params);
+  params = *pointer_to_params;
+
+  plen = is_item > 0 ? strlen(param) : strcspn(param, "=");
+  n = 0;
+  
+  if (params) {
+    /* Existing list, try to replace or remove  */
+    for (; params[n]; n++) {
+      char const *maybe = params[n];
+      
+      if (remove_replace_add > 0)
+	continue;
+
+      if (is_item > 0) {
+	if (strcmp(maybe, param) == 0) {
+	  if (remove_replace_add == 0)
+	    return 1;
+	}
+      }
+      else {
+	if (strncasecmp(maybe, param, plen) == 0 &&
+	    (maybe[plen] == '=' || maybe[plen] == 0))
+	  break;
+      }
+    }
+  }
+  
+  /* Not found? */
+  if (!params || !params[n]) {
+    if (remove_replace_add < 0)
+      return 0;		/* Nothing to remove */
+    else
+      remove_replace_add = 1;	/* Add instead of replace */
+  }
+  
+  if (remove_replace_add < 0) { /* Remove */
+    for (; params[n]; n++) 
+      params[n] = params[n + 1];
+  }
+  else {
+    if (remove_replace_add > 0) { /* Add */
+      size_t m_before = MSG_PARAMS_NUM(n + 1);
+      size_t m_after =  MSG_PARAMS_NUM(n + 2);
+      
+      assert(!params || !params[n]);
+      
+      if (m_before != m_after || !params) {
+	msg_param_t *p;
+	/* XXX - we should know when to do realloc */
+	p = su_alloc(home, m_after * sizeof(*p)); 
+	if (!p) return -1;
+	if (n > 0)
+	  memcpy(p, params, n * sizeof(p[0]));
+	*pointer_to_params = params = p;
+      }
+      params[n + 1] = NULL;
+    }
+    
+    params[n] = param;	/* Add .. or replace */
+  }
+  
+  msg_fragment_clear(h);
+
+  if (h->h_class->hc_update) {
+    /* Update shortcuts */
+    size_t namelen;
+    char const *name, *value;
+    
+    name = param;
+    namelen = strcspn(name, "=");
+    
+    if (remove_replace_add < 0)
+      value = NULL;
+    else
+      value = param + namelen + (name[namelen] == '=');
+    
+    h->h_class->hc_update(h, name, namelen, value);
+  }
+
+  return remove_replace_add <= 0; /* 0 when added, 1 otherwise */
+}
+
+/** Add a parameter to a header.
+ *
+ * You should use this function only when the header accepts multiple
+ * parameters (or list items) with the same name. If that is not the case,
+ * you should use msg_header_replace_param().
+ *
+ * @note This function @b does @b not duplicate @p param. The caller should
+ * have allocated the @a param from the memory home associated with header
+ * @a h.
+ *
+ * The possible shortcuts to parameter values are updated. For example, the
+ * "received" parameter in @Via header has shortcut in structure #sip_via_t,
+ * the @ref sip_via_s::v_received "v_received" field. The shortcut is usully
+ * a pointer to the parameter value. If the parameter was
+ * "received=127.0.0.1" the @ref sip_via_s::v_received "v_received" field
+ * would be a pointer to "127.0.0.1". If the parameter was "received=" or
+ * "received", the shortcut would be a pointer to an empty string, "".
+ *
+ * @param home      memory home used to re-allocate parameter list in header
+ * @param h         pointer to a header
+ * @param param     parameter to be replaced or added
  *
  * @retval 0 if parameter was added
  * @retval -1 upon an error
+ *
+ * @sa msg_header_replace_param(), msg_header_remove_param(), 
+ * msg_header_update_params(),
+ * #msg_common_t, #msg_header_t, 
+ * #msg_hclass_t, msg_hclass_t::hc_params, msg_hclass_t::hc_update
  */
 int msg_header_add_param(su_home_t *home, msg_common_t *h, char const *param)
 {
-  if (h && h->h_class->hc_params) {
-    int retval;
-    msg_param_t **params = (msg_param_t **)
-      ((char *)h + h->h_class->hc_params);
-
-    msg_fragment_clear(h);
-
-    retval = msg_params_add(home, params, param);
-    if (retval < 0)
-      return -1;
-
-    if (h->h_class->hc_update) {
-      size_t namelen;
-      char const *name, *value;
-
-      name = param;
-      namelen = strcspn(name, "=");
-      value = param + namelen + (name[namelen] == '=');
-      h->h_class->hc_update(h, name, namelen, value);
-    }
-
-    return retval;
-  }
-
-  return -1;
+  return msg_header_param_modify(home, h, param, 
+				 0 /* case-insensitive name=value */, 
+				 1 /* add */);
 }
+
 
 
 /** Replace or add a parameter to a header. 
  *
- * The shortcuts to parameter values are updated accordingly.
+ * A header parameter @a param is a string of format <i>name "=" value</i>
+ * or just name. The value part following "=" is ignored when selecting a
+ * parameter to replace.
  *
- * @note This function @b does @b not duplicate @p param.
+ * @note This function @b does @b not duplicate @p param. The caller should
+ * have allocated the @a param from the memory home associated with header
+ * @a h.
  *
- * @param home      memory home
+ * The possible shortcuts to parameter values are updated. For example, the
+ * "received" parameter in @Via header has shortcut in structure #sip_via_t,
+ * the @ref sip_via_s::v_received "v_received" field.
+ *
+ * @param home      memory home used to re-allocate parameter list in header
  * @param h         pointer to a header
  * @param param     parameter to be replaced or added
  *
  * @retval 0 if parameter was added
  * @retval 1 if parameter was replaced
  * @retval -1 upon an error
+ *
+ * @sa msg_header_add_param(), msg_header_remove_param(), 
+ * msg_header_update_params(),
+ * #msg_common_t, #msg_header_t, 
+ * #msg_hclass_t, msg_hclass_t::hc_params, msg_hclass_t::hc_update
  */
 int msg_header_replace_param(su_home_t *home, 
 			     msg_common_t *h, 
 			     char const *param)
 {
-  if (h && h->h_class->hc_params) {
-    int retval;
-    msg_param_t **params = (msg_param_t **)
-      ((char *)h + h->h_class->hc_params);
-
-    msg_fragment_clear(h);
-
-    retval = msg_params_replace(home, params, param);
-    if (retval < 0)
-      return -1;
-
-    if (h->h_class->hc_update) {
-      size_t namelen;
-      char const *name, *value;
-
-      name = param;
-      namelen = strcspn(name, "=");
-      value = param + namelen + (name[namelen] == '=');
-      h->h_class->hc_update(h, name, namelen, value);
-    }
-
-    return retval;
-  }
-
-  return -1;
+  return msg_header_param_modify(home, h, param, 
+				 0 /* case-insensitive name=value */, 
+				 0 /* replace */);
 }
 
 /** Remove a parameter from header.
  *
  * The parameter name is given as token optionally followed by "=" sign and
- * value. The "=" and value are ignored.
+ * value. The "=" and value after it are ignored when selecting a parameter
+ * to remove.
+ *
+ * The possible shortcuts to parameter values are updated. For example, the
+ * "received" parameter in @Via header has shortcut in structure #sip_via_t,
+ * the @ref sip_via_s::v_received "v_received" field. The shortcut to
+ * removed parameter would be set to NULL.
  *
  * @param h         pointer to a header
  * @param name      name of parameter to be removed
@@ -907,35 +1022,36 @@ int msg_header_replace_param(su_home_t *home,
  * @retval 1 if a parameter was removed
  * @retval 0 if no parameter was not removed
  * @retval -1 upon an error
+ *
+ * @sa msg_header_add_param(), msg_header_replace_param(),
+ * msg_header_update_params(),
+ * #msg_common_t, #msg_header_t, 
+ * #msg_hclass_t, msg_hclass_t::hc_params, msg_hclass_t::hc_update
  */
 int msg_header_remove_param(msg_common_t *h, char const *name)
 {
-  if (h && h->h_class->hc_params) {
-    int retval;
-    msg_param_t **params = (msg_param_t **)
-      ((char *)h + h->h_class->hc_params);
-      
-    retval = msg_params_remove(*params, name);
-
-    if (retval != 0)
-      msg_fragment_clear(h);
-
-    if (h->h_class->hc_update) {
-      size_t namelen;
-      namelen = strcspn(name, "=");
-      h->h_class->hc_update(h, name, namelen, NULL);
-    }
-
-    return retval;
-  }
-
-  return -1;
+  return msg_header_param_modify(NULL, h, name, 
+				 0 /* case-insensitive name=value */, 
+				 -1 /* remove */);
 }
 
-/** Update all parameters.
+/** Update shortcuts to parameter values.
+ *
+ * Update the shortcuts to parameter values in parameter list. For example,
+ * the "received" parameter in @Via header has shortcut in structure
+ * #sip_via_t, the @ref sip_via_s::v_received "v_received" field. The
+ * shortcut is usully a pointer to the parameter value. If the parameter was
+ * "received=127.0.0.1" the @ref sip_via_s::v_received "v_received" field
+ * would be a pointer to "127.0.0.1". If the parameter was "received=" or
+ * "received", the shortcut would be a pointer to an empty string, "".
  *
  * @retval 0 when successful
  * @retval -1 upon an error
+ *
+ * @sa msg_header_add_param(), msg_header_replace_param(),
+ * msg_header_update_params(),
+ * #msg_common_t, #msg_header_t, 
+ * #msg_hclass_t, msg_hclass_t::hc_params, msg_hclass_t::hc_update
  */
 int msg_header_update_params(msg_common_t *h, int clear)
 {
@@ -971,6 +1087,102 @@ int msg_header_update_params(msg_common_t *h, int clear)
 }
 
 
+/** Find a header item.
+ *
+ * Searches for given item @a name from the header. If item is found, the
+ * function returns a non-NULL pointer to the item.
+ *
+ * @param h     pointer to header structure
+ * @param item  item
+ *
+ * @return
+ * A pointer to item, or NULL if it was not found.
+ *
+ * @since New in @VERSION_1_12_4
+ *
+ * @sa msg_header_replace_item(), msg_header_remove_item(), 
+ * @Allow, @AllowEvents
+ */
+char const *msg_header_find_item(msg_common_t const *h, char const *item)
+{
+  if (h && h->h_class->hc_params) {
+    char const * const * items = 
+      *(char const * const * const *)
+      ((char *)h + h->h_class->hc_params);
+
+    if (items)
+      for (; *items; items++) {
+	if (strcmp(item, *items) == 0) {
+	  return *items;
+	}
+      }
+  }
+
+  return NULL;
+}
+
+
+/**Add an item to a header.
+ *
+ * This function treats a #msg_header_t as set of C strings. The @a item is
+ * a C string. If no identical string is found from the list, it is added to
+ * the list.
+ *
+ * The shortcuts, if any, to item values are updated accordingly.
+ *
+ * @param home      memory home used to re-allocate list in header
+ * @param h         pointer to a header
+ * @param item      item to be removed
+ *
+ * @retval 0 if item was added
+ * @retval 1 if item was replaced
+ * @retval -1 upon an error
+ *
+ * @since New in @VERSION_1_12_4.
+ *
+ * @sa msg_header_remove_item(), @Allow, @AllowEvents,
+ * msg_header_replace_param(), msg_header_remove_param(), 
+ * #msg_common_t, #msg_header_t, #msg_list_t
+ * #msg_hclass_t, msg_hclass_t::hc_params
+ */
+int msg_header_replace_item(su_home_t *home, 
+			    msg_common_t *h, 
+			    char const *item)
+{
+  return msg_header_param_modify(home, h, item, 
+				 1 /* string item */, 
+				 0 /* replace */);
+}
+
+/**Remove an item from a header.
+ *
+ * This function treats a #msg_header_t as set of C strings. The @a item is a 
+ * C string. If identical string is found from the list, it is removed.
+ *
+ * The shortcuts, if any, to item values are updated accordingly.
+ *
+ * @param h        pointer to a header
+ * @param name     item to be removed
+ *
+ * @retval 0 if item was added
+ * @retval 1 if item was replaced
+ * @retval -1 upon an error
+ *
+ * @since New in @VERSION_1_12_4.
+ *
+ * @sa msg_header_replace_item(), @Allow, @AllowEvents,
+ * msg_header_replace_param(), msg_header_remove_param(), 
+ * #msg_common_t, #msg_header_t, #msg_list_t
+ * #msg_hclass_t, msg_hclass_t::hc_params
+ */
+int msg_header_remove_item(msg_common_t *h, char const *name)
+{
+  return msg_header_param_modify(NULL, h, name, 
+				 1 /* item */, 
+				 -1 /* remove */);
+}
+
+
 /** Find a parameter from a parameter list.
  *
  * Searches for given parameter @a token from the parameter list. If
@@ -1000,7 +1212,6 @@ msg_param_t msg_params_find(msg_param_t const params[], msg_param_t token)
 	  return param + n;
       }
     }
-
   }
 
   return NULL;
@@ -1043,8 +1254,8 @@ msg_param_t *msg_params_find_slot(msg_param_t params[], msg_param_t token)
 
 /** Replace or add a parameter from a list. 
  *
- * The parameter list must have been created by @c msg_params_d() or by @c
- * msg_params_dup() (or it may contain only @c NULL).
+ * A non-NULL parameter list must have been created by msg_params_d()
+ * or by msg_params_dup().
  *
  * @note This function does not duplicate @p param.
  *
@@ -1077,7 +1288,7 @@ int msg_params_replace(su_home_t *home,
     for (i = 0; params[i]; i++) {
       msg_param_t maybe = params[i];
 
-      if (strncasecmp(maybe, param, n) == 0) {
+      if (!(strncasecmp(maybe, param, n))) {
 	if (maybe[n] == '=' || maybe[n] == 0) {
 	  params[i] = param;	
 	  return 1;
@@ -1555,7 +1766,7 @@ issize_t msg_random_token(char token[], isize_t tlen,
   size_t i;
   ssize_t n;
 
-  static char const token_chars[32] = 
+  static char const token_chars[33] = 
     /* Create aesthetically pleasing raNDom capS LooK */
     "aBcDeFgHjKmNpQrStUvXyZ0123456789";
 
@@ -1601,4 +1812,60 @@ issize_t msg_random_token(char token[], isize_t tlen,
   token[i] = 0;
 
   return i;
+}
+
+
+/** Parse a message.
+ *
+ * Parse a text message with parser @a mc. The @a data is copied and it is
+ * not modified or referenced by the parsed message.
+ *
+ * @par Example
+ * Parse a SIP message fragment (e.g., payload of NOTIFY sent in response to
+ * REFER):
+ * @code
+ * msg_t *m = msg_make(sip_default_mclass(), 0, pl->pl_data, pl->pl_len);
+ * sip_t *frag = sip_object(m);
+ * @endcode
+ *
+ * @param mc message class (parser table)
+ * @param flags message flags (see #msg_flg_user)
+ * @param data message text
+ * @param len size of message text (if -1, use strlen(data))
+ * 
+ * @retval A pointer to a freshly allocated and parsed message.
+ *
+ * Upon parsing error, the header structure may be left incomplete. The
+ * #MSG_FLG_ERROR is set in @a msg_object(msg)->msg_flags.
+ *
+ * @since New in @VERSION_1_12_4
+ *
+ * @sa msg_as_string(), msg_extract()
+ */
+msg_t *msg_make(msg_mclass_t const *mc, int flags,
+		void const *data, ssize_t len)
+{
+  msg_t *msg;
+  msg_iovec_t iovec[2];
+
+  if (len == -1)
+    len = strlen(data);
+  if (len == 0) 
+    return NULL;
+
+  msg = msg_create(mc, flags);
+
+  su_home_preload(msg_home(msg), 1, len + 1024);
+
+  if (msg_recv_iovec(msg, iovec, 2, len, 1) < 0) {
+    perror("msg_recv_iovec");
+  }
+  assert((ssize_t)iovec->mv_len == len);
+  memcpy(iovec->mv_base, data, len);
+  msg_recv_commit(msg, len, 1);
+
+  if (msg_extract(msg) < 0)
+    msg->m_object->msg_flags |= MSG_FLG_ERROR;
+
+  return msg;
 }

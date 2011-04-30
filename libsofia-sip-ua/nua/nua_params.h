@@ -60,7 +60,8 @@ typedef struct nua_handle_preferences
   unsigned         nhp_media_enable:1;
   unsigned     	   nhp_invite_enable:1;
   unsigned     	   nhp_auto_alert:1;
-  unsigned         nhp_early_media:1;/**< Establish early media session */
+  unsigned         nhp_early_answer:1; /**< Include answer in 1XX */
+  unsigned         nhp_early_media:1; /**< Establish early media with 100rel */
   unsigned         nhp_only183_100rel:1;/**< Only 100rel 183. */
   unsigned         nhp_auto_answer:1;
   unsigned         nhp_auto_ack:1; /**< Automatically ACK a final response */
@@ -111,6 +112,7 @@ typedef struct nua_handle_preferences
 
   sip_allow_t        *nhp_allow;
   sip_supported_t    *nhp_supported;
+  sip_allow_events_t *nhp_allow_events;
   char const         *nhp_user_agent;
   char const         *nhp_organization;
 
@@ -135,6 +137,7 @@ typedef struct nua_handle_preferences
     unsigned nhb_media_enable:1;
     unsigned nhb_invite_enable:1;
     unsigned nhb_auto_alert:1;
+    unsigned nhb_early_answer:1;
     unsigned nhb_early_media:1;
     unsigned nhb_only183_100rel:1;
     unsigned nhb_auto_answer:1;
@@ -161,9 +164,10 @@ typedef struct nua_handle_preferences
 
     unsigned nhb_allow:1;
     unsigned nhb_supported:1;
+    unsigned nhb_allow_events:1;
+    unsigned :0;		/* at most 32 bits ... */
     unsigned nhb_user_agent:1;
     unsigned nhb_organization:1;
-    unsigned :0;		/* at most 32 bits ... */
 
     unsigned nhb_m_display:1;
     unsigned nhb_m_username:1;
@@ -196,6 +200,14 @@ typedef struct nua_handle_preferences
 /* Get preference from handle, if set, otherwise from default handle */
 #define NH_PGET(nh, pref)						\
   NHP_GET((nh)->nh_prefs, (nh)->nh_nua->nua_dhandle->nh_prefs, pref)
+
+/* Get preference from handle, if exists and set, 
+   otherwise from default handle */
+#define NUA_PGET(nua, nh, pref)						\
+  NHP_GET((nh) ? (nh)->nh_prefs : (nua)->nua_dhandle->nh_prefs,		\
+	  (nua)->nua_dhandle->nh_prefs,					\
+	  pref)
+
 /* Get preference from default handle */
 #define DNH_PGET(dnh, pref)						\
   DNHP_GET((dnh)->nh_prefs, pref)

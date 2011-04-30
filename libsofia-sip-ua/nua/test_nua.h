@@ -50,6 +50,10 @@ struct call;
 #include <sofia-sip/su_tagarg.h>
 #include <sofia-sip/su_tag_io.h>
 
+#if __APPLE_CC__
+#include <sofia-sip/su_osx_runloop.h>
+#endif
+
 #include <test_proxy.h>
 #include <test_nat.h>
 #include <sofia-sip/auth_module.h>
@@ -119,7 +123,7 @@ struct context
   su_home_t home[1];
   su_root_t *root;
 
-  int threading, proxy_tests, expensive, quit_on_single_failure;
+  int threading, proxy_tests, expensive, quit_on_single_failure, osx_runloop;
   char const *external_proxy;
 
   struct endpoint {
@@ -242,7 +246,7 @@ typedef int operation_f(struct endpoint *ep, struct call *call,
 			...);
 
 operation_f INVITE, ACK, BYE, CANCEL, AUTHENTICATE, UPDATE, INFO, PRACK,
-  REFER, MESSAGE, OPTIONS, PUBLISH, UNPUBLISH, REGISTER, UNREGISTER,
+  REFER, MESSAGE, METHOD, OPTIONS, PUBLISH, UNPUBLISH, REGISTER, UNREGISTER,
   SUBSCRIBE, UNSUBSCRIBE, NOTIFY, NOTIFIER, TERMINATE, AUTHORIZE;
 
 int RESPOND(struct endpoint *ep,
@@ -322,10 +326,13 @@ int test_call_cancel(struct context *ctx);
 int test_call_destroy(struct context *ctx);
 int test_early_bye(struct context *ctx);
 int test_call_hold(struct context *ctx);
+int test_reinvites(struct context *ctx);
 int test_session_timer(struct context *ctx);
 int test_refer(struct context *ctx);
 int test_100rel(struct context *ctx);
 int test_simple(struct context *ctx);
 int test_events(struct context *ctx);
+
+int test_extension(struct context *ctx);
 
 #endif

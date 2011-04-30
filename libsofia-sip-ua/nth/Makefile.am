@@ -11,6 +11,7 @@
 INCLUDES = 	-I$(srcdir)/../ipt -I../ipt \
 		-I$(srcdir)/../iptsec -I../iptsec \
 		-I$(srcdir)/../msg -I../msg \
+		-I$(srcdir)/../bnf -I../bnf \
 		-I$(srcdir)/../http -I../http \
 		-I$(srcdir)/../sresolv -I../sresolv \
 		-I$(srcdir)/../tport -I../tport \
@@ -22,9 +23,9 @@ INCLUDES = 	-I$(srcdir)/../ipt -I../ipt \
 
 noinst_LTLIBRARIES = 	libnth.la
 
-check_PROGRAMS = 	nth_test http-client http-server
+check_PROGRAMS = 	test_nth http-client http-server
 
-TESTS = 		nth_test
+TESTS = 		test_nth
 
 # ----------------------------------------------------------------------
 # Rules for building the targets
@@ -51,7 +52,7 @@ LDADD = 		libnth.la \
 			../bnf/libbnf.la \
 			../su/libsu.la
 
-nth_test_LDFLAGS = 	-static
+test_nth_LDFLAGS = 	-static
 
 # ----------------------------------------------------------------------
 # Install and distribution rules

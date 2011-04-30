@@ -162,13 +162,15 @@ NTH_DLL nth_site_t *nth_site_create(nth_site_t *parent,
 				    tag_type_t tag, tag_value_t value,
 				    ...);
 
-NTH_DLL void nth_site_destroy(nth_site_t *server);
+NTH_DLL void nth_site_destroy(nth_site_t *site);
 
-NTH_DLL nth_site_magic_t *nth_site_magic(nth_site_t const *server);
+NTH_DLL nth_site_magic_t *nth_site_magic(nth_site_t const *site);
 
-NTH_DLL void nth_site_bind(nth_site_t *server, 
+NTH_DLL void nth_site_bind(nth_site_t *site, 
 			   nth_request_f *callback, 
 			   nth_site_magic_t *);
+
+NTH_DLL su_time_t nth_site_access_time(nth_site_t const *site);
 
 NTH_DLL int nth_site_set_params(nth_site_t *site, 
 				tag_type_t tag, tag_value_t value, ...);
@@ -177,6 +179,7 @@ NTH_DLL int nth_site_get_params(nth_site_t const *site,
 NTH_DLL int nth_site_get_stats(nth_site_t const *site,
 			       tag_type_t tag, tag_value_t value, ...);
 
+NTH_DLL url_t const *nth_site_url(nth_site_t const *site);
 
 /* ----------------------------------------------------------------------
  * 6) Prototypes for server transactions 
@@ -191,6 +194,8 @@ NTH_DLL int nth_request_treply(nth_request_t *ireq,
 			       tag_type_t tag, tag_value_t value, ...);
 
 NTH_DLL void nth_request_destroy(nth_request_t *req);
+
+NTH_DLL struct auth_status_t *nth_request_auth(nth_request_t const *req);
 
 SOFIA_END_DECLS
 

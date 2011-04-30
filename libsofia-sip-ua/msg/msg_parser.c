@@ -646,7 +646,6 @@ struct sigcomp_udvm *msg_get_udvm(msg_t *msg)
  *
  * @relatesalso msg_s
  */
-inline
 unsigned msg_mark_as_complete(msg_t *msg, unsigned mask)
 {
   if (msg) {
@@ -822,6 +821,8 @@ static issize_t extract_header(msg_t *, msg_pub_t*,
 			     char b[], isize_t bsiz, int eos, int copy);
 static msg_header_t *header_parse(msg_t *, msg_pub_t *, msg_href_t const *,
 				  char s[], isize_t slen, int copy_buffer);
+static msg_header_t *error_header_parse(msg_t *msg, msg_pub_t *mo,
+					msg_href_t const *hr);
 static inline issize_t
 extract_trailers(msg_t *msg, msg_pub_t *mo,
 		 char *b, isize_t bsiz, int eos, int copy);
@@ -1056,7 +1057,7 @@ extract_header(msg_t *msg, msg_pub_t *mo, char *b, isize_t bsiz, int eos,
       mo->msg_flags |= MSG_FLG_ERROR;
     hr = mc->mc_error;
     copy_buffer = 1;
-    h = header_parse(msg, mo, hr, NULL, 0, 0);
+    h = error_header_parse(msg, mo, hr);
   }
   else {
     if (!name_len_set)
@@ -1099,7 +1100,6 @@ msg_header_t *header_parse(msg_t *msg, msg_pub_t *mo,
 {
   su_home_t *home = msg_home(msg);
   msg_header_t *h, **hh;
-  msg_header_t *h0, *h_next;
   msg_hclass_t *hc = hr->hr_class;
   int n;
   int add_to_list, clear = 0;
@@ -1116,50 +1116,52 @@ msg_header_t *header_parse(msg_t *msg, msg_pub_t *mo,
   if (!h)
     return NULL;
 
-  if (s) {
-    if (copy_buffer)
-      s = memcpy(MSG_HEADER_DATA(h), s, slen);
+  if (copy_buffer)
+    s = memcpy(MSG_HEADER_DATA(h), s, slen);
 
-    s[slen] = '\0';
+  s[slen] = '\0';
 
-    if (hc->hc_kind == msg_kind_list && *hh) {
-      n = hc->hc_parse(home, *hh, s, slen);
-      /* Clear if adding new header disturbs existing headers */
-      clear = *hh != h && !copy_buffer;
-      if (clear)
-	msg_fragment_clear((*hh)->sh_common);
-    }
-    else
-      n = hc->hc_parse(home, h, s, slen);
+  if (hc->hc_kind == msg_kind_list && *hh) {
+    n = hc->hc_parse(home, *hh, s, slen);
+    /* Clear if adding new header disturbs existing headers */
+    clear = *hh != h && !copy_buffer;
+    if (clear)
+      msg_fragment_clear((*hh)->sh_common);
+  }
+  else
+    n = hc->hc_parse(home, h, s, slen);
 
-    if (n < 0) {
-      msg->m_extract_err |= hr->hr_flags;
+  if (n < 0) {
+    msg->m_extract_err |= hr->hr_flags;
 
-      if (hc->hc_critical)
-	mo->msg_flags |= MSG_FLG_ERROR;
+    if (hc->hc_critical)
+      mo->msg_flags |= MSG_FLG_ERROR;
 
-      clear = 0;
+    clear = 0;
 
-      if (!add_to_list) {
-	/* Try to free memory allocated by hc->hc_parse() */
-	for (h0 = h; h0; h0 = h_next) {
-	  h_next = h0->sh_next;
-	  if (hc->hc_params) {
-	    msg_param_t *params = *(msg_param_t **)
-	      ((char *)h0 + hc->hc_params);
-	    if (params)
-	      su_free(home, params);
-	  }
-	  if (h0 != h)
-	    su_free(home, h0);
+    if (!add_to_list) {
+      /* XXX - This should be done by msg_header_free_all() */
+      msg_header_t *h_next;
+      msg_param_t *h_params;
+
+      while (h) {
+	h_next = h->sh_next;
+	if (hc->hc_params) {
+	  h_params = *(msg_param_t **)((char *)h + hc->hc_params);
+	  if (h_params)
+	    su_free(home, h_params);
 	}
-
-	memset(h, 0, hc->hc_size);
-	h->sh_error->er_name = hc->hc_name;
-	hr = msg->m_class->mc_error;
-	h->sh_class = hr->hr_class;
-	hh = (msg_header_t **)((char *)mo + hr->hr_offset);
+	su_free(home, h);
+	h = h_next;
       }
+      /* XXX - This should be done by msg_header_free_all() */
+      hr = msg->m_class->mc_error;
+      h = msg_header_alloc(home, hr->hr_class, 0);
+      if (!h)
+	return h;
+
+      h->sh_error->er_name = hc->hc_name;
+      hh = (msg_header_t **)((char *)mo + hr->hr_offset);
     }
   }
 
@@ -1170,6 +1172,80 @@ msg_header_t *header_parse(msg_t *msg, msg_pub_t *mo,
     append_parsed(msg, mo, hr, h, 0);
 
   return h;
+}
+
+static
+msg_header_t *error_header_parse(msg_t *msg, msg_pub_t *mo,
+				 msg_href_t const *hr)
+{
+  msg_header_t *h;
+
+  h = msg_header_alloc(msg_home(msg), hr->hr_class, 0);
+  if (h)
+    append_parsed(msg, mo, hr, h, 0);
+
+  return h;
+}
+
+/** Complete this header field and parse next header field. 
+ *
+ * This function completes parsing a multi-field header like @Accept,
+ * @Contact, @Via or @Warning. It updates the shortcuts to header parameters
+ * (see msg_header_update_params()) and then scans for the next header field.
+ * If one is found, it calls the parsing function recursively.
+ *
+ * @param home 	 memory home used ot allocate 
+ *             	 new header structures and parameter lists
+ * @param prev 	 pointer to header structure already parsed
+ * @param s    	 header content to parse; should point to the area after 
+ *             	 current header field (either end of line or to a comma
+ *             	 separating header fields)
+ * @param slen 	 ignored
+ *
+ * @since New in @VERSION_1_12_4.
+ *
+ * @retval >= 0 when successful
+ * @retval -1 upon an error
+ */
+issize_t msg_parse_next_field(su_home_t *home, msg_header_t *prev, 
+			      char *s, isize_t slen)
+{
+  msg_hclass_t *hc = prev->sh_class;
+  msg_header_t *h;
+  char *end = s + slen;
+
+  if (hc->hc_update && hc->hc_params) {
+    /* Update shortcuts to parameters */
+    msg_param_t p, v, *params;
+
+    params = *(msg_param_t **)((char *)prev + hc->hc_params);
+    if (params) {
+      for (p = *params; p; p = *++params) {
+	size_t n = strcspn(p, "=");
+	v = p + n + (p[n] == '=');
+	if (hc->hc_update(prev->sh_common, p, n, v) < 0)
+	  return -1;
+      }
+    }
+  }
+
+  if (*s && *s != ',')
+    return -1;
+
+  while (*s == ',') /* Skip comma and following whitespace */
+    *s = '\0', s += span_lws(s + 1) + 1;
+
+  if (*s == 0)
+    return 0;
+  
+  h = msg_header_alloc(home, prev->sh_class, 0);
+  if (!h)
+    return -1;
+
+  prev->sh_succ = h, h->sh_prev = &prev->sh_succ;
+  prev->sh_next = h;
+
+  return prev->sh_class->hc_parse(home, h, s, end - s);
 }
 
 /** Decode a message header. */
@@ -1199,16 +1275,16 @@ msg_header_t *msg_header_d(su_home_t *home, msg_t const *msg, char const *b)
 
   bb = memcpy(MSG_HEADER_DATA(h), b + name_len, xtra), bb[xtra] = 0;
 
-  if (hr->hr_class->hc_parse(home, h, bb, xtra) < 0) {
-    hr = mc->mc_unknown;
-    su_free(home, h);
-    if (!(h = msg_header_alloc(home, hr->hr_class, n + 1)))
-      return NULL;
-    bb = memcpy(MSG_HEADER_DATA(h), b, n), bb[n] = 0;
-    if (hr->hr_class->hc_parse(home, h, bb, n) < 0) {
-      su_free(home, h), h = NULL;
-    }
-  }
+  if (hr->hr_class->hc_parse(home, h, bb, xtra) >= 0)
+    return h;
+
+  hr = mc->mc_unknown;
+  su_free(home, h);
+  if (!(h = msg_header_alloc(home, hr->hr_class, n + 1)))
+    return NULL;
+  bb = memcpy(MSG_HEADER_DATA(h), b, n), bb[n] = 0;
+  if (hr->hr_class->hc_parse(home, h, bb, n) < 0)
+    su_free(home, h), h = NULL;
 
   return h;
 }
@@ -1232,7 +1308,7 @@ issize_t msg_extract_separator(msg_t *msg, msg_pub_t *mo,
   if (hr->hr_class->hc_parse(msg_home(msg), h, b, l) < 0)
     return -1;
 
-  h->sh_data = b, h->sh_len  = l;
+  h->sh_data = b, h->sh_len = l;
 
   append_parsed(msg, mo, hr, h, 0);
 
@@ -1451,7 +1527,8 @@ extract_trailers(msg_t *msg, msg_pub_t *mo,
 static inline size_t
 msg_header_name_e(char b[], size_t bsiz, msg_header_t const *h, int flags);
 static size_t msg_header_prepare(msg_mclass_t const *, int flags,
-				 msg_header_t *h, char *b, size_t bsiz);
+				 msg_header_t *h, msg_header_t **return_next,
+				 char *b, size_t bsiz);
 
 /**Encode all message fragments.
  *
@@ -1520,7 +1597,7 @@ int msg_is_prepared(msg_t const *msg)
 issize_t msg_headers_prepare(msg_t *msg, msg_header_t *headers, int flags)
 {
   msg_mclass_t const *mc = msg->m_class;
-  msg_header_t *h;
+  msg_header_t *h, *next;
   ssize_t n = 0;
   size_t bsiz = 0, used = 0;
   char *b;
@@ -1533,13 +1610,18 @@ issize_t msg_headers_prepare(msg_t *msg, msg_header_t *headers, int flags)
     return -1;
 
   for (h = headers; h;) {
+
     if (h->sh_data) {
       total += h->sh_len;
       h = h->sh_succ;
       continue;
     }
 
-    n = msg_header_prepare(mc, flags, h, b, bsiz - used);
+    for (next = h->sh_succ; next; next = next->sh_succ)
+      if (next->sh_class != h->sh_class || next->sh_data)
+	break;
+
+    n = msg_header_prepare(mc, flags, h, &next, b, bsiz - used);
 
     if (n == (ssize_t)-1) {
       errno = EINVAL;
@@ -1554,12 +1636,16 @@ issize_t msg_headers_prepare(msg_t *msg, msg_header_t *headers, int flags)
       continue;
     }
 
+    h->sh_data = b, h->sh_len = n;
+
+    for (h = h->sh_succ; h != next; h = h->sh_succ)
+      h->sh_data = b + n, h->sh_len = 0;
+
     msg_buf_used(msg, n);
 
     total += n;
     used += n;
     b += n;
-    h = h->sh_succ;
   }
 
   return total;
@@ -1568,31 +1654,29 @@ issize_t msg_headers_prepare(msg_t *msg, msg_header_t *headers, int flags)
 /** Encode a header or a list of headers */
 static
 size_t msg_header_prepare(msg_mclass_t const *mc, int flags,
-			  msg_header_t *h, char *b, size_t bsiz)
+			  msg_header_t *h, msg_header_t **return_next,
+			  char *b, size_t bsiz)
 {
   msg_header_t *h0, *next;
   msg_hclass_t *hc;
   char const *s;
   size_t n; ssize_t m;
-  int middle = 0, compact, one_line_list, comma_list;
+  int compact, one_line_list, comma_list;
 
   assert(h); assert(h->sh_class);
 
   hc = h->sh_class;
   compact = MSG_IS_COMPACT(flags);
-  one_line_list = compact || hc->hc_kind == msg_kind_apndlist;
-  comma_list = one_line_list || MSG_IS_COMMA_LISTS(flags);
+  one_line_list = hc->hc_kind == msg_kind_apndlist;
+  comma_list = compact || one_line_list || MSG_IS_COMMA_LISTS(flags);
 
-  for (h0 = h, n = 0; h; h = next) {
+  for (h0 = h, n = 0; ; h = next) {
     next = h->sh_succ;
 
-    if (!next || next->sh_class != hc || next->sh_data || !comma_list)
-      next = NULL;
-
-    if (!middle && hc->hc_name && hc->hc_name[0])
+    if (h == h0 && hc->hc_name && hc->hc_name[0])
       n += msg_header_name_e(b + n, bsiz >= n ? bsiz - n : 0, h, flags);
 
-    if ((m = hc->hc_print(b + n, bsiz >= n ? bsiz - n : 0, h, flags)) < 0) {
+    if ((m = hc->hc_print(b + n, bsiz >= n ? bsiz - n : 0, h, flags)) == -1) {
       if (bsiz >= n + 64)
 	m = 2 * (bsiz - n);
       else
@@ -1602,41 +1686,26 @@ size_t msg_header_prepare(msg_mclass_t const *mc, int flags,
     n += m;
 
     if (hc->hc_name) {
-      /* Encode continuation */
-      if (!next)
-	s = CRLF;
+      if (!comma_list || !next || next == *return_next)
+	s = CRLF, m = 2;
+      /* Else encode continuation */
       else if (compact)
-	s = ",";
+	s = ",", m = 1;
       else if (one_line_list)
-	s = ", ";
+	s = ", ", m = 2;
       else
-	s = "," CRLF "\t";
+	s = "," CRLF "\t", m = 4;
 
-      m = strlen(s);
-      if (bsiz <= n + m) {
-	if (!next)
-	  return n + m;
-      }
-      else {
-	strcpy(b + n, s);
-      }
+      if (bsiz > n + m)
+	memcpy(b + n, s, m);
       n += m;
     }
 
-    middle = 1;
+    if (!comma_list || !next || next == *return_next)
+      break;
   }
 
-  if (bsiz > n) {		/* XXX */
-    h0->sh_data = b, h0->sh_len = n;
-
-    for (h = h0; h; h = next) {
-      next = h->sh_succ;
-      if (!next || next->sh_class != hc || next->sh_data || !comma_list)
-	break;
-      else
-	next->sh_data = b, next->sh_len = 0;
-    }
-  }
+  *return_next = next;
 
   return n;
 }
@@ -1702,6 +1771,97 @@ msg_header_name_e(char b[], size_t bsiz, msg_header_t const *h, int flags)
   }
 
   return n2;
+}
+
+/** Convert a message to a string.
+ *
+ * A message is encoded and the encoding result is returned as a string. 
+ * Because the message may contain binary payload (or NUL in headers), the
+ * message length is returned separately in @a *return_len, too.
+ *
+ * Note that the message is serialized as a side effect. 
+ *
+ * @param home memory home used to allocate the string
+ * @param msg  message to encode
+ * @param pub  message object to encode (may be NULL)
+ * @param flags flags used when encoding
+ * @param return_len return-value parameter for encoded message length
+ * 
+ * @return Encoding result as a C string. 
+ *
+ * @since New in @VERSION_1_12_4
+ *
+ * @sa msg_make(), msg_prepare(), msg_serialize().
+ */
+char *msg_as_string(su_home_t *home, msg_t *msg, msg_pub_t *pub, int flags,
+		    size_t *return_len)
+{
+  msg_mclass_t const *mc = msg->m_class;
+  msg_header_t *h, *next;
+  ssize_t n = 0;
+  size_t bsiz = 0, used = 0;
+  char *b, *b2;
+
+  if (pub == NULL)
+    pub = msg->m_object;
+
+  if (msg_serialize(msg, pub) < 0)
+    return NULL;
+
+  if (return_len == NULL)
+    return_len = &used;
+
+  b = su_alloc(home, bsiz = msg_min_size);
+
+  if (!b)
+    return NULL;
+
+  if (pub == msg->m_object)
+    h = msg->m_chain;
+  else
+    h = pub->msg_common->h_succ;
+
+  while (h) {
+    for (next = h->sh_succ; next; next = next->sh_succ)
+      if (next->sh_class != h->sh_class)
+	break;
+
+    n = msg_header_prepare(mc, flags, h, &next, b + used, bsiz - used);
+
+    if (n == -1) {
+      errno = EINVAL;
+      su_free(home, b);
+      return NULL;
+    }
+
+    if (bsiz > used + n) {
+      used += n;
+      h = next;
+    }
+    else {
+      /* Realloc */
+      if (h->sh_succ)
+	bsiz = (used + n + msg_min_size) / msg_min_size * msg_min_size;
+      else
+	bsiz = used + n + 1;
+
+      b2 = su_realloc(home, b, bsiz);
+
+      if (b2 == NULL || bsiz < msg_min_size) {
+	errno = ENOMEM; 
+	su_free(home, b);
+	return NULL;
+      }
+
+      continue;
+    }
+  }
+
+  *return_len = used;
+
+  b[used] = '\0';		/* NUL terminate */
+
+  return su_realloc(home, b, used + 1);
 }
 
 /* ====================================================================== */
@@ -2578,10 +2738,18 @@ int msg_header_add_make(msg_t *msg,
   return msg_header_add(msg, pub, hh, h);
 }
 
-/** Parse a string and add resulting headers to the message.
+/**Add string contents to message.
  *
- * The function @a msg_header_add_str() parses a string and adds resulting
- * header objects to the message object.
+ * Duplicate a string containing headers (or a message body, if the string
+ * starts with linefeed), parse it and add resulting header objects to the
+ * message object.
+ *
+ * @param msg  message object
+ * @param pub  message header structure where heades are added (may be NULL)
+ * @param str  string to be copied and parsed (not modified, may be NULL)
+ *
+ * @retval 0 when succesful
+ * @retval -1 upon an error
  */
 int msg_header_add_str(msg_t *msg,
 		       msg_pub_t *pub,
@@ -2591,12 +2759,43 @@ int msg_header_add_str(msg_t *msg,
 
   if (!msg)
     return -1;
-  if (pub == NULL)
-    pub = msg->m_object;
   if (!str)
     return 0;
 
   s = su_strdup(msg_home(msg), str);
+
+  if (s == NULL)
+    return -1;
+
+  return msg_header_parse_str(msg, pub, s);
+}
+  
+/**Add string to message.
+ *
+ * Parse a string containing headers (or a message body, if the string
+ * starts with linefeed) and add resulting header objects to the message
+ * object. 
+ *
+ * @param msg  message object
+ * @param pub  message header structure where heades are added (may be NULL)
+ * @param s    string to be parsed (and modified)
+ *
+ * @retval 0 when succesful
+ * @retval -1 upon an error
+ *
+ * @sa msg_header_add_str(), url_headers_as_string()
+ * 
+ * @since New in @VERSION_1_12_4.
+ */
+int msg_header_parse_str(msg_t *msg,
+			 msg_pub_t *pub,
+			 char *s)
+{
+  if (!msg)
+    return -1;
+
+  if (pub == NULL)
+    pub = msg->m_object;
 
   if (s) {
     size_t ssiz = strlen(s), used = 0;
@@ -2620,11 +2819,9 @@ int msg_header_add_str(msg_t *msg,
 
     if (n <= 0)
       return -1;
-
-    return 0;
   }
 
-  return -1;
+  return 0;
 }
 
 /** Insert a (list of) header(s) to the fragment chain.
@@ -2861,5 +3058,3 @@ void msg_header_free_all(su_home_t *home, msg_header_t *h)
     h = h_next;
   }
 }
-
-

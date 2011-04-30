@@ -137,6 +137,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -219,6 +221,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -298,7 +301,7 @@ INTERNAL_H = msg_internal.h test_class.h
 nobase_include_sofia_HEADERS = \
 			$(GENERATED_H) $(PUBLIC_H) 
 
-BUILT_SOURCES = $(GENERATED_H) test_table.c test_protos.h
+BUILT_SOURCES = $(GENERATED_H) msg_mime_table.c test_table.c test_protos.h
 libmsg_la_SOURCES = $(INTERNAL_H) \
 	msg.c msg_tag.c \
 	msg_mime.c msg_mime_table.c \
@@ -330,6 +333,8 @@ EXTRA_DIST = Doxyfile msg.docs \
 # ----------------------------------------------------------------------
 # Tests
 TESTS = test_msg
+AM_CFLAGS = $(SOFIA_CFLAGS)
+DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
 TAG_AWK = $(top_srcdir)/libsofia-sip-ua/su/tag_dll.awk
@@ -699,6 +704,7 @@ clean-generic:
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

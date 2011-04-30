@@ -109,6 +109,8 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
+COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -191,6 +193,7 @@ RANLIB = @RANLIB@
 REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SOFIA_CFLAGS = @SOFIA_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -289,6 +292,8 @@ LDADD = libnea.la \
 # ----------------------------------------------------------------------
 # Install and distribution rules
 EXTRA_DIST = Doxyfile nea.docs $(BUILT_SOURCES)
+AM_CFLAGS = $(SOFIA_CFLAGS)
+DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
 TAG_AWK = $(top_srcdir)/libsofia-sip-ua/su/tag_dll.awk
@@ -602,6 +607,7 @@ clean-generic:
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

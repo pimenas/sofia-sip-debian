@@ -70,8 +70,8 @@ int test_tag_filter(void)
   result = tl_afilter(NULL, filter, lst);
 
   TEST_1(result);
-  TEST(result[0].t_tag, nutag_url);
-  TEST(result[1].t_tag, nutag_url);
+  TEST_P(result[0].t_tag, nutag_url);
+  TEST_P(result[1].t_tag, nutag_url);
 
   tl_vfree(lst);
   free(result);
@@ -96,7 +96,13 @@ int test_nua_params(struct context *ctx)
   if (print_headings)
     printf("TEST NUA-1.1: PARAMETERS\n");
 
-  ctx->root = su_root_create(NULL); TEST_1(ctx->root);
+#if SU_HAVE_OSX_CF_API
+  if (ctx->osx_runloop)
+    ctx->root = su_root_osx_runloop_create(NULL);
+  else
+#endif
+  ctx->root = su_root_create(NULL);
+  TEST_1(ctx->root);
 
   /* Disable threading by command line switch? */
   su_root_threading(ctx->root, ctx->threading);
@@ -142,6 +148,7 @@ int test_nua_params(struct context *ctx)
 
 		 SIPTAG_SUPPORTED_STR("test"),
 		 SIPTAG_ALLOW_STR("DWIM, OPTIONS, INFO"),
+		 SIPTAG_ALLOW_EVENTS_STR("reg"),
 		 SIPTAG_USER_AGENT_STR("test_nua/1.0"),
 
 		 SIPTAG_ORGANIZATION_STR("Open Laboratory"),
@@ -199,9 +206,15 @@ int test_nua_params(struct context *ctx)
 		 SIPTAG_SUPPORTED(sip_supported_make(tmphome, "foo")),
 		 NUTAG_SUPPORTED("foo, bar"),
 		 SIPTAG_SUPPORTED_STR(",baz,"),
+
 		 SIPTAG_ALLOW_STR("OPTIONS"),
 		 SIPTAG_ALLOW(sip_allow_make(tmphome, "INFO")),
 		 NUTAG_ALLOW("ACK, INFO"),
+
+		 SIPTAG_ALLOW_EVENTS_STR("reg"),
+		 SIPTAG_ALLOW_EVENTS(sip_allow_make(tmphome, "presence")),
+		 NUTAG_ALLOW_EVENTS("presence.winfo"),
+
 		 SIPTAG_USER_AGENT(sip_user_agent_make(tmphome, "test_nua")),
 
 		 SIPTAG_ORGANIZATION(sip_organization_make(tmphome, "Pussy Galore's Flying Circus")),
@@ -223,8 +236,8 @@ int test_nua_params(struct context *ctx)
     sip_from_t const *from = NONE;
     char const *from_str = "NONE";
 
-    unsigned retry_count = -1;
-    unsigned max_subscriptions = -1;
+    unsigned retry_count = (unsigned)-1;
+    unsigned max_subscriptions = (unsigned)-1;
 
     char const *soa_name = "NONE";
     int media_enable = -1;
@@ -234,10 +247,10 @@ int test_nua_params(struct context *ctx)
     int only183_100rel = -1;
     int auto_answer = -1;
     int auto_ack = -1;
-    unsigned invite_timeout = -1;
+    unsigned invite_timeout = (unsigned)-1;
 
-    unsigned session_timer = -1;
-    unsigned min_se = -1;
+    unsigned session_timer = (unsigned)-1;
+    unsigned min_se = (unsigned)-1;
     int refresher = -1;
     int update_refresh = -1;
 
@@ -249,12 +262,14 @@ int test_nua_params(struct context *ctx)
     int media_features = -1;
     int service_route_enable = -1;
     int path_enable = -1;
-    unsigned refer_expires = -1;
+    unsigned refer_expires = (unsigned)-1;
     int refer_with_id = -1;
     int substate = -1;
 
     sip_allow_t const *allow = NONE;
     char const *allow_str = "NONE";
+    sip_allow_events_t const *allow_events = NONE;
+    char const *allow_events_str = "NONE";
     sip_supported_t const *supported = NONE;
     char const *supported_str = "NONE";
     sip_user_agent_t const *user_agent = NONE;
@@ -271,7 +286,7 @@ int test_nua_params(struct context *ctx)
     char const *instance = "NONE";
     
     url_string_t const *registrar = NONE;
-    unsigned keepalive = -1, keepalive_stream = -1;
+    unsigned keepalive = (unsigned)-1, keepalive_stream = (unsigned)-1;
 
     nua_get_params(ctx->a.nua, TAG_ANY(), TAG_END());
     run_a_until(ctx, nua_r_get_params, save_until_final_response);
@@ -317,6 +332,8 @@ int test_nua_params(struct context *ctx)
 	       	SIPTAG_SUPPORTED_STR_REF(supported_str),
 	       	SIPTAG_ALLOW_REF(allow),
 	       	SIPTAG_ALLOW_STR_REF(allow_str),
+		SIPTAG_ALLOW_EVENTS_REF(allow_events),
+		SIPTAG_ALLOW_EVENTS_STR_REF(allow_events_str),
 	       	SIPTAG_USER_AGENT_REF(user_agent),
 	       	SIPTAG_USER_AGENT_STR_REF(user_agent_str),
 		NUTAG_USER_AGENT_REF(ua_name),
@@ -336,7 +353,7 @@ int test_nua_params(struct context *ctx)
 		NUTAG_INSTANCE_REF(instance),
 
 		TAG_END());
-    TEST(n, 44);
+    TEST(n, 46);
 
     TEST_S(sip_header_as_string(tmphome, (void *)from), Alice);
     TEST_S(from_str, Alice);
@@ -372,6 +389,9 @@ int test_nua_params(struct context *ctx)
 
     TEST_S(sip_header_as_string(tmphome, (void *)allow), "OPTIONS, INFO, ACK");
     TEST_S(allow_str, "OPTIONS, INFO, ACK");
+    TEST_S(sip_header_as_string(tmphome, (void *)allow_events), 
+	   "reg, presence, presence.winfo");
+    TEST_S(allow_events_str, "reg, presence, presence.winfo");
     TEST_S(sip_header_as_string(tmphome, (void *)supported), 
 	   "foo, bar, baz");
     TEST_S(supported_str, "foo, bar, baz");
@@ -403,18 +423,18 @@ int test_nua_params(struct context *ctx)
     sip_from_t const *from = NONE;
     char const *from_str = "NONE";
 
-    unsigned retry_count = -1;
-    unsigned max_subscriptions = -1;
+    unsigned retry_count = (unsigned)-1;
+    unsigned max_subscriptions = (unsigned)-1;
 
     int invite_enable = -1;
     int auto_alert = -1;
     int early_media = -1;
     int auto_answer = -1;
     int auto_ack = -1;
-    unsigned invite_timeout = -1;
+    unsigned invite_timeout = (unsigned)-1;
 
-    unsigned session_timer = -1;
-    unsigned min_se = -1;
+    unsigned session_timer = (unsigned)-1;
+    unsigned min_se = (unsigned)-1;
     int refresher = -1;
     int update_refresh = -1;
 
@@ -426,7 +446,7 @@ int test_nua_params(struct context *ctx)
     int media_features = -1;
     int service_route_enable = -1;
     int path_enable = -1;
-    unsigned refer_expires = -1;
+    unsigned refer_expires = (unsigned)-1;
     int refer_with_id = -1;
     int substate = -1;
 
@@ -540,13 +560,13 @@ int test_nua_params(struct context *ctx)
     TEST(refer_with_id, -1);
     TEST(substate, -1);
 
-    TEST(allow, NONE);
+    TEST_P(allow, NONE);
     TEST_S(allow_str, "NONE");
-    TEST(supported, NONE);
+    TEST_P(supported, NONE);
     TEST_S(supported_str, "NONE");
-    TEST(user_agent, NONE);
+    TEST_P(user_agent, NONE);
     TEST_S(user_agent_str, "NONE");
-    TEST(organization, NONE);
+    TEST_P(organization, NONE);
     TEST_S(organization_str, "NONE");
 
     TEST_S(outbound, "NONE");
@@ -556,7 +576,7 @@ int test_nua_params(struct context *ctx)
     TEST_S(m_features, "NONE");
     TEST_S(instance, "NONE");
 
-    TEST(registrar->us_url, NONE);
+    TEST_P(registrar->us_url, NONE);
 
     free_events_in_list(ctx, ctx->a.events);
   }

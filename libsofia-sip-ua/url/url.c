@@ -38,6 +38,8 @@
 #include <sofia-sip/hostdomain.h>
 #include <sofia-sip/url.h>
 
+#include <sofia-sip/string0.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -151,7 +153,7 @@ static int url_tel_cmp_numbers(char const *A, char const *B);
  * @param s  string to be searched
  *
  * @retval 0 if no reserved characters were found.
- * @retval 1 if a reserved character was found.
+ * @retval l if a reserved character was found.
  */
 int url_reserved_p(char const *s)
 {
@@ -188,9 +190,9 @@ int url_reserved_p(char const *s)
  * }
  * @endcode
  */
-int url_esclen(char const *s, char const reserved[])
+isize_t url_esclen(char const *s, char const reserved[])
 {
-  int n;
+  size_t n;
   unsigned mask32, mask64, mask96;
 
   MASKS_WITH_RESERVED(reserved, mask32, mask64, mask96);
@@ -202,7 +204,7 @@ int url_esclen(char const *s, char const reserved[])
       n += 2;
   }
 
-  return n;
+  return (isize_t)n;
 }
 
 /** Escape a string.
@@ -249,13 +251,61 @@ char *url_escape(char *d, char const *s, char const reserved[])
 }
 
 
-/**Unescape an string.
+/**Unescape url-escaped string fragment.
  *
- * The function url_unescape() copies the string pointed by @a s to the
- * array pointed by @a d, including the terminating \\0 character. All
- * %-escaped triplets in @a s are unescaped, for instance, @c "%40%25%23" is
- * copied as @c "@%#". The destination array @a d must be large enough to
- * receive the escaped copy.
+ * Unescape @a n characters from string @a s to the buffer @a d, including
+ * the terminating \\0 character. All %-escaped triplets in @a s are
+ * unescaped, for instance, @c "%40%25%23" is copied as @c "@%#". The
+ * destination array @a d must be large enough to receive the escaped copy
+ * (@a n bytes is always enough).
+ *
+ * @param d  destination buffer
+ * @param s  string to be unescaped
+ * @param n  maximum number of characters to unescape
+ *
+ * @return Length of unescaped string
+ *
+ * @NEW_1_12_4.
+ */
+size_t url_unescape_to(char *d, char const *s, size_t n)
+{
+  size_t i = 0, j = 0;
+
+  if (s == NULL)
+    return 0;
+
+  i = j = strncspn(s, n, "%");
+
+  if (d && d != s)
+    memmove(d, s, i);
+
+  for (; i < n;) {
+    char c = s[i++];
+
+    if (c == '\0')
+      break;
+
+    if (c == '%' && i + 1 < n && IS_HEX(s[i]) && IS_HEX(s[i + 1])) {
+#define   UNHEX(a) (a - (a >= 'a' ? 'a' - 10 : (a >= 'A' ? 'A' - 10 : '0')))
+      c = (UNHEX(s[i]) << 4) | UNHEX(s[i + 1]);
+#undef    UNHEX
+      i += 2;
+    }
+
+    if (d)
+      d[j] = c;
+    j++;
+  }
+
+  return j;
+}
+
+/**Unescape url-escaped string.
+ *
+ * Unescape string @a s to the buffer @a d, including the terminating \\0
+ * character. All %-escaped triplets in @a s are unescaped, for instance, @c
+ * "%40%25%23" is copied as @c "@%#". The destination array @a d must be
+ * large enough to receive the escaped copy.
  *
  * @param d  destination buffer
  * @param s  string to be copied
@@ -264,29 +314,10 @@ char *url_escape(char *d, char const *s, char const reserved[])
  */
 char *url_unescape(char *d, char const *s)
 {
-  char *r = d;
-
-  if (s) {
-    if (d == s)
-      s = d = strchr(d, '%');
-    
-    if (d) {
-      for (;IS_NON_LWS(*s); d++, s++) {
-	if (*s == '%' && IS_HEX(s[1]) && IS_HEX(s[2])) {
-#define   UNHEX(a) (a - (a >= 'a' ? 'a' - 10 : (a >= 'A' ? 'A' - 10 : '0')))
-	  *d = (UNHEX(s[1]) << 4) | UNHEX(s[2]);
-#undef    UNHEX
-	  s += 2;
-	}
-	else {
-	  *d = *s;
-	}
-      }
-    }
-  }
-  if (d) *d = '\0';
-
-  return r;
+  size_t n = url_unescape_to(d, s, SIZE_MAX);
+  if (d)
+    d[n] = '\0';
+  return d;
 }
 
 /** Canonize a URL component */
@@ -1290,6 +1321,52 @@ int url_param_add(su_home_t *h, url_t *url, char const *param)
   return 0;
 }
 
+/** Remove a named parameter from url_param string.
+ *
+ * Remove a named parameter and its possible value from the URL parameter
+ * string (url_s##url_param).
+ *
+ * @return Pointer to modified string, or NULL if nothing is left in there.
+ */
+char *url_strip_param_string(char *params, char const *name)
+{
+  if (params && name) {
+    size_t i, n = strlen(name), remove, rest;
+    
+    for (i = 0; params[i];) {
+      if (strncasecmp(params + i, name, n) ||
+	  (params[i + n] != '=' && params[i + n] != ';' && params[i + n])) {
+	i = i + strcspn(params + i, ";");
+	if (!params[i++])
+	  break;
+	continue;
+      }
+      remove = n + strcspn(params + i + n, ";");
+      if (params[i + remove] == ';')
+	remove++;
+
+      if (i == 0) {
+	params += remove;
+	continue;
+      }
+
+      rest = strlen(params + i + remove);
+      if (!rest) {
+	if (i == 0)
+	  return NULL;		/* removed everything */
+	params[i - 1] = '\0';
+	break;
+      }
+      memmove(params + i, params + i + remove, rest + 1);
+    }
+
+    if (!params[0])
+      return NULL;
+  }
+
+  return params;
+}
+
 int url_string_p(url_string_t const *url)
 {
   return URL_STRING_P(url);
@@ -1341,7 +1418,7 @@ int url_strip_transport2(url_t *url, int modify)
       if (p != d) {
 	if (!modify)
 	  return 1;
-	memcpy(d, p, n + 1);
+	memmove(d, p, n + 1);
       }
     }
     d += n;
@@ -1457,9 +1534,7 @@ int url_cmp(url_t const *a, url_t const *b)
 	(rv = strcasecmp(a->url_scheme, b->url_scheme)))))
     return rv;
 
-  if (a->url_host != b->url_host && 
-      ((rv = !a->url_host - !b->url_host) ||
-       (rv = strcasecmp(a->url_host, b->url_host))))
+  if ((rv = host_cmp(a->url_host, b->url_host)))
     return rv;
 
   if (a->url_port != b->url_port) {
@@ -1570,9 +1645,7 @@ int url_cmp_all(url_t const *a, url_t const *b)
   if ((rv = a->url_root - b->url_root))
     return rv;
 
-  if (a->url_host != b->url_host && 
-      ((rv = !a->url_host - !b->url_host) ||
-       (rv = strcasecmp(a->url_host, b->url_host))))
+  if ((rv = host_cmp(a->url_host, b->url_host)))
     return rv;
 
   if (a->url_port != b->url_port) {
@@ -1946,4 +2019,70 @@ void url_digest(void *hash, int hsize, url_t const *url, char const *key)
   }
 
   memcpy(hash, digest, hsize);
+}
+
+/** Convert a URL query to a header string.
+ *
+ * URL query is converted by replacing each "=" in header name "=" value
+ * pair with semicolon (":"), and the "&" separating header-name-value pairs
+ * with line feed ("\n"). The "body" pseudoheader is moved last in the
+ * string. The %-escaping is removed. Note that if the @a query contains %00,
+ * the resulting string will be truncated.
+ *
+ * @param home memory home used to alloate string (if NULL, malloc() it)
+ * @param query query part from SIP URL 
+ * 
+ * The result string is allocated from @a home, and it can be used as
+ * argument to msg_header_parse_str(), msg_header_add_str() or
+ * SIPTAG_HEADER_STR().
+ *
+ * @sa msg_header_add_str(), SIPTAG_HEADER_STR(),
+ * sip_headers_as_url_query(), sip_url_query_as_taglist(), 
+ * @RFC3261 section 19.1.1 "Headers", #url_t, url_s#url_headers,
+ * url_unescape(), url_unescape_to()
+ *
+ * @since New in @VERSION_1_12_4.
+ */
+char *url_query_as_header_string(su_home_t *home, 
+				 char const *query)
+{
+  size_t i, j, n, b_start = 0, b_len = 0;
+  char *s = su_strdup(home, query);
+
+  if (!s) 
+    return NULL;
+
+  for (i = 0, j = 0; s[i];) {
+    n = strcspn(s + i, "=");
+    if (!s[i + n])
+      break;
+    if (n == 4 && strncasecmp(s + i, "body", 4) == 0) {
+      if (b_start)
+	break;
+      b_start = i + n + 1, b_len = strcspn(s + b_start, "&");
+      i = b_start + b_len + 1;
+      continue;
+    }
+    if (i != j)
+      memmove(s + j, s + i, n);
+    s[j + n] = ':';
+    i += n + 1, j += n + 1;
+    n = strcspn(s + i, "&");
+    j += url_unescape_to(s + j, s + i, n);
+    i += n;
+    if (s[i]) {
+      s[j++] = '\n', i++;
+    }
+  }
+
+  if (s[i])
+    return (void)su_free(home, s), NULL;
+
+  if (b_start) {
+    s[j++] = '\n', s[j++] = '\n';
+    j += url_unescape_to(s + j, query + b_start, b_len);
+  }
+  s[j] = '\0'; assert(j <= i);
+
+  return s;
 }

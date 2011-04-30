@@ -117,6 +117,8 @@ su_log_t nua_log[] = { SU_LOG_INIT("nua", "NUA_DEBUG", SU_DEBUG) };
  *
  * @par Events:
  *     none
+ *
+ * @sa nua_shutdown(), nua_destroy(), nua_handle()
  */
 nua_t *nua_create(su_root_t *root,
 		  nua_callback_f callback,
@@ -172,23 +174,8 @@ nua_t *nua_create(su_root_t *root,
   return nua;
 }
 
-/**Shutdown a @nua stack.
- *
- * Ongoing calls are released, registrations unregistered, and 
- * subscriptions terminated.  If the stack cannot terminate within 
- * 30 seconds, it sends the nua_r_shutdown event with status 500.
- *
- * @param nua         Pointer to @nua stack object
- *
- * @return
- *     nothing
- *
- * @par Related tags:
- *     none
- *
- * @par Events:
- *     #nua_r_shutdown
- */
+/* nua_shutdown() is documented with nua_stack_shutdown() */
+
 void nua_shutdown(nua_t *nua)
 {
   enter;
@@ -215,6 +202,8 @@ void nua_shutdown(nua_t *nua)
  *
  * @par Events:
  *     none
+ *
+ * @sa nua_shutdown(), nua_create(), nua_handle_destroy(), nua_handle_unref()
  */
 void nua_destroy(nua_t *nua)
 {
@@ -236,6 +225,19 @@ void nua_destroy(nua_t *nua)
 #endif			/* End NRC Boston */
     su_home_unref(nua->nua_home);
   }
+}
+
+/** Fetch callback context from nua.
+ *
+ * @param nua         Pointer to @nua stack object
+ *
+ * @return Callback context pointer.
+ *
+ * @NEW_1_12_4.
+ */
+nua_magic_t *nua_magic(nua_t *nua)
+{
+  return nua ? nua->nua_magic : NULL;
 }
 
 /** Obtain default operation handle of the @nua stack object.
@@ -278,6 +280,10 @@ nua_handle_t *nua_default(nua_t *nua)
  *     is no NUTAG_URL(). Note that certain SIP headers cannot be saved with
  *     the handle. They include @ContentLength, @CSeq, @RSeq, @RAck, and
  *     @Timestamp.
+ *
+ * @par
+ *     nua_handle() accepts all the tags accepted by nua_set_hparams(), too.
+ *
  *
  * @par Events:
  *     none
@@ -328,6 +334,32 @@ void nua_handle_bind(nua_handle_t *nh, nua_hmagic_t *hmagic)
     nh->nh_magic = hmagic;
 }
 
+/** Fetch a callback context from an operation handle. 
+ *
+ * @param nh          Pointer to operation handle
+ *
+ * @return
+ *     Pointer to callback context
+ *
+ * @par Related tags:
+ *     none
+ *
+ * @par Events:
+ *     none
+ *
+ * @NEW_1_12_4.
+ */
+nua_hmagic_t *nua_handle_magic(nua_handle_t *nh)
+{
+  nua_hmagic_t *magic = NULL;
+  enter;
+
+  if (NH_IS_VALID(nh))
+    magic = nh->nh_magic;
+  
+  return magic;
+}
+
 /* ---------------------------------------------------------------------- */
 
 /** Check if operation handle is used for INVITE
@@ -375,8 +407,8 @@ int nua_handle_has_events(nua_handle_t const *nh)
 
 /** Check if operation handle has active registrations
  *
- * A registrtion is active when either when a REGISTER operation going on
- * when it has successfully completed so that @nua stack is expected to
+ * A registration is active when either when a REGISTER operation is going
+ * on or when it has successfully completed so that @nua stack is expected to
  * refresh the registration in the future. Normally, a handle has active
  * registration after nua_register() until nua_unregister() completes,
  * unless the initial nua_register() had either expiration time of 0 or it
@@ -432,16 +464,10 @@ int nua_handle_has_subscribe(nua_handle_t const *nh)
  *
  * @par Events:
  *     none
-
  */
 int nua_handle_has_register(nua_handle_t const *nh)
 {
   return nh ? nh->nh_has_register : 0;
-}
-
-int nua_handle_has_streaming(nua_handle_t const *nh)
-{
-  return nh ? nh->nh_has_streaming : 0;
 }
 
 /** Check if operation handle has an active call 
@@ -459,15 +485,15 @@ int nua_handle_has_streaming(nua_handle_t const *nh)
  */
 int nua_handle_has_active_call(nua_handle_t const *nh)
 {
-  return nh ? nh->nh_ss->ss_active : 0;
+  return nh ? nh->nh_active_call : 0;
 }
 
 /** Check if operation handle has a call on hold 
  *
  * Please note that this status is not affected by remote end putting 
  * this end on hold. Remote end can put each media separately on hold 
- * and status is reflected on #SOATAG_ACTIVE_AUDIO, #SOATAG_ACTIVE_VIDEO 
- * and #SOATAG_ACTIVE_CHAT tag values in nua_i_active event.
+ * and status is reflected on SOATAG_ACTIVE_AUDIO(), SOATAG_ACTIVE_VIDEO() 
+ * and SOATAG_ACTIVE_CHAT() tag values in #nua_i_state event.
  *
  * @param nh          Pointer to operation handle
  *
@@ -484,7 +510,7 @@ int nua_handle_has_active_call(nua_handle_t const *nh)
  */
 int nua_handle_has_call_on_hold(nua_handle_t const *nh)
 {
-  return nh ? nh->nh_ss->ss_hold_remote : 0;
+  return nh ? nh->nh_hold_remote : 0;
 }
 
 /** Get the remote address (From/To header) of operation handle
@@ -596,118 +622,47 @@ void nua_invite(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
   NUA_SIGNAL(nh, nua_r_invite, tag, value);
 }
 
-/** Acknowledge a succesfull response to INVITE request.
- *
- * Acknowledge a successful response to INVITE request 
- * with SIP ACK message. This function is need only if 
- * NUTAG_AUTOACK() parameter has been cleared.
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    Tags in <sip_tag.h>
- *
- * @par Events:
- *    #nua_i_media_error \n
- *    #nua_i_active
- */
+/* Documented with nua_stack_ack() */
 void nua_ack(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_ack, tag, value);
 }
 
-/** Hangdown a call.
- *
- * Hangdown a call using SIP BYE method. Also the media session 
- * associated with the call is terminated. 
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    none
- *
- * @par Events:
- *    #nua_r_bye \n
- *    #nua_i_media_error
- */
+/* Documented with nua_stack_bye() */
 void nua_bye(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_bye, tag, value);
 }
 
-/** Cancel an INVITE operation 
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    Tags in <sip_tag.h>
- *
- * @par Events:
- *    #nua_r_cancel
- */
+/* Documented with nua_stack_cancel() */
 void nua_cancel(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_cancel, tag, value);
 }
 
-/** Query capabilities from server 
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    Tags in <sip_tag.h>
- *
- * @par Events:
- *    #nua_r_options
- *
- */
+/* Documented with nua_stack_options() */
 void nua_options(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_options, tag, value);
 }
 
-/** Send an instant message. 
- *
- * Send an instant message using SIP MESSAGE method.
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    Tags in <sip_tag.h>
- *
- * @par Events:
- *    #nua_r_message
- */
+/* Documented with nua_stack_message() */
 void nua_message(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_message, tag, value);
 }
 
+/* Documented with nua_stack_method() */
+void nua_method(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
+{
+  NUA_SIGNAL(nh, nua_r_method, tag, value);
+}
+
 /** Send a chat message. 
  *
  * A chat channel can be established during call setup using "message" media. 
- * An active chat channel is indicated using nua_i_active event containing 
- * #SOATAG_ACTIVE_CHAT tag. Chat messages can be sent using this channel with 
+ * An active chat channel is indicated using #nua_i_state event containing 
+ * SOATAG_ACTIVE_CHAT() tag. Chat messages can be sent using this channel with 
  * nua_chat() function. Currently this is implemented using SIP MESSAGE 
  * requests but in future MSRP (message session protocol) will replace it.
 *
@@ -718,11 +673,11 @@ void nua_message(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
  *    nothing
  *
  * @par Related Tags:
- *    #SIPTAG_CONTENT_TYPE \n
- *    #SIPTAG_PAYLOAD      \n
- *    #SIPTAG_FROM         \n
- *    #SIPTAG_TO           \n
- *    use of other SIP tags' is deprecated
+ *    SIPTAG_CONTENT_TYPE() \n
+ *    SIPTAG_PAYLOAD()      \n
+ *    SIPTAG_FROM()         \n
+ *    SIPTAG_TO()           \n
+ *    Use of other SIP tags is deprecated
  *
  * @par Events:
  *    #nua_r_chat
@@ -732,79 +687,25 @@ void nua_chat(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
   NUA_SIGNAL(nh, nua_r_chat, tag, value);
 }
 
-/** Subscribe a SIP event. 
- *
- * Subscribe a SIP event using the SIP SUBSCRIBE request. If the 
- * SUBSCRBE is successful a subscription state is established and 
- * the subscription is refreshed regularly. The refresh requests will
- * generate #nua_r_subscribe events.
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    NUTAG_URL()
- *    Tags in <sip_tag.h>
- *
- * @par Events:
- *    #nua_r_subscribe \n
- *    #nua_i_notify
- */
+/* Documented with nua_stack_subscribe() */
 void nua_subscribe(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_subscribe, tag, value);
 }
 
-/** Unsubscribe an event. 
- *
- * Unsubscribe an active or pending subscription with SUBSCRIBE request 
- * containing Expires: header with value 0. The dialog associated with 
- * subscription will be destroyed if there is no other subscriptions or 
- * call using this dialog.
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    #SIPTAG_EVENT \n
- *    Tags in <sip_tag.h> except #SIPTAG_EXPIRES or #SIPTAG_EXPIRES_STR
- *
- * @par Events:
- *    #nua_r_unsubscribe 
- */
+/* Documented with nua_stack_subscribe() */
 void nua_unsubscribe(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_unsubscribe, tag, value);
 }
 
-/** Send a SIP NOTIFY request message. 
- *
- * This function is used when the application implements itself 
- * the subscription state machine. The application must provide 
- * valid @b Subscription-State and @b Event headers using SIP tags.
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    Tags in <sip_tag.h>
- *
- * @par Events:
- *    #nua_r_notify
- */
+/* Documented with nua_stack_notify() */
 void nua_notify(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_notify, tag, value);
 }
+
+/* nua_r_notify is documented with process_response_to_notify() */
 
 /** Create an event server. 
  *
@@ -822,10 +723,10 @@ void nua_notify(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
  *
  * @par Related Tags:
  *    NUTAG_URL() \n
- *    #SIPTAG_EVENT or #SIPTAG_EVENT_STR \n
- *    #SIPTAG_CONTENT_TYPE or #SIPTAG_CONTENT_TYPE_STR \n
- *    #SIPTAG_PAYLOAD or #SIPTAG_PAYLOAD_STR \n
- *    #SIPTAG_ACCEPT or #SIPTAG_ACCEPT_STR \n
+ *    SIPTAG_EVENT() or SIPTAG_EVENT_STR() \n
+ *    SIPTAG_CONTENT_TYPE() or SIPTAG_CONTENT_TYPE_STR() \n
+ *    SIPTAG_PAYLOAD() or SIPTAG_PAYLOAD_STR() \n
+ *    SIPTAG_ACCEPT() or SIPTAG_ACCEPT_STR() \n
  *
  * @par Events:
  *    #nua_r_notify
@@ -847,10 +748,10 @@ void nua_notifier(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
  *    nothing
  *
  * @par Related Tags:
- *    #SIPTAG_EVENT \n
- *    #SIPTAG_CONTENT_TYPE \n
- *    #SIPTAG_PAYLOAD \n
- *    #NEATAG_REASON
+ *    SIPTAG_EVENT() \n
+ *    SIPTAG_CONTENT_TYPE() \n
+ *    SIPTAG_PAYLOAD() \n
+ *    NEATAG_REASON()
  *
  * @par Events:
  *    #nua_r_terminate
@@ -862,31 +763,7 @@ void nua_terminate(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
   NUA_SIGNAL(nh, nua_r_terminate, tag, value);
 }
 
-/** Transfer a call. 
- * 
- * Send a REFER request asking the recipient to transfer the call. The REFER
- * request also establishes a subscription to the "refer" event. The "refer"
- * event will have an "id" parameter, which has the value of CSeq number in
- * the REFER request. After initiating the REFER request, the nua engine
- * sends application a nua_r_refer event with status 100 and tag
- * SIPTAG_EVENT() containing a matching event header.
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    NUTAG_URL() \n
- *    Tags in <sip_tag.h>
- *
- * @par Events:
- *    #nua_r_refer \n
- *    #nua_i_notify
- *
- * @sa @RFC3515
- */
+/* Documented with nua_stack_refer() */
 void nua_refer(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_refer, tag, value);
@@ -904,74 +781,19 @@ void nua_unpublish(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
   NUA_SIGNAL(nh, nua_r_unpublish, tag, value);
 }
 
-/** Send an INFO request. 
- *
- * INFO is used to send call related information like DTMF 
- * digit input events. See @RFC2976.
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    Tags in <sip_tag.h>.
- *
- * @par Events:
- *    #nua_r_info
- */
+/* Documented with nua_stack_info() */
 void nua_info(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_info, tag, value);
 }
 
-
-/** Send a PRACK request. 
- *
- * PRACK is used to acknowledge receipt of 100rel responses. See @RFC3262.
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    Tags in <sofia-sip/soa_tag.h>, <sofia-sip/sip_tag.h>.
- *
- * @par Events:
- *    #nua_r_prack
- */
+/* Documented with nua_stack_prack() */
 void nua_prack(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_prack, tag, value);
 }
 
-
-/** Update a session. 
- * 
- * Update a session using SIP UPDATE method. See @RFC3311.
- *
- * Update method can be used when the session has been established with
- * INVITE. It's mainly used during the session establishment when
- * preconditions are used (@RFC3312). It can be also used during the call if
- * no user input is needed for offer/answer negotiation.
- *
- * @param nh              Pointer to operation handle
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    same as nua_invite()
- *
- * @par Events:
- *    #nua_r_update \n
- *    #nua_i_state \n
- *    #nua_i_media_error \n
- */
+/* Documented with nua_stack_update() */
 void nua_update(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
 {
   NUA_SIGNAL(nh, nua_r_update, tag, value);
@@ -1036,34 +858,8 @@ void nua_redirect(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...)
   NUA_SIGNAL(nh, nua_r_redirect, tag, value);
 }
 
-/** Respond with given status. 
- *
- * Currently, only request application is let to respond is INVITE.
- *
- * @param nh              Pointer to operation handle
- * @param status          SIP response status (see RFCs of SIP)
- * @param phrase          free text (default response phrase used if NULL)
- * @param tag, value, ... List of tagged parameters
- *
- * @return 
- *    nothing
- *
- * @par Related Tags:
- *    NUTAG_EARLY_ANSWER() \n
- *    #SOATAG_ADDRESS \n
- *    #SOATAG_AF \n
- *    #SOATAG_HOLD \n
- *    Tags in <sip_tag.h>.
- *
- * @par Events:
- *    #nua_i_state \n
- *    #nua_i_media_error \n
- *    #nua_i_error \n
- *    #nua_i_active \n
- *    #nua_i_terminated \n
- *
- * @sa #nua_i_invite, 
- */
+/* Documented with nua_stack_respond() */
+
 void nua_respond(nua_handle_t *nh,
 		 int status, char const *phrase,
 		 tag_type_t tag, tag_value_t value,
@@ -1106,7 +902,8 @@ void nua_respond(nua_handle_t *nh,
  * @par Events:
  *    none
  *
- * @sa nua_handle(), nua_handle_bind(), nua_handle_ref(), nua_handle_unref().
+ * @sa nua_handle(), nua_handle_bind(), nua_handle_ref(), nua_handle_unref(),
+ * nua_unregister(), nua_unpublish(), nua_unsubscribe(), nua_bye().
  */
 void nua_handle_destroy(nua_handle_t *nh)
 {
@@ -1149,7 +946,7 @@ void nua_signal(nua_t *nua, nua_handle_t *nh, msg_t *msg, int always,
 
     t = tl_dup(t, ta_args(ta), &b);
 
-    assert(tend == t); assert(b == bend);
+    assert(tend == t); (void)tend; assert(b == bend); (void)bend;
 
     e->e_always = always;
     e->e_event = event;
@@ -1188,7 +985,7 @@ void nua_event(nua_t *root_magic, su_msg_r sumsg, event_t *e)
       SU_DEBUG_9(("nua(%p): freed by application\n", nh));
     }
     if (e->e_msg)
-      msg_destroy(e->e_msg);
+      msg_destroy(e->e_msg), e->e_msg = NULL;
     return;
   }
 
@@ -1221,9 +1018,21 @@ void nua_event(nua_t *root_magic, su_msg_r sumsg, event_t *e)
     return;
 
   if (e->e_msg)
-    msg_destroy(e->e_msg);
+    msg_destroy(e->e_msg), e->e_msg = NULL;
 
   su_msg_destroy(nua->nua_current);
+}
+
+/** Get current request message. @NEW_1_12_4. */
+msg_t *nua_current_request(nua_t const *nua)
+{
+  return nua && nua->nua_current ? su_msg_data(nua->nua_current)->e_msg : NULL;
+}
+
+/** Get request message from saved nua event. @NEW_1_12_4. */
+msg_t *nua_saved_event_request(nua_saved_event_t const *saved)
+{
+  return saved ? su_msg_data(saved)->e_msg : NULL;
 }
 
 /** Save nua event and its arguments */
@@ -1254,7 +1063,7 @@ void nua_destroy_event(nua_saved_event_t saved[1])
     nua_handle_t *nh = e->e_nh;
 
     if (e->e_msg)
-      msg_destroy(e->e_msg);
+      msg_destroy(e->e_msg), e->e_msg = NULL;
 
     if (nh && !NH_IS_DEFAULT(nh) && nua_handle_unref(nh)) {
       SU_DEBUG_9(("nua(%p): freed by application\n", nh));
@@ -1262,4 +1071,89 @@ void nua_destroy_event(nua_saved_event_t saved[1])
 
     su_msg_destroy(saved);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+struct nua_stack_handle_make_replaces_args {
+  sip_replaces_t *retval;
+  nua_handle_t *nh;
+  su_home_t *home;
+  int early_only;
+};
+
+static int nua_stack_handle_make_replaces_call(void *arg)
+{
+  struct nua_stack_handle_make_replaces_args *a = arg;
+
+  a->retval = nua_stack_handle_make_replaces(a->nh, a->home, a->early_only);
+
+  return 0;
+}
+
+
+/**Generate a @Replaces header for handle.
+ *
+ * @since New in @VERSION_1_12_4.
+ *
+ * @sa nua_handle_by_replaces(), @Replaces, @RFC3891, nua_refer(),
+ * #nua_i_refer, @ReferTo, nta_leg_make_replaces()
+ */
+sip_replaces_t *nua_handle_make_replaces(nua_handle_t *nh, 
+					 su_home_t *home,
+					 int early_only)
+{
+  if (nh && nh->nh_valid && nh->nh_nua) {
+    struct nua_stack_handle_make_replaces_args a = { NULL, nh, home, early_only };
+
+    if (su_task_execute(nh->nh_nua->nua_server, 
+			nua_stack_handle_make_replaces_call, (void *)&a, 
+			NULL) == 0) {
+      return a.retval;
+    }
+  }
+  return NULL;
+}
+
+struct nua_stack_handle_by_replaces_args {
+  nua_handle_t *retval;
+  nua_t *nua;
+  sip_replaces_t const *r;
+};
+
+static int nua_stack_handle_by_replaces_call(void *arg)
+{
+  struct nua_stack_handle_by_replaces_args *a = arg;
+
+  a->retval = nua_stack_handle_by_replaces(a->nua, a->r);
+
+  return 0;
+}
+
+/** Obtain a new reference to an existing handle based on @Replaces header.
+ *
+ * @since New in @VERSION_1_12_4.
+ *
+ * @note 
+ * You should release the reference with nua_handle_unref() when you are
+ * done with handle.
+ *
+ * @sa nua_handle_make_replaces(), @Replaces, @RFC3891, nua_refer(),
+ * #nua_i_refer, @ReferTo, nta_leg_by_replaces()
+ */
+nua_handle_t *nua_handle_by_replaces(nua_t *nua, sip_replaces_t const *r)
+{
+  if (nua) {
+    struct nua_stack_handle_by_replaces_args a = { NULL, nua, r };
+
+    if (su_task_execute(nua->nua_server, 
+			nua_stack_handle_by_replaces_call, (void *)&a, 
+			NULL) == 0) {
+      nua_handle_t *nh = a.retval;
+
+      if (nh && !NH_IS_DEFAULT(nh) && nh->nh_valid)
+	return nua_handle_ref(nh);
+    }
+  }
+  return NULL;
 }

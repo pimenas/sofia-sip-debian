@@ -51,6 +51,22 @@ struct pinger;
 #include "sofia-sip/su.h"
 #include "sofia-sip/su_wait.h"
 #include "sofia-sip/su_log.h"
+#include "sofia-sip/su_debug.h"
+
+char const name[] = "su_test";
+
+#if HAVE_FUNC
+#define enter (void)SU_DEBUG_9(("%s: %s: entering\n", name, __func__))
+#define nh_enter (void)SU_DEBUG_9(("%s %s(%p): entering\n", name, __func__, nh))
+#elif HAVE_FUNCTION
+#define enter (void)SU_DEBUG_9(("%s: %s: entering\n", name, __FUNCTION__))
+#define nh_enter (void)SU_DEBUG_9(("%s %s(%p): entering\n", name, __FUNCTION__, nh))
+#define __func__ __FUNCTION__
+#else
+#define enter ((void)0)
+#define nh_enter ((void)0)
+#define __func__ "su_test"
+#endif
 
 struct pinger {
   enum { PINGER = 1, PONGER = 2 } const sort;
@@ -127,8 +143,8 @@ do_ping(struct pinger *p, su_timer_t *t, void *p0)
   p->when = su_now();
 
   snprintf(buf, sizeof(buf), "Ping %d at %s", p->id++, snow(p->when));
-  if (sendto(p->s, buf, strlen(buf), 0, 
-	     &p->addr.su_sa, su_sockaddr_size(&p->addr)) == -1) {
+  if (su_sendto(p->s, buf, strlen(buf), 0, 
+		&p->addr, su_sockaddr_size(&p->addr)) == -1) {
     su_perror("do_ping: send");
   }
 
@@ -187,8 +203,8 @@ do_pong(struct pinger *p, su_timer_t *t, void *p0)
   p->id = 0;
 
   snprintf(buf, sizeof(buf), "Pong at %s", snow(su_now()));
-  if (sendto(p->s, buf, strlen(buf), 0, 
-	     &p->addr.su_sa, su_sockaddr_size(&p->addr)) == -1) {
+  if (su_sendto(p->s, buf, strlen(buf), 0, 
+		&p->addr, su_sockaddr_size(&p->addr)) == -1) {
     su_perror("do_pong: send");
   }
 
@@ -255,12 +271,18 @@ do_exit(struct pinger *x, su_timer_t *t, void *x0)
 int
 do_init(su_root_t *root, struct pinger *p)
 {
-  su_wait_t w, w0;
+  su_wait_t w;
   su_socket_t s;
   long interval;
   su_timer_t *t;
   su_wakeup_f f;
-  int index, index0;
+  int index;
+#if nomore
+  su_wait_t w0;
+  int index0
+#endif
+
+  enter;
 
   switch (p->sort) {
   case PINGER: f = do_rtt;  interval = 200; break;
@@ -277,6 +299,8 @@ do_init(su_root_t *root, struct pinger *p)
 
   /* Create a sockets,  */
   p->s = s = udpsocket();
+
+#if nomore
   if (su_wait_create(&w0, s, SU_WAIT_IN) == SOCKET_ERROR) {
     su_perror("su_wait_create");
     return SU_FAILURE;
@@ -287,6 +311,7 @@ do_init(su_root_t *root, struct pinger *p)
     su_perror("su_root_register");
     return SU_FAILURE;
   }
+#endif
 
   if (su_wait_create(&w, s, SU_WAIT_IN) == SOCKET_ERROR) {
     su_perror("su_wait_create");
@@ -299,8 +324,9 @@ do_init(su_root_t *root, struct pinger *p)
     return SU_FAILURE;
   }
 
+#if nomore
   su_root_deregister(root, index0);
-
+#endif
   p->rindex = index;
 
   return 0;
@@ -309,6 +335,8 @@ do_init(su_root_t *root, struct pinger *p)
 void
 do_destroy(su_root_t *root, struct pinger *p)
 {
+  enter;
+
   if (opt_verbatim)
     printf("do_destroy %s at %s\n", p->name, snow(su_now()));
   su_root_deregister(root, p->rindex);
@@ -319,6 +347,8 @@ do_destroy(su_root_t *root, struct pinger *p)
 void
 start_ping(struct pinger *p, su_msg_r msg, su_sockaddr_t *arg)
 {
+  enter;
+
   if (!p->running)
     return;
 
@@ -335,6 +365,8 @@ void
 start_pong(struct pinger *p, su_msg_r msg, su_sockaddr_t *arg)
 {
   su_msg_r reply;
+
+  enter;
 
   if (!p->running)
     return;
@@ -361,6 +393,8 @@ init_ping(struct pinger *p, su_msg_r msg, su_sockaddr_t *arg)
 {
   su_msg_r reply;
 
+  enter;
+
   if (opt_verbatim)
     printf("init_ping: %s\n", p->name);
 
@@ -379,6 +413,8 @@ init_ping(struct pinger *p, su_msg_r msg, su_sockaddr_t *arg)
 static
 RETSIGTYPE term(int n)
 {
+  enter;
+
   exit(1);
 }
 
@@ -388,6 +424,8 @@ time_test(void)
   su_time_t now = su_now(), then = now;
   su_duration_t t1, t2;
   su_duration_t us;
+
+  enter;
 
   for (us = 0; us < 1000000; us += 300) {
     then.tv_sec = now.tv_sec;
@@ -402,14 +440,14 @@ time_test(void)
     printf("time_test: passed\n");
 }
 
-char const name[] = "su_test";
-
 #if HAVE_ALARM
 #include <unistd.h>
 #include <signal.h>
 
 static RETSIGTYPE sig_alarm(int s)
 {
+  enter;
+
   fprintf(stderr, "%s: FAIL! test timeout!\n", name);
   exit(1);
 }
@@ -443,13 +481,17 @@ int main(int argc, char *argv[])
   su_clone_r ping = SU_CLONE_R_INIT, pong = SU_CLONE_R_INIT;
   su_msg_r start_msg = SU_MSG_R_INIT;
   su_timer_t *t;
+#if HAVE_ALARM
   int opt_alarm = 1;
+#endif
 
   struct pinger 
     pinger = { PINGER, "ping", 1 }, 
     ponger = { PONGER, "pong", 1 };
 
   char *argv0 = argv[0];
+
+  enter;
 
   while (argv[1]) {
     if (strcmp(argv[1], "-v") == 0) {
