@@ -39,6 +39,7 @@
 #define MSG_HDR_T       union sip_header_u
 
 #include <sofia-sip/su_tagarg.h>
+#include <sofia-sip/su_string.h>
 #include "sofia-sip/sip_parser.h"
 #include <sofia-sip/msg_mclass.h>
 
@@ -231,7 +232,7 @@ int sip_version_d(char **ss, char const **ver)
   char const *result;
   size_t const version_size = sizeof(sip_version_2_0) - 1;
 
-  if (strncasecmp(s, sip_version_2_0, version_size) == 0 &&
+  if (su_casenmatch(s, sip_version_2_0, version_size) &&
       !IS_TOKEN(s[version_size])) {
     result = sip_version_2_0;
     s += version_size;
@@ -243,9 +244,11 @@ int sip_version_d(char **ss, char const **ver)
     result = s;
 
     l1 = span_token(s);
-    for (n = l1; IS_LWS(s[n]); n++);
+    for (n = l1; IS_LWS(s[n]); n++)
+      {}
     if (s[n] == '/') {
-      for (n++; IS_LWS(s[n]); n++);
+      for (n++; IS_LWS(s[n]); n++)
+        {}
       l2 = span_token(s + n);
       n += l2;
     }
@@ -260,7 +263,7 @@ int sip_version_d(char **ss, char const **ver)
       s[l1 + 1 + l2] = 0;
 
       /* Compare again with compacted version */
-      if (strcasecmp(s, sip_version_2_0) == 0)
+      if (su_casematch(s, sip_version_2_0))
 	result = sip_version_2_0;
     }
 
@@ -334,7 +337,7 @@ char const * const sip_method_names[] = {
 char const *sip_method_name(sip_method_t method, char const *name)
 {
   const size_t N = sizeof(sip_method_names)/sizeof(sip_method_names[0]);
-  if (method > 0 && (size_t)method <= N)
+  if (method > 0 && (size_t)method < N)
     return sip_method_names[method];
   else if (method == 0)
     return name;
@@ -435,7 +438,7 @@ sip_method_t sip_method_d(char **ss, char const **return_name)
   *ss = (s + n);
   if (return_name) *return_name = name;
 
-  return code;
+  return (sip_method_t)code;
 }
 
 /** Get method enum corresponding to method name */
@@ -458,11 +461,12 @@ issize_t sip_transport_d(char **ss, char const **ttransport)
   size_t pn_len, pv_len, pt_len;
   char *s = *ss;
 
-#define TRANSPORT_MATCH(t)					     \
-  (strncasecmp(s+7, t+7, sizeof(t)-8) == 0 && (IS_LWS(s[sizeof(t)])) \
+#define TRANSPORT_MATCH(t) \
+  (su_casenmatch(s + 7, t + 7, (sizeof t) - 8) && \
+   (!s[sizeof(t) - 1] || IS_LWS(s[sizeof(t) - 1]))	\
    && (transport = t, s += sizeof(t) - 1))
 
-  if (strncasecmp(s, "SIP/2.0", 7) != 0 ||
+  if (!su_casenmatch(s, "SIP/2.0", 7) ||
       (!TRANSPORT_MATCH(sip_transport_udp) &&
        !TRANSPORT_MATCH(sip_transport_tcp) &&
        !TRANSPORT_MATCH(sip_transport_sctp) &&
@@ -502,13 +506,13 @@ issize_t sip_transport_d(char **ss, char const **ttransport)
       pt[pt_len] = '\0';
 
       /* extra whitespace? */
-      if (!strcasecmp(transport, sip_transport_udp))
+      if (su_casematch(transport, sip_transport_udp))
 	transport = sip_transport_udp;
-      else if (!strcasecmp(transport, sip_transport_tcp))
+      else if (su_casematch(transport, sip_transport_tcp))
 	transport = sip_transport_tcp;
-      else if (!strcasecmp(transport, sip_transport_sctp))
+      else if (su_casematch(transport, sip_transport_sctp))
 	transport = sip_transport_sctp;
-      else if (!strcasecmp(transport, sip_transport_tls))
+      else if (su_casematch(transport, sip_transport_tls))
 	transport = sip_transport_tls;
     }
   }
@@ -526,10 +530,10 @@ isize_t sip_transport_xtra(char const *transport)
       transport == sip_transport_tcp ||
       transport == sip_transport_sctp ||
       transport == sip_transport_tls ||
-      strcasecmp(transport, sip_transport_udp) == 0 ||
-      strcasecmp(transport, sip_transport_tcp) == 0 ||
-      strcasecmp(transport, sip_transport_sctp) == 0 ||
-      strcasecmp(transport, sip_transport_tls) == 0)
+      su_casematch(transport, sip_transport_udp) ||
+      su_casematch(transport, sip_transport_tcp) ||
+      su_casematch(transport, sip_transport_sctp) ||
+      su_casematch(transport, sip_transport_tls))
     return 0;
 
   return MSG_STRING_SIZE(transport);
@@ -546,13 +550,13 @@ void sip_transport_dup(char **pp, char const **dd, char const *s)
     *dd = s;
   else if (s == sip_transport_tls)
     *dd = s;
-  else if (strcasecmp(s, sip_transport_udp) == 0)
+  else if (su_casematch(s, sip_transport_udp))
     *dd = sip_transport_udp;
-  else if (strcasecmp(s, sip_transport_tcp) == 0)
+  else if (su_casematch(s, sip_transport_tcp))
     *dd = sip_transport_tcp;
-  else if (strcasecmp(s, sip_transport_sctp) == 0)
+  else if (su_casematch(s, sip_transport_sctp))
     *dd = sip_transport_sctp;
-  else if (strcasecmp(s, sip_transport_tls) == 0)
+  else if (su_casematch(s, sip_transport_tls))
     *dd = sip_transport_tls;
   else
     MSG_STRING_DUP(*pp, *dd, s);
@@ -637,7 +641,7 @@ int sip_complete_message(msg_t *msg)
   else {
     if (sip->sip_content_length->l_length != len) {
       sip->sip_content_length->l_length = (uint32_t)len;
-      sip_fragment_clear(sip->sip_content_length->l_common);
+      msg_fragment_clear(sip->sip_content_length->l_common);
     }
   }
 

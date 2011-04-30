@@ -11,8 +11,9 @@ dnl information on the package
 dnl ---------------------------
 
 dnl update both the version for AC_INIT and the LIBSOFIA_SIP_UA_MAJOR_MINOR
-AC_INIT([sofia-sip], [1.12.10])
+AC_INIT([sofia-sip], [1.12.11])
 AC_CONFIG_SRCDIR([libsofia-sip-ua/sip/sofia-sip/sip.h])
+AC_CONFIG_MACRO_DIR([m4])
 AC_SUBST(VER_LIBSOFIA_SIP_UA_MAJOR_MINOR, [1.12])
 dnl Includedir specific to this sofia version
 AC_SUBST(include_sofiadir, '${includedir}/sofia-sip-1.12')
@@ -25,27 +26,29 @@ AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_REV, [0])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_AGE, [0])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_SOVER, [3]) # CUR-AGE
 
-# dnl calls AC_CANONICAL_ macros that are required by AM_INIT_AUTOMAKE
+## calls AC_CANONICAL_ macros that are required by AM_INIT_AUTOMAKE
 SAC_CANONICAL_SYSTEM_CACHE_CHECK
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 AC_CONFIG_HEADERS([config.h])
 
-AC_GNU_SOURCE
-
 ### checks for programs
 ### -------------------
 AC_LANG([C])
-AC_CHECK_COMPILATION_ENVIRONMENT
-
 SAC_TOOL_CC
+AC_GNU_SOURCE
 AC_PROG_INSTALL
 AC_PROG_CPP
 AC_CHECK_PROG(ETAGS, etags, etags, echo)
 AC_CHECK_TOOL(AR, ar, ar)
 AC_CHECK_TOOL(LD, ld, ld)
 AC_PROG_LIBTOOL
+AM_PROG_CC_C_O
+
+SAC_CFLAGS
+SAC_CHECK_COMPILATION_ENVIRONMENT
+SAC_COVERAGE
 
 SAC_ENABLE_NDEBUG
 SAC_ENABLE_EXPENSIVE_CHECKS
@@ -55,7 +58,7 @@ AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
 
 AC_ARG_WITH(doxygen,
 [  --with-doxygen[[=CMD]]    use doxygen command CMD [[doxygen]]],[
-case $enable_doxygen in
+case $with_doxygen in
 yes ) doxygen=doxygen ;;
 no ) doxygen=echo ;;
 esac], doxygen=doxygen)
@@ -81,6 +84,19 @@ AC_CACHE_CHECK([for _AC_LANG compiler vendor], ax_cv_[]_AC_LANG_ABBREV[]_compile
 
 AX_COMPILER_VENDOR
 
+SOFIA_PLAT_CFLAGS=
+# openbsd seems to not define NULL as a void pointer, I blame standards by committee for this.
+# This is a dirty hack, but shuts up all the warnings
+case "$host" in
+     *-openbsd*) SOFIA_PLAT_CFLAGS="-DNULL='((void *)0L)'";;
+     *) ;;
+esac
+
+AC_SUBST(SOFIA_PLAT_CFLAGS, $SOFIA_PLAT_CFLAGS)
+
+### checks for libraries
+### --------------------
+
 #  Enable 64 bit build
 AC_ARG_ENABLE(64,
 [AC_HELP_STRING([--enable-64],[build with 64 bit support])],[enable_64="$enable_64"],[enable_64="no"])
@@ -93,9 +109,6 @@ if test "x${ax_cv_c_compiler_vendor}"  =  "xsun" ; then
     fi
 fi
 
-### checks for libraries
-### --------------------
-
 SAC_SOFIA_SU
 SAC_OPENSSL
 SAC_TPORT
@@ -103,8 +116,17 @@ SAC_TPORT
 dnl Check is used for testing
 PKG_CHECK_MODULES(CHECK, check >= 0.9.4, have_check="yes", have_check="no")
 AM_CONDITIONAL(HAVE_CHECK, test x"$have_check" = "xyes")
-
+if test x"$have_check" = "xyes"; then
+   AC_DEFINE([HAVE_CHECK], 1, [Define to 1 if check library is available])
+   SAC_NEW_TCASE_ADD_TEST
+fi
 AC_CHECK_HEADERS([fnmatch.h])
+
+dnl dl is currently used only in testing
+AC_CHECK_LIB([dl], [dlopen], [
+   dnl Note: -ldl is not added to LIBS
+   AC_DEFINE([HAVE_LIBDL], 1, [Define to 1 if dl library is available])
+])
 
 ### internal modules
 ### ----------------
@@ -334,6 +356,7 @@ libsofia-sip-ua/tport/Makefile
 libsofia-sip-ua/url/Doxyfile
 libsofia-sip-ua/url/Makefile
 libsofia-sip-ua/features/sofia-sip/sofia_features.h
+s2check/Makefile
 libsofia-sip-ua-glib/Makefile
 libsofia-sip-ua-glib/su-glib/Makefile
 libsofia-sip-ua-glib/su-glib/Doxyfile

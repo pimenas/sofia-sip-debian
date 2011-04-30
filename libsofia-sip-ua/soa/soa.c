@@ -48,11 +48,12 @@
 #include "sofia-sip/soa_add.h"
 
 #include <sofia-sip/hostdomain.h>
+#include <sofia-sip/bnf.h>
 #include <sofia-sip/su_tagarg.h>
 #include <sofia-sip/su_localinfo.h>
 #include <sofia-sip/su_uniqueid.h>
 
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 #include <sofia-sip/su_errno.h>
 
 #define NONE ((void *)-1)
@@ -172,7 +173,7 @@ int soa_add(char const *name,
     return su_seterrno(EINVAL);
 
   for (n = soa_namelist; n; n = n->next) {
-    if (strcasecmp(name, n->basename) == 0)
+    if (su_casematch(name, n->basename))
       return 0;
   }
 
@@ -197,7 +198,7 @@ struct soa_session_actions const *soa_find(char const *name)
     size_t baselen = strcspn(name, ":/");
 
     for (n = soa_namelist; n; n = n->next) {
-      if (strncasecmp(name, n->basename, baselen) == 0)
+      if (su_casenmatch(name, n->basename, baselen))
 	break;
     }
 
@@ -230,7 +231,7 @@ soa_session_t *soa_create(char const *name,
     size_t baselen = strcspn(name, ":/");
 
     for (n = soa_namelist; n; n = n->next) {
-      if (strncasecmp(name, n->basename, baselen) == 0)
+      if (su_casenmatch(name, n->basename, baselen))
 	break;
     }
     if (n == NULL)
@@ -388,8 +389,9 @@ void soa_base_deinit(soa_session_t *ss)
  * SOATAG_RTP_SORT(),
  * SOATAG_RTP_MISMATCH(),
  * SOATAG_SRTP_ENABLE(),
- * SOATAG_SRTP_CONFIDENTIALITY(), and
- * SOATAG_SRTP_INTEGRITY().
+ * SOATAG_SRTP_CONFIDENTIALITY(),
+ * SOATAG_SRTP_INTEGRITY(), and
+ * SOATAG_DELAYED_OFFER_ENABLE().
  */
 int soa_set_params(soa_session_t *ss, tag_type_t tag, tag_value_t value, ...)
 {
@@ -433,8 +435,9 @@ int soa_set_params(soa_session_t *ss, tag_type_t tag, tag_value_t value, ...)
  * SOATAG_RTP_SORT(),
  * SOATAG_RTP_MISMATCH(),
  * SOATAG_SRTP_ENABLE(),
- * SOATAG_SRTP_CONFIDENTIALITY(), and
- * SOATAG_SRTP_INTEGRITY().
+ * SOATAG_SRTP_CONFIDENTIALITY(),
+ * SOATAG_SRTP_INTEGRITY(), and
+ * SOATAG_DELAYED_OFFER_ENABLE().
  */
 int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
 {
@@ -448,6 +451,7 @@ int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
   int rtp_select, rtp_sort;
   int rtp_mismatch;
   int srtp_enable, srtp_confidentiality, srtp_integrity;
+  int delayed_offer_enable;
 
   af = ss->ss_af;
 
@@ -461,6 +465,8 @@ int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
   srtp_enable = ss->ss_srtp_enable;
   srtp_confidentiality = ss->ss_srtp_confidentiality;
   srtp_integrity = ss->ss_srtp_integrity;
+
+  delayed_offer_enable = ss->ss_delayed_offer_enable;
 
   caps_sdp = user_sdp = NONE;
   caps_sdp_str = user_sdp_str = NONE;
@@ -484,6 +490,8 @@ int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
 	      SOATAG_SRTP_ENABLE_REF(srtp_enable),
 	      SOATAG_SRTP_CONFIDENTIALITY_REF(srtp_confidentiality),
 	      SOATAG_SRTP_INTEGRITY_REF(srtp_integrity),
+
+	      SOATAG_DELAYED_OFFER_ENABLE_REF(delayed_offer_enable),
 
 	      TAG_END());
 
@@ -533,6 +541,8 @@ int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
   srtp_confidentiality = srtp_confidentiality != 0;
   srtp_integrity = srtp_integrity != 0;
 
+  delayed_offer_enable = delayed_offer_enable != 0;
+
   change_session
     =  af != (int)ss->ss_af
     || rtp_select != (int)ss->ss_rtp_select
@@ -541,9 +551,10 @@ int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
     || srtp_enable != (int)ss->ss_srtp_enable
     || srtp_confidentiality != (int)ss->ss_srtp_confidentiality
     || srtp_integrity != (int)ss->ss_srtp_integrity
+    || delayed_offer_enable != (int)ss->ss_delayed_offer_enable
     ;
 
-  ss->ss_af = af;
+  ss->ss_af = (enum soa_af)af;
 
   ss->ss_rtp_select = rtp_select;
   ss->ss_rtp_sort = rtp_sort;
@@ -553,7 +564,9 @@ int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
   ss->ss_srtp_confidentiality = srtp_confidentiality;
   ss->ss_srtp_integrity = srtp_integrity;
 
-  if (str0casecmp(media_address, ss->ss_address)) {
+  ss->ss_delayed_offer_enable = delayed_offer_enable;
+
+  if (!su_casematch(media_address, ss->ss_address)) {
     su_free(ss->ss_home, (void *)ss->ss_address);
     ss->ss_address = su_strdup(ss->ss_home, media_address);
     change_session = 1;
@@ -562,7 +575,7 @@ int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
   if (hold == (char const *)1)
     hold = "*";
 
-  if (str0casecmp(hold, ss->ss_hold)) {
+  if (!su_casematch(hold, ss->ss_hold)) {
     su_free(ss->ss_home, (void *)ss->ss_hold);
     ss->ss_hold = su_strdup(ss->ss_home, hold);
     change_session = 1;
@@ -646,8 +659,9 @@ int soa_get_params(soa_session_t const *ss,
  * SOATAG_RTP_SORT(),
  * SOATAG_RTP_MISMATCH(),
  * SOATAG_SRTP_ENABLE(),
- * SOATAG_SRTP_CONFIDENTIALITY(), and
- * SOATAG_SRTP_INTEGRITY().
+ * SOATAG_SRTP_CONFIDENTIALITY(),
+ * SOATAG_SRTP_INTEGRITY(), and
+ * SOATAG_DELAYED_OFFER_ENABLE().
  */
 int soa_base_get_params(soa_session_t const *ss, tagi_t *tags)
 {
@@ -677,6 +691,8 @@ int soa_base_get_params(soa_session_t const *ss, tagi_t *tags)
 	       SOATAG_SRTP_ENABLE(ss->ss_srtp_enable),
 	       SOATAG_SRTP_CONFIDENTIALITY(ss->ss_srtp_confidentiality),
 	       SOATAG_SRTP_INTEGRITY(ss->ss_srtp_integrity),
+
+	       SOATAG_DELAYED_OFFER_ENABLE(ss->ss_delayed_offer_enable),
 
 	       TAG_END());
 
@@ -938,7 +954,7 @@ soa_base_set_capability_sdp(soa_session_t *ss,
  *
  * <i>User SDP</i> is used as basis for SDP Offer/Answer negotiation. It can
  * be very minimal template, consisting just m= line containing media name,
- * transport protocol port number and list of supported codecs.
+ * transport protocol, port number and list of supported codecs.
  *
  * The SDP used as an offer or answer (generated by soa_generate_answer() or
  * soa_generate_offer()) is known as <i>local SDP</i> and it is available
@@ -1703,12 +1719,9 @@ int soa_base_process_reject(soa_session_t *ss,
 
   (void)completed;
 
-  if (!l_sdp)
-    return -1;
-
-  soa_set_activity(ss, l_sdp->sdp_media, soa_activity_session);
-
   ss->ss_offer_sent = 0;
+
+  soa_set_activity(ss, l_sdp ? l_sdp->sdp_media : NULL, soa_activity_session);
 
   return 0;
 }
@@ -1876,6 +1889,12 @@ int soa_is_remote_chat_active(soa_session_t const *ss)
   return ma;
 }
 
+/** Return true if delayed offer has been activated. */
+int soa_is_delayed_offer(soa_session_t const *ss)
+{
+  return ss ? ss->ss_delayed_offer_enable : 0;
+}
+
 /* ======================================================================== */
 /* Methods used by soa instances */
 
@@ -1924,7 +1943,7 @@ void soa_set_activity(soa_session_t *ss,
       l = &l_video, r = &r_video;
     else if (m->m_type == sdp_media_image)
       l = &l_image, r = &r_image;
-    else if (strcasecmp(m->m_type_name, "message") == 0)
+    else if (su_casematch(m->m_type_name, "message"))
       l = &l_chat, r = &r_chat;
     else
       continue;
@@ -2027,8 +2046,7 @@ int soa_set_sdp(soa_session_t *ss,
   else if (sdp_str) {
     if (str_len == -1)
       str_len = strlen(sdp_str);
-    new_version = !ssd->ssd_unparsed ||
-      str0ncmp(sdp_str, ssd->ssd_unparsed, str_len + 1) != 0;
+    new_version = !su_strnmatch(sdp_str, ssd->ssd_unparsed, str_len + 1);
   }
   else
     return (void)su_seterrno(EINVAL), -1;
@@ -2170,15 +2188,36 @@ void soa_description_free(soa_session_t *ss,
     su_free(ss->ss_home, tbf4);
 }
 
-
 /** Initialize SDP o= line */
 int
 soa_init_sdp_origin(soa_session_t *ss, sdp_origin_t *o, char buffer[64])
 {
-  sdp_connection_t *c;
+  return soa_init_sdp_origin_with_session(ss, o, buffer, NULL);
+}
 
-  if (ss == NULL || o == NULL)
-    return su_seterrno(EFAULT), -1;
+
+/** Check if c= has valid address
+ */
+int
+soa_check_sdp_connection(sdp_connection_t const *c)
+{
+  return c != NULL &&
+    c->c_nettype &&c->c_address &&
+    strcmp(c->c_address, "") &&
+    strcmp(c->c_address, "0.0.0.0") &&
+    strcmp(c->c_address, "::");
+}
+
+
+/** Initialize SDP o= line with values from @a sdp session. */
+int
+soa_init_sdp_origin_with_session(soa_session_t *ss,
+				 sdp_origin_t *o,
+				 char buffer[64],
+				 sdp_session_t const *sdp)
+{
+  if (ss == NULL || o == NULL || buffer == NULL)
+    return su_seterrno(EFAULT);
 
   assert(o->o_address);
 
@@ -2193,47 +2232,11 @@ soa_init_sdp_origin(soa_session_t *ss, sdp_origin_t *o, char buffer[64])
     su_randmem(&o->o_version, sizeof o->o_version);
   o->o_version &= ((unsigned longlong)1 << 63) - 1;
 
-  c = o->o_address;
-
-  if (!c->c_nettype ||
-      !c->c_address ||
-      strcmp(c->c_address, "") == 0 ||
-      strcmp(c->c_address, "0.0.0.0") == 0 ||
-      strcmp(c->c_address, "::") == 0 ||
-      !host_is_local(c->c_address)) {
-    return soa_init_sdp_connection(ss, c, buffer);
-  }
+  if (!soa_check_sdp_connection(o->o_address) ||
+      host_is_local(o->o_address->c_address))
+    return soa_init_sdp_connection_with_session(ss, o->o_address, buffer, sdp);
 
   return 0;
-}
-
-/** Search for an local address item from string provided by user */
-static
-su_localinfo_t *li_in_list(su_localinfo_t *li0, char const **llist)
-{
-  char const *list = *llist;
-  size_t n;
-
-  if (!list)
-    return NULL;
-
-  while ((n = strcspn(list, ", "))) {
-    su_localinfo_t *li;
-
-    for (li = li0; li; li = li->li_next) {
-      if (strncasecmp(li->li_canonname, list, n) == 0 &&
-	  li->li_canonname[n] == '\0')
-	break;
-    }
-
-    list += n; while (list[0] == ' ' || list[0] == ',') list++;
-    *llist = list;
-
-    if (li)
-      return li;
-  }
-
-  return NULL;
 }
 
 
@@ -2243,12 +2246,35 @@ soa_init_sdp_connection(soa_session_t *ss,
 			sdp_connection_t *c,
 			char buffer[64])
 {
-  su_localinfo_t *res, hints[1] = {{ LI_CANONNAME | LI_NUMERIC }};
-  su_localinfo_t *li, *li4, *li6;
-  char const *address;
-  int ip4, ip6, error;
+  return soa_init_sdp_connection_with_session(ss, c, buffer, NULL);
+}
 
-  if (ss == NULL || c == NULL)
+static su_localinfo_t const *best_listed_address_in_localinfo(
+  su_localinfo_t const *res, char const *address, int ip4, int ip6);
+static sdp_connection_t const *best_listed_address_in_session(
+  sdp_session_t const *sdp, char const *address0, int ip4, int ip6);
+static su_localinfo_t const *best_listed_address(
+  su_localinfo_t *li0, char const *address, int ip4, int ip6);
+
+
+/** Obtain a local address for SDP connection structure.
+ *
+ * Prefer an address already found in @a sdp.
+ */
+int
+soa_init_sdp_connection_with_session(soa_session_t *ss,
+				     sdp_connection_t *c,
+				     char buffer[64],
+				     sdp_session_t const *sdp)
+{
+  su_localinfo_t *res, hints[1] = {{ LI_CANONNAME | LI_NUMERIC }}, li0[1];
+  su_localinfo_t const *li, *li4, *li6;
+  char const *address;
+  char const *source = NULL;
+  int ip4, ip6, error;
+  char abuffer[64];		/* getting value from ss_address */
+
+  if (ss == NULL || c == NULL || buffer == NULL)
     return su_seterrno(EFAULT), -1;
 
   address = ss->ss_address;
@@ -2272,31 +2298,14 @@ soa_init_sdp_connection(soa_session_t *ss,
       c->c_address = memcpy(buffer, address + 1, len - 1);
       buffer[len - 1] = '\0';
     }
+
+    SU_DEBUG_5(("%s: using SOATAG_ADDRESS(\"%s\")\n", __func__, c->c_address));
+
     return 0;
   }
 
   /* XXX - using LI_SCOPE_LINK requires some tweaking */
   hints->li_scope = LI_SCOPE_GLOBAL | LI_SCOPE_SITE /* | LI_SCOPE_LINK */;
-
-  switch (ss->ss_af) {
-  case SOA_AF_IP4_ONLY:
-    hints->li_family = AF_INET, ip4 = 1, ip6 = 0;
-    break;
-
-#if HAVE_SIN6
-  case SOA_AF_IP6_ONLY:
-    hints->li_family = AF_INET6, ip6 = 1, ip4 = 0;
-    break;
-  case SOA_AF_IP4_IP6:
-    ip4 = 2, ip6 = 1;
-    break;
-  case SOA_AF_IP6_IP4:
-    ip4 = 1, ip6 = 2;
-    break;
-#endif
-  default:
-    ip4 = ip6 = 1;
-  }
 
   for (res = NULL; res == NULL;) {
     if ((error = su_getlocalinfo(hints, &res)) < 0
@@ -2310,62 +2319,270 @@ soa_init_sdp_connection(soa_session_t *ss,
     hints->li_scope |= LI_SCOPE_HOST;
   }
 
-  if (!(ip4 & ip6 && c->c_nettype == sdp_net_in))
-    /* Use ss_af preference */;
-  else if (c->c_addrtype == sdp_addr_ip4)
-    ip4 = 2, ip6 = 1;
-  else if (c->c_addrtype == sdp_addr_ip6)
-    ip6 = 2, ip4 = 1;
-
-  if (address)
-    SU_DEBUG_3(("%s: searching for %s from list \"%s\"\n",
-		__func__, ip6 && !ip4 ? "IP6 " : !ip6 && ip4 ? "IP4 " : "",
-		address));
-
-  li = res, li4 = NULL, li6 = NULL;
-
-  for (;;) {
-    if (address)
-      li = li_in_list(li, &address);
-
-    if (!li)
-      break;
-#if HAVE_SIN6
-    else if (li->li_family == AF_INET6) {
-      if (ip6 >= ip4)
-	break;
-      else if (!li6)
-	li6 = li;		/* Best IP6 address */
-    }
-#endif
-    else if (li->li_family == AF_INET) {
-      if (ip4 > ip6)
-	break;
-      else if (!li4)
-	li4 = li;		/* Best IP4 address */
-    }
-
-    if (!address)
-      li = li->li_next;
+  if (c->c_nettype != sdp_net_in ||
+      (c->c_addrtype != sdp_addr_ip4 && c->c_addrtype != sdp_addr_ip6)) {
+    c->c_nettype = sdp_net_in, c->c_addrtype = (sdp_addrtype_e)0;
+    c->c_address = strcpy(buffer, "");
   }
 
-  if (li == NULL)
-    li = li4;
-  if (li == NULL)
-    li = li6;
+  switch (ss->ss_af) {
+  case SOA_AF_IP4_ONLY:
+    ip4 = 1, ip6 = 0;
+    break;
+  case SOA_AF_IP6_ONLY:
+    ip6 = 1, ip4 = 0;
+    break;
+  case SOA_AF_IP4_IP6:
+    ip4 = 2, ip6 = 1;
+    break;
+  case SOA_AF_IP6_IP4:
+    ip4 = 1, ip6 = 2;
+    break;
+  default:
+    ip4 = ip6 = 1;
+  }
 
-  if (li == NULL)
-    ;
-  else if (li->li_family == AF_INET)
-    c->c_nettype = sdp_net_in,  c->c_addrtype = sdp_addr_ip4;
-#if HAVE_SIN6
-  else if (li->li_family == AF_INET6)
-    c->c_nettype = sdp_net_in,  c->c_addrtype = sdp_addr_ip6;
+  if (ip4 && ip6) {
+    /* Prefer address family already used in session, if any */
+    sdp_addrtype_e addrtype = (sdp_addrtype_e)0;
+    char const *because = "error";
+
+    if (sdp && sdp->sdp_connection &&
+	sdp->sdp_connection->c_nettype == sdp_net_in) {
+      addrtype = sdp->sdp_connection->c_addrtype;
+      because = "an existing c= line";
+    }
+    else if (sdp) {
+      int mip4 = 0, mip6 = 0;
+      sdp_media_t const *m;
+
+      for (m = sdp->sdp_media; m; m = m->m_next) {
+	sdp_connection_t const *mc;
+
+	if (m->m_rejected)
+	  continue;
+
+	for (mc = m->m_connections; mc; mc = mc->c_next) {
+	  if (mc->c_nettype == sdp_net_in) {
+	    if (mc->c_addrtype == sdp_addr_ip4)
+	      mip4++;
+	    else if (mc->c_addrtype == sdp_addr_ip6)
+	      mip6++;
+	  }
+	}
+      }
+
+      if (mip4 && mip6)
+	/* Mixed. */;
+      else if (mip4)
+	addrtype = sdp_addr_ip4, because = "an existing c= line under m=";
+      else if (mip6)
+	addrtype = sdp_addr_ip6, because = "an existing c= line under m=";
+    }
+
+    if (addrtype == 0)
+      addrtype = c->c_addrtype, because = "the user sdp";
+
+    if (addrtype == sdp_addr_ip4) {
+      if (ip6 >= ip4)
+	SU_DEBUG_5(("%s: prefer %s because of %s\n", __func__, "IP4", because));
+      ip4 = 2, ip6 = 1;
+    }
+    else if (addrtype == sdp_addr_ip6) {
+      if (ip4 >= ip6)
+	SU_DEBUG_5(("%s: prefer %s because of %s\n", __func__, "IP4", because));
+      ip6 = 2, ip4 = 1;
+    }
+  }
+
+  li = NULL, li4 = NULL, li6 = NULL;
+
+  if (li == NULL && ss->ss_address) {
+    li = best_listed_address_in_localinfo(res, ss->ss_address, ip4, ip6);
+    if (li)
+      source = "local address from SOATAG_ADDRESS() list";
+  }
+
+  if (li == NULL && ss->ss_address && sdp) {
+    sdp_connection_t const *c;
+    c = best_listed_address_in_session(sdp, ss->ss_address, ip4, ip6);
+    if (c) {
+      li = memset(li0, 0, sizeof li0);
+      if (c->c_addrtype == sdp_addr_ip4)
+	li0->li_family = AF_INET;
+#if SU_HAVE_IN6
+      else
+	li0->li_family = AF_INET6;
 #endif
+      li0->li_canonname = (char *)c->c_address;
+      source = "address from SOATAG_ADDRESS() list already in session";
+    }
+  }
+
+  if (li == NULL && ss->ss_address) {
+    memset(li0, 0, sizeof li0);
+    li0->li_canonname = abuffer;
+    li = best_listed_address(li0, ss->ss_address, ip4, ip6);
+    if (li)
+      source = "address from SOATAG_ADDRESS() list";
+  }
+
+  if (li == NULL) {
+    for (li = res; li; li = li->li_next) {
+      if (su_casematch(li->li_canonname, c->c_address))
+	break;
+    }
+    if (li)
+      source = "the proposed local address";
+  }
+
+  /* Check if session-level c= address is local */
+  if (li == NULL && sdp && sdp->sdp_connection) {
+    for (li = res; li; li = li->li_next) {
+      if (!su_casematch(li->li_canonname, sdp->sdp_connection->c_address))
+	continue;
+#if HAVE_SIN6
+      if (li->li_family == AF_INET6) {
+	if (ip6 >= ip4)
+	  break;
+	else if (!li6)
+	  li6 = li;		/* Best IP6 address */
+      }
+#endif
+      else if (li->li_family == AF_INET) {
+	if (ip4 >= ip6)
+	  break;
+	else if (!li4)
+	  li4 = li;		/* Best IP4 address */
+      }
+    }
+
+    if (li == NULL && ip4)
+      li = li4;
+    if (li == NULL && ip6)
+      li = li6;
+    if (li)
+      source = "an existing session-level c= line";
+  }
+
+  /* Check for best local media-level c= address */
+  if (li == NULL && sdp) {
+    sdp_media_t const *m;
+
+    for (m = sdp->sdp_media; m; m = m->m_next) {
+      sdp_connection_t const *mc;
+
+      if (m->m_rejected)
+	continue;
+
+      for (mc = m->m_connections; mc; mc = mc->c_next) {
+	for (li = res; li; li = li->li_next) {
+	  if (!su_casematch(li->li_canonname, mc->c_address))
+	    continue;
+#if HAVE_SIN6
+	  if (li->li_family == AF_INET6) {
+	    if (ip6 > ip4)
+	      break;
+	    else if (!li6)
+	      li6 = li;		/* Best IP6 address */
+	  }
+#endif
+	  else if (li->li_family == AF_INET) {
+	    if (ip4 > ip6)
+	      break;
+	    else if (!li4)
+	      li4 = li;		/* Best IP4 address */
+	  }
+	}
+      }
+
+      if (li)
+	break;
+    }
+
+    if (li == NULL && ip4)
+      li = li4;
+    if (li == NULL && ip6)
+      li = li6;
+    if (li)
+      source = "an existing c= address from media descriptions";
+  }
+
+  /* Check if o= address is local */
+  if (li == NULL && sdp && sdp->sdp_origin) {
+    char const *address = sdp->sdp_origin->o_address->c_address;
+
+    for (li = res; li; li = li->li_next) {
+      if (!su_casematch(li->li_canonname, address))
+	continue;
+#if HAVE_SIN6
+      if (li->li_family == AF_INET6) {
+	if (ip6 >= ip4)
+	  break;
+	else if (!li6)
+	  li6 = li;		/* Best IP6 address */
+      }
+#endif
+      else if (li->li_family == AF_INET) {
+	if (ip4 >= ip6)
+	  break;
+	else if (!li4)
+	  li4 = li;		/* Best IP4 address */
+      }
+    }
+
+    if (li == NULL && ip4)
+      li = li4;
+    if (li == NULL && ip6)
+      li = li6;
+    if (li)
+      source = "an existing address from o= line";
+  }
+
+  if (li == NULL) {
+    for (li = res; li; li = li->li_next) {
+      if (li->li_family == AF_INET) {
+	if (ip4 >= ip6)
+	  break;
+	else if (!li4)
+	  li4 = li;		/* Best IP4 address */
+      }
+#if HAVE_SIN6
+      else if (li->li_family == AF_INET6) {
+	if (ip6 >= ip4)
+	  break;
+	else if (!li6)
+	  li6 = li;		/* Best IP6 address */
+      }
+#endif
+    }
+
+    if (li == NULL && ip4)
+      li = li4;
+    if (li == NULL && ip6)
+      li = li6;
+
+    if (li)
+      source = "a local address";
+  }
 
   if (li) {
+    char const *typename;
+
+    if (li->li_family == AF_INET)
+      c->c_nettype = sdp_net_in,  c->c_addrtype = sdp_addr_ip4, typename = "IP4";
+#if HAVE_SIN6
+    else if (li->li_family == AF_INET6)
+      c->c_nettype = sdp_net_in,  c->c_addrtype = sdp_addr_ip6, typename = "IP6";
+#endif
+    else
+      typename = "???";
+
     assert(strlen(li->li_canonname) < 64);
     c->c_address = strcpy(buffer, li->li_canonname);
+
+    SU_DEBUG_5(("%s: selected IN %s %s (%s)\n", __func__,
+		typename, li->li_canonname, source));
   }
 
   su_freelocalinfo(res);
@@ -2374,4 +2591,175 @@ soa_init_sdp_connection(soa_session_t *ss,
     return -1;
   else
     return 0;
+}
+
+/* Search for first entry from SOATAG_ADDRESS() list on localinfo list */
+static su_localinfo_t const *
+best_listed_address_in_localinfo(su_localinfo_t const *res,
+				 char const *address,
+				 int ip4,
+				 int ip6)
+{
+  su_localinfo_t const  *li = NULL, *best = NULL;
+  size_t n;
+
+  SU_DEBUG_3(("%s: searching for %s from list \"%s\"\n",
+	      __func__, ip6 && !ip4 ? "IP6 " : !ip6 && ip4 ? "IP4 " : "",
+	      address));
+
+  for (; address[0]; address += n + strspn(address, ", ")) {
+    n = strcspn(address, ", ");
+    if (n == 0)
+      continue;
+
+    for (li = res; li; li = li->li_next) {
+      if (su_casenmatch(li->li_canonname, address, n) &&
+	  li->li_canonname[n] == '\0')
+	break;
+    }
+
+    if (li == NULL)
+      continue;
+#if HAVE_SIN6
+    else if (li->li_family == AF_INET6) {
+      if (ip6 >= ip4)
+	return li;
+      else if (ip6 && !best)
+	best = li;		/* Best IP6 address */
+    }
+#endif
+    else if (li->li_family == AF_INET) {
+      if (ip4 >= ip6)
+	return li;
+      else if (ip4 && !best)
+	best = li;		/* Best IP4 address */
+    }
+  }
+
+  return best;
+}
+
+/* Search for first entry from SOATAG_ADDRESS() list in session */
+static sdp_connection_t const *
+best_listed_address_in_session(sdp_session_t const *sdp,
+			       char const *address0,
+			       int ip4,
+			       int ip6)
+{
+  sdp_connection_t *c = NULL, *best = NULL;
+  sdp_media_t *m;
+  char const *address;
+  size_t n;
+
+  for (address = address0; address[0]; address += n + strspn(address, ", ")) {
+    n = strcspn(address, ", ");
+    if (n == 0)
+      continue;
+
+    c = sdp->sdp_connection;
+
+    if (c && su_casenmatch(c->c_address, address, n) && c->c_address[n] == 0)
+      ;
+    else
+      for (m = sdp->sdp_media; m; m = m->m_next) {
+	if (m->m_connections && m->m_connections != sdp->sdp_connection) {
+	  c = sdp->sdp_connection;
+	  if (su_casenmatch(c->c_address, address, n) && c->c_address[n] == 0)
+	    break;
+	  c = NULL;
+	}
+      }
+
+    if (c == NULL || c->c_nettype != sdp_net_in)
+      continue;
+#if HAVE_SIN6
+    else if (c->c_addrtype == sdp_addr_ip6) {
+      if (ip6 >= ip4)
+	return c;
+      else if (ip6 && !best)
+	best = c;		/* Best IP6 address */
+    }
+#endif
+    else if (c->c_addrtype == sdp_addr_ip4) {
+      if (ip4 >= ip6)
+	return c;
+      else if (ip4 && !best)
+	best = c;		/* Best IP4 address */
+    }
+  }
+
+  if (best || sdp->sdp_origin == NULL)
+    return best;
+
+  /* Check if address on list is already been used on o= line */
+  for (address = address0; address[0]; address += n + strspn(address, ", ")) {
+    n = strcspn(address, ", ");
+    if (n == 0)
+      continue;
+    c = sdp->sdp_origin->o_address;
+
+    if (su_casenmatch(c->c_address, address, n) && c->c_address[n] != 0)
+      continue;
+#if HAVE_SIN6
+    else if (c->c_addrtype == sdp_addr_ip6) {
+      if (ip6 >= ip4)
+	return c;
+      else if (ip6 && !best)
+	best = c;		/* Best IP6 address */
+    }
+#endif
+    else if (c->c_addrtype == sdp_addr_ip4) {
+      if (ip4 >= ip6)
+	return c;
+      else if (ip4 && !best)
+	best = c;		/* Best IP4 address */
+    }
+  }
+
+  return best;
+}
+
+static su_localinfo_t const *
+best_listed_address(su_localinfo_t *li0,
+		    char const *address,
+		    int ip4,
+		    int ip6)
+{
+  size_t n, best = 0;
+  char *buffer = (char *)li0->li_canonname;
+
+  for (; address[0]; address += n + strspn(address + n, " ,")) {
+    if ((n = span_ip6_address(address))) {
+#if SU_HAVE_IN6
+      if (ip6 > ip4) {
+	li0->li_family = AF_INET6;
+	strncpy(buffer, address, n)[n] = '\0';
+	return li0;
+      }
+      else if (ip6 && !best) {
+	li0->li_family = AF_INET6;
+	strncpy(buffer, address, best = n)[n] = '\0';
+      }
+#endif
+    }
+    else if ((n = span_ip4_address(address))) {
+      if (ip4 > ip6) {
+	li0->li_family = AF_INET;
+	strncpy(buffer, address, n)[n] = '\0';
+	return li0;
+      }
+      else if (ip4 && !best) {
+	li0->li_family = AF_INET;
+	strncpy(buffer, address, best = n)[n] = '\0';
+      }
+    }
+    else {
+      n = strcspn(address, " ,");
+    }
+  }
+
+  if (best)
+    return li0;
+  else
+    return NULL;
 }

@@ -36,7 +36,7 @@
 
 #include "tport_internal.h"
 
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <assert.h>
@@ -52,8 +52,8 @@
  *
  * @sa TPORT_DUMP, TPORT_DEBUG, tport_log
  */
-#ifdef DOXYGEN
-extern char const TPORT_LOG[];	/* dummy declaration for Doxygen */
+#if DOXYGEN_ONLY
+char const TPORT_LOG[];	/* dummy declaration for Doxygen */
 #endif
 
 /**@var TPORT_DUMP
@@ -66,8 +66,8 @@ extern char const TPORT_LOG[];	/* dummy declaration for Doxygen */
  *
  * @sa TPORT_LOG, TPORT_DEBUG, tport_log
  */
-#ifdef DOXYGEN
-extern char const TPORT_DUMP[];	/* dummy declaration for Doxygen */
+#if DOXYGEN_ONLY
+char const TPORT_DUMP[];	/* dummy declaration for Doxygen */
 #endif
 
 /**@var TPORT_DEBUG
@@ -79,8 +79,8 @@ extern char const TPORT_DUMP[];	/* dummy declaration for Doxygen */
  *
  * @sa <sofia-sip/su_debug.h>, tport_log, SOFIA_DEBUG
  */
-#ifdef DOXYGEN
-extern char const TPORT_DEBUG[]; /* dummy declaration for Doxygen */
+#if DOXYGEN_ONLY
+char const TPORT_DEBUG[]; /* dummy declaration for Doxygen */
 #endif
 
 /**Debug log for @b tport module.
@@ -232,8 +232,7 @@ void tport_log_msg(tport_t *self, msg_t *msg,
     n += iov[i].mv_len;
 
   tport_stamp(self, msg, stamp, what, n, via, now);
-  su_log(stamp);
-  su_log("   " MSG_SEPARATOR);
+  su_log("%s   " MSG_SEPARATOR, stamp);
 
   for (i = 0; truncated == 0 && i < iovlen && i < 80; i++) {
     char *s = iov[i].mv_base, *end = s + iov[i].mv_len;
@@ -246,7 +245,7 @@ void tport_log_msg(tport_t *self, msg_t *msg,
 	break;
       }
 
-      n = strncspn(s, end - s, "\r\n");
+      n = su_strncspn(s, end - s, "\r\n");
 
       if (linelen + n > MAX_LINELEN) {
 	n = MAX_LINELEN - linelen;

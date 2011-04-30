@@ -34,6 +34,7 @@
 #include "config.h"
 
 #include "sofia-sip/bnf.h"
+#include "sofia-sip/su_string.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -795,12 +796,12 @@ int host_is_local(char const *host)
 
   return
     n >= 9 /* strlen("localhost") */ &&
-    strncasecmp(host, "localhost", 9) == 0 &&
+    su_casenmatch(host, "localhost", 9) &&
     (n == 9 ||
      ((n == 10 || /* localhost. */
        n == 21 || /* strlen("localhost.localdomain") */
        n == 22) && /* strlen("localhost.localdomain.") */
-      strncasecmp(host + 9, ".localdomain.", n - 9) == 0));
+      su_casenmatch(host + 9, ".localdomain.", n - 9)));
 }
 
 /** Return true if @a string has domain name in "invalid." domain.
@@ -815,9 +816,9 @@ int host_has_domain_invalid(char const *string)
     if (string[n - 1] == '.')	/* .invalid. perhaps? */
       n--;
     if (n == 7 /* strlen("invalid") */)
-      return strncasecmp(string, invalid + 1, 7) == 0;
+      return su_casenmatch(string, invalid + 1, 7);
     else
-      return strncasecmp(string + n - 8, invalid, 8) == 0;
+      return su_casenmatch(string + n - 8, invalid, 8);
   }
 
   return 0;
@@ -879,7 +880,7 @@ static size_t convert_ip_address(char const *s,
  *
  * Converts valid IP addresses to the binary format before comparing them.
  * Note that IP6-mapped IP4 addresses and IP6-compatible IP4 addresses are
- * compared as IP4 addresses; that is, ::ffff:127.0.0.1, ::127.0.0.1 and
+ * compared as IP4 addresses; that is, ::%ffff:127.0.0.1, ::127.0.0.1 and
  * 127.0.0.1 all are all equal.
  *
  * @param a IP address or domain name
@@ -913,7 +914,7 @@ int host_cmp(char const *a, char const *b)
 	retval = memcmp(a6, b6, asize);
     }
     else {
-      retval = strcasecmp(a, b);
+      retval = su_strcasecmp(a, b);
     }
   }
 

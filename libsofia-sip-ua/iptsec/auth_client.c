@@ -46,8 +46,9 @@
 #include <sofia-sip/auth_digest.h>
 
 #include <sofia-sip/base64.h>
+#include <sofia-sip/bnf.h>
 #include <sofia-sip/su_uniqueid.h>
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 
 #include <sofia-sip/su_debug.h>
 
@@ -81,6 +82,8 @@ static int ca_credentials(auth_client_t *ca,
 
 static int ca_clear_credentials(auth_client_t *ca);
 
+static int ca_has_authorization(auth_client_t const *ca);
+
 
 /** Initialize authenticators.
  *
@@ -92,7 +95,7 @@ static int ca_clear_credentials(auth_client_t *ca);
  * @param[in] ch        challenge to be processed
  * @param[in] crcl      credential class
  *
- * @retval 1 when challenge was updated
+ * @retval 1 when at least one challenge was updated
  * @retval 0 when there was no new challenges
  * @retval -1 upon an error
  */
@@ -128,11 +131,17 @@ int auc_challenge(auth_client_t **auc_list,
     if (!matched) {
       /* There was no matching authenticator, create a new one */
       *cca = ca_create(home, scheme, realm);
-      if (ca_challenge((*cca), ch, crcl, scheme, realm) < 0) {
+
+      if (*cca == NULL) {
+	return -1;
+      }
+      else if (ca_challenge((*cca), ch, crcl, scheme, realm) < 0) {
 	ca_destroy(home, *cca), *cca = NULL;
 	return -1;
       }
-      retval = 1;		/* Updated authenticator */
+      /* XXX - case w/ unknown authentication scheme */
+      else
+	retval = 1;		/* Updated authenticator */
     }
   }
 
@@ -160,17 +169,19 @@ int ca_challenge(auth_client_t *ca,
   if (!ca || !ch)
     return -1;
 
-  if (strcasecmp(ca->ca_scheme, scheme))
+  if (!su_casematch(ca->ca_scheme, scheme))
     return 0;
-  if (strcmp(ca->ca_realm, realm))
+  if (!su_strmatch(ca->ca_realm, realm))
     return 0;
 
   if (ca->ca_credential_class &&
       ca->ca_credential_class != credential_class)
     return 0;
 
-  if (!ca->ca_auc)
+  if (!ca->ca_auc) {
+    ca->ca_credential_class = credential_class;
     return 1;
+  }
 
   if (ca->ca_auc->auc_challenge)
     stale = ca->ca_auc->auc_challenge(ca, ch);
@@ -274,20 +285,27 @@ int ca_info(auth_client_t *ca,
 /**Feed authentication data to the authenticator.
  *
  * The function auc_credentials() is used to provide the authenticators in
- * with authentication data (user name, secret).  The authentication data
- * has format as follows:
+ * with authentication data (user name, secret).
+ *
+ * The authentication data has format as follows:
  *
  * scheme:"realm":user:pass
  *
  * For instance, @c Basic:"nokia-proxy":ppessi:verysecret
  *
+ * For Digest authentication scheme, it is possible to provide hashed
+ * password instead. The scheme and hashed password should have prefix
+ * "HA1+". For instance,
+ * @c HA1+Digest:"realm":user1:HA1+c0890ff7a4fadc50c45f392ec4312965
+ *
  * @todo The authentication data format sucks.
  *
  * @param[in,out] auc_list  list of authenticators
  * @param[in,out] home      memory home used for allocations
- * @param[in] data          colon-separated authentication data
+ * @param[in]     data      colon-separated authentication data
  *
- * @retval 0 when successful
+ * @retval >0 when successful
+ * @retval 0 if not authenticator matched with @a data
  * @retval -1 upon an error
  */
 int auc_credentials(auth_client_t **auc_list, su_home_t *home,
@@ -300,11 +318,25 @@ int auc_credentials(auth_client_t **auc_list, su_home_t *home,
   s0 = s = su_strdup(NULL, data);
 
   /* Parse authentication data */
-  /* Data is string like "Basic:\"agni\":user1:secret" */
+  /* Data is string like "Basic:\"agni\":user1:secret"
+     or "Basic:\"[fe80::204:23ff:fea7:d60a]\":user1:secret" (IPv6)
+     or "Basic:\"Use \\\"interesting\\\" username and password here:\"\
+     :user1:secret"
+  */
   if (s && (s = strchr(scheme = s, ':')))
     *s++ = 0;
-  if (s && (s = strchr(realm = s, ':')))
-    *s++ = 0;
+  if (s) {
+    if (*s == '"') {
+      realm = s;
+      s += span_quoted(s);
+      if (*s == ':')
+	*s++ = 0;
+      else
+	realm = NULL, s = NULL;
+    }
+    else
+      s = NULL;
+  }
   if (s && (s = strchr(user = s, ':')))
     *s++ = 0;
   if (s && (s = strchr(pass = s, ':')))
@@ -327,14 +359,14 @@ int auc_credentials(auth_client_t **auc_list, su_home_t *home,
   return retval;
 }
 
-/**Feed authentication data to the authenticator.
+/**Feed authentication data to the authenticators.
  *
  * The function auc_credentials() is used to provide the authenticators in
  * with authentication tuple (scheme, realm, user name, secret).
  *
- * scheme:"realm":user:pass
- *
- * @todo The authentication data format sucks.
+ * For @b Digest authentication scheme, it is possible to provide hashed
+ * password instead. The @a scheme should contain "HA1+Digest", and the
+ * @a password should be in hashed format prefixed with "HA1+".
  *
  * @param[in,out] auc_list  list of authenticators
  * @param[in] scheme        scheme to use (NULL, if any)
@@ -342,7 +374,7 @@ int auc_credentials(auth_client_t **auc_list, su_home_t *home,
  * @param[in] user          username
  * @param[in] pass          password
  *
- * @retval number of updated clients
+ * @retval >0 or number of updated clients when successful
  * @retval 0 when no client was updated
  * @retval -1 upon an error
  */
@@ -377,21 +409,62 @@ int ca_credentials(auth_client_t *ca,
 		   char const *user,
 		   char const *pass)
 {
-  char *new_user, *new_pass;
-  char *old_user, *old_pass;
-
-  assert(ca);
+  int (*save)(auth_client_t *ca,
+	      char const *scheme,
+	      char const *realm,
+	      char const *user,
+	      char const *pass);
 
   if (!ca || !ca->ca_scheme || !ca->ca_realm)
     return -1;
 
-  if ((scheme != NULL && strcasecmp(scheme, ca->ca_scheme)) ||
-      (realm != NULL && strcmp(realm, ca->ca_realm)))
+  save = AUTH_CLIENT_SAVE_CREDENTIALS(ca);
+
+  if (save)
+    return (*save)(ca, scheme, realm, user, pass);
+  else
+    return auth_client_save_credentials(ca, scheme, realm, user, pass);
+}
+
+
+/**Save authentication data to an authenticator.
+ *
+ * Function saves the authentication data in the authentication client,
+ * if the scheme and the realm match.
+ *
+ * @param[in] ca            client authenticator
+ * @param[in] scheme        scheme to use (NULL, if any)
+ * @param[in] realm         realm to use (NULL, if any)
+ * @param[in] user          username
+ * @param[in] pass          password
+ *
+ * @retval 1 if successful
+ * @retval 0 data did not match
+ * @retval -1 upon an error
+ *
+ * @NEW_1_12_11
+ */
+int auth_client_save_credentials(auth_client_t *ca,
+				 char const *scheme,
+				 char const *realm,
+				 char const *user,
+				 char const *pass)
+{
+  char *new_user, *new_pass;
+  char *old_user, *old_pass;
+
+  if (!ca || !ca->ca_scheme || !ca->ca_realm)
+    return -1;
+
+  if (scheme != NULL && !su_casematch(scheme, ca->ca_scheme))
+    return 0;
+
+  if (realm != NULL && !su_strmatch(realm, ca->ca_realm))
     return 0;
 
   old_user = ca->ca_user, old_pass = ca->ca_pass;
 
-  if (str0cmp(user, old_user) == 0 && str0cmp(pass, old_pass) == 0)
+  if (su_strmatch(user, old_user) && su_strmatch(pass, old_pass))
     return 0;
 
   new_user = su_strdup(ca->ca_home, user);
@@ -413,6 +486,9 @@ int ca_credentials(auth_client_t *ca,
 
 /** Copy authentication data from @a src to @a dst.
  *
+ * @param[in,out] dst  destination list of authenticators
+ * @param[in] src      source list of authenticators
+ *
  * @retval >0 if credentials were copied
  * @retval 0 if there was no credentials to copy
  * @retval <0 if an error occurred.
@@ -430,35 +506,27 @@ int auc_copy_credentials(auth_client_t **dst,
     auth_client_t const *ca;
 
     for (ca = src; ca; ca = ca->ca_next) {
-      char *u, *p;
+      int (*copy)(auth_client_t *d, auth_client_t const *s);
+      int result;
+
       if (!ca->ca_user || !ca->ca_pass)
 	continue;
       if (AUTH_CLIENT_IS_EXTENDED(ca) && ca->ca_clear)
 	continue;
-      if (!ca->ca_scheme[0] || strcasecmp(ca->ca_scheme, d->ca_scheme))
-	continue;
-      if (!ca->ca_realm[0] || strcmp(ca->ca_realm, d->ca_realm))
-	continue;
 
-      if (!(AUTH_CLIENT_IS_EXTENDED(d) && d->ca_clear) &&
-	  d->ca_user && strcmp(d->ca_user, ca->ca_user) == 0 &&
-	  d->ca_pass && strcmp(d->ca_pass, ca->ca_pass) == 0) {
+      copy = AUTH_CLIENT_COPY_CREDENTIALS(d);
+
+      if (copy != NULL)
+	result = (*copy)(d, src);
+      else
+	result = auth_client_copy_credentials(d, src);
+
+      if (result < 0)
+	return result;
+      else if (result == 0)
+	continue;
+      else
 	retval++;
-	break;
-      }
-
-      u = su_strdup(d->ca_home, ca->ca_user);
-      p = su_strdup(d->ca_home, ca->ca_pass);
-      if (!u || !p)
-	return -1;
-
-      if (d->ca_user) su_free(d->ca_home, (void *)d->ca_user);
-      if (d->ca_pass) su_free(d->ca_home, (void *)d->ca_pass);
-      d->ca_user = u, d->ca_pass = p;
-      if (AUTH_CLIENT_IS_EXTENDED(d))
-	d->ca_clear = 0;
-
-      retval++;
       break;
     }
   }
@@ -466,6 +534,49 @@ int auc_copy_credentials(auth_client_t **dst,
   return retval;
 }
 
+/**Copy authentication data from a matching client in @a src to @a d.
+ *
+ * @retval 1 if credentials were copied
+ * @retval 0 clients did not match
+ * @retval -1 if an error occurred.
+ *
+ * @NEW_1_12_11
+ */
+int auth_client_copy_credentials(auth_client_t *d,
+				auth_client_t const *s)
+{
+  char *u, *p;
+
+  if (d == NULL || s == NULL)
+    return -1;
+
+  if (!s->ca_scheme[0] || !su_casematch(s->ca_scheme, d->ca_scheme))
+    return 0;
+
+  if (!s->ca_realm || !su_strmatch(s->ca_realm, d->ca_realm))
+    return 0;
+
+  if (!(AUTH_CLIENT_IS_EXTENDED(d) && d->ca_clear) &&
+      su_strmatch(d->ca_user, s->ca_user) &&
+      su_strmatch(d->ca_pass, s->ca_pass))
+    return 1;
+
+  u = su_strdup(d->ca_home, s->ca_user);
+  p = su_strdup(d->ca_home, s->ca_pass);
+  if (!u || !p)
+    return -1;
+
+  su_free(d->ca_home, (void *)d->ca_user);
+  su_free(d->ca_home, (void *)d->ca_pass);
+
+  d->ca_user = u;
+  d->ca_pass = p;
+
+  if (AUTH_CLIENT_IS_EXTENDED(d))
+    d->ca_clear = 0;
+
+  return 1;
+}
 
 /**Clear authentication data from the authenticator.
  *
@@ -492,8 +603,8 @@ int auc_clear_credentials(auth_client_t **auc_list,
     if (!AUTH_CLIENT_IS_EXTENDED(ca))
       continue;
 
-    if ((scheme != NULL && strcasecmp(scheme, ca->ca_scheme)) ||
-	(realm != NULL && strcmp(realm, ca->ca_realm)))
+    if ((scheme != NULL && !su_casematch(scheme, ca->ca_scheme)) ||
+	(realm != NULL && !su_strmatch(realm, ca->ca_realm)))
       continue;
 
     match = ca->ca_auc->auc_clear(*auc_list);
@@ -522,7 +633,7 @@ int ca_clear_credentials(auth_client_t *ca)
   return 1;
 }
 
-/** Check if we have all required credentials.
+/** Check if there are credentials for all challenges.
  *
  * @retval 1 when authorization can proceed
  * @retval 0 when there is not enough credentials
@@ -531,20 +642,41 @@ int ca_clear_credentials(auth_client_t *ca)
  */
 int auc_has_authorization(auth_client_t **auc_list)
 {
-  auth_client_t const *ca;
+  auth_client_t const *ca, *other;
 
   if (auc_list == NULL)
     return 0;
 
-  /* Make sure every challenge has credentials */
   for (ca = *auc_list; ca; ca = ca->ca_next) {
-    if (!ca->ca_user || !ca->ca_pass || !ca->ca_credential_class)
-      return 0;
-    if (AUTH_CLIENT_IS_EXTENDED(ca) && ca->ca_clear)
-      return 0;
+    if (!ca_has_authorization(ca)) {
+      /*
+       * Check if we have another challenge with same realm but different
+       * scheme
+       */
+      for (other = *auc_list; other; other = other->ca_next) {
+	if (ca == other)
+	  continue;
+	if (ca->ca_credential_class == other->ca_credential_class &&
+	    su_strcmp(ca->ca_realm, other->ca_realm) == 0 &&
+	    ca_has_authorization(other))
+	  break;
+      }
+
+      if (!other)
+	return 0;
+    }
   }
 
   return 1;
+}
+
+static int
+ca_has_authorization(auth_client_t const *ca)
+{
+  return ca->ca_credential_class &&
+    ca->ca_auc &&
+    ca->ca_user && ca->ca_pass &&
+    !(AUTH_CLIENT_IS_EXTENDED(ca) && ca->ca_clear);
 }
 
 /**Authorize a request.
@@ -581,7 +713,7 @@ int auc_authorization(auth_client_t **auc_list, msg_t *msg, msg_pub_t *pub,
   if (pub == NULL)
     pub = msg_object(msg);
 
-  /* Remove existing credentials */
+  /* Remove existing credential headers */
   for (ca = *auc_list; ca; ca = ca->ca_next) {
     msg_header_t **hh = msg_hclass_offset(mc, pub, ca->ca_credential_class);
 
@@ -589,7 +721,7 @@ int auc_authorization(auth_client_t **auc_list, msg_t *msg, msg_pub_t *pub,
       msg_header_remove(msg, pub, *hh);
   }
 
-  /* Insert new credentials */
+  /* Insert new credential headers */
   for (; *auc_list; auc_list = &(*auc_list)->ca_next) {
     su_home_t *home = msg_home(msg);
     msg_header_t *h = NULL;
@@ -597,6 +729,8 @@ int auc_authorization(auth_client_t **auc_list, msg_t *msg, msg_pub_t *pub,
     ca = *auc_list;
 
     if (!ca->ca_auc)
+      continue;
+    if (!ca_has_authorization(ca))
       continue;
 
     if (ca->ca_auc->auc_authorize(ca, home, method, url, body, &h) < 0)
@@ -647,6 +781,8 @@ int auc_authorization_headers(auth_client_t **auc_list,
     ca = *auc_list;
 
     if (!ca->ca_auc)
+      continue;
+    if (!ca_has_authorization(ca))
       continue;
 
     if (ca->ca_auc->auc_authorize(ca, home, method, url, body, &h) < 0)
@@ -778,6 +914,15 @@ static int auc_digest_authorization(auth_client_t *ca,
 static int auc_digest_info(auth_client_t *ca,
 			   msg_auth_info_t const *info);
 
+static int auc_digest_save_credentials(auth_client_t *ca,
+				       char const *scheme,
+				       char const *realm,
+				       char const *user,
+				       char const *pass);
+
+static int auc_digest_copy_credentials(auth_client_t *ca,
+				       auth_client_t const *src);
+
 static const auth_client_plugin_t ca_digest_plugin =
 {
   /* auc_plugin_size: */ sizeof ca_digest_plugin,
@@ -786,7 +931,9 @@ static const auth_client_plugin_t ca_digest_plugin =
   /* auc_challenge: */   auc_digest_challenge,
   /* auc_authorize: */   auc_digest_authorization,
   /* auc_info: */        auc_digest_info,
-  /* auc_clear: */       ca_clear_credentials
+  /* auc_clear: */       ca_clear_credentials,
+  /* auc_save_credentials: */ auc_digest_save_credentials,
+  /* auc_copy_credentials: */ auc_digest_copy_credentials,
 };
 
 /** Store a digest authorization challenge.
@@ -885,17 +1032,23 @@ int auc_digest_authorization(auth_client_t *ca,
   auth_challenge_t const *ac = cda->cda_ac;
   char const *cnonce = cda->cda_cnonce;
   unsigned nc = ++cda->cda_ncount;
-  char *uri = url_as_string(home, url);
   void const *data = body ? body->pl_data : "";
   usize_t dlen = body ? body->pl_len : 0;
+  char *uri;
 
   msg_header_t *h;
+  char const *ha1;
   auth_hexmd5_t sessionkey, response;
   auth_response_t ar[1] = {{ 0 }};
   char ncount[17];
 
   if (!user || !pass || (AUTH_CLIENT_IS_EXTENDED(ca) && ca->ca_clear))
     return 0;
+
+  if (!su_casenmatch(pass, "HA1+", 4))
+    return 0;
+
+  ha1 = pass + 4;
 
   ar->ar_size = sizeof(ar);
   ar->ar_username = user;
@@ -908,7 +1061,10 @@ int auc_digest_authorization(auth_client_t *ca,
   ar->ar_qop = NULL;
   ar->ar_auth = ac->ac_auth;
   ar->ar_auth_int = ac->ac_auth_int;
-  ar->ar_uri = uri;
+  ar->ar_uri = uri = url_as_string(home, url);
+
+  if (ar->ar_uri == NULL)
+    return -1;
 
   /* If there is no qop, we MUST NOT include cnonce or nc */
   if (!ar->ar_auth && !ar->ar_auth_int)
@@ -920,8 +1076,16 @@ int auc_digest_authorization(auth_client_t *ca,
     ar->ar_nc = ncount;
   }
 
-  auth_digest_sessionkey(ar, sessionkey, pass);
-  auth_digest_response(ar, response, sessionkey, method, data, dlen);
+  if (ar->ar_md5sess) {
+    ar->ar_algorithm = "MD5-sess";
+    auth_digest_a1sess(ar, sessionkey, ha1);
+    ha1 = sessionkey;
+  }
+  else {
+    ar->ar_algorithm = "MD5";
+  }
+
+  auth_digest_response(ar, response, ha1, method, data, dlen);
 
   h = msg_header_format(home, hc,
 			"Digest "
@@ -960,6 +1124,39 @@ int auc_digest_authorization(auth_client_t *ca,
   return 0;
 }
 
+static int auc_digest_save_credentials(auth_client_t *ca,
+				       char const *scheme,
+				       char const *realm,
+				       char const *user,
+				       char const *pass)
+{
+  char prefixed[4 + sizeof (auth_hexmd5_t)]; /* "HA1+" and hex */
+
+  if (!ca)
+    return -1;
+
+  if (realm != NULL && !su_strmatch(realm, ca->ca_realm))
+    return 0;
+
+  if (scheme == NULL || su_casematch(scheme, "Digest")) {
+    strcpy(prefixed, "HA1+");
+    auth_digest_ha1(prefixed + strlen("HA1+"), user, ca->ca_realm, pass);
+    pass = prefixed;
+  }
+  else if (su_strmatch(scheme, "HA1+Digest") &&
+	   su_casenmatch(pass, "HA1+", 4))
+    pass = pass;
+  else
+    return 0;
+
+  return auth_client_save_credentials(ca, NULL, NULL, user, pass);
+}
+
+static int auc_digest_copy_credentials(auth_client_t *ca,
+				       auth_client_t const *src)
+{
+  return auth_client_copy_credentials(ca, src);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -985,7 +1182,7 @@ int auc_register_plugin(auth_client_plugin_t const *plugin)
 
   for (i = 0; i < MAX_AUC; i++) {
     if (ca_plugins[i] == NULL ||
-	strcmp(plugin->auc_name, ca_plugins[i]->auc_name) == 0) {
+	su_strmatch(plugin->auc_name, ca_plugins[i]->auc_name) == 0) {
       ca_plugins[i] = plugin;
       return 0;
     }
@@ -1013,7 +1210,7 @@ auth_client_t *ca_create(su_home_t *home,
 
   for (i = 0; i < MAX_AUC; i++) {
     auc = ca_plugins[i];
-    if (!auc || strcasecmp(auc->auc_name, scheme) == 0)
+    if (!auc || su_casematch(auc->auc_name, scheme))
       break;
   }
 

@@ -47,6 +47,7 @@
 
 #include <sofia-sip/su.h>
 #include <sofia-sip/su_alloc.h>
+#include <sofia-sip/su_string.h>
 
 #include "msg_internal.h"
 #include "sofia-sip/msg_parser.h"
@@ -163,25 +164,7 @@ int msg_mclass_insert_header(msg_mclass_t *mc,
 			     msg_hclass_t *hc,
 			     unsigned short offset)
 {
-  msg_href_t hr[1];
-
-  if (mc == NULL || hc == NULL) {
-    errno = EINVAL;
-    return -1;
-  }
-
-  if (msg_hclass_offset(mc, NULL, hc))
-    return (void)(errno = EEXIST), -1;
-
-  if (offset == 0)
-    offset = mc->mc_msize, mc->mc_msize += sizeof(msg_header_t *);
-
-  assert(offset < mc->mc_msize);
-
-  hr->hr_class = hc;
-  hr->hr_offset = offset;
-
-  return msg_mclass_insert(mc, hr);
+  return msg_mclass_insert_with_mask(mc, hc, offset, 0);
 }
 
 /**Add a new header to the message class.
@@ -351,7 +334,7 @@ msg_href_t const *msg_find_hclass(msg_mclass_t const *mc,
 
     /* long form */
     for (hr = NULL; (hc = mc->mc_hash[i].hr_class); i = (i + 1) % N) {
-      if (m == hc->hc_len && strncasecmp(s, hc->hc_name, m) == 0) {
+      if (m == hc->hc_len && su_casenmatch(s, hc->hc_name, m)) {
 	hr = &mc->mc_hash[i];
 	break;
       }

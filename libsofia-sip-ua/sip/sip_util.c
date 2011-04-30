@@ -39,7 +39,7 @@
 
 #include <sofia-sip/su_alloc.h>
 #include <sofia-sip/su_strlst.h>
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 
 #include "sofia-sip/sip_parser.h"
 #include <sofia-sip/sip_header.h>
@@ -59,8 +59,7 @@
 #include <limits.h>
 #include <ctype.h>
 
-/**
- * Compare two SIP addresses ( @From or @To headers).
+/**Compare two SIP addresses ( @From or @To headers).
  *
  * @retval nonzero if matching.
  * @retval zero if not matching.
@@ -69,13 +68,13 @@ int sip_addr_match(sip_addr_t const *a, sip_addr_t const *b)
 {
   return
     (a->a_tag == NULL || b->a_tag == NULL ||
-     strcmp(a->a_tag, b->a_tag) == 0)
+     su_casematch(a->a_tag, b->a_tag))
     &&
-    str0casecmp(a->a_host, b->a_host) == 0
+    su_casematch(a->a_host, b->a_host)
     &&
-    str0cmp(a->a_user, b->a_user) == 0
+    su_strmatch(a->a_user, b->a_user)
     &&
-    str0cmp(a->a_url->url_scheme, b->a_url->url_scheme);
+    su_strmatch(a->a_url->url_scheme, b->a_url->url_scheme);
 }
 
 
@@ -164,7 +163,7 @@ sip_contact_create_from_via(su_home_t *home,
   tp = v->v_protocol;
 
   if (tp == sip_transport_udp ||
-      strcasecmp(tp, sip_transport_udp) == 0)  /* Default is UDP */
+      su_casematch(tp, sip_transport_udp))  /* Default is UDP */
     tp = NULL;
 
   return sip_contact_create_from_via_with_transport(home, v, user, tp);
@@ -253,7 +252,7 @@ sip_contact_string_from_via(su_home_t *home,
     port = NULL;
   }
 
-  if (transport && strncasecmp(transport, "SIP/2.0/", 8) == 0)
+  if (su_casenmatch(transport, "SIP/2.0/", 8))
     transport += 8;
 
   /* Make transport parameter lowercase */
@@ -292,8 +291,8 @@ int sip_transport_has_tls(char const *transport_name)
 
   /* transport name starts with TLS or SIP/2.0/TLS */
   return
-    strncasecmp(transport_name, "TLS", 3) == 0 ||
-    strncasecmp(transport_name, sip_transport_tls, 11) == 0;
+    su_casenmatch(transport_name, "TLS", 3) ||
+    su_casenmatch(transport_name, sip_transport_tls, 11);
 }
 
 /**Perform sanity check on a SIP message
@@ -339,9 +338,10 @@ sip_sanity_check(sip_t const *sip)
 
     if (sip->sip_request->rq_method != sip->sip_cseq->cs_method)
       return -1;
+
     if (sip->sip_request->rq_method == sip_method_unknown &&
-	str0casecmp(sip->sip_request->rq_method_name,
-		    sip->sip_cseq->cs_method_name))
+	!su_strmatch(sip->sip_request->rq_method_name,
+		     sip->sip_cseq->cs_method_name))
       return -1;
   }
 
@@ -668,27 +668,12 @@ sip_route_t *sip_route_fixdup(su_home_t *home, sip_route_t const *route)
   return sip_route_fixdup_as(home, sip_route_class, route);
 }
 
-static void sip_fragment_clear_chain(sip_header_t *h)
-{
-  void const *next;
-
-  for (h = h; h; h = h->sh_succ) {
-    next = (char *)h->sh_data + h->sh_len;
-
-    sip_fragment_clear(h->sh_common);
-
-    if (!next ||
-	!h->sh_succ ||
-	h->sh_next != h->sh_succ ||
-	h->sh_succ->sh_data != next ||
-	h->sh_succ->sh_len)
-      return;
-  }
-}
-
 /**@ingroup sip_route
  *
  * Fix @Route header.
+ *
+ * If URI has no parameters and the header contains a single @c ;lr header
+ * parameter, the "lr" is moved as URI parameter.
  */
 sip_route_t *sip_route_fix(sip_route_t *route)
 {
@@ -714,7 +699,7 @@ sip_route_t *sip_route_fix(sip_route_t *route)
       for (i = 0; r->r_params[i]; i++)
 	((char const **)r->r_params)[i] = r->r_params[i + 1];
 
-      sip_fragment_clear_chain(h);
+      msg_fragment_clear_chain((msg_header_t *)h);
     }
   }
 
@@ -732,14 +717,9 @@ sip_via_t *sip_via_remove(msg_t *msg, sip_t *sip)
   if (sip == NULL)
     return NULL;
 
-  for (v = sip->sip_via; v; v = v->v_next) {
-    sip_fragment_clear(v->v_common);
+  v = sip->sip_via;
 
-    if (v->v_next != (void *)v->v_common->h_succ)
-      break;
-  }
-
-  if ((v = sip->sip_via))
+  if (v)
     msg_header_remove(msg, (msg_pub_t *)sip, (msg_header_t *)v);
 
   return v;
@@ -810,10 +790,10 @@ int sip_security_verify_compare(sip_security_server_t const *s,
     if (s == NULL || v == NULL)
       return (s == NULL) - (v == NULL);
 
-    if ((retval = str0cmp(s->sa_mec, v->sa_mec)))
+    if ((retval = su_strcmp(s->sa_mec, v->sa_mec)))
       return retval;
 
-    digest = strcasecmp(s->sa_mec, "Digest") == 0;
+    digest = su_casematch(s->sa_mec, "Digest");
 
     s_params = s->sa_params, v_params = v->sa_params;
 
@@ -828,13 +808,13 @@ int sip_security_verify_compare(sip_security_server_t const *s,
 
     for (i = 0, j = 0;; i++, j++) {
       if (digest && v_params[j] &&
-	  strncasecmp(v_params[j], "d-ver=", 6) == 0) {
+	  su_casenmatch(v_params[j], "d-ver=", 6)) {
 	if (return_d_ver)
 	  *return_d_ver = v_params[j] + strlen("d-ver=");
 	j++;
       }
 
-      retval = str0cmp(s_params[i], v_params[j]);
+      retval = su_strcmp(s_params[i], v_params[j]);
 
       if (retval || s_params[i] == NULL || v_params[j] == NULL)
 	break;
@@ -861,7 +841,7 @@ sip_security_client_select(sip_security_client_t const *client,
 
   for (s = server; s; s = s->sa_next) {
     for (c = client; c; c = c->sa_next) {
-      if (str0cmp(s->sa_mec, c->sa_mec) == 0)
+      if (su_strmatch(s->sa_mec, c->sa_mec))
 	return c;
     }
   }
@@ -1164,14 +1144,25 @@ int sip_response_terminates_dialog(int response_code,
     return 0;
 
   case 484: /* Address Incomplete */
-  case 485: /* Ambiguous */
     /** @par 484 Address Incomplete and 485 Ambiguous
 
       Similar to 404 and 410, these
       responses came to a request whose Request-URI was provided by the
       peer in a @Contact header field.  Something has gone fundamentally
       wrong, and the dialog and all of its usages are destroyed.
+
+      Asterisk (v 1.2.7.1) does response with 484 if a client does send a refer
+      with a @ReferTo header to an unknown number.  This is therefore not
+      fundamentally wrong and the dialog should not be destroyed!
     */
+    if (method == sip_method_refer)
+    {
+      *return_graceful_terminate_usage = 0;
+      return 0;
+    }
+
+  case 485: /* Ambiguous */
+
     return terminate_dialog;
 
   case 486: /** @par 486 Busy Here

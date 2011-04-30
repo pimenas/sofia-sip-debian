@@ -128,7 +128,7 @@
  */
 
 msg_hclass_t sip_authorization_class[] =
-SIP_HEADER_CLASS_AUTH(authorization, "Authorization", single);
+SIP_HEADER_CLASS_AUTH(authorization, "Authorization", append);
 
 issize_t sip_authorization_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
@@ -309,7 +309,7 @@ issize_t sip_proxy_authorization_e(char b[], isize_t bsiz, sip_header_t const *h
  */
 
 msg_hclass_t sip_www_authenticate_class[] =
-SIP_HEADER_CLASS_AUTH(www_authenticate, "WWW-Authenticate", single);
+SIP_HEADER_CLASS_AUTH(www_authenticate, "WWW-Authenticate", append);
 
 issize_t sip_www_authenticate_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
@@ -525,7 +525,7 @@ static int sip_security_agree_update(msg_common_t *h,
     sa->sa_d_qop = NULL;
     sa->sa_d_ver = NULL;
   }
-#define MATCH(s) (namelen == strlen(#s) && !strncasecmp(name, #s, strlen(#s)))
+#define MATCH(s) (namelen == strlen(#s) && su_casenmatch(name, #s, strlen(#s)))
 
   else if (MATCH(q)) {
     sa->sa_q = value;

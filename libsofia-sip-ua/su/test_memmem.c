@@ -22,11 +22,11 @@
  *
  */
 
-/**@ingroup test_memmem
+/**@ingroup test_su_string
  *
  * @CFILE test_memmem.c
  *
- * Torture tests for memmem() and strcasestr().
+ * Torture tests for various string utility functions.
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
  *
@@ -35,19 +35,14 @@
 
 #include "config.h"
 
+#include <sofia-sip/su_string.h>
+#include <sofia-sip/su_bm.h>
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <stdio.h>
 #include <assert.h>
-
-#if !HAVE_MEMMEM
-void *memmem(const void *haystack, size_t haystacklen,
-	     const void *needle, size_t needlelen);
-#endif
-#if !HAVE_STRCASESTR
-char *strcasestr(const char *haystack, const char *needle);
-#endif
 
 #include <string.h>
 
@@ -64,6 +59,7 @@ void usage(int exitcode)
   exit(exitcode);
 }
 
+
 static int test_notfound(void);
 static int test_pattern(void);
 
@@ -76,27 +72,29 @@ static int test_notfound(void)
   char const *a;
   BEGIN();
 
-  TEST_P(memmem(haystack, 12, needle, 3), haystack + 2);
-  TEST_P(memmem(needle, 3, haystack, 12), NULL);
+  TEST_P(bm_memmem(haystack, 12, needle, 3, NULL), haystack + 2);
+  TEST_P(bm_memmem(needle, 3, haystack, 12, NULL), NULL);
 
 #if HAVE_MEMMEM
-  if (memmem(haystack, 12, "", 0) == NULL) {
+  if (bm_memmem(haystack, 12, "", 0, NULL) == NULL) {
     fprintf(stderr, "test_memmem.c: "
 	    "*** WARNING: system memmem() fails with empty needle ***\n");
   }
   else
 #endif
   {
-    TEST_P(memmem(haystack, 12, "", 0), haystack);
-    TEST_P(memmem(haystack, 12, null, 0), haystack);
-    TEST_P(memmem(haystack, 0, "", 0), haystack);
-    TEST_P(memmem(haystack, 0, null, 0), haystack);
+    TEST_P(bm_memmem(haystack, 12, "", 0, NULL), haystack);
+    TEST_P(bm_memmem(haystack, 12, null, 0, NULL), haystack);
+    TEST_P(bm_memmem(haystack, 0, "", 0, NULL), haystack);
+    TEST_P(bm_memmem(haystack, 0, null, 0, NULL), haystack);
   }
 
-  TEST_P(memmem(haystack + 2, 3, needle, 3), haystack + 2);
-  TEST_P(memmem(haystack + 2, 2, needle, 3), NULL);
-  TEST_P(memmem(a = "a\0bc", 4, "a\0bc", 4), a);
-  TEST_P(memmem(a, 4, "\0bc", 3), a + 1);
+  TEST_P(bm_memmem(haystack + 2, 3, needle, 3, NULL), haystack + 2);
+  TEST_P(bm_memmem(haystack + 2, 2, needle, 3, NULL), NULL);
+
+  a = "a\0bc";
+  TEST_P(bm_memmem(a, 4, "a\0bc", 4, NULL), a);
+  TEST_P(bm_memmem(a, 4, "\0bc", 3, NULL), a + 1);
 
   END();
 }
@@ -116,38 +114,41 @@ int test_strcasestr(void)
       "A case-folding string searching test consisting of a Long String";
     char const *s;
 
-    s = strcasestr(hs, "sting");
+    s = su_strcasestr(hs, "sting");
     TEST_S(s, hs + 42);
 
-    s = strcasestr(hs, "String");
+    s = su_strcasestr(hs, "String");
     TEST_S(s, hs + 15);
 
-    s = strcasestr(hs, "S");
+    s = su_strcasestr(hs, "S");
     TEST_S(s, hs + 4);
 
-    s = strcasestr(hs, "L");
+    s = su_strcasestr(hs, "L");
     TEST_S(s, hs + 9);
 
-    s = strcasestr(hs, "trings");
+    s = su_strcasestr(hs, "trings");
     TEST_1(s == NULL);
 
-    s = strcasestr(hs, "String");
+    s = su_strcasestr(hs, "String");
     TEST_S(s, hs + 15);
 
-    s = strcasestr(hs, "StRiNg");
+    s = su_strcasestr(hs, "StRiNg");
     TEST_S(s, hs + 15);
 
-    s = strcasestr(hs, "OnG");
+    s = su_strcasestr(hs, "OnG");
     TEST_S(s, hs + 54);
 
     /* Special cases */
-    TEST_1(strcasestr(hs, "") == hs);
-    TEST_1(strcasestr("", "ong") == NULL);
-    TEST_1(strcasestr("", "OnG") == NULL);
-    TEST_1(strcasestr("ong", hs) == NULL);
-    TEST_1(strcasestr("OnG", hs) == NULL);
-    TEST_1(strcasestr(hs, "Z") == NULL);
-    TEST_1(strcasestr(hs, "z") == NULL);
+    TEST_1(su_strcasestr(hs, "") == hs);
+    TEST_1(su_strcasestr("", "ong") == NULL);
+    TEST_1(su_strcasestr("", "OnG") == NULL);
+    TEST_1(su_strcasestr("ong", hs) == NULL);
+    TEST_1(su_strcasestr("OnG", hs) == NULL);
+    TEST_1(su_strcasestr(hs, "Z") == NULL);
+    TEST_1(su_strcasestr(hs, "z") == NULL);
+
+    TEST_S(su_strcasestr("foobar", "OB"), "obar");
+    TEST_S(su_strcasestr("FOOBAR", "ob"), "OBAR");
   }
 
   {
@@ -219,12 +220,110 @@ char const Needle[] =
 
     char const *s;
 
-    s = strcasestr(hs, needle);
+    s = su_strcasestr(hs, needle);
     TEST_S(s, hs + 1920);
 
-    s = strcasestr(hs, Needle);
+    s = su_strcasestr(hs, Needle);
     TEST_S(s, hs + 1920);
   }
+
+  END();
+}
+
+static int test_casematch(void)
+{
+  BEGIN();
+
+  TEST_1(!su_casematch(NULL, ""));
+  TEST_1(su_casematch(NULL, NULL));
+  TEST_1(!su_casematch("", NULL));
+
+  TEST_1(!su_casenmatch(NULL, "", 1));
+  TEST_1(su_casenmatch(NULL, NULL, 1));
+  TEST_1(!su_casenmatch("", NULL, 1));
+
+  TEST_1(su_casenmatch(NULL, "", 0));
+  TEST_1(su_casenmatch(NULL, NULL, 0));
+  TEST_1(su_casenmatch("", NULL, 0));
+
+  TEST_1(su_casenmatch("foo", "foo", 3));
+  TEST_1(su_casenmatch("FOO", "foo", 3));
+  TEST_1(su_casenmatch("foo", "FOO", 3));
+
+  TEST_1(su_casenmatch("foo", "foo", 4));
+  TEST_1(su_casenmatch("FOO", "foo", 4));
+  TEST_1(su_casenmatch("foo", "FOO", 4));
+
+  TEST_1(su_casematch("foo", "foo"));
+  TEST_1(su_casematch("FOO", "foo"));
+  TEST_1(su_casematch("foo", "FOO"));
+
+  TEST_1(!su_casematch("foo_", "foo"));
+  TEST_1(!su_casematch("FOO_", "foo"));
+  TEST_1(!su_casematch("foo_", "FOO"));
+
+  TEST_1(su_casenmatch("foo\0X", "foo\0z", 5));
+  TEST_1(su_casenmatch("FOO\0X", "foo\0z", 5));
+  TEST_1(su_casenmatch("foo\0X", "FOO\0z", 5));
+
+  END();
+}
+
+static int test_strmatch(void)
+{
+  BEGIN();
+
+  TEST_1(!su_strmatch(NULL, ""));
+  TEST_1(su_strmatch(NULL, NULL));
+  TEST_1(!su_strmatch("", NULL));
+
+  TEST_1(!su_strnmatch(NULL, "", 1));
+  TEST_1(su_strnmatch(NULL, NULL, 1));
+  TEST_1(!su_strnmatch("", NULL, 1));
+
+  TEST_1(su_strnmatch(NULL, "", 0));
+  TEST_1(su_strnmatch(NULL, NULL, 0));
+  TEST_1(su_strnmatch("", NULL, 0));
+
+  TEST_1(su_strnmatch("foo", "foo", 3));
+  TEST_1(!su_strnmatch("FOO", "foo", 3));
+  TEST_1(!su_strnmatch("foo", "FOO", 3));
+
+  TEST_1(su_strnmatch("foo", "foo", 4));
+  TEST_1(!su_strnmatch("FOO", "foo", 4));
+  TEST_1(!su_strnmatch("foo", "FOO", 4));
+
+  TEST_1(su_strmatch("foo", "foo"));
+  TEST_1(!su_strmatch("FOO", "foo"));
+  TEST_1(!su_strmatch("foo", "FOO"));
+
+  TEST_1(!su_strmatch("foo_", "foo"));
+
+  TEST_1(su_strnmatch("foo\0X", "foo\0z", 5));
+  TEST_1(!su_strnmatch("FOO\0X", "foo\0z", 5));
+  TEST_1(!su_strnmatch("foo\0X", "FOO\0z", 5));
+
+  END();
+}
+
+static int test_strnspn(void)
+{
+  BEGIN();
+
+  TEST(su_strnspn("foobar", 3, ""), 0);
+  TEST(su_strnspn("foobar", 5, "fo"), 3);
+  TEST(su_strnspn("foobar", 5, "o"), 0);
+  TEST(su_strnspn("foobar", 5, "f"), 1);
+  TEST(su_strnspn("", 5, "fo"), 0);
+  TEST(su_strnspn("foobarf", 5, "fob"), 4);
+
+  TEST(su_strncspn("foobar", 3, ""), 3);
+  TEST(su_strncspn("foobar", 5, "bach"), 3);
+  TEST(su_strncspn("foobar", 5, "ri"), 5);
+  TEST(su_strncspn("foobar", 5, "b"), 3);
+  TEST(su_strncspn("", 5, "fo"), 0);
+  TEST(su_strncspn(NULL, 0, "fo"), 0);
+  TEST(su_strncspn("foobarf", 5, "a"), 4);
 
   END();
 }
@@ -247,7 +346,10 @@ int main(int argc, char *argv[])
   retval |= test_pattern(); fflush(stdout);
   retval |= test_strcasestr(); fflush(stdout);
 
+  retval |= test_casematch(); fflush(stdout);
+  retval |= test_strmatch(); fflush(stdout);
+
+  retval |= test_strnspn(); fflush(stdout);
 
   return retval;
 }
-

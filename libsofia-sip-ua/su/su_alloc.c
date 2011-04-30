@@ -733,7 +733,7 @@ void *su_home_clone(su_home_t *parent, isize_t size)
 
   if (parent) {
     su_block_t *sub = MEMLOCK(parent);
-    home = sub_alloc(parent, sub, size, 2);
+    home = sub_alloc(parent, sub, size, (enum sub_zero)2);
     UNLOCK(parent);
   }
   else {
@@ -746,8 +746,21 @@ void *su_home_clone(su_home_t *parent, isize_t size)
 /** Return true if home is a clone. */
 int su_home_has_parent(su_home_t const *home)
 {
-  return home && !home->suh_lock &&
-    home->suh_blocks && home->suh_blocks->sub_parent;
+  return su_home_parent(home) != NULL;
+}
+
+/** Return home's parent home. */
+su_home_t *su_home_parent(su_home_t const *home)
+{
+  su_home_t *parent = NULL;
+
+  if (home && home->suh_blocks) {
+    su_block_t *sub = MEMLOCK(home);
+    parent = sub->sub_parent;
+    UNLOCK(home);
+  }
+
+  return parent;
 }
 
 /** Allocate a memory block.
@@ -768,7 +781,7 @@ void *su_alloc(su_home_t *home, isize_t size)
   void *data;
 
   if (home) {
-    data = sub_alloc(home, MEMLOCK(home), size, 0);
+    data = sub_alloc(home, MEMLOCK(home), size, (enum sub_zero)0);
     UNLOCK(home);
   }
   else
@@ -842,6 +855,8 @@ void su_free(su_home_t *home, void *data)
  *
  * @param home   pointer to a memory home
  * @param data   pointer to a memory area possibly allocated though home
+ *
+ * @NEW_1_12_9
  */
 int su_home_check_alloc(su_home_t const *home, void const *data)
 {
@@ -978,6 +993,9 @@ void _su_home_deinit(su_home_t *home)
   if (home->suh_blocks) {
     size_t i;
     su_block_t *b;
+    void *suh_lock = home->suh_lock;
+
+    home->suh_lock = NULL;
 
      if (home->suh_blocks->sub_destructor) {
       void (*destructor)(void *) = home->suh_blocks->sub_destructor;
@@ -1019,18 +1037,12 @@ void _su_home_deinit(su_home_t *home)
 
     home->suh_blocks = NULL;
 
-    if (home->suh_lock) {
-#ifdef WIN32
-      UNLOCK(home); /* we must unlock here or windows leaks handles on the next call because the mutex is locked */
-#endif
-/* "In the LinuxThreads implementation, no resources are associated with mutex objects,
-   thus pthread_mutex_destroy actually does nothing except checking that the mutex is unlocked. "
-   In the Windows pthread implementation we must free the handles that are allocated */
-      _su_home_destroy_mutexes(home->suh_lock);
+    if (suh_lock) {
+      /* Unlock, or risk assert() or leak handles on Windows */
+      _su_home_unlocker(suh_lock);
+      _su_home_destroy_mutexes(suh_lock);
     }
   }
-
-  home->suh_lock = NULL;
 }
 
 /** Free memory blocks allocated through home.
@@ -1134,6 +1146,12 @@ int su_home_move(su_home_t *dst, su_home_t *src)
 	for (i = 0; i < n; i++)
 	  if (s->sub_nodes[i].sua_data) {
 	    su_block_add(d, s->sub_nodes[i].sua_data)[0] = s->sub_nodes[i];
+	    if (s->sub_nodes[i].sua_home) {
+	      su_home_t *subhome = s->sub_nodes[i].sua_data;
+	      su_block_t *subsub = MEMLOCK(subhome);
+	      subsub->sub_parent = dst;
+	      UNLOCK(subhome);
+	    }
 	  }
 
 	s->sub_used = 0;
@@ -1152,8 +1170,21 @@ int su_home_move(su_home_t *dst, su_home_t *src)
     s = MEMLOCK(src);
 
     if (s && s->sub_used) {
+      n = s->sub_n;
+
+      for (i = 0; i < n; i++) {
+	if (s->sub_nodes[i].sua_data && s->sub_nodes[i].sua_home) {
+	  su_home_t *subhome = s->sub_nodes[i].sua_data;
+	  su_block_t *subsub = MEMLOCK(subhome);
+	  subsub->sub_parent = dst;
+	  UNLOCK(subhome);
+	}
+      }
+
       s->sub_used = 0;
       memset(s->sub_nodes, 0, s->sub_n * sizeof (s->sub_nodes[0]));
+
+      s->sub_used = 0;
     }
 
     UNLOCK(src);
@@ -1273,7 +1304,7 @@ void *su_realloc(su_home_t *home, void *data, isize_t size)
 
   sub = MEMLOCK(home);
   if (!data) {
-    data = sub_alloc(home, sub, size, 0);
+    data = sub_alloc(home, sub, size, (enum sub_zero)0);
     UNLOCK(home);
     return data;
   }
@@ -1437,7 +1468,7 @@ void *su_zalloc(su_home_t *home, isize_t size)
   assert (size >= 0);
 
   if (home) {
-    data = sub_alloc(home, MEMLOCK(home), size, 1);
+    data = sub_alloc(home, MEMLOCK(home), size, (enum sub_zero)1);
     UNLOCK(home);
   }
   else
@@ -1487,7 +1518,7 @@ void *su_salloc(su_home_t *home, isize_t size)
     return (void)(errno = ENOMEM), NULL;
 
   if (home) {
-    retval = sub_alloc(home, MEMLOCK(home), size, 1);
+    retval = sub_alloc(home, MEMLOCK(home), size, (enum sub_zero)1);
     UNLOCK(home);
   }
   else

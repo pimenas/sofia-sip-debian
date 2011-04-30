@@ -185,7 +185,7 @@ int url_reserved_p(char const *s)
  * The number of characters in corresponding but escaped string.
  *
  * You can handle a part of URL with reserved characters like this:
- * @code
+ * @code
  * if (url_reserved_p(s))  {
  *   n = malloc(url_esclen(s, NULL) + 1);
  *   if (n) url_escape(n, s);
@@ -501,7 +501,7 @@ void url_init(url_t *url, enum url_type_e type)
   memset(url, 0, sizeof(*url));
   url->url_type = type;
   if (type > url_unknown) {
-    char const *scheme = url_scheme(url->url_type);
+    char const *scheme = url_scheme((enum url_type_e)url->url_type);
     if (scheme)
       url->url_scheme = scheme;
   }
@@ -593,7 +593,7 @@ int _url_d(url_t *url, char *s)
 
     url->url_type = url_get_type(url->url_scheme, n);
 
-    have_authority = !url_type_is_opaque(url->url_type);
+    have_authority = !url_type_is_opaque((enum url_type_e)url->url_type);
   }
   else {
     url->url_type = url_unknown;
@@ -713,8 +713,15 @@ int _url_d(url_t *url, char *s)
 	while (*port >= '0' && *port <= '9')
 	  port++;
 
-	if (port != url->url_port ? port[0] != '\0'
-	    : (port[0] != '*' || port[1] != '\0'))
+	if (port != url->url_port) {
+	  if (port[0] != '\0')
+	    return -1;
+	}
+	else if (port[0] == '\0')
+	  /* empty string */;
+	else if (port[0] == '*' && port[1] == '\0')
+	  /* wildcard */;
+	else
 	  return -1;
       }
       host[n] = 0;
@@ -1083,7 +1090,7 @@ char *copy(char *buf, char *end, char const *src)
  * @param buf     Buffer for non-constant strings copied from @a src.
  * @param bufsize Size of @a buf.
  * @param dst     Destination URL structure.
- * @param src     Source URL structure.
+ * @param src     Source URL structure.
  *
  * @return Number of characters required for
  * duplicating the strings in @a str, or -1 if an error
@@ -1128,7 +1135,7 @@ issize_t url_dup(char *buf, isize_t bufsize, url_t *dst, url_t const *src)
     srcp = &src->url_scheme;
 
     if (dst->url_type > url_unknown)
-      *dstp = url_scheme(dst->url_type);
+      *dstp = url_scheme((enum url_type_e)dst->url_type);
 
     if (*dstp != NULL)
       dstp++, srcp++;	/* Skip scheme if it is constant */
@@ -1167,7 +1174,7 @@ issize_t url_dup(char *buf, isize_t bufsize, url_t *dst, url_t const *src)
  * @param buf     Buffer for non-constant strings copied from @a src.
  * @param end     End of @a buf.
  * @param dst     Destination URL structure.
- * @param src     Source URL structure.
+ * @param src     Source URL structure.
  *
  * @return
  * The macro URL_DUP() returns pointer to first unused byte in the
@@ -1584,9 +1591,9 @@ int url_cmp(url_t const *a, url_t const *b)
     char const *b_port;
 
     if (url_type != url_sip && url_type != url_sips)
-      a_port = b_port = url_port_default(url_type);
+      a_port = b_port = url_port_default((enum url_type_e)url_type);
     else if (host_is_ip_address(a->url_host))
-      a_port = b_port = url_port_default(url_type);
+      a_port = b_port = url_port_default((enum url_type_e)url_type);
     else
       a_port = b_port = "";
 
@@ -1695,9 +1702,9 @@ int url_cmp_all(url_t const *a, url_t const *b)
     char const *b_port;
 
     if (url_type != url_sip && url_type != url_sips)
-      a_port = b_port = url_port_default(url_type);
+      a_port = b_port = url_port_default((enum url_type_e)url_type);
     else if (host_is_ip_address(a->url_host))
-      a_port = b_port = url_port_default(url_type);
+      a_port = b_port = url_port_default((enum url_type_e)url_type);
     else
       a_port = b_port = "";
 
@@ -1856,7 +1863,7 @@ char const *url_port(url_t const *u)
     if (!host_is_ip_address(u->url_host))
       return "";
 
-  return url_port_default(u->url_type);
+  return url_port_default((enum url_type_e)u->url_type);
 }
 
 /** Sanitize URL.
@@ -2103,30 +2110,33 @@ char *url_query_as_header_string(su_home_t *home,
   if (!s)
     return NULL;
 
-  for (i = 0, j = 0; s[i];) {
-    n = strcspn(s + i, "=");
-    if (!s[i + n])
+  for (i = 0, j = 0; query[i];) {
+    n = strcspn(query + i, "=");
+    if (!query[i + n])
       break;
-    if (n == 4 && strncasecmp(s + i, "body", 4) == 0) {
+    if (n == 4 && su_strncasecmp(query + i, "body", 4) == 0) {
       if (b_start)
 	break;
-      b_start = i + n + 1, b_len = strcspn(s + b_start, "&");
-      i = b_start + b_len + 1;
+      b_start = i + n + 1, b_len = strcspn(query + b_start, "&");
+      i = b_start + b_len;
+      if (!query[i])
+        break;
+      i++;
       continue;
     }
     if (i != j)
-      memmove(s + j, s + i, n);
+      memcpy(s + j, query + i, n);
     s[j + n] = ':';
     i += n + 1, j += n + 1;
-    n = strcspn(s + i, "&");
-    j += url_unescape_to(s + j, s + i, n);
+    n = strcspn(query + i, "&");
+    j += url_unescape_to(s + j, query + i, n);
     i += n;
-    if (s[i]) {
+    if (query[i]) {
       s[j++] = '\n', i++;
     }
   }
 
-  if (s[i])
+  if (query[i])
     return (void)su_free(home, s), NULL;
 
   if (b_start) {

@@ -37,7 +37,6 @@ TAGFILES             =
 
 OUTPUT_LANGUAGE      = English
 
-DETAILS_AT_TOP       = YES
 OPTIMIZE_OUTPUT_FOR_C = YES
 SHOW_USED_FILES      = NO
 
@@ -67,5 +66,6 @@ MAN_OUTPUT           = .
 MAN_EXTENSION        = .1
 MAN_LINKS            = NO
 
+SEARCHENGINE         = NO
 GENERATE_HTML        = NO
 GENERATE_LATEX       = NO

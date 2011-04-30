@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 #include <sofia-sip/sip_protos.h>
 #include <sofia-sip/sip_extra.h>
 #include <sofia-sip/sip_status.h>
@@ -220,7 +220,7 @@ int nua_subscribe_server_init(nua_server_request_t *sr)
   char const *event = o ? o->o_type : NULL;
 
   if (sr->sr_initial || !nua_dialog_usage_get(ds, nua_notify_usage, o)) {
-    if (event && str0cmp(event, "refer") == 0)
+    if (su_strmatch(event, "refer"))
       /* refer event subscription should be initiated with REFER */
       return SR_STATUS1(sr, SIP_403_FORBIDDEN);
 
@@ -257,7 +257,7 @@ int nua_subscribe_server_preprocess(nua_server_request_t *sr)
   }
   else {
     /* Refresh existing subscription */
-    if (str0cmp(event, "refer") == 0)
+    if (su_strmatch(event, "refer"))
       expires = NH_PGET(nh, refer_expires);
 
     SR_STATUS1(sr, SIP_200_OK);
@@ -360,9 +360,9 @@ int nua_subscribe_server_report(nua_server_request_t *sr, tagi_t const *tags)
 
     if (!nu->nu_tag)
       notify = 1;
-    else if (snim && !strcasecmp(snim->snim_tag, nu->nu_tag))
+    else if (snim && su_casematch(snim->snim_tag, nu->nu_tag))
       notify = 0;
-    else if (sbim && !strcasecmp(snim->snim_tag, nu->nu_tag))
+    else if (sbim && su_casematch(snim->snim_tag, nu->nu_tag))
       notify = 1, nu->nu_no_body = 1;
     else
 #endif
@@ -621,7 +621,7 @@ static int nua_notify_client_init_etag(nua_client_request_t *cr,
     if (cr->cr_usage->du_ready) {
       snim = sip_suppress_notify_if_match(sip);
 
-      if (snim && !strcasecmp(snim->snim_tag, nu->nu_tag)) {
+      if (snim && su_casematch(snim->snim_tag, nu->nu_tag)) {
 	if (nu->nu_requested > nu->nu_expires)
 	  nu->nu_expires = nu->nu_requested;
 	nu->nu_requested = 0;
@@ -630,7 +630,7 @@ static int nua_notify_client_init_etag(nua_client_request_t *cr,
     }
 
     sbim = sip_suppress_body_if_match(sip);
-    if (sbim && !strcasecmp(sbim->sbim_tag, nu->nu_tag))
+    if (sbim && su_casematch(sbim->sbim_tag, nu->nu_tag))
       nu->nu_no_body = 1;
   }
 #endif
@@ -672,7 +672,7 @@ int nua_notify_client_request(nua_client_request_t *cr,
 
   if (ss == NULL || nua_substate_make(ss->ss_substate) != nu->nu_substate) {
     if (nu->nu_substate == nua_substate_terminated)
-      expires = nu->nu_expires > now ? "noresource" : "timeout";
+      expires = nu->nu_expires > now ? "reason=noresource" : "reason=timeout";
 
     ss = sip_subscription_state_format(home, "%s;%s",
 				       nua_substate_name(nu->nu_substate),
@@ -764,7 +764,7 @@ static int nua_notify_client_report(nua_client_request_t *cr,
 
   nua_stack_tevent(nh->nh_nua, nh,
 		   nta_outgoing_getresponse(orq),
-		   cr->cr_event,
+		   (enum nua_event_e)cr->cr_event,
 		   status, phrase,
 		   NUTAG_SUBSTATE(substate),
 		   SIPTAG_EVENT(du ? du->du_event : NULL),
@@ -832,10 +832,19 @@ static int nua_notify_usage_shutdown(nua_handle_t *nh,
   nu->nu_substate = nua_substate_terminated;
 
   if (cr) {
+    SU_DEBUG_5(("%s(%p, %p, %p): using existing cr=%p\n",
+		"nua_notify_usage_shutdown",
+		(void *)nh, (void *)ds, (void *)du, (void *)cr));
+
     if (nua_client_resend_request(cr, 1) >= 0)
       return 0;
   }
   else {
+    SU_DEBUG_5(("%s(%p, %p, %p): new NOTIFY cr for %s\n",
+		"nua_notify_usage_shutdown",
+		(void *)nh, (void *)ds, (void *)du,
+		du->du_event ? du->du_event->o_type : "<implicit>"));
+
     if (nua_client_tcreate(nh, nua_r_notify,
 			   &nua_notify_client_methods,
 			   SIPTAG_EVENT(du->du_event),
@@ -915,8 +924,8 @@ int nua_refer_server_respond(nua_server_request_t *sr, tagi_t const *tags)
   if (sr->sr_status < 200 || nu == NULL) {
   }
   else if (sr->sr_status < 300 &&
-	   /* Application included Refer-Sub: false in response */
-	   (rs == NULL || str0casecmp("false", rs->rs_value))) {
+	   /* No subscription if Refer-Sub: false in response */
+	   (rs == NULL || !su_casematch(rs->rs_value, "false"))) {
     sr->sr_usage->du_ready = 1;
 
     nu->nu_expires = sip_now() + NH_PGET(nh, refer_expires);

@@ -57,6 +57,7 @@
 #include <sofia-sip/su_tag_class.h>
 #include <sofia-sip/su_tag_inline.h>
 #include <sofia-sip/su_tagarg.h>
+#include <sofia-sip/su_string.h>
 
 #ifndef HAVE_STRTOULL
 unsigned longlong strtoull(const char *, char **, int);
@@ -828,29 +829,27 @@ int t_scan(tag_type_t tt, su_home_t *home, char const *s,
 /* ====================================================================== */
 /* null tag */
 
+static
 tagi_t const *t_null_next(tagi_t const *t)
 {
   return NULL;
 }
 
+static
 tagi_t *t_null_move(tagi_t *dst, tagi_t const *src)
 {
   memset(dst, 0, sizeof(*dst));
   return dst + 1;
 }
 
+static
 tagi_t *t_null_dup(tagi_t *dst, tagi_t const *src, void **bb)
 {
   memset(dst, 0, sizeof(*dst));
   return dst + 1;
 }
 
-tagi_t *t_null_copy(tagi_t *dst, tagi_t const *src, void **bb)
-{
-  memset(dst, 0, sizeof(*dst));
-  return dst + 1;
-}
-
+static
 tagi_t const * t_null_find(tag_type_t tt, tagi_t const lst[])
 {
   return NULL;
@@ -919,26 +918,31 @@ tag_class_t end_tag_class[1] =
 /* ====================================================================== */
 /* skip tag - placeholder in tag list */
 
+static
 tagi_t const *t_skip_next(tagi_t const *t)
 {
   return t + 1;
 }
 
+static
 tagi_t *t_skip_move(tagi_t *dst, tagi_t const *src)
 {
   return dst;
 }
 
+static
 size_t t_skip_len(tagi_t const *t)
 {
   return 0;
 }
 
+static
 tagi_t *t_skip_dup(tagi_t *dst, tagi_t const *src, void **bb)
 {
   return dst;
 }
 
+static
 tagi_t *t_skip_filter(tagi_t *dst,
 		    tagi_t const filter[],
 		    tagi_t const *src,
@@ -968,11 +972,13 @@ tag_typedef_t tag_skip = TAG_TYPEDEF(tag_skip, skip);
 /* ====================================================================== */
 /* next tag - jump to next tag list */
 
+static
 tagi_t const *t_next_next(tagi_t const *t)
 {
   return (tagi_t *)(t->t_value);
 }
 
+static
 tagi_t *t_next_move(tagi_t *dst, tagi_t const *src)
 {
   if (!src->t_value)
@@ -980,6 +986,7 @@ tagi_t *t_next_move(tagi_t *dst, tagi_t const *src)
   return dst;
 }
 
+static
 size_t t_next_len(tagi_t const *t)
 {
   if (!t->t_value)
@@ -987,6 +994,7 @@ size_t t_next_len(tagi_t const *t)
   return 0;
 }
 
+static
 tagi_t *t_next_dup(tagi_t *dst, tagi_t const *src, void **bb)
 {
   if (!src->t_value)
@@ -994,6 +1002,7 @@ tagi_t *t_next_dup(tagi_t *dst, tagi_t const *src, void **bb)
   return dst;
 }
 
+static
 tagi_t *t_next_filter(tagi_t *dst,
 		    tagi_t const filter[],
 		    tagi_t const *src,
@@ -1023,6 +1032,7 @@ tag_typedef_t tag_next = TAG_TYPEDEF(tag_next, next);
 /* ====================================================================== */
 /* filter tag  - use function to filter tag */
 
+static
 tagi_t *t_filter_with(tagi_t *dst,
 		      tagi_t const *t,
 		      tagi_t const *src,
@@ -1070,6 +1080,7 @@ tag_typedef_t tag_filter = TAG_TYPEDEF(tag_filter, filter);
 /* ====================================================================== */
 /* any tag - match to any tag when filtering */
 
+static
 tagi_t *t_any_filter(tagi_t *dst,
 		     tagi_t const filter[],
 		     tagi_t const *src,
@@ -1389,10 +1400,10 @@ int t_bool_scan(tag_type_t tt, su_home_t *home,
   int retval;
   int value = 0;
 
-  if (strncasecmp(s, "true", 4) == 0
+  if (su_casenmatch(s, "true", 4)
       && strlen(s + 4) == strspn(s + 4, " \t\r\n")) {
     value = 1, retval = 1;
-  } else if (strncasecmp(s, "false", 5) == 0
+  } else if (su_casenmatch(s, "false", 5)
 	     && strlen(s + 5) == strspn(s + 5, " \t\r\n")) {
     value = 0, retval = 1;
   } else {

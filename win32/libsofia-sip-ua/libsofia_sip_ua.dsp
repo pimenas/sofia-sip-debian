@@ -193,6 +193,10 @@ SOURCE="..\..\libsofia-sip-ua\su\su_strdup.c"
 # End Source File
 # Begin Source File
 
+SOURCE="..\..\libsofia-sip-ua\su\su_string.c"
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\libsofia-sip-ua\su\su_strlst.c"
 # End Source File
 # Begin Source File
@@ -349,15 +353,7 @@ SOURCE="..\..\libsofia-sip-ua\su\memcspn.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\libsofia-sip-ua\su\memmem.c"
-# End Source File
-# Begin Source File
-
 SOURCE="..\..\libsofia-sip-ua\su\memspn.c"
-# End Source File
-# Begin Source File
-
-SOURCE="..\..\libsofia-sip-ua\su\strcasestr.c"
 # End Source File
 # Begin Source File
 
@@ -530,6 +526,10 @@ SOURCE="..\..\libsofia-sip-ua\sresolv\sres_cache.c"
 # Begin Source File
 
 SOURCE="..\..\libsofia-sip-ua\sresolv\sresolv.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\sresolv\sres_sip.c"
 # End Source File
 # End Group
 # Begin Group "nea"
@@ -710,6 +710,22 @@ SOURCE="..\..\libsofia-sip-ua\nua\nua_stack.c"
 # Begin Source File
 
 SOURCE="..\..\libsofia-sip-ua\nua\nua_stack.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\nua\nua_client.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\nua\nua_client.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\nua\nua_server.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\nua\nua_server.h"
 # End Source File
 # Begin Source File
 
@@ -938,6 +954,10 @@ SOURCE="..\..\libsofia-sip-ua\su\su_port.h"
 # Begin Source File
 
 SOURCE="..\..\libsofia-sip-ua\su\sofia-sip\su_source.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\su\sofia-sip\su_string.h"
 # End Source File
 # Begin Source File
 
@@ -1242,6 +1262,10 @@ SOURCE="..\..\libsofia-sip-ua\sresolv\sofia-resolv\sres_record.h"
 # Begin Source File
 
 SOURCE="..\..\libsofia-sip-ua\sresolv\sofia-sip\sresolv.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\sresolv\sofia-sip\sres_sip.h"
 # End Source File
 # End Group
 # Begin Group "nea headers"

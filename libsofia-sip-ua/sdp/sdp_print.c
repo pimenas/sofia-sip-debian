@@ -34,6 +34,7 @@
 #include "config.h"
 
 #include <sofia-sip/su_alloc.h>
+#include <sofia-sip/su_string.h>
 
 #include "sofia-sip/sdp.h"
 
@@ -87,6 +88,7 @@ static struct sdp_printer_s printer_memory_error = {
 };
 
 static void print_session(sdp_printer_t *p, sdp_session_t const *session);
+static void printing_error(sdp_printer_t *p, const char *fmt, ...);
 
 /** Print a SDP description.
  *
@@ -153,7 +155,10 @@ sdp_printer_t *sdp_print(su_home_t *home,
     p->pr_mode_manual = (flags & sdp_f_mode_manual) != 0;
     p->pr_mode_always = (flags & sdp_f_mode_always) != 0;
 
-    print_session(p, session);
+    if (session)
+      print_session(p, session);
+    else
+      printing_error(p, "NULL session description");
 
     return p;
   }
@@ -260,14 +265,11 @@ static void print_text_list(sdp_printer_t*,
 			    const char *, sdp_list_t const *l);
 
 static void sdp_printf(sdp_printer_t *p, const char *fmt, ...);
-static void printing_error(sdp_printer_t *p, const char *fmt, ...);
 
 static void print_session(sdp_printer_t *p, sdp_session_t const *sdp)
 {
   p->pr_ok = 1;
 
-  if (!sdp)
-    printing_error(p, "NULL session description");
   if (p->pr_ok && sdp->sdp_version)
     print_version(p, sdp->sdp_version);
   if (p->pr_ok && sdp->sdp_origin)
@@ -544,10 +546,10 @@ print_attributes_without_mode(sdp_printer_t *p, sdp_attribute_t const *a)
     char const *name = a->a_name;
     char const *value = a->a_value;
 
-    if (strcasecmp(name, "inactive") == 0 ||
-	strcasecmp(name, "sendonly") == 0 ||
-	strcasecmp(name, "recvonly") == 0 ||
-	strcasecmp(name, "sendrecv") == 0)
+    if (su_casematch(name, "inactive") ||
+	su_casematch(name, "sendonly") ||
+	su_casematch(name, "recvonly") ||
+	su_casematch(name, "sendrecv"))
       continue;
 
     sdp_printf(p, "a=%s%s%s" CRLF, name, value ? ":" : "", value ? value : "");
@@ -588,7 +590,7 @@ static void print_media(sdp_printer_t *p,
     case sdp_proto_udp:   proto = "udp"; break;
     case sdp_proto_rtp:   proto = "RTP/AVP"; break;
     case sdp_proto_srtp:  proto = "RTP/SAVP"; break;
-    case sdp_proto_udptl: proto = "UDPTL"; break;
+    case sdp_proto_udptl: proto = "udptl"; break;
     case sdp_proto_tls:   proto = "tls"; break;
     default:              proto = m->m_proto_name; break;
     }

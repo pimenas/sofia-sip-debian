@@ -37,6 +37,10 @@
 
 #include <nua_types.h>
 
+#ifndef NUA_TAG_H
+#include <sofia-sip/nua_tag.h>
+#endif
+
 /**@internal @brief NUA preferences.
  *
  * This structure contains values for various preferences and a separate
@@ -105,6 +109,10 @@ struct nua_handle_preferences
 
   /** Always include id with Event: refer */
   unsigned         nhp_refer_with_id:1;
+  /** Redirect automatically with 302 responses */
+  unsigned         nhp_auto302:1;
+  /** Redirect automatically with 305 responses */
+  unsigned         nhp_auto305:1;
   unsigned:0;
 
   /* Default lifetime for implicit subscriptions created by REFER */
@@ -177,13 +185,16 @@ struct nua_handle_preferences
     unsigned nhb_path_enable:1;
     unsigned nhb_auth_cache:1;
     unsigned nhb_refer_with_id:1;
+    unsigned nhb_auto302:1;
+    unsigned nhb_auto305:1;
     unsigned nhb_refer_expires:1;
     unsigned nhb_substate:1;
     unsigned nhb_sub_expires:1;
     unsigned nhb_keepalive:1;
+    unsigned :0;		/* at most 32 bits before this point */
+
     unsigned nhb_keepalive_stream:1;
     unsigned nhb_registrar:1;
-    unsigned :0;		/* at most 32 bits before this point */
 
     unsigned nhb_allow:1;
     unsigned nhb_supported:1;
@@ -209,7 +220,7 @@ struct nua_handle_preferences
 
 #define nhp_set nhp_set_.set_bits
 
-/** Global preferences for nua. */
+/** @internal Global preferences for nua. */
 struct nua_global_preferences {
   /** Network detection: NONE, INFORMAL, TRY_FULL */
   signed int ngp_detect_network_updates:3;
