@@ -3,7 +3,6 @@
 /man/
 
 /autom4te.cache/
-/compile
 /config.h
 /config.log
 /config.status

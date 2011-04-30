@@ -33,6 +33,9 @@
 /* Define to 1 if printf supports C99 size specifiers */
 #undef HAVE_C99_FORMAT
 
+/* Define to 1 if check library is available */
+#undef HAVE_CHECK
+
 /* Define to 1 if you have the `clock_getcpuclockid' function. */
 #undef HAVE_CLOCK_GETCPUCLOCKID
 
@@ -178,6 +181,9 @@
 /* Define to 1 if you have the `crypto' library (-lcrypto). */
 #undef HAVE_LIBCRYPTO
 
+/* Define to 1 if dl library is available */
+#undef HAVE_LIBDL
+
 /* Define to 1 if you have the `gcov' library (-lgcov). */
 #undef HAVE_LIBGCOV
 
@@ -234,6 +240,9 @@
 
 /* Define to 1 if you have the <net/if_types.h> header file. */
 #undef HAVE_NET_IF_TYPES_H
+
+/* tcase_add_test() with allowed_exit_value argument */
+#undef HAVE_NEW_TCASE_ADD_TEST
 
 /* Define to 1 if you have OpenSSL */
 #undef HAVE_OPENSSL
@@ -329,9 +338,6 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strcasestr' function. */
-#undef HAVE_STRCASESTR
-
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
 
@@ -340,6 +346,9 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strnlen' function. */
+#undef HAVE_STRNLEN
 
 /* Define to 1 if you have the `strtoull' function. */
 #undef HAVE_STRTOULL
@@ -419,6 +428,9 @@
 
 /* Define printf() modifier for size_t */
 #undef MOD_ZU
+
+/* Define to 1 if your C compiler doesn't accept -c and -o together. */
+#undef NO_MINUS_C_MINUS_O
 
 /* Name of package */
 #undef PACKAGE

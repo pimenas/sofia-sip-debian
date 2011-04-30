@@ -57,7 +57,8 @@ DIST_COMMON = README $(am__configure_deps) $(dist_man_MANS) \
 	$(top_srcdir)/libsofia-sip-ua/features/sofia-sip/sofia_features.h.in \
 	$(top_srcdir)/libsofia-sip-ua/su/sofia-sip/su_configure.h.in \
 	$(top_srcdir)/rules/lcov.am AUTHORS COPYING ChangeLog TODO \
-	config.guess config.sub depcomp install-sh ltmain.sh missing
+	compile config.guess config.sub depcomp install-sh ltmain.sh \
+	missing
 @HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_1 = --frames
 @HAVE_LCOV_TRUE@am__append_2 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
 subdir = .
@@ -243,7 +244,9 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
+SOFIA_GLIB_CFLAGS = @SOFIA_GLIB_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
+SOFIA_PLAT_CFLAGS = @SOFIA_PLAT_CFLAGS@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
 VERSION = @VERSION@
@@ -308,8 +311,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign 1.7
-SUBDIRS = libsofia-sip-ua $(GLIB_SUBDIRS) utils packages tests
-DIST_SUBDIRS = libsofia-sip-ua libsofia-sip-ua-glib utils packages \
+SUBDIRS = s2check libsofia-sip-ua $(GLIB_SUBDIRS) utils packages tests
+DIST_SUBDIRS = s2check libsofia-sip-ua libsofia-sip-ua-glib utils packages \
 	tests win32 open_c
 
 
@@ -925,10 +928,13 @@ manpages:
 built-sources clean-built-sources valcheck doxygen:
 	@failcom='exit 1'; for f in x $$MAKEFLAGS; do \
 	case $$f in *=* | --[!k]*);; *k*) failcom='fail=yes';; esac; done; \
-	for i in libsofia-sip-ua $(GLIB_SUBDIRS) ; do \
+	for i in utils libsofia-sip-ua $(GLIB_SUBDIRS) ; do \
 	  (cd $$i && $(MAKE) $(AM_MAKEFLAGS) $@) || eval $$failcom; \
 	done ; \
 	test -z "$$fail"
+
+# s2check depends on generated headers within libsofia-sip-ua
+all check: built-sources
 
 #
 # Generate pretty coverage report (unless it has been already done)

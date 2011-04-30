@@ -63,6 +63,12 @@
 # Licensed under LGPL. See file COPYING.
 #
 
+# Silent compilation w/ Automake 1.9 or 1.10
+# ----------------------------------------------------------
+
+# Automake 1.9.6 is not clever enough to override suffix rules within if
+# if SOFIA_COMPILE_SILENT
+
 
 
 VPATH = @srcdir@
@@ -90,8 +96,9 @@ TESTS = torture_sdp$(EXEEXT) run_test_sdp
 DIST_COMMON = README $(dist_noinst_SCRIPTS) \
 	$(nobase_include_sofia_HEADERS) $(srcdir)/Doxyfile.in \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/sofia.am \
-	$(top_srcdir)/rules/valcheck.am ChangeLog
+	$(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/silent.am \
+	$(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am \
+	ChangeLog
 
 # Use with --enable-ndebug
 @NDEBUG_TRUE@am__append_1 = -DNDEBUG
@@ -121,14 +128,16 @@ libsdp_la_OBJECTS = $(am_libsdp_la_OBJECTS)
 test_sdp_SOURCES = test_sdp.c
 test_sdp_OBJECTS = test_sdp.$(OBJEXT)
 test_sdp_LDADD = $(LDADD)
-test_sdp_DEPENDENCIES = libsdp.la ../su/libsu.la
+am__DEPENDENCIES_1 =
+test_sdp_DEPENDENCIES = libsdp.la ../su/libsu.la $(am__DEPENDENCIES_1)
 test_sdp_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(test_sdp_LDFLAGS) \
 	$(LDFLAGS) -o $@
 torture_sdp_SOURCES = torture_sdp.c
 torture_sdp_OBJECTS = torture_sdp.$(OBJEXT)
 torture_sdp_LDADD = $(LDADD)
-torture_sdp_DEPENDENCIES = libsdp.la ../su/libsu.la
+torture_sdp_DEPENDENCIES = libsdp.la ../su/libsu.la \
+	$(am__DEPENDENCIES_1)
 torture_sdp_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(torture_sdp_LDFLAGS) $(LDFLAGS) -o $@
@@ -139,13 +148,7 @@ am__depfiles_maybe = depfiles
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
 SOURCES = $(libsdp_la_SOURCES) test_sdp.c torture_sdp.c
 DIST_SOURCES = $(libsdp_la_SOURCES) test_sdp.c torture_sdp.c
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -263,7 +266,9 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
+SOFIA_GLIB_CFLAGS = @SOFIA_GLIB_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
+SOFIA_PLAT_CFLAGS = @SOFIA_PLAT_CFLAGS@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
 VERSION = @VERSION@
@@ -344,9 +349,7 @@ libsdp_la_SOURCES = sdp.c sdp_parse.c sdp_print.c \
 			sdp_tag.c sdp_tag_ref.c
 
 COVERAGE_INPUT = $(libsdp_la_SOURCES) $(include_sofia_HEADERS)
-LDADD = libsdp.la \
-			../su/libsu.la
-
+LDADD = libsdp.la ../su/libsu.la $(openssl_LIBS)
 test_sdp_LDFLAGS = -static
 torture_sdp_LDFLAGS = -static
 
@@ -368,7 +371,7 @@ EXTRA_DIST = sdp.docs $(BUILT_SOURCES) \
 sofiasrcdir = ${top_srcdir}/libsofia-sip-ua
 sofiabuilddir = ${top_builddir}/libsofia-sip-ua
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
-	$(openssl_CFLAGS) $(am__append_1)
+	$(openssl_CFLAGS) $(SOFIA_PLAT_CFLAGS) $(am__append_1)
 SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
@@ -413,12 +416,26 @@ VALGRINDFLAGS = --tool=memcheck
 
 # Fancy shell command that expands to directory relative to top_builddir
 @HAVE_LCOV_TRUE@expand_subdir = `pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+SOFIA_SILENT = @
+LIBTOOL_FLAGS = --silent
+
+# From Automake 1.9.6 - 
+LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(LIBTOOL_FLAGS) \
+	$(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+
+LINK = ${SOFIA_SILENT}test "${SOFIA_SILENT}" != @ || echo '	 LINK $@'; \
+	$(LIBTOOL) --tag=CC --mode=link $(LIBTOOL_FLAGS) \
+	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: _tag_ref.c _tag.c .c .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/silent.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -491,26 +508,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_sdp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_sdp.Po@am__quote@
 
-.c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c $<
-
 .c.obj:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
-
-.c.lo:
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -987,6 +990,27 @@ valcheck-TESTS:	$(TESTS)
 @HAVE_LCOV_TRUE@clean-lcov:
 @HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
 @HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
+
+# Rules from depend2.am (GENERIC = TRUE, SUBDIROBJ = FALSE, %FASTDEP% = am_fastdepCC) silenced. 
+.c.o:
+	@test "${SOFIA_SILENT}" != @ || echo '	 COMPILE $@'
+@am__fastdepCC_TRUE@	${SOFIA_SILENT}if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR="$(DEPDIR)" $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(COMPILE) -c -o $@ $<
+@AMDEP_FALSE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}$(COMPILE) -c -o $@ $<
+
+.c.lo:
+	@test "${SOFIA_SILENT}" != @ || echo '	 LTCOMPILE $@'
+@am__fastdepCC_TRUE@	${SOFIA_SILENT}if $(LTCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR="$(DEPDIR)" $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+@AMDEP_FALSE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}$(LTCOMPILE) -c -o $@ $<
+
+# endif
 
 # ----------------------------------------------------------------------
 # Sofia specific rules

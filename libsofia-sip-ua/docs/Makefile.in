@@ -52,6 +52,12 @@
 # Contact: Pekka Pessi <pekka.pessi@nokia.com>
 # Licensed under LGPL. See file COPYING.
 #
+
+# Silent compilation w/ Automake 1.9 or 1.10
+# ----------------------------------------------------------
+
+# Automake 1.9.6 is not clever enough to override suffix rules within if
+# if SOFIA_COMPILE_SILENT
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -75,8 +81,8 @@ target_triplet = @target@
 DIST_COMMON = $(srcdir)/Doxyfile.in $(srcdir)/Doxyfile.version.in \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/sofia-footer.html.in $(top_srcdir)/rules/lcov.am \
-	$(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am \
-	ChangeLog
+	$(top_srcdir)/rules/silent.am $(top_srcdir)/rules/sofia.am \
+	$(top_srcdir)/rules/valcheck.am ChangeLog
 
 # Use with --enable-ndebug
 @NDEBUG_TRUE@am__append_1 = -DNDEBUG
@@ -189,7 +195,9 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
+SOFIA_GLIB_CFLAGS = @SOFIA_GLIB_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
+SOFIA_PLAT_CFLAGS = @SOFIA_PLAT_CFLAGS@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
 VERSION = @VERSION@
@@ -281,10 +289,14 @@ EXTRA_DIST = Doxyfile.aliases Doxyfile.conf \
 
 BUILT_SOURCES = Doxyfile.rfc
 CLEANFILES = Doxyfile.rfc *.doxytags
+
+# ----------------------------------------------------------------------
+# Sofia specific rules
+LDADD = $(openssl_LIBS)
 sofiasrcdir = ${top_srcdir}/libsofia-sip-ua
 sofiabuilddir = ${top_builddir}/libsofia-sip-ua
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
-	$(openssl_CFLAGS) $(am__append_1)
+	$(openssl_CFLAGS) $(SOFIA_PLAT_CFLAGS) $(am__append_1)
 SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
@@ -329,12 +341,26 @@ VALGRINDFLAGS = --tool=memcheck
 
 # Fancy shell command that expands to directory relative to top_builddir
 @HAVE_LCOV_TRUE@expand_subdir = `pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+SOFIA_SILENT = @
+LIBTOOL_FLAGS = --silent
+
+# From Automake 1.9.6 - 
+LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(LIBTOOL_FLAGS) \
+	$(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+
+LINK = ${SOFIA_SILENT}test "${SOFIA_SILENT}" != @ || echo '	 LINK $@'; \
+	$(LIBTOOL) --tag=CC --mode=link $(LIBTOOL_FLAGS) \
+	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: _tag_ref.c _tag.c
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(am__configure_deps)
+.SUFFIXES: _tag_ref.c _tag.c .c .lo .o
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/silent.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -539,8 +565,8 @@ Doxyfile.rfc: Makefile.am
 		for (i=from; i < to; i++) { \
 		  print "RFC"i"=\"<a href="q site i type q">RFC "i"</a>\" "b; \
 		}}' \
-	site=http://www.faqs.org/rfcs/rfc type=.html \
-	from=700 to=5500 \
+	site=http://tools.ietf.org/html type= \
+	from=700 to=6500 \
 	/dev/null > $@
 
 distclean-local:
@@ -689,8 +715,26 @@ valcheck-TESTS:	$(TESTS)
 @HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
 @HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
 
-# ----------------------------------------------------------------------
-# Sofia specific rules
+# Rules from depend2.am (GENERIC = TRUE, SUBDIROBJ = FALSE, %FASTDEP% = am_fastdepCC) silenced. 
+.c.o:
+	@test "${SOFIA_SILENT}" != @ || echo '	 COMPILE $@'
+@am__fastdepCC_TRUE@	${SOFIA_SILENT}if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR="$(DEPDIR)" $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(COMPILE) -c -o $@ $<
+@AMDEP_FALSE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}$(COMPILE) -c -o $@ $<
+
+.c.lo:
+	@test "${SOFIA_SILENT}" != @ || echo '	 LTCOMPILE $@'
+@am__fastdepCC_TRUE@	${SOFIA_SILENT}if $(LTCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR="$(DEPDIR)" $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+@AMDEP_FALSE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}$(LTCOMPILE) -c -o $@ $<
+
+# endif
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

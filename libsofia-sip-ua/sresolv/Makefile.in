@@ -63,6 +63,12 @@
 # Licensed under LGPL. See file COPYING.
 #
 
+# Silent compilation w/ Automake 1.9 or 1.10
+# ----------------------------------------------------------
+
+# Automake 1.9.6 is not clever enough to override suffix rules within if
+# if SOFIA_COMPILE_SILENT
+
 
 
 VPATH = @srcdir@
@@ -85,18 +91,22 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-check_PROGRAMS = torture_sresolv$(EXEEXT) test_sresolv$(EXEEXT)
-TESTS = torture_sresolv$(EXEEXT) run_test_sresolv
+check_PROGRAMS = torture_sresolv$(EXEEXT) test_sresolv$(EXEEXT) \
+	$(am__EXEEXT_1)
+TESTS = $(am__EXEEXT_1) torture_sresolv$(EXEEXT) run_test_sresolv
+@HAVE_CHECK_TRUE@am__append_1 = check_sres_sip
+@HAVE_CHECK_TRUE@am__append_2 = check_sres_sip
+@HAVE_CHECK_TRUE@am__append_3 = -I${top_srcdir}/s2check
 DIST_COMMON = $(dist_noinst_DATA) $(nobase_include_sofia_HEADERS) \
 	$(srcdir)/Doxyfile.in $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/rules/lcov.am \
-	$(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am \
-	ChangeLog
+	$(top_srcdir)/rules/silent.am $(top_srcdir)/rules/sofia.am \
+	$(top_srcdir)/rules/valcheck.am ChangeLog
 
 # Use with --enable-ndebug
-@NDEBUG_TRUE@am__append_1 = -DNDEBUG
-@HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_2 = --frames
-@HAVE_LCOV_TRUE@am__append_3 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
+@NDEBUG_TRUE@am__append_4 = -DNDEBUG
+@HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_5 = --frames
+@HAVE_LCOV_TRUE@am__append_6 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
 subdir = libsofia-sip-ua/sresolv
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -116,37 +126,40 @@ CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libsresolv_la_LIBADD =
 am_libsresolv_la_OBJECTS = sres.lo sres_cache.lo sres_blocking.lo \
-	sresolv.lo
+	sresolv.lo sres_sip.lo
 libsresolv_la_OBJECTS = $(am_libsresolv_la_OBJECTS)
+@HAVE_CHECK_TRUE@am__EXEEXT_1 = check_sres_sip$(EXEEXT)
+check_sres_sip_SOURCES = check_sres_sip.c
+check_sres_sip_OBJECTS = check_sres_sip.$(OBJEXT)
+am__DEPENDENCIES_1 =
+am__DEPENDENCIES_2 = libsresolv.la ../url/liburl.la ../bnf/libbnf.la \
+	../su/libsu.la $(am__DEPENDENCIES_1)
+@HAVE_CHECK_TRUE@check_sres_sip_DEPENDENCIES = $(am__DEPENDENCIES_2) \
+@HAVE_CHECK_TRUE@	${top_builddir}/s2check/libs2.a
 test_sresolv_SOURCES = test_sresolv.c
 test_sresolv_OBJECTS = test_sresolv.$(OBJEXT)
 test_sresolv_LDADD = $(LDADD)
-test_sresolv_DEPENDENCIES = ../url/liburl.la ../bnf/libbnf.la \
-	libsresolv.la ../su/libsu.la
+test_sresolv_DEPENDENCIES = libsresolv.la ../url/liburl.la \
+	../bnf/libbnf.la ../su/libsu.la $(am__DEPENDENCIES_1)
 test_sresolv_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(test_sresolv_LDFLAGS) $(LDFLAGS) -o $@
 torture_sresolv_SOURCES = torture_sresolv.c
 torture_sresolv_OBJECTS = torture_sresolv.$(OBJEXT)
 torture_sresolv_LDADD = $(LDADD)
-torture_sresolv_DEPENDENCIES = ../url/liburl.la ../bnf/libbnf.la \
-	libsresolv.la ../su/libsu.la
+torture_sresolv_DEPENDENCIES = libsresolv.la ../url/liburl.la \
+	../bnf/libbnf.la ../su/libsu.la $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir) -I$(top_builddir)/libsofia-sip-ua/su/sofia-sip
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-SOURCES = $(libsresolv_la_SOURCES) test_sresolv.c torture_sresolv.c
-DIST_SOURCES = $(libsresolv_la_SOURCES) test_sresolv.c \
+SOURCES = $(libsresolv_la_SOURCES) check_sres_sip.c test_sresolv.c \
 	torture_sresolv.c
+DIST_SOURCES = $(libsresolv_la_SOURCES) check_sres_sip.c \
+	test_sresolv.c torture_sresolv.c
 DATA = $(dist_noinst_DATA)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -263,7 +276,9 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
+SOFIA_GLIB_CFLAGS = @SOFIA_GLIB_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
+SOFIA_PLAT_CFLAGS = @SOFIA_PLAT_CFLAGS@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
 VERSION = @VERSION@
@@ -327,40 +342,40 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-INCLUDES = -I$(srcdir)/../url -I../url \
-			-I$(srcdir)/../bnf -I../bnf \
-			-I$(srcdir)/../su -I../su
-
+INCLUDES = -I$(srcdir)/../url -I../url -I$(srcdir)/../bnf -I../bnf \
+	-I$(srcdir)/../su -I../su $(am__append_3)
 
 # ----------------------------------------------------------------------
 # Build targets
 noinst_LTLIBRARIES = libsresolv.la
+@HAVE_CHECK_TRUE@check_sres_sip_LDADD = $(LDADD) ${top_builddir}/s2check/libs2.a @CHECK_LIBS@
 CLEANFILES = resolv.conf error.conf named.conf.tmp \
 			.test_sresolv.api.conf.?????? \
 			named.run
 
-LDADD = ../url/liburl.la ../bnf/libbnf.la \
-			libsresolv.la \
-			../su/libsu.la
-
+LDADD = libsresolv.la ../url/liburl.la ../bnf/libbnf.la ../su/libsu.la \
+	$(openssl_LIBS)
 test_sresolv_LDFLAGS = -static
 
 # ----------------------------------------------------------------------
 # Rules for building the targets
 nobase_include_sofia_HEADERS = \
 			sofia-sip/sresolv.h \
+			sofia-sip/sres_sip.h \
 			sofia-resolv/sres.h \
 			sofia-resolv/sres_config.h \
 			sofia-resolv/sres_async.h \
 			sofia-resolv/sres_cache.h \
 			sofia-resolv/sres_record.h
 
-libsresolv_la_SOURCES = sres.c sres_cache.c sres_blocking.c sresolv.c
+libsresolv_la_SOURCES = sres.c sres_cache.c sres_blocking.c \
+			sresolv.c sres_sip.c
+
 COVERAGE_INPUT = $(libsresolv_la_SOURCES) $(include_sofia_HEADERS)
 
 # ----------------------------------------------------------------------
 # Distribution
-EXTRA_DIST = sresolv.docs
+EXTRA_DIST = sresolv.docs check_sres_sip.c
 dist_noinst_DATA = run_test_sresolv \
 	root.zone rndc.conf \
 	127.zone 194.2.188 3.f.f.e.1.2.0.0.3.0.1.2.c.0.0.0 example.com \
@@ -369,7 +384,7 @@ dist_noinst_DATA = run_test_sresolv \
 sofiasrcdir = ${top_srcdir}/libsofia-sip-ua
 sofiabuilddir = ${top_builddir}/libsofia-sip-ua
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
-	$(openssl_CFLAGS) $(am__append_1)
+	$(openssl_CFLAGS) $(SOFIA_PLAT_CFLAGS) $(am__append_4)
 SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
@@ -397,7 +412,7 @@ INTERNAL_INCLUDES = \
     -I${sofiasrcdir}/url -I${sofiabuilddir}/url \
     -I${sofiasrcdir}/su -I${sofiabuilddir}/su
 
-PHONY = built-sources clean-built-sources $(am__append_3)
+PHONY = built-sources clean-built-sources $(am__append_6)
 VALGRIND = valgrind
 VALGRINDFLAGS = --tool=memcheck
 
@@ -410,15 +425,29 @@ VALGRINDFLAGS = --tool=memcheck
 
 # Options
 @HAVE_LCOV_TRUE@GENHTML_OPTIONS = --show-details --legend \
-@HAVE_LCOV_TRUE@	$(am__append_2)
+@HAVE_LCOV_TRUE@	$(am__append_5)
 
 # Fancy shell command that expands to directory relative to top_builddir
 @HAVE_LCOV_TRUE@expand_subdir = `pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+SOFIA_SILENT = @
+LIBTOOL_FLAGS = --silent
+
+# From Automake 1.9.6 - 
+LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(LIBTOOL_FLAGS) \
+	$(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+
+LINK = ${SOFIA_SILENT}test "${SOFIA_SILENT}" != @ || echo '	 LINK $@'; \
+	$(LIBTOOL) --tag=CC --mode=link $(LIBTOOL_FLAGS) \
+	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+
 all: all-am
 
 .SUFFIXES:
 .SUFFIXES: _tag_ref.c _tag.c .c .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/silent.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -470,6 +499,9 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+check_sres_sip$(EXEEXT): $(check_sres_sip_OBJECTS) $(check_sres_sip_DEPENDENCIES) 
+	@rm -f check_sres_sip$(EXEEXT)
+	$(LINK) $(check_sres_sip_OBJECTS) $(check_sres_sip_LDADD) $(LIBS)
 test_sresolv$(EXEEXT): $(test_sresolv_OBJECTS) $(test_sresolv_DEPENDENCIES) 
 	@rm -f test_sresolv$(EXEEXT)
 	$(test_sresolv_LINK) $(test_sresolv_OBJECTS) $(test_sresolv_LDADD) $(LIBS)
@@ -483,19 +515,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_sres_sip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sres.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sres_blocking.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sres_cache.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sres_sip.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sresolv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_sresolv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_sresolv.Po@am__quote@
-
-.c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c $<
 
 .c.obj:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
@@ -503,13 +530,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
-
-.c.lo:
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -984,6 +1004,27 @@ valcheck-TESTS:	$(TESTS)
 @HAVE_LCOV_TRUE@clean-lcov:
 @HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
 @HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
+
+# Rules from depend2.am (GENERIC = TRUE, SUBDIROBJ = FALSE, %FASTDEP% = am_fastdepCC) silenced. 
+.c.o:
+	@test "${SOFIA_SILENT}" != @ || echo '	 COMPILE $@'
+@am__fastdepCC_TRUE@	${SOFIA_SILENT}if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR="$(DEPDIR)" $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(COMPILE) -c -o $@ $<
+@AMDEP_FALSE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}$(COMPILE) -c -o $@ $<
+
+.c.lo:
+	@test "${SOFIA_SILENT}" != @ || echo '	 LTCOMPILE $@'
+@am__fastdepCC_TRUE@	${SOFIA_SILENT}if $(LTCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR="$(DEPDIR)" $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+@AMDEP_FALSE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}$(LTCOMPILE) -c -o $@ $<
+
+# endif
 
 # ----------------------------------------------------------------------
 # Sofia specific rules

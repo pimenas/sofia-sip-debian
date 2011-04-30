@@ -59,6 +59,12 @@
 # Contact: Pekka Pessi <pekka.pessi@nokia.com>
 # Licensed under LGPL. See file COPYING.
 #
+
+# Silent compilation w/ Automake 1.9 or 1.10
+# ----------------------------------------------------------
+
+# Automake 1.9.6 is not clever enough to override suffix rules within if
+# if SOFIA_COMPILE_SILENT
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -81,11 +87,11 @@ host_triplet = @host@
 target_triplet = @target@
 TESTS = test_nua$(EXEEXT) $(am__EXEEXT_1)
 check_PROGRAMS = test_nua$(EXEEXT) $(am__EXEEXT_1)
-@HAVE_CHECK_TRUE@am__append_1 = check_sofia
-@HAVE_CHECK_TRUE@am__append_2 = check_sofia
+@HAVE_CHECK_TRUE@am__append_1 = check_dlopen_sofia check_sofia
+@HAVE_CHECK_TRUE@am__append_2 = check_dlopen_sofia check_sofia
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/sofia.am \
-	$(top_srcdir)/rules/valcheck.am
+	$(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/silent.am \
+	$(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am
 
 # Use with --enable-ndebug
 @NDEBUG_TRUE@am__append_3 = -DNDEBUG
@@ -127,38 +133,43 @@ libtestproxy_a_AR = $(AR) $(ARFLAGS)
 libtestproxy_a_LIBADD =
 am_libtestproxy_a_OBJECTS = test_proxy.$(OBJEXT)
 libtestproxy_a_OBJECTS = $(am_libtestproxy_a_OBJECTS)
-@HAVE_CHECK_TRUE@am__EXEEXT_1 = check_sofia$(EXEEXT)
+@HAVE_CHECK_TRUE@am__EXEEXT_1 = check_dlopen_sofia$(EXEEXT) \
+@HAVE_CHECK_TRUE@	check_sofia$(EXEEXT)
+check_dlopen_sofia_SOURCES = check_dlopen_sofia.c
+check_dlopen_sofia_OBJECTS =  \
+	check_dlopen_sofia-check_dlopen_sofia.$(OBJEXT)
+am__DEPENDENCIES_1 =
+am__DEPENDENCIES_2 = ${sofiabuilddir}/libsofia-sip-ua.la \
+	$(am__DEPENDENCIES_1)
+check_dlopen_sofia_DEPENDENCIES = ${top_builddir}/s2check/libs2.a \
+	$(am__DEPENDENCIES_2)
+check_dlopen_sofia_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(check_dlopen_sofia_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_check_sofia_OBJECTS = check_sofia-check_sofia.$(OBJEXT) \
 	check_sofia-suite_for_nua.$(OBJEXT)
 check_sofia_OBJECTS = $(am_check_sofia_OBJECTS)
-check_sofia_DEPENDENCIES = $(check_LIBRARIES) \
-	${sofiabuilddir}/libsofia-sip-ua.la
+check_sofia_DEPENDENCIES = $(check_LIBRARIES) $(am__DEPENDENCIES_2)
 check_sofia_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(check_sofia_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_test_nua_OBJECTS = test_nua.$(OBJEXT)
 test_nua_OBJECTS = $(am_test_nua_OBJECTS)
-test_nua_DEPENDENCIES = $(check_LIBRARIES) \
-	${sofiabuilddir}/libsofia-sip-ua.la
+test_nua_DEPENDENCIES = $(check_LIBRARIES) $(am__DEPENDENCIES_2)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir) -I$(top_builddir)/libsofia-sip-ua/su/sofia-sip
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
 SOURCES = $(libtestnat_a_SOURCES) $(libtestnua_a_SOURCES) \
-	$(libtestproxy_a_SOURCES) $(check_sofia_SOURCES) \
-	$(test_nua_SOURCES)
+	$(libtestproxy_a_SOURCES) check_dlopen_sofia.c \
+	$(check_sofia_SOURCES) $(test_nua_SOURCES)
 DIST_SOURCES = $(libtestnat_a_SOURCES) $(libtestnua_a_SOURCES) \
-	$(libtestproxy_a_SOURCES) $(check_sofia_SOURCES) \
-	$(test_nua_SOURCES)
+	$(libtestproxy_a_SOURCES) check_dlopen_sofia.c \
+	$(check_sofia_SOURCES) $(test_nua_SOURCES)
 CTAGS = ctags
 am__tty_colors = \
 red=; grn=; lgn=; blu=; std=
@@ -251,7 +262,9 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
+SOFIA_GLIB_CFLAGS = @SOFIA_GLIB_CFLAGS@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
+SOFIA_PLAT_CFLAGS = @SOFIA_PLAT_CFLAGS@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
 VERSION = @VERSION@
@@ -317,9 +330,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 EXTRA_DIST = check_sofia.h check_sofia.c suite_for_nua.c
 test_nua_SOURCES = test_nua.c
-test_nua_LDADD = $(check_LIBRARIES) \
-			${sofiabuilddir}/libsofia-sip-ua.la
-
+LDADD = ${sofiabuilddir}/libsofia-sip-ua.la $(openssl_LIBS)
+test_nua_LDADD = $(check_LIBRARIES) $(LDADD)
 check_LIBRARIES = libtestnua.a libtestproxy.a libtestnat.a
 libtestnua_a_SOURCES = test_nua.h test_ops.c \
 			test_init.c \
@@ -338,15 +350,19 @@ check_sofia_CFLAGS = @CHECK_CFLAGS@
 check_sofia_SOURCES = check_sofia.c check_sofia.h \
 	suite_for_nua.c
 
-check_sofia_LDADD = $(check_LIBRARIES) \
-			${sofiabuilddir}/libsofia-sip-ua.la \
+check_sofia_LDADD = $(check_LIBRARIES) $(LDADD) \
+			@CHECK_LIBS@ 
+
+check_dlopen_sofia_CFLAGS = -I$(top_srcdir)/s2check @CHECK_CFLAGS@
+check_dlopen_sofia_LDADD = \
+			${top_builddir}/s2check/libs2.a $(LDADD) -ldl \
 			@CHECK_LIBS@
 
 CLEANFILES = tmp_sippasswd.??????
 sofiasrcdir = ${top_srcdir}/libsofia-sip-ua
 sofiabuilddir = ${top_builddir}/libsofia-sip-ua
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
-	$(openssl_CFLAGS) $(am__append_3)
+	$(openssl_CFLAGS) $(SOFIA_PLAT_CFLAGS) $(am__append_3)
 SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
@@ -391,6 +407,20 @@ VALGRINDFLAGS = --tool=memcheck
 
 # Fancy shell command that expands to directory relative to top_builddir
 @HAVE_LCOV_TRUE@expand_subdir = `pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+SOFIA_SILENT = @
+LIBTOOL_FLAGS = --silent
+
+# From Automake 1.9.6 - 
+LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(LIBTOOL_FLAGS) \
+	$(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+
+LINK = ${SOFIA_SILENT}test "${SOFIA_SILENT}" != @ || echo '	 LINK $@'; \
+	$(LIBTOOL) --tag=CC --mode=link $(LIBTOOL_FLAGS) \
+	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+
 
 # ----------------------------------------------------------------------
 # Sofia specific rules
@@ -399,7 +429,7 @@ all: all-am
 
 .SUFFIXES:
 .SUFFIXES: _tag_ref.c _tag.c .c .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/silent.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -453,6 +483,9 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+check_dlopen_sofia$(EXEEXT): $(check_dlopen_sofia_OBJECTS) $(check_dlopen_sofia_DEPENDENCIES) 
+	@rm -f check_dlopen_sofia$(EXEEXT)
+	$(check_dlopen_sofia_LINK) $(check_dlopen_sofia_OBJECTS) $(check_dlopen_sofia_LDADD) $(LIBS)
 check_sofia$(EXEEXT): $(check_sofia_OBJECTS) $(check_sofia_DEPENDENCIES) 
 	@rm -f check_sofia$(EXEEXT)
 	$(check_sofia_LINK) $(check_sofia_OBJECTS) $(check_sofia_LDADD) $(LIBS)
@@ -466,6 +499,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_dlopen_sofia-check_dlopen_sofia.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_sofia-check_sofia.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_sofia-suite_for_nua.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_100rel.Po@am__quote@
@@ -489,13 +523,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_simple.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_sip_events.Po@am__quote@
 
-.c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c $<
-
 .c.obj:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
@@ -503,12 +530,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
-.c.lo:
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+check_dlopen_sofia-check_dlopen_sofia.o: check_dlopen_sofia.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_dlopen_sofia_CFLAGS) $(CFLAGS) -MT check_dlopen_sofia-check_dlopen_sofia.o -MD -MP -MF $(DEPDIR)/check_dlopen_sofia-check_dlopen_sofia.Tpo -c -o check_dlopen_sofia-check_dlopen_sofia.o `test -f 'check_dlopen_sofia.c' || echo '$(srcdir)/'`check_dlopen_sofia.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/check_dlopen_sofia-check_dlopen_sofia.Tpo $(DEPDIR)/check_dlopen_sofia-check_dlopen_sofia.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='check_dlopen_sofia.c' object='check_dlopen_sofia-check_dlopen_sofia.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_dlopen_sofia_CFLAGS) $(CFLAGS) -c -o check_dlopen_sofia-check_dlopen_sofia.o `test -f 'check_dlopen_sofia.c' || echo '$(srcdir)/'`check_dlopen_sofia.c
+
+check_dlopen_sofia-check_dlopen_sofia.obj: check_dlopen_sofia.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_dlopen_sofia_CFLAGS) $(CFLAGS) -MT check_dlopen_sofia-check_dlopen_sofia.obj -MD -MP -MF $(DEPDIR)/check_dlopen_sofia-check_dlopen_sofia.Tpo -c -o check_dlopen_sofia-check_dlopen_sofia.obj `if test -f 'check_dlopen_sofia.c'; then $(CYGPATH_W) 'check_dlopen_sofia.c'; else $(CYGPATH_W) '$(srcdir)/check_dlopen_sofia.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/check_dlopen_sofia-check_dlopen_sofia.Tpo $(DEPDIR)/check_dlopen_sofia-check_dlopen_sofia.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='check_dlopen_sofia.c' object='check_dlopen_sofia-check_dlopen_sofia.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_dlopen_sofia_CFLAGS) $(CFLAGS) -c -o check_dlopen_sofia-check_dlopen_sofia.obj `if test -f 'check_dlopen_sofia.c'; then $(CYGPATH_W) 'check_dlopen_sofia.c'; else $(CYGPATH_W) '$(srcdir)/check_dlopen_sofia.c'; fi`
 
 check_sofia-check_sofia.o: check_sofia.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_sofia_CFLAGS) $(CFLAGS) -MT check_sofia-check_sofia.o -MD -MP -MF $(DEPDIR)/check_sofia-check_sofia.Tpo -c -o check_sofia-check_sofia.o `test -f 'check_sofia.c' || echo '$(srcdir)/'`check_sofia.c
@@ -983,6 +1017,27 @@ valcheck-TESTS:	$(TESTS)
 @HAVE_LCOV_TRUE@clean-lcov:
 @HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
 @HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
+
+# Rules from depend2.am (GENERIC = TRUE, SUBDIROBJ = FALSE, %FASTDEP% = am_fastdepCC) silenced. 
+.c.o:
+	@test "${SOFIA_SILENT}" != @ || echo '	 COMPILE $@'
+@am__fastdepCC_TRUE@	${SOFIA_SILENT}if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR="$(DEPDIR)" $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(COMPILE) -c -o $@ $<
+@AMDEP_FALSE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}$(COMPILE) -c -o $@ $<
+
+.c.lo:
+	@test "${SOFIA_SILENT}" != @ || echo '	 LTCOMPILE $@'
+@am__fastdepCC_TRUE@	${SOFIA_SILENT}if $(LTCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR="$(DEPDIR)" $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+@AMDEP_FALSE@@am__fastdepCC_FALSE@	${SOFIA_SILENT}$(LTCOMPILE) -c -o $@ $<
+
+# endif
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
