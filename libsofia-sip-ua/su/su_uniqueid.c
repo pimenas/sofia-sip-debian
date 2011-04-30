@@ -186,7 +186,7 @@ static void init(void)
 static
 void init_node(void)
 {
-  int i;
+  size_t i;
 
 #if HAVE_GETIFADDRS && HAVE_SOCKADDR_LL
   struct ifaddrs *ifa, *results;
@@ -196,7 +196,7 @@ void init_node(void)
 #if HAVE_SOCKADDR_LL
       struct sockaddr_ll const *sll = (void *)ifa->ifa_addr;
 
-      if (sll->sll_family != AF_PACKET)
+      if (sll == NULL || sll->sll_family != AF_PACKET)
 	continue;
       switch (sll->sll_hatype) {
       case ARPHRD_ETHER:
@@ -265,7 +265,7 @@ void su_guid_generate(su_guid_t *v)
 /*
  * Human-readable form of GloballyUniqueID
  */
-int su_guid_sprintf(char* buf, size_t len, su_guid_t const *v)
+isize_t su_guid_sprintf(char* buf, size_t len, su_guid_t const *v)
 {
   char mybuf[su_guid_strlen + 1];
   sprintf(mybuf, "%08lx-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
@@ -286,10 +286,14 @@ int su_guid_sprintf(char* buf, size_t len, su_guid_t const *v)
 int su_randint(int lb, int ub)
 {
   unsigned rnd = 0;
-
+  
   if (!initialized) init(); 
 
-  rnd = random();
+  if (urandom) {
+    fread(&rnd, 1, sizeof rnd, urandom);
+  }
+  else
+    rnd = random();
 
   if (ub - lb + 1 != 0)
     rnd %= (ub - lb + 1);
@@ -303,7 +307,10 @@ void *su_randmem(void *mem, size_t siz)
 
   if (!initialized) init(); 
 
-  for (i = 0; i < siz; i++) {
+  if (urandom) {
+    fread(mem, 1, siz, urandom);
+  }
+  else for (i = 0; i < siz; i++) {
     unsigned r = random();
     ((char *)mem)[i] = (r >> 24) ^ (r >> 16) ^ (r >> 8) ^ r;
   }
@@ -318,7 +325,14 @@ void *su_randmem(void *mem, size_t siz)
  */
 uint32_t su_random(void)
 {
+  uint32_t rnd;
+
   if (!initialized) init(); 
 
-  return (uint32_t)random();
+  if (urandom)
+    fread(&rnd, 1, sizeof rnd, urandom);
+  else
+    rnd = (uint32_t)random();
+
+  return rnd;
 }

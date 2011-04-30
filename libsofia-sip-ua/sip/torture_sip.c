@@ -67,105 +67,51 @@ int tstflags;
 
 char const *name = "torture_sip.c";
 
-static int test_methods(void);
-static int test_basic(void);
-static int test_sip_msg_class(msg_mclass_t const *mc);
-static int test_encoding(void);
-static int tag_test(void);
-static int parser_tag_test(void);
-static int response_phrase_test(void);
-static int parser_test(void);
-static int sip_header_test(void);
-static int test_bad_packet(void);
-static int test_sip_list_header(void);
-static int test_prack(void);
-static int test_accept(void);
-static int test_content_disposition(void);
-static int test_features(void);
-static int test_retry_after(void);
-static int test_session_expires(void);
-static int test_min_se(void);
-static int test_refer(void);
-static int test_events(void);
-static int test_reason(void);
-static int test_warning(void);
-static int test_route(void);
-
-static int test_request_disposition(void);
-static int test_caller_prefs(void);
-static int test_callerpref_scoring(void);
-static int test_sec_ext(void);
-static int test_utils(void);
-
-
 msg_mclass_t *test_mclass = NULL;
 
 static msg_t *read_message(int flags, char const string[]);
 
-void usage(void)
+int test_manipulation(void)
 {
-  fprintf(stderr, 
-	  "usage: %s [-v]\n", 
-	  name);
-}
+  BEGIN();
 
-char *lastpart(char *path)
-{
-  if (strchr(path, '/')) 
-    return strrchr(path, '/') + 1;
-  else
-    return path;
-}
+  sip_content_length_t *l;
+  sip_payload_t *pl;
+  msg_t *msg, *msg0;
+  sip_t *sip;
 
-int main(int argc, char *argv[])
-{
-  int retval = 0;
-  int i;
+  msg0 = read_message(MSG_DO_EXTRACT_COPY, 
+    "MESSAGE sip:foo@bar SIP/2.0\r\n"
+    "To: Joe User <sip:foo@bar>\r\n"
+    "From: \"Bar Owner\" <sip:bar@foo>;tag=foobar\r\n"
+    "Call-ID: 0ha0isndaksdj@10.1.2.3\r\n"
+    "CSeq: 8 MESSAGE\r\n"
+    "Via: SIP/2.0/UDP 135.180.130.133\r\n"
+    "Content-Length: 7\r\n"
+    "Content-Type: text/plain\r\n"
+    "\r\n"
+    "Heippa!");
+  TEST_1(msg0);
+  TEST_1(msg = msg_copy(msg0));
+  TEST_1(sip = sip_object(msg));
 
-  name = lastpart(argv[0]);  /* Set our name */
+  TEST_1(l = sip_content_length_make(msg_home(msg), "6"));
+  TEST_1(pl = sip_payload_make(msg_home(msg), "hello!"));
 
-  for (i = 1; argv[i]; i++) {
-    if (strcmp(argv[i], "-v") == 0)
-      tstflags |= tst_verbatim;
-    else
-      usage();
-  }
+  TEST_1(msg_header_replace(msg, NULL, 
+			    (void *)sip->sip_content_length, 
+			    (void *)l) >= 0);
+  TEST_1(msg_header_replace(msg, NULL, 
+			    (void *)sip->sip_payload, 
+			    (void *)pl) >= 0);
 
-  if (!test_mclass)
-    test_mclass = msg_mclass_clone(sip_default_mclass(), 0, 0);
-  
-  retval |= test_methods(); fflush(stdout);
-  retval |= test_basic(); fflush(stdout);
-  retval |= test_sip_msg_class(test_mclass); fflush(stdout);
-  retval |= test_encoding(); fflush(stdout);
-  retval |= test_events(); fflush(stdout);
-  retval |= test_reason(); fflush(stdout);
-  retval |= tag_test(); fflush(stdout);
-  retval |= parser_tag_test(); fflush(stdout);
-  retval |= response_phrase_test(); fflush(stdout);
-  retval |= parser_test(); fflush(stdout);
-  retval |= sip_header_test(); fflush(stdout);
-  retval |= test_bad_packet(); fflush(stdout);
-  retval |= test_sip_list_header(); fflush(stdout);
-  retval |= test_prack(); fflush(stdout);
-  retval |= test_accept(); fflush(stdout);
-  retval |= test_content_disposition(); fflush(stdout);
-  retval |= test_features(); fflush(stdout);
-  retval |= test_retry_after(); fflush(stdout);
-  retval |= test_session_expires(); fflush(stdout);
-  retval |= test_min_se(); fflush(stdout);
-  retval |= test_refer(); fflush(stdout);
-  retval |= test_route(); fflush(stdout);
-  retval |= test_request_disposition(); fflush(stdout);
-  retval |= test_caller_prefs(); fflush(stdout);
-  retval |= test_callerpref_scoring(); fflush(stdout);
-  retval |= test_warning(); fflush(stdout);
+  TEST(msg_serialize(msg, NULL), 0);
+  TEST_1(msg_prepare(msg) > 0);
 
-  retval |= test_sec_ext(); fflush(stdout);
+  msg_destroy(msg);
+  msg_destroy(msg0);
 
-  retval |= test_utils(); fflush(stdout);
-
-  return retval;
+  END();
 }
 
 int test_methods(void)
@@ -719,7 +665,8 @@ int test_sip_msg_class(msg_mclass_t const *mc)
 
 msg_t *read_message(int flags, char const buffer[])
 {
-  int n, m;
+  size_t n;
+  int m;
   msg_t *msg;
   msg_iovec_t iovec[2];
 
@@ -810,7 +757,7 @@ static int test_encoding(void)
 
   for (h = (msg_header_t *)sip->sip_request; h; h = h->sh_succ) {
     char b[80];
-    int n;
+    size_t n;
 
     if (h == (msg_header_t*)sip->sip_payload)
       break;
@@ -870,7 +817,7 @@ static int test_encoding(void)
 
   for (h = (msg_header_t *)sip->sip_status; h; h = h->sh_succ) {
     char b[80];
-    int n;
+    size_t n;
 
     if (h == (sip_header_t*)sip->sip_payload)
       break;
@@ -966,7 +913,7 @@ int tag_test(void)
     (url_t *)"sip:test:pass@example.com;baz=1?foo&bar");
 
   tagi_t *lst, *dup;
-  int xtra;
+  size_t xtra;
   tag_value_t v;
 
   BEGIN();
@@ -1029,7 +976,7 @@ static int parser_tag_test(void)
   msg_t *msg;
   sip_t *sip;
   su_home_t *home;
-  int xtra;
+  size_t xtra;
 
   BEGIN();
 
@@ -2654,7 +2601,7 @@ int test_caller_prefs(void)
   TEST_S(ac->cp_params[4], "q=1.0");
   TEST(ac->cp_params[5], NULL);
 
-  TEST_S(ac->cp_q, "1.0");
+  /* TEST_S(ac->cp_q, "1.0"); */
   TEST(ac->cp_require, 1);
   TEST(ac->cp_explicit, 1);
 
@@ -2710,12 +2657,12 @@ int test_caller_prefs(void)
   TEST_S(m1->m_params[0], "+audio"); TEST(m1->m_params[1], NULL);
 
   TEST_1(ac = sip_accept_contact_make(home, "*;q=0.9;require;explicit"));
-  TEST_S(ac->cp_q, "0.9");
+  /* TEST_S(ac->cp_q, "0.9"); */
   TEST_1(ac->cp_require);
   TEST_1(ac->cp_explicit);
 
   TEST(msg_header_remove_param(ac->cp_common, "Q"), 1);
-  TEST(ac->cp_q, NULL);
+  /* TEST(ac->cp_q, NULL); */
   TEST(msg_header_remove_param(ac->cp_common, "require="), 1);
   TEST(ac->cp_require, 0);
   TEST(msg_header_remove_param(ac->cp_common, "require="), 0);
@@ -3034,3 +2981,71 @@ static int test_utils(void)
 
   END();
 }
+
+void usage(void)
+{
+  fprintf(stderr, 
+	  "usage: %s [-v]\n", 
+	  name);
+}
+
+char *lastpart(char *path)
+{
+  if (strchr(path, '/')) 
+    return strrchr(path, '/') + 1;
+  else
+    return path;
+}
+
+int main(int argc, char *argv[])
+{
+  int retval = 0;
+  int i;
+
+  name = lastpart(argv[0]);  /* Set our name */
+
+  for (i = 1; argv[i]; i++) {
+    if (strcmp(argv[i], "-v") == 0)
+      tstflags |= tst_verbatim;
+    else
+      usage();
+  }
+
+  if (!test_mclass)
+    test_mclass = msg_mclass_clone(sip_default_mclass(), 0, 0);
+  
+  retval |= test_manipulation(); fflush(stdout);
+  retval |= test_methods(); fflush(stdout);
+  retval |= test_basic(); fflush(stdout);
+  retval |= test_sip_msg_class(test_mclass); fflush(stdout);
+  retval |= test_encoding(); fflush(stdout);
+  retval |= test_events(); fflush(stdout);
+  retval |= test_reason(); fflush(stdout);
+  retval |= tag_test(); fflush(stdout);
+  retval |= parser_tag_test(); fflush(stdout);
+  retval |= response_phrase_test(); fflush(stdout);
+  retval |= parser_test(); fflush(stdout);
+  retval |= sip_header_test(); fflush(stdout);
+  retval |= test_bad_packet(); fflush(stdout);
+  retval |= test_sip_list_header(); fflush(stdout);
+  retval |= test_prack(); fflush(stdout);
+  retval |= test_accept(); fflush(stdout);
+  retval |= test_content_disposition(); fflush(stdout);
+  retval |= test_features(); fflush(stdout);
+  retval |= test_retry_after(); fflush(stdout);
+  retval |= test_session_expires(); fflush(stdout);
+  retval |= test_min_se(); fflush(stdout);
+  retval |= test_refer(); fflush(stdout);
+  retval |= test_route(); fflush(stdout);
+  retval |= test_request_disposition(); fflush(stdout);
+  retval |= test_caller_prefs(); fflush(stdout);
+  retval |= test_callerpref_scoring(); fflush(stdout);
+  retval |= test_warning(); fflush(stdout);
+
+  retval |= test_sec_ext(); fflush(stdout);
+
+  retval |= test_utils(); fflush(stdout);
+
+  return retval;
+}
+

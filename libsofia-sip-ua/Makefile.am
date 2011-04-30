@@ -54,32 +54,50 @@ clean-built-sources: clean-built-sources-recursive
 
 built-sources-recursive clean-built-sources-recursive $(COVERAGE_RECURSIVE):
 	target=`echo $@ | sed s/-recursive//`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
+	list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
 	  echo "Making $@ in $$subdir"; \
 	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$target) \
 	done;
 
-empty-doxytags:
+doxygen: built-sources
 	@echo Generating empty doxytags
 	cd ${srcdir}; \
 	mkdir -p docs/html ; \
 	for d in $(DIST_SUBDIRS); do \
 	  test -r $$d/Doxyfile || continue ; \
-	  if ! test -r docs/doxytags_$$d ; then \
-		echo '<?xml version="1.0"?>' > docs/doxytags_$$d ; \
-		echo '<tagfile />' >>  docs/doxytags_$$d ; \
+	  if ! test -r docs/$$d.doxytags ; then \
+	    echo '<?xml version="1.0"?><tagfile/>' > docs/$$d.doxytags ; \
+	  else \
+	    sed '2,10s!<name>index</name>!<name>'$$d'_index</name>!' \
+	    docs/$$d.doxytags > docs/$$d.doxytags.tmp && \
+	    mv -f docs/$$d.doxytags.tmp docs/$$d.doxytags ; \
           fi ; \
 	done
-
-doxygen: built-sources empty-doxytags 
 	@cd ${srcdir} ;\
-	for d in $(DIST_SUBDIRS) $(DIST_SUBDIRS); do \
+	for d in $(DIST_SUBDIRS); do \
 	  test -r $$d/Doxyfile \
 	  && pushd $$d > /dev/null \
-	  && echo running ${DOXYGEN} in $$d \
-          && ${DOXYGEN} \
-          && popd > /dev/null ; \
-	done
+	  && echo running ${DOXYGEN} first time in $$d \
+          && ${DOXYGEN} | fgrep -v -e resolve \
+	  | fgrep -v -e 'Warning: Unsupported xml/html tag' \
+          ; popd > /dev/null ; \
+	  test -r docs/$$d.doxytags && \
+	  sed '2,10s!<name>index</name>!<name>'$$d'_index</name>!' \
+	    docs/$$d.doxytags > docs/$$d.doxytags.tmp && \
+	  mv -f docs/$$d.doxytags.tmp docs/$$d.doxytags ; \
+	done 
+	@cd ${srcdir} ;\
+	for d in $(DIST_SUBDIRS); do \
+	  test -r $$d/Doxyfile \
+	  && pushd $$d > /dev/null \
+	  && echo running ${DOXYGEN} in second time in $$d \
+          && ${DOXYGEN} | fgrep -v -e 'Warning: Unsupported xml/html tag' \
+          ; popd > /dev/null ; \
+	  test -r docs/$$d.doxytags && \
+	  sed '2,10s!<name>index</name>!<name>'$$d'_index</name>!' \
+	    docs/$$d.doxytags > docs/$$d.doxytags.tmp && \
+	  mv -f docs/$$d.doxytags.tmp docs/$$d.doxytags ; \
+	done 
 	cd ${srcdir}/docs/html && ../hide_emails.sh
 
 .PHONY: built-sources built-sources-am empty-doxytags doxygen 

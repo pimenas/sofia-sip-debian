@@ -28,8 +28,12 @@
 /**
  * @file su_source.h
  * @brief 
+ *
+ * NOTE: This file (su_source.h) is DEPRECATED as of 1.12.2 release. 
+ *       Please use su_glib.h instead.
  * 
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
+ * @author Kai Vehmanen <first.surname@nokia.com>
  *  
  * @date Created: Thu Mar  4 19:58:50 2004 ppessi
  * 
@@ -44,8 +48,8 @@
 
 SOFIA_BEGIN_DECLS
 
-su_root_t *su_root_source_create(su_root_magic_t *) __attribute__((__malloc__));
-GSource *su_root_source(su_root_t *);
+SOFIAPUBFUN su_root_t *su_root_source_create(su_root_magic_t *) __attribute__((__malloc__));
+SOFIAPUBFUN GSource *su_root_source(su_root_t *);
 
 SOFIA_END_DECLS
 

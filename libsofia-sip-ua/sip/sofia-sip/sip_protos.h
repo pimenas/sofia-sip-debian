@@ -116,24 +116,26 @@ void *sip_header_data(sip_header_t *h);
  * @{
  */
 
-/** Parse a request line. @internal */
-SOFIAPUBFUN int sip_request_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_request "request line". @internal */
+SOFIAPUBFUN issize_t sip_request_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a request line. @internal */
-SOFIAPUBFUN int sip_request_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_request "request line". @internal */
+SOFIAPUBFUN issize_t sip_request_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_request_t from sip_t.
+/**Access a SIP @ref sip_request "request line"
+ * structure #sip_request_t from #sip_t.
  * 
  */
 #define sip_request(sip) \
   ((sip_request_t *)msg_header_access((msg_pub_t*)(sip), sip_request_class))
 
-/**Initializer for structure sip_request_t.
+/**Initializer for structure #sip_request_t.
  * 
- * A static sip_request_t structure must be initialized.
- * The SIP_REQUEST_INIT() macro provides initialization value. 
+ * A static #sip_request_t structure for
+ * @ref sip_request "request line" must be initialized with
+ * the SIP_REQUEST_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -144,9 +146,10 @@ SOFIAPUBFUN int sip_request_e(char b[], int bsiz,
  */
 #define SIP_REQUEST_INIT() SIP_HDR_INIT(request)
 
-/**Initialize a structure sip_request_t.
+/**Initialize a structure #sip_request_t.
  * 
- * An sip_request_t structure can be initialized with the
+ * An #sip_request_t structure for
+ * @ref sip_request "request line" can be initialized with the
  * sip_request_init() function/macro. For instance,
  * @code
  * 
@@ -167,18 +170,16 @@ su_inline sip_request_t *sip_request_init(sip_request_t x[1])
   SIP_HEADER_INIT(x, sip_request_class, sizeof(sip_request_t))
 #endif
 
-/**Test if header object is instance of sip_request_t.
+/**Test if header object is instance of #sip_request_t.
  * 
- * The function sip_is_request() returns true (nonzero) if
- * the header class is an instance of request line
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_request "request line" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_request() returns true (nonzero) if
- * the header object is an instance of header request and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header request 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_request(sip_header_t const *header)
@@ -192,9 +193,9 @@ int sip_is_request(sip_header_t const *header);
 #define sip_request_p(h) sip_is_request((h))
 
 
-/**Duplicate (deep copy) @c sip_request_t.
+/**Duplicate a list of @ref sip_request "request line" header structures #sip_request_t.
  * 
- * The function sip_request_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -215,8 +216,8 @@ int sip_is_request(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_request_dup() returns a pointer to the
- * newly duplicated sip_request_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_request_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -234,13 +235,13 @@ sip_request_t *sip_request_dup(su_home_t *home, sip_request_t const *hdr)
 }
 #endif
 
-/**Copy a sip_request_t header structure.
+/**Copy a list of @ref sip_request "request line" header structures #sip_request_t.
  * 
  * The function sip_request_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -259,8 +260,7 @@ sip_request_t *sip_request_dup(su_home_t *home, sip_request_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_request_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -277,23 +277,19 @@ sip_request_t *sip_request_copy(su_home_t *home, sip_request_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_request_t.
+/**Make a @ref sip_request "request line" structure #sip_request_t.
  * 
  * The function sip_request_make() makes a new
- * sip_request_t header structure.  It allocates a new
+ * #sip_request_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_request_make() returns a pointer to
- * newly maked sip_request_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_request_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -308,24 +304,19 @@ su_inline sip_request_t *sip_request_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a request line from formatting result.
+/**Make a @ref sip_request "request line" from formatting result.
  * 
- * The function sip_request_format() makes a new
- * request line object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_request_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_request_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_request_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -356,24 +347,26 @@ su_inline sip_request_t *sip_request_format(su_home_t *home, char const *fmt, ..
  * @{
  */
 
-/** Parse a status line. @internal */
-SOFIAPUBFUN int sip_status_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_status "status line". @internal */
+SOFIAPUBFUN issize_t sip_status_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a status line. @internal */
-SOFIAPUBFUN int sip_status_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_status "status line". @internal */
+SOFIAPUBFUN issize_t sip_status_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_status_t from sip_t.
+/**Access a SIP @ref sip_status "status line"
+ * structure #sip_status_t from #sip_t.
  * 
  */
 #define sip_status(sip) \
   ((sip_status_t *)msg_header_access((msg_pub_t*)(sip), sip_status_class))
 
-/**Initializer for structure sip_status_t.
+/**Initializer for structure #sip_status_t.
  * 
- * A static sip_status_t structure must be initialized.
- * The SIP_STATUS_INIT() macro provides initialization value. 
+ * A static #sip_status_t structure for
+ * @ref sip_status "status line" must be initialized with
+ * the SIP_STATUS_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -384,9 +377,10 @@ SOFIAPUBFUN int sip_status_e(char b[], int bsiz,
  */
 #define SIP_STATUS_INIT() SIP_HDR_INIT(status)
 
-/**Initialize a structure sip_status_t.
+/**Initialize a structure #sip_status_t.
  * 
- * An sip_status_t structure can be initialized with the
+ * An #sip_status_t structure for
+ * @ref sip_status "status line" can be initialized with the
  * sip_status_init() function/macro. For instance,
  * @code
  * 
@@ -407,18 +401,16 @@ su_inline sip_status_t *sip_status_init(sip_status_t x[1])
   SIP_HEADER_INIT(x, sip_status_class, sizeof(sip_status_t))
 #endif
 
-/**Test if header object is instance of sip_status_t.
+/**Test if header object is instance of #sip_status_t.
  * 
- * The function sip_is_status() returns true (nonzero) if
- * the header class is an instance of status line
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_status "status line" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_status() returns true (nonzero) if
- * the header object is an instance of header status and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header status 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_status(sip_header_t const *header)
@@ -432,9 +424,9 @@ int sip_is_status(sip_header_t const *header);
 #define sip_status_p(h) sip_is_status((h))
 
 
-/**Duplicate (deep copy) @c sip_status_t.
+/**Duplicate a list of @ref sip_status "status line" header structures #sip_status_t.
  * 
- * The function sip_status_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -455,8 +447,8 @@ int sip_is_status(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_status_dup() returns a pointer to the
- * newly duplicated sip_status_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_status_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -474,13 +466,13 @@ sip_status_t *sip_status_dup(su_home_t *home, sip_status_t const *hdr)
 }
 #endif
 
-/**Copy a sip_status_t header structure.
+/**Copy a list of @ref sip_status "status line" header structures #sip_status_t.
  * 
  * The function sip_status_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -499,8 +491,7 @@ sip_status_t *sip_status_dup(su_home_t *home, sip_status_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_status_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -517,23 +508,19 @@ sip_status_t *sip_status_copy(su_home_t *home, sip_status_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_status_t.
+/**Make a @ref sip_status "status line" structure #sip_status_t.
  * 
  * The function sip_status_make() makes a new
- * sip_status_t header structure.  It allocates a new
+ * #sip_status_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_status_make() returns a pointer to
- * newly maked sip_status_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_status_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -548,24 +535,19 @@ su_inline sip_status_t *sip_status_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a status line from formatting result.
+/**Make a @ref sip_status "status line" from formatting result.
  * 
- * The function sip_status_format() makes a new
- * status line object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_status_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_status_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_status_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -596,24 +578,26 @@ su_inline sip_status_t *sip_status_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Via header. @internal */
-SOFIAPUBFUN int sip_via_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_via "Via header". @internal */
+SOFIAPUBFUN issize_t sip_via_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Via header. @internal */
-SOFIAPUBFUN int sip_via_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_via "Via header". @internal */
+SOFIAPUBFUN issize_t sip_via_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_via_t from sip_t.
+/**Access a SIP @ref sip_via "Via header"
+ * structure #sip_via_t from #sip_t.
  * 
  */
 #define sip_via(sip) \
   ((sip_via_t *)msg_header_access((msg_pub_t*)(sip), sip_via_class))
 
-/**Initializer for structure sip_via_t.
+/**Initializer for structure #sip_via_t.
  * 
- * A static sip_via_t structure must be initialized.
- * The SIP_VIA_INIT() macro provides initialization value. 
+ * A static #sip_via_t structure for
+ * @ref sip_via "Via header" must be initialized with
+ * the SIP_VIA_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -624,9 +608,10 @@ SOFIAPUBFUN int sip_via_e(char b[], int bsiz,
  */
 #define SIP_VIA_INIT() SIP_HDR_INIT(via)
 
-/**Initialize a structure sip_via_t.
+/**Initialize a structure #sip_via_t.
  * 
- * An sip_via_t structure can be initialized with the
+ * An #sip_via_t structure for
+ * @ref sip_via "Via header" can be initialized with the
  * sip_via_init() function/macro. For instance,
  * @code
  * 
@@ -647,18 +632,16 @@ su_inline sip_via_t *sip_via_init(sip_via_t x[1])
   SIP_HEADER_INIT(x, sip_via_class, sizeof(sip_via_t))
 #endif
 
-/**Test if header object is instance of sip_via_t.
+/**Test if header object is instance of #sip_via_t.
  * 
- * The function sip_is_via() returns true (nonzero) if
- * the header class is an instance of Via header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_via "Via header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_via() returns true (nonzero) if
- * the header object is an instance of header via and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header via 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_via(sip_header_t const *header)
@@ -672,9 +655,9 @@ int sip_is_via(sip_header_t const *header);
 #define sip_via_p(h) sip_is_via((h))
 
 
-/**Duplicate (deep copy) @c sip_via_t.
+/**Duplicate a list of @ref sip_via "Via header" header structures #sip_via_t.
  * 
- * The function sip_via_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -695,8 +678,8 @@ int sip_is_via(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_via_dup() returns a pointer to the
- * newly duplicated sip_via_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_via_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -714,13 +697,13 @@ sip_via_t *sip_via_dup(su_home_t *home, sip_via_t const *hdr)
 }
 #endif
 
-/**Copy a sip_via_t header structure.
+/**Copy a list of @ref sip_via "Via header" header structures #sip_via_t.
  * 
  * The function sip_via_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -739,8 +722,7 @@ sip_via_t *sip_via_dup(su_home_t *home, sip_via_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_via_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -757,23 +739,19 @@ sip_via_t *sip_via_copy(su_home_t *home, sip_via_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_via_t.
+/**Make a @ref sip_via "Via header" structure #sip_via_t.
  * 
  * The function sip_via_make() makes a new
- * sip_via_t header structure.  It allocates a new
+ * #sip_via_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_via_make() returns a pointer to
- * newly maked sip_via_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_via_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -788,24 +766,19 @@ su_inline sip_via_t *sip_via_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Via header from formatting result.
+/**Make a @ref sip_via "Via header" from formatting result.
  * 
- * The function sip_via_format() makes a new
- * Via header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_via_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_via_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_via_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -836,24 +809,26 @@ su_inline sip_via_t *sip_via_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Route header. @internal */
-SOFIAPUBFUN int sip_route_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_route "Route header". @internal */
+SOFIAPUBFUN issize_t sip_route_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Route header. @internal */
-SOFIAPUBFUN int sip_route_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_route "Route header". @internal */
+SOFIAPUBFUN issize_t sip_route_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_route_t from sip_t.
+/**Access a SIP @ref sip_route "Route header"
+ * structure #sip_route_t from #sip_t.
  * 
  */
 #define sip_route(sip) \
   ((sip_route_t *)msg_header_access((msg_pub_t*)(sip), sip_route_class))
 
-/**Initializer for structure sip_route_t.
+/**Initializer for structure #sip_route_t.
  * 
- * A static sip_route_t structure must be initialized.
- * The SIP_ROUTE_INIT() macro provides initialization value. 
+ * A static #sip_route_t structure for
+ * @ref sip_route "Route header" must be initialized with
+ * the SIP_ROUTE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -864,9 +839,10 @@ SOFIAPUBFUN int sip_route_e(char b[], int bsiz,
  */
 #define SIP_ROUTE_INIT() SIP_HDR_INIT(route)
 
-/**Initialize a structure sip_route_t.
+/**Initialize a structure #sip_route_t.
  * 
- * An sip_route_t structure can be initialized with the
+ * An #sip_route_t structure for
+ * @ref sip_route "Route header" can be initialized with the
  * sip_route_init() function/macro. For instance,
  * @code
  * 
@@ -887,18 +863,16 @@ su_inline sip_route_t *sip_route_init(sip_route_t x[1])
   SIP_HEADER_INIT(x, sip_route_class, sizeof(sip_route_t))
 #endif
 
-/**Test if header object is instance of sip_route_t.
+/**Test if header object is instance of #sip_route_t.
  * 
- * The function sip_is_route() returns true (nonzero) if
- * the header class is an instance of Route header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_route "Route header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_route() returns true (nonzero) if
- * the header object is an instance of header route and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header route 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_route(sip_header_t const *header)
@@ -912,9 +886,9 @@ int sip_is_route(sip_header_t const *header);
 #define sip_route_p(h) sip_is_route((h))
 
 
-/**Duplicate (deep copy) @c sip_route_t.
+/**Duplicate a list of @ref sip_route "Route header" header structures #sip_route_t.
  * 
- * The function sip_route_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -935,8 +909,8 @@ int sip_is_route(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_route_dup() returns a pointer to the
- * newly duplicated sip_route_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_route_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -954,13 +928,13 @@ sip_route_t *sip_route_dup(su_home_t *home, sip_route_t const *hdr)
 }
 #endif
 
-/**Copy a sip_route_t header structure.
+/**Copy a list of @ref sip_route "Route header" header structures #sip_route_t.
  * 
  * The function sip_route_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -979,8 +953,7 @@ sip_route_t *sip_route_dup(su_home_t *home, sip_route_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_route_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -997,23 +970,19 @@ sip_route_t *sip_route_copy(su_home_t *home, sip_route_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_route_t.
+/**Make a @ref sip_route "Route header" structure #sip_route_t.
  * 
  * The function sip_route_make() makes a new
- * sip_route_t header structure.  It allocates a new
+ * #sip_route_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_route_make() returns a pointer to
- * newly maked sip_route_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_route_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1028,24 +997,19 @@ su_inline sip_route_t *sip_route_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Route header from formatting result.
+/**Make a @ref sip_route "Route header" from formatting result.
  * 
- * The function sip_route_format() makes a new
- * Route header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_route_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_route_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_route_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -1076,24 +1040,26 @@ su_inline sip_route_t *sip_route_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Record-Route header. @internal */
-SOFIAPUBFUN int sip_record_route_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_record_route "Record-Route header". @internal */
+SOFIAPUBFUN issize_t sip_record_route_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Record-Route header. @internal */
-SOFIAPUBFUN int sip_record_route_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_record_route "Record-Route header". @internal */
+SOFIAPUBFUN issize_t sip_record_route_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_record_route_t from sip_t.
+/**Access a SIP @ref sip_record_route "Record-Route header"
+ * structure #sip_record_route_t from #sip_t.
  * 
  */
 #define sip_record_route(sip) \
   ((sip_record_route_t *)msg_header_access((msg_pub_t*)(sip), sip_record_route_class))
 
-/**Initializer for structure sip_record_route_t.
+/**Initializer for structure #sip_record_route_t.
  * 
- * A static sip_record_route_t structure must be initialized.
- * The SIP_RECORD_ROUTE_INIT() macro provides initialization value. 
+ * A static #sip_record_route_t structure for
+ * @ref sip_record_route "Record-Route header" must be initialized with
+ * the SIP_RECORD_ROUTE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -1104,9 +1070,10 @@ SOFIAPUBFUN int sip_record_route_e(char b[], int bsiz,
  */
 #define SIP_RECORD_ROUTE_INIT() SIP_HDR_INIT(record_route)
 
-/**Initialize a structure sip_record_route_t.
+/**Initialize a structure #sip_record_route_t.
  * 
- * An sip_record_route_t structure can be initialized with the
+ * An #sip_record_route_t structure for
+ * @ref sip_record_route "Record-Route header" can be initialized with the
  * sip_record_route_init() function/macro. For instance,
  * @code
  * 
@@ -1127,18 +1094,16 @@ su_inline sip_record_route_t *sip_record_route_init(sip_record_route_t x[1])
   SIP_HEADER_INIT(x, sip_record_route_class, sizeof(sip_record_route_t))
 #endif
 
-/**Test if header object is instance of sip_record_route_t.
+/**Test if header object is instance of #sip_record_route_t.
  * 
- * The function sip_is_record_route() returns true (nonzero) if
- * the header class is an instance of Record-Route header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_record_route "Record-Route header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_record_route() returns true (nonzero) if
- * the header object is an instance of header record_route and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header record_route 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_record_route(sip_header_t const *header)
@@ -1152,9 +1117,9 @@ int sip_is_record_route(sip_header_t const *header);
 #define sip_record_route_p(h) sip_is_record_route((h))
 
 
-/**Duplicate (deep copy) @c sip_record_route_t.
+/**Duplicate a list of @ref sip_record_route "Record-Route header" header structures #sip_record_route_t.
  * 
- * The function sip_record_route_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -1175,8 +1140,8 @@ int sip_is_record_route(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_record_route_dup() returns a pointer to the
- * newly duplicated sip_record_route_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_record_route_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -1194,13 +1159,13 @@ sip_record_route_t *sip_record_route_dup(su_home_t *home, sip_record_route_t con
 }
 #endif
 
-/**Copy a sip_record_route_t header structure.
+/**Copy a list of @ref sip_record_route "Record-Route header" header structures #sip_record_route_t.
  * 
  * The function sip_record_route_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -1219,8 +1184,7 @@ sip_record_route_t *sip_record_route_dup(su_home_t *home, sip_record_route_t con
  * @endcode
  * 
  * @return
- * The function sip_record_route_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1237,23 +1201,19 @@ sip_record_route_t *sip_record_route_copy(su_home_t *home, sip_record_route_t co
 }
 #endif
 
-/**Make a header structure sip_record_route_t.
+/**Make a @ref sip_record_route "Record-Route header" structure #sip_record_route_t.
  * 
  * The function sip_record_route_make() makes a new
- * sip_record_route_t header structure.  It allocates a new
+ * #sip_record_route_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_record_route_make() returns a pointer to
- * newly maked sip_record_route_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_record_route_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1268,24 +1228,19 @@ su_inline sip_record_route_t *sip_record_route_make(su_home_t *home, char const 
 }
 #endif
 
-/**Make a Record-Route header from formatting result.
+/**Make a @ref sip_record_route "Record-Route header" from formatting result.
  * 
- * The function sip_record_route_format() makes a new
- * Record-Route header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_record_route_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_record_route_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_record_route_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -1316,24 +1271,26 @@ su_inline sip_record_route_t *sip_record_route_format(su_home_t *home, char cons
  * @{
  */
 
-/** Parse a Max-Forwards header. @internal */
-SOFIAPUBFUN int sip_max_forwards_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_max_forwards "Max-Forwards header". @internal */
+SOFIAPUBFUN issize_t sip_max_forwards_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Max-Forwards header. @internal */
-SOFIAPUBFUN int sip_max_forwards_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_max_forwards "Max-Forwards header". @internal */
+SOFIAPUBFUN issize_t sip_max_forwards_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_max_forwards_t from sip_t.
+/**Access a SIP @ref sip_max_forwards "Max-Forwards header"
+ * structure #sip_max_forwards_t from #sip_t.
  * 
  */
 #define sip_max_forwards(sip) \
   ((sip_max_forwards_t *)msg_header_access((msg_pub_t*)(sip), sip_max_forwards_class))
 
-/**Initializer for structure sip_max_forwards_t.
+/**Initializer for structure #sip_max_forwards_t.
  * 
- * A static sip_max_forwards_t structure must be initialized.
- * The SIP_MAX_FORWARDS_INIT() macro provides initialization value. 
+ * A static #sip_max_forwards_t structure for
+ * @ref sip_max_forwards "Max-Forwards header" must be initialized with
+ * the SIP_MAX_FORWARDS_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -1344,9 +1301,10 @@ SOFIAPUBFUN int sip_max_forwards_e(char b[], int bsiz,
  */
 #define SIP_MAX_FORWARDS_INIT() SIP_HDR_INIT(max_forwards)
 
-/**Initialize a structure sip_max_forwards_t.
+/**Initialize a structure #sip_max_forwards_t.
  * 
- * An sip_max_forwards_t structure can be initialized with the
+ * An #sip_max_forwards_t structure for
+ * @ref sip_max_forwards "Max-Forwards header" can be initialized with the
  * sip_max_forwards_init() function/macro. For instance,
  * @code
  * 
@@ -1367,18 +1325,16 @@ su_inline sip_max_forwards_t *sip_max_forwards_init(sip_max_forwards_t x[1])
   SIP_HEADER_INIT(x, sip_max_forwards_class, sizeof(sip_max_forwards_t))
 #endif
 
-/**Test if header object is instance of sip_max_forwards_t.
+/**Test if header object is instance of #sip_max_forwards_t.
  * 
- * The function sip_is_max_forwards() returns true (nonzero) if
- * the header class is an instance of Max-Forwards header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_max_forwards "Max-Forwards header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_max_forwards() returns true (nonzero) if
- * the header object is an instance of header max_forwards and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header max_forwards 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_max_forwards(sip_header_t const *header)
@@ -1392,9 +1348,9 @@ int sip_is_max_forwards(sip_header_t const *header);
 #define sip_max_forwards_p(h) sip_is_max_forwards((h))
 
 
-/**Duplicate (deep copy) @c sip_max_forwards_t.
+/**Duplicate a list of @ref sip_max_forwards "Max-Forwards header" header structures #sip_max_forwards_t.
  * 
- * The function sip_max_forwards_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -1415,8 +1371,8 @@ int sip_is_max_forwards(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_max_forwards_dup() returns a pointer to the
- * newly duplicated sip_max_forwards_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_max_forwards_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -1434,13 +1390,13 @@ sip_max_forwards_t *sip_max_forwards_dup(su_home_t *home, sip_max_forwards_t con
 }
 #endif
 
-/**Copy a sip_max_forwards_t header structure.
+/**Copy a list of @ref sip_max_forwards "Max-Forwards header" header structures #sip_max_forwards_t.
  * 
  * The function sip_max_forwards_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -1459,8 +1415,7 @@ sip_max_forwards_t *sip_max_forwards_dup(su_home_t *home, sip_max_forwards_t con
  * @endcode
  * 
  * @return
- * The function sip_max_forwards_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1477,23 +1432,19 @@ sip_max_forwards_t *sip_max_forwards_copy(su_home_t *home, sip_max_forwards_t co
 }
 #endif
 
-/**Make a header structure sip_max_forwards_t.
+/**Make a @ref sip_max_forwards "Max-Forwards header" structure #sip_max_forwards_t.
  * 
  * The function sip_max_forwards_make() makes a new
- * sip_max_forwards_t header structure.  It allocates a new
+ * #sip_max_forwards_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_max_forwards_make() returns a pointer to
- * newly maked sip_max_forwards_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_max_forwards_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1508,24 +1459,19 @@ su_inline sip_max_forwards_t *sip_max_forwards_make(su_home_t *home, char const 
 }
 #endif
 
-/**Make a Max-Forwards header from formatting result.
+/**Make a @ref sip_max_forwards "Max-Forwards header" from formatting result.
  * 
- * The function sip_max_forwards_format() makes a new
- * Max-Forwards header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_max_forwards_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_max_forwards_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_max_forwards_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -1556,24 +1502,26 @@ su_inline sip_max_forwards_t *sip_max_forwards_format(su_home_t *home, char cons
  * @{
  */
 
-/** Parse a Proxy-Require header. @internal */
-SOFIAPUBFUN int sip_proxy_require_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_proxy_require "Proxy-Require header". @internal */
+SOFIAPUBFUN issize_t sip_proxy_require_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Proxy-Require header. @internal */
-SOFIAPUBFUN int sip_proxy_require_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_proxy_require "Proxy-Require header". @internal */
+SOFIAPUBFUN issize_t sip_proxy_require_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_proxy_require_t from sip_t.
+/**Access a SIP @ref sip_proxy_require "Proxy-Require header"
+ * structure #sip_proxy_require_t from #sip_t.
  * 
  */
 #define sip_proxy_require(sip) \
   ((sip_proxy_require_t *)msg_header_access((msg_pub_t*)(sip), sip_proxy_require_class))
 
-/**Initializer for structure sip_proxy_require_t.
+/**Initializer for structure #sip_proxy_require_t.
  * 
- * A static sip_proxy_require_t structure must be initialized.
- * The SIP_PROXY_REQUIRE_INIT() macro provides initialization value. 
+ * A static #sip_proxy_require_t structure for
+ * @ref sip_proxy_require "Proxy-Require header" must be initialized with
+ * the SIP_PROXY_REQUIRE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -1584,9 +1532,10 @@ SOFIAPUBFUN int sip_proxy_require_e(char b[], int bsiz,
  */
 #define SIP_PROXY_REQUIRE_INIT() SIP_HDR_INIT(proxy_require)
 
-/**Initialize a structure sip_proxy_require_t.
+/**Initialize a structure #sip_proxy_require_t.
  * 
- * An sip_proxy_require_t structure can be initialized with the
+ * An #sip_proxy_require_t structure for
+ * @ref sip_proxy_require "Proxy-Require header" can be initialized with the
  * sip_proxy_require_init() function/macro. For instance,
  * @code
  * 
@@ -1607,18 +1556,16 @@ su_inline sip_proxy_require_t *sip_proxy_require_init(sip_proxy_require_t x[1])
   SIP_HEADER_INIT(x, sip_proxy_require_class, sizeof(sip_proxy_require_t))
 #endif
 
-/**Test if header object is instance of sip_proxy_require_t.
+/**Test if header object is instance of #sip_proxy_require_t.
  * 
- * The function sip_is_proxy_require() returns true (nonzero) if
- * the header class is an instance of Proxy-Require header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_proxy_require "Proxy-Require header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_proxy_require() returns true (nonzero) if
- * the header object is an instance of header proxy_require and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header proxy_require 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_proxy_require(sip_header_t const *header)
@@ -1632,9 +1579,9 @@ int sip_is_proxy_require(sip_header_t const *header);
 #define sip_proxy_require_p(h) sip_is_proxy_require((h))
 
 
-/**Duplicate (deep copy) @c sip_proxy_require_t.
+/**Duplicate a list of @ref sip_proxy_require "Proxy-Require header" header structures #sip_proxy_require_t.
  * 
- * The function sip_proxy_require_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -1655,8 +1602,8 @@ int sip_is_proxy_require(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_proxy_require_dup() returns a pointer to the
- * newly duplicated sip_proxy_require_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_proxy_require_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -1674,13 +1621,13 @@ sip_proxy_require_t *sip_proxy_require_dup(su_home_t *home, sip_proxy_require_t 
 }
 #endif
 
-/**Copy a sip_proxy_require_t header structure.
+/**Copy a list of @ref sip_proxy_require "Proxy-Require header" header structures #sip_proxy_require_t.
  * 
  * The function sip_proxy_require_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -1699,8 +1646,7 @@ sip_proxy_require_t *sip_proxy_require_dup(su_home_t *home, sip_proxy_require_t 
  * @endcode
  * 
  * @return
- * The function sip_proxy_require_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1717,23 +1663,19 @@ sip_proxy_require_t *sip_proxy_require_copy(su_home_t *home, sip_proxy_require_t
 }
 #endif
 
-/**Make a header structure sip_proxy_require_t.
+/**Make a @ref sip_proxy_require "Proxy-Require header" structure #sip_proxy_require_t.
  * 
  * The function sip_proxy_require_make() makes a new
- * sip_proxy_require_t header structure.  It allocates a new
+ * #sip_proxy_require_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_proxy_require_make() returns a pointer to
- * newly maked sip_proxy_require_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_proxy_require_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1748,24 +1690,19 @@ su_inline sip_proxy_require_t *sip_proxy_require_make(su_home_t *home, char cons
 }
 #endif
 
-/**Make a Proxy-Require header from formatting result.
+/**Make a @ref sip_proxy_require "Proxy-Require header" from formatting result.
  * 
- * The function sip_proxy_require_format() makes a new
- * Proxy-Require header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_proxy_require_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_proxy_require_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_proxy_require_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -1796,24 +1733,26 @@ su_inline sip_proxy_require_t *sip_proxy_require_format(su_home_t *home, char co
  * @{
  */
 
-/** Parse a From header. @internal */
-SOFIAPUBFUN int sip_from_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_from "From header". @internal */
+SOFIAPUBFUN issize_t sip_from_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a From header. @internal */
-SOFIAPUBFUN int sip_from_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_from "From header". @internal */
+SOFIAPUBFUN issize_t sip_from_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_from_t from sip_t.
+/**Access a SIP @ref sip_from "From header"
+ * structure #sip_from_t from #sip_t.
  * 
  */
 #define sip_from(sip) \
   ((sip_from_t *)msg_header_access((msg_pub_t*)(sip), sip_from_class))
 
-/**Initializer for structure sip_from_t.
+/**Initializer for structure #sip_from_t.
  * 
- * A static sip_from_t structure must be initialized.
- * The SIP_FROM_INIT() macro provides initialization value. 
+ * A static #sip_from_t structure for
+ * @ref sip_from "From header" must be initialized with
+ * the SIP_FROM_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -1824,9 +1763,10 @@ SOFIAPUBFUN int sip_from_e(char b[], int bsiz,
  */
 #define SIP_FROM_INIT() SIP_HDR_INIT(from)
 
-/**Initialize a structure sip_from_t.
+/**Initialize a structure #sip_from_t.
  * 
- * An sip_from_t structure can be initialized with the
+ * An #sip_from_t structure for
+ * @ref sip_from "From header" can be initialized with the
  * sip_from_init() function/macro. For instance,
  * @code
  * 
@@ -1847,18 +1787,16 @@ su_inline sip_from_t *sip_from_init(sip_from_t x[1])
   SIP_HEADER_INIT(x, sip_from_class, sizeof(sip_from_t))
 #endif
 
-/**Test if header object is instance of sip_from_t.
+/**Test if header object is instance of #sip_from_t.
  * 
- * The function sip_is_from() returns true (nonzero) if
- * the header class is an instance of From header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_from "From header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_from() returns true (nonzero) if
- * the header object is an instance of header from and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header from 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_from(sip_header_t const *header)
@@ -1872,9 +1810,9 @@ int sip_is_from(sip_header_t const *header);
 #define sip_from_p(h) sip_is_from((h))
 
 
-/**Duplicate (deep copy) @c sip_from_t.
+/**Duplicate a list of @ref sip_from "From header" header structures #sip_from_t.
  * 
- * The function sip_from_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -1895,8 +1833,8 @@ int sip_is_from(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_from_dup() returns a pointer to the
- * newly duplicated sip_from_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_from_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -1914,13 +1852,13 @@ sip_from_t *sip_from_dup(su_home_t *home, sip_from_t const *hdr)
 }
 #endif
 
-/**Copy a sip_from_t header structure.
+/**Copy a list of @ref sip_from "From header" header structures #sip_from_t.
  * 
  * The function sip_from_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -1939,8 +1877,7 @@ sip_from_t *sip_from_dup(su_home_t *home, sip_from_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_from_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -1957,23 +1894,19 @@ sip_from_t *sip_from_copy(su_home_t *home, sip_from_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_from_t.
+/**Make a @ref sip_from "From header" structure #sip_from_t.
  * 
  * The function sip_from_make() makes a new
- * sip_from_t header structure.  It allocates a new
+ * #sip_from_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_from_make() returns a pointer to
- * newly maked sip_from_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_from_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -1988,24 +1921,19 @@ su_inline sip_from_t *sip_from_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a From header from formatting result.
+/**Make a @ref sip_from "From header" from formatting result.
  * 
- * The function sip_from_format() makes a new
- * From header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_from_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_from_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_from_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -2036,24 +1964,26 @@ su_inline sip_from_t *sip_from_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a To header. @internal */
-SOFIAPUBFUN int sip_to_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_to "To header". @internal */
+SOFIAPUBFUN issize_t sip_to_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a To header. @internal */
-SOFIAPUBFUN int sip_to_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_to "To header". @internal */
+SOFIAPUBFUN issize_t sip_to_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_to_t from sip_t.
+/**Access a SIP @ref sip_to "To header"
+ * structure #sip_to_t from #sip_t.
  * 
  */
 #define sip_to(sip) \
   ((sip_to_t *)msg_header_access((msg_pub_t*)(sip), sip_to_class))
 
-/**Initializer for structure sip_to_t.
+/**Initializer for structure #sip_to_t.
  * 
- * A static sip_to_t structure must be initialized.
- * The SIP_TO_INIT() macro provides initialization value. 
+ * A static #sip_to_t structure for
+ * @ref sip_to "To header" must be initialized with
+ * the SIP_TO_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -2064,9 +1994,10 @@ SOFIAPUBFUN int sip_to_e(char b[], int bsiz,
  */
 #define SIP_TO_INIT() SIP_HDR_INIT(to)
 
-/**Initialize a structure sip_to_t.
+/**Initialize a structure #sip_to_t.
  * 
- * An sip_to_t structure can be initialized with the
+ * An #sip_to_t structure for
+ * @ref sip_to "To header" can be initialized with the
  * sip_to_init() function/macro. For instance,
  * @code
  * 
@@ -2087,18 +2018,16 @@ su_inline sip_to_t *sip_to_init(sip_to_t x[1])
   SIP_HEADER_INIT(x, sip_to_class, sizeof(sip_to_t))
 #endif
 
-/**Test if header object is instance of sip_to_t.
+/**Test if header object is instance of #sip_to_t.
  * 
- * The function sip_is_to() returns true (nonzero) if
- * the header class is an instance of To header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_to "To header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_to() returns true (nonzero) if
- * the header object is an instance of header to and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header to 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_to(sip_header_t const *header)
@@ -2112,9 +2041,9 @@ int sip_is_to(sip_header_t const *header);
 #define sip_to_p(h) sip_is_to((h))
 
 
-/**Duplicate (deep copy) @c sip_to_t.
+/**Duplicate a list of @ref sip_to "To header" header structures #sip_to_t.
  * 
- * The function sip_to_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -2135,8 +2064,8 @@ int sip_is_to(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_to_dup() returns a pointer to the
- * newly duplicated sip_to_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_to_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -2154,13 +2083,13 @@ sip_to_t *sip_to_dup(su_home_t *home, sip_to_t const *hdr)
 }
 #endif
 
-/**Copy a sip_to_t header structure.
+/**Copy a list of @ref sip_to "To header" header structures #sip_to_t.
  * 
  * The function sip_to_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -2179,8 +2108,7 @@ sip_to_t *sip_to_dup(su_home_t *home, sip_to_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_to_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2197,23 +2125,19 @@ sip_to_t *sip_to_copy(su_home_t *home, sip_to_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_to_t.
+/**Make a @ref sip_to "To header" structure #sip_to_t.
  * 
  * The function sip_to_make() makes a new
- * sip_to_t header structure.  It allocates a new
+ * #sip_to_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_to_make() returns a pointer to
- * newly maked sip_to_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_to_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -2228,24 +2152,19 @@ su_inline sip_to_t *sip_to_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a To header from formatting result.
+/**Make a @ref sip_to "To header" from formatting result.
  * 
- * The function sip_to_format() makes a new
- * To header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_to_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_to_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_to_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -2276,24 +2195,26 @@ su_inline sip_to_t *sip_to_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Call-ID header. @internal */
-SOFIAPUBFUN int sip_call_id_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_call_id "Call-ID header". @internal */
+SOFIAPUBFUN issize_t sip_call_id_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Call-ID header. @internal */
-SOFIAPUBFUN int sip_call_id_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_call_id "Call-ID header". @internal */
+SOFIAPUBFUN issize_t sip_call_id_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_call_id_t from sip_t.
+/**Access a SIP @ref sip_call_id "Call-ID header"
+ * structure #sip_call_id_t from #sip_t.
  * 
  */
 #define sip_call_id(sip) \
   ((sip_call_id_t *)msg_header_access((msg_pub_t*)(sip), sip_call_id_class))
 
-/**Initializer for structure sip_call_id_t.
+/**Initializer for structure #sip_call_id_t.
  * 
- * A static sip_call_id_t structure must be initialized.
- * The SIP_CALL_ID_INIT() macro provides initialization value. 
+ * A static #sip_call_id_t structure for
+ * @ref sip_call_id "Call-ID header" must be initialized with
+ * the SIP_CALL_ID_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -2304,9 +2225,10 @@ SOFIAPUBFUN int sip_call_id_e(char b[], int bsiz,
  */
 #define SIP_CALL_ID_INIT() SIP_HDR_INIT(call_id)
 
-/**Initialize a structure sip_call_id_t.
+/**Initialize a structure #sip_call_id_t.
  * 
- * An sip_call_id_t structure can be initialized with the
+ * An #sip_call_id_t structure for
+ * @ref sip_call_id "Call-ID header" can be initialized with the
  * sip_call_id_init() function/macro. For instance,
  * @code
  * 
@@ -2327,18 +2249,16 @@ su_inline sip_call_id_t *sip_call_id_init(sip_call_id_t x[1])
   SIP_HEADER_INIT(x, sip_call_id_class, sizeof(sip_call_id_t))
 #endif
 
-/**Test if header object is instance of sip_call_id_t.
+/**Test if header object is instance of #sip_call_id_t.
  * 
- * The function sip_is_call_id() returns true (nonzero) if
- * the header class is an instance of Call-ID header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_call_id "Call-ID header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_call_id() returns true (nonzero) if
- * the header object is an instance of header call_id and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header call_id 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_call_id(sip_header_t const *header)
@@ -2352,9 +2272,9 @@ int sip_is_call_id(sip_header_t const *header);
 #define sip_call_id_p(h) sip_is_call_id((h))
 
 
-/**Duplicate (deep copy) @c sip_call_id_t.
+/**Duplicate a list of @ref sip_call_id "Call-ID header" header structures #sip_call_id_t.
  * 
- * The function sip_call_id_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -2375,8 +2295,8 @@ int sip_is_call_id(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_call_id_dup() returns a pointer to the
- * newly duplicated sip_call_id_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_call_id_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -2394,13 +2314,13 @@ sip_call_id_t *sip_call_id_dup(su_home_t *home, sip_call_id_t const *hdr)
 }
 #endif
 
-/**Copy a sip_call_id_t header structure.
+/**Copy a list of @ref sip_call_id "Call-ID header" header structures #sip_call_id_t.
  * 
  * The function sip_call_id_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -2419,8 +2339,7 @@ sip_call_id_t *sip_call_id_dup(su_home_t *home, sip_call_id_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_call_id_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2437,23 +2356,19 @@ sip_call_id_t *sip_call_id_copy(su_home_t *home, sip_call_id_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_call_id_t.
+/**Make a @ref sip_call_id "Call-ID header" structure #sip_call_id_t.
  * 
  * The function sip_call_id_make() makes a new
- * sip_call_id_t header structure.  It allocates a new
+ * #sip_call_id_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_call_id_make() returns a pointer to
- * newly maked sip_call_id_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_call_id_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -2468,24 +2383,19 @@ su_inline sip_call_id_t *sip_call_id_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Call-ID header from formatting result.
+/**Make a @ref sip_call_id "Call-ID header" from formatting result.
  * 
- * The function sip_call_id_format() makes a new
- * Call-ID header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_call_id_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_call_id_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_call_id_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -2516,24 +2426,26 @@ su_inline sip_call_id_t *sip_call_id_format(su_home_t *home, char const *fmt, ..
  * @{
  */
 
-/** Parse a CSeq header. @internal */
-SOFIAPUBFUN int sip_cseq_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_cseq "CSeq header". @internal */
+SOFIAPUBFUN issize_t sip_cseq_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a CSeq header. @internal */
-SOFIAPUBFUN int sip_cseq_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_cseq "CSeq header". @internal */
+SOFIAPUBFUN issize_t sip_cseq_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_cseq_t from sip_t.
+/**Access a SIP @ref sip_cseq "CSeq header"
+ * structure #sip_cseq_t from #sip_t.
  * 
  */
 #define sip_cseq(sip) \
   ((sip_cseq_t *)msg_header_access((msg_pub_t*)(sip), sip_cseq_class))
 
-/**Initializer for structure sip_cseq_t.
+/**Initializer for structure #sip_cseq_t.
  * 
- * A static sip_cseq_t structure must be initialized.
- * The SIP_CSEQ_INIT() macro provides initialization value. 
+ * A static #sip_cseq_t structure for
+ * @ref sip_cseq "CSeq header" must be initialized with
+ * the SIP_CSEQ_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -2544,9 +2456,10 @@ SOFIAPUBFUN int sip_cseq_e(char b[], int bsiz,
  */
 #define SIP_CSEQ_INIT() SIP_HDR_INIT(cseq)
 
-/**Initialize a structure sip_cseq_t.
+/**Initialize a structure #sip_cseq_t.
  * 
- * An sip_cseq_t structure can be initialized with the
+ * An #sip_cseq_t structure for
+ * @ref sip_cseq "CSeq header" can be initialized with the
  * sip_cseq_init() function/macro. For instance,
  * @code
  * 
@@ -2567,18 +2480,16 @@ su_inline sip_cseq_t *sip_cseq_init(sip_cseq_t x[1])
   SIP_HEADER_INIT(x, sip_cseq_class, sizeof(sip_cseq_t))
 #endif
 
-/**Test if header object is instance of sip_cseq_t.
+/**Test if header object is instance of #sip_cseq_t.
  * 
- * The function sip_is_cseq() returns true (nonzero) if
- * the header class is an instance of CSeq header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_cseq "CSeq header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_cseq() returns true (nonzero) if
- * the header object is an instance of header cseq and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header cseq 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_cseq(sip_header_t const *header)
@@ -2592,9 +2503,9 @@ int sip_is_cseq(sip_header_t const *header);
 #define sip_cseq_p(h) sip_is_cseq((h))
 
 
-/**Duplicate (deep copy) @c sip_cseq_t.
+/**Duplicate a list of @ref sip_cseq "CSeq header" header structures #sip_cseq_t.
  * 
- * The function sip_cseq_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -2615,8 +2526,8 @@ int sip_is_cseq(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_cseq_dup() returns a pointer to the
- * newly duplicated sip_cseq_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_cseq_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -2634,13 +2545,13 @@ sip_cseq_t *sip_cseq_dup(su_home_t *home, sip_cseq_t const *hdr)
 }
 #endif
 
-/**Copy a sip_cseq_t header structure.
+/**Copy a list of @ref sip_cseq "CSeq header" header structures #sip_cseq_t.
  * 
  * The function sip_cseq_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -2659,8 +2570,7 @@ sip_cseq_t *sip_cseq_dup(su_home_t *home, sip_cseq_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_cseq_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2677,23 +2587,19 @@ sip_cseq_t *sip_cseq_copy(su_home_t *home, sip_cseq_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_cseq_t.
+/**Make a @ref sip_cseq "CSeq header" structure #sip_cseq_t.
  * 
  * The function sip_cseq_make() makes a new
- * sip_cseq_t header structure.  It allocates a new
+ * #sip_cseq_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_cseq_make() returns a pointer to
- * newly maked sip_cseq_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_cseq_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -2708,24 +2614,19 @@ su_inline sip_cseq_t *sip_cseq_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a CSeq header from formatting result.
+/**Make a @ref sip_cseq "CSeq header" from formatting result.
  * 
- * The function sip_cseq_format() makes a new
- * CSeq header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_cseq_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_cseq_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_cseq_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -2756,24 +2657,26 @@ su_inline sip_cseq_t *sip_cseq_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Contact header. @internal */
-SOFIAPUBFUN int sip_contact_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_contact "Contact header". @internal */
+SOFIAPUBFUN issize_t sip_contact_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Contact header. @internal */
-SOFIAPUBFUN int sip_contact_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_contact "Contact header". @internal */
+SOFIAPUBFUN issize_t sip_contact_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_contact_t from sip_t.
+/**Access a SIP @ref sip_contact "Contact header"
+ * structure #sip_contact_t from #sip_t.
  * 
  */
 #define sip_contact(sip) \
   ((sip_contact_t *)msg_header_access((msg_pub_t*)(sip), sip_contact_class))
 
-/**Initializer for structure sip_contact_t.
+/**Initializer for structure #sip_contact_t.
  * 
- * A static sip_contact_t structure must be initialized.
- * The SIP_CONTACT_INIT() macro provides initialization value. 
+ * A static #sip_contact_t structure for
+ * @ref sip_contact "Contact header" must be initialized with
+ * the SIP_CONTACT_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -2784,9 +2687,10 @@ SOFIAPUBFUN int sip_contact_e(char b[], int bsiz,
  */
 #define SIP_CONTACT_INIT() SIP_HDR_INIT(contact)
 
-/**Initialize a structure sip_contact_t.
+/**Initialize a structure #sip_contact_t.
  * 
- * An sip_contact_t structure can be initialized with the
+ * An #sip_contact_t structure for
+ * @ref sip_contact "Contact header" can be initialized with the
  * sip_contact_init() function/macro. For instance,
  * @code
  * 
@@ -2807,18 +2711,16 @@ su_inline sip_contact_t *sip_contact_init(sip_contact_t x[1])
   SIP_HEADER_INIT(x, sip_contact_class, sizeof(sip_contact_t))
 #endif
 
-/**Test if header object is instance of sip_contact_t.
+/**Test if header object is instance of #sip_contact_t.
  * 
- * The function sip_is_contact() returns true (nonzero) if
- * the header class is an instance of Contact header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_contact "Contact header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_contact() returns true (nonzero) if
- * the header object is an instance of header contact and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header contact 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_contact(sip_header_t const *header)
@@ -2832,9 +2734,9 @@ int sip_is_contact(sip_header_t const *header);
 #define sip_contact_p(h) sip_is_contact((h))
 
 
-/**Duplicate (deep copy) @c sip_contact_t.
+/**Duplicate a list of @ref sip_contact "Contact header" header structures #sip_contact_t.
  * 
- * The function sip_contact_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -2855,8 +2757,8 @@ int sip_is_contact(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_contact_dup() returns a pointer to the
- * newly duplicated sip_contact_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_contact_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -2874,13 +2776,13 @@ sip_contact_t *sip_contact_dup(su_home_t *home, sip_contact_t const *hdr)
 }
 #endif
 
-/**Copy a sip_contact_t header structure.
+/**Copy a list of @ref sip_contact "Contact header" header structures #sip_contact_t.
  * 
  * The function sip_contact_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -2899,8 +2801,7 @@ sip_contact_t *sip_contact_dup(su_home_t *home, sip_contact_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_contact_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -2917,23 +2818,19 @@ sip_contact_t *sip_contact_copy(su_home_t *home, sip_contact_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_contact_t.
+/**Make a @ref sip_contact "Contact header" structure #sip_contact_t.
  * 
  * The function sip_contact_make() makes a new
- * sip_contact_t header structure.  It allocates a new
+ * #sip_contact_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_contact_make() returns a pointer to
- * newly maked sip_contact_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_contact_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -2948,24 +2845,19 @@ su_inline sip_contact_t *sip_contact_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Contact header from formatting result.
+/**Make a @ref sip_contact "Contact header" from formatting result.
  * 
- * The function sip_contact_format() makes a new
- * Contact header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_contact_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_contact_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_contact_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -2996,24 +2888,26 @@ su_inline sip_contact_t *sip_contact_format(su_home_t *home, char const *fmt, ..
  * @{
  */
 
-/** Parse a RSeq header. @internal */
-SOFIAPUBFUN int sip_rseq_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_rseq "RSeq header". @internal */
+SOFIAPUBFUN issize_t sip_rseq_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a RSeq header. @internal */
-SOFIAPUBFUN int sip_rseq_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_rseq "RSeq header". @internal */
+SOFIAPUBFUN issize_t sip_rseq_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_rseq_t from sip_t.
+/**Access a SIP @ref sip_rseq "RSeq header"
+ * structure #sip_rseq_t from #sip_t.
  * 
  */
 #define sip_rseq(sip) \
   ((sip_rseq_t *)msg_header_access((msg_pub_t*)(sip), sip_rseq_class))
 
-/**Initializer for structure sip_rseq_t.
+/**Initializer for structure #sip_rseq_t.
  * 
- * A static sip_rseq_t structure must be initialized.
- * The SIP_RSEQ_INIT() macro provides initialization value. 
+ * A static #sip_rseq_t structure for
+ * @ref sip_rseq "RSeq header" must be initialized with
+ * the SIP_RSEQ_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -3024,9 +2918,10 @@ SOFIAPUBFUN int sip_rseq_e(char b[], int bsiz,
  */
 #define SIP_RSEQ_INIT() SIP_HDR_INIT(rseq)
 
-/**Initialize a structure sip_rseq_t.
+/**Initialize a structure #sip_rseq_t.
  * 
- * An sip_rseq_t structure can be initialized with the
+ * An #sip_rseq_t structure for
+ * @ref sip_rseq "RSeq header" can be initialized with the
  * sip_rseq_init() function/macro. For instance,
  * @code
  * 
@@ -3047,18 +2942,16 @@ su_inline sip_rseq_t *sip_rseq_init(sip_rseq_t x[1])
   SIP_HEADER_INIT(x, sip_rseq_class, sizeof(sip_rseq_t))
 #endif
 
-/**Test if header object is instance of sip_rseq_t.
+/**Test if header object is instance of #sip_rseq_t.
  * 
- * The function sip_is_rseq() returns true (nonzero) if
- * the header class is an instance of RSeq header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_rseq "RSeq header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_rseq() returns true (nonzero) if
- * the header object is an instance of header rseq and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header rseq 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_rseq(sip_header_t const *header)
@@ -3072,9 +2965,9 @@ int sip_is_rseq(sip_header_t const *header);
 #define sip_rseq_p(h) sip_is_rseq((h))
 
 
-/**Duplicate (deep copy) @c sip_rseq_t.
+/**Duplicate a list of @ref sip_rseq "RSeq header" header structures #sip_rseq_t.
  * 
- * The function sip_rseq_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -3095,8 +2988,8 @@ int sip_is_rseq(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_rseq_dup() returns a pointer to the
- * newly duplicated sip_rseq_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_rseq_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -3114,13 +3007,13 @@ sip_rseq_t *sip_rseq_dup(su_home_t *home, sip_rseq_t const *hdr)
 }
 #endif
 
-/**Copy a sip_rseq_t header structure.
+/**Copy a list of @ref sip_rseq "RSeq header" header structures #sip_rseq_t.
  * 
  * The function sip_rseq_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -3139,8 +3032,7 @@ sip_rseq_t *sip_rseq_dup(su_home_t *home, sip_rseq_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_rseq_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3157,23 +3049,19 @@ sip_rseq_t *sip_rseq_copy(su_home_t *home, sip_rseq_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_rseq_t.
+/**Make a @ref sip_rseq "RSeq header" structure #sip_rseq_t.
  * 
  * The function sip_rseq_make() makes a new
- * sip_rseq_t header structure.  It allocates a new
+ * #sip_rseq_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_rseq_make() returns a pointer to
- * newly maked sip_rseq_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_rseq_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -3188,24 +3076,19 @@ su_inline sip_rseq_t *sip_rseq_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a RSeq header from formatting result.
+/**Make a @ref sip_rseq "RSeq header" from formatting result.
  * 
- * The function sip_rseq_format() makes a new
- * RSeq header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_rseq_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_rseq_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_rseq_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -3236,24 +3119,26 @@ su_inline sip_rseq_t *sip_rseq_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a RAck header. @internal */
-SOFIAPUBFUN int sip_rack_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_rack "RAck header". @internal */
+SOFIAPUBFUN issize_t sip_rack_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a RAck header. @internal */
-SOFIAPUBFUN int sip_rack_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_rack "RAck header". @internal */
+SOFIAPUBFUN issize_t sip_rack_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_rack_t from sip_t.
+/**Access a SIP @ref sip_rack "RAck header"
+ * structure #sip_rack_t from #sip_t.
  * 
  */
 #define sip_rack(sip) \
   ((sip_rack_t *)msg_header_access((msg_pub_t*)(sip), sip_rack_class))
 
-/**Initializer for structure sip_rack_t.
+/**Initializer for structure #sip_rack_t.
  * 
- * A static sip_rack_t structure must be initialized.
- * The SIP_RACK_INIT() macro provides initialization value. 
+ * A static #sip_rack_t structure for
+ * @ref sip_rack "RAck header" must be initialized with
+ * the SIP_RACK_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -3264,9 +3149,10 @@ SOFIAPUBFUN int sip_rack_e(char b[], int bsiz,
  */
 #define SIP_RACK_INIT() SIP_HDR_INIT(rack)
 
-/**Initialize a structure sip_rack_t.
+/**Initialize a structure #sip_rack_t.
  * 
- * An sip_rack_t structure can be initialized with the
+ * An #sip_rack_t structure for
+ * @ref sip_rack "RAck header" can be initialized with the
  * sip_rack_init() function/macro. For instance,
  * @code
  * 
@@ -3287,18 +3173,16 @@ su_inline sip_rack_t *sip_rack_init(sip_rack_t x[1])
   SIP_HEADER_INIT(x, sip_rack_class, sizeof(sip_rack_t))
 #endif
 
-/**Test if header object is instance of sip_rack_t.
+/**Test if header object is instance of #sip_rack_t.
  * 
- * The function sip_is_rack() returns true (nonzero) if
- * the header class is an instance of RAck header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_rack "RAck header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_rack() returns true (nonzero) if
- * the header object is an instance of header rack and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header rack 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_rack(sip_header_t const *header)
@@ -3312,9 +3196,9 @@ int sip_is_rack(sip_header_t const *header);
 #define sip_rack_p(h) sip_is_rack((h))
 
 
-/**Duplicate (deep copy) @c sip_rack_t.
+/**Duplicate a list of @ref sip_rack "RAck header" header structures #sip_rack_t.
  * 
- * The function sip_rack_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -3335,8 +3219,8 @@ int sip_is_rack(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_rack_dup() returns a pointer to the
- * newly duplicated sip_rack_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_rack_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -3354,13 +3238,13 @@ sip_rack_t *sip_rack_dup(su_home_t *home, sip_rack_t const *hdr)
 }
 #endif
 
-/**Copy a sip_rack_t header structure.
+/**Copy a list of @ref sip_rack "RAck header" header structures #sip_rack_t.
  * 
  * The function sip_rack_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -3379,8 +3263,7 @@ sip_rack_t *sip_rack_dup(su_home_t *home, sip_rack_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_rack_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3397,23 +3280,19 @@ sip_rack_t *sip_rack_copy(su_home_t *home, sip_rack_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_rack_t.
+/**Make a @ref sip_rack "RAck header" structure #sip_rack_t.
  * 
  * The function sip_rack_make() makes a new
- * sip_rack_t header structure.  It allocates a new
+ * #sip_rack_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_rack_make() returns a pointer to
- * newly maked sip_rack_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_rack_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -3428,24 +3307,19 @@ su_inline sip_rack_t *sip_rack_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a RAck header from formatting result.
+/**Make a @ref sip_rack "RAck header" from formatting result.
  * 
- * The function sip_rack_format() makes a new
- * RAck header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_rack_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_rack_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_rack_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -3476,24 +3350,26 @@ su_inline sip_rack_t *sip_rack_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Request-Disposition header. @internal */
-SOFIAPUBFUN int sip_request_disposition_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_request_disposition "Request-Disposition header". @internal */
+SOFIAPUBFUN issize_t sip_request_disposition_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Request-Disposition header. @internal */
-SOFIAPUBFUN int sip_request_disposition_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_request_disposition "Request-Disposition header". @internal */
+SOFIAPUBFUN issize_t sip_request_disposition_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_request_disposition_t from sip_t.
+/**Access a SIP @ref sip_request_disposition "Request-Disposition header"
+ * structure #sip_request_disposition_t from #sip_t.
  * 
  */
 #define sip_request_disposition(sip) \
   ((sip_request_disposition_t *)msg_header_access((msg_pub_t*)(sip), sip_request_disposition_class))
 
-/**Initializer for structure sip_request_disposition_t.
+/**Initializer for structure #sip_request_disposition_t.
  * 
- * A static sip_request_disposition_t structure must be initialized.
- * The SIP_REQUEST_DISPOSITION_INIT() macro provides initialization value. 
+ * A static #sip_request_disposition_t structure for
+ * @ref sip_request_disposition "Request-Disposition header" must be initialized with
+ * the SIP_REQUEST_DISPOSITION_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -3504,9 +3380,10 @@ SOFIAPUBFUN int sip_request_disposition_e(char b[], int bsiz,
  */
 #define SIP_REQUEST_DISPOSITION_INIT() SIP_HDR_INIT(request_disposition)
 
-/**Initialize a structure sip_request_disposition_t.
+/**Initialize a structure #sip_request_disposition_t.
  * 
- * An sip_request_disposition_t structure can be initialized with the
+ * An #sip_request_disposition_t structure for
+ * @ref sip_request_disposition "Request-Disposition header" can be initialized with the
  * sip_request_disposition_init() function/macro. For instance,
  * @code
  * 
@@ -3527,18 +3404,16 @@ su_inline sip_request_disposition_t *sip_request_disposition_init(sip_request_di
   SIP_HEADER_INIT(x, sip_request_disposition_class, sizeof(sip_request_disposition_t))
 #endif
 
-/**Test if header object is instance of sip_request_disposition_t.
+/**Test if header object is instance of #sip_request_disposition_t.
  * 
- * The function sip_is_request_disposition() returns true (nonzero) if
- * the header class is an instance of Request-Disposition header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_request_disposition "Request-Disposition header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_request_disposition() returns true (nonzero) if
- * the header object is an instance of header request_disposition and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header request_disposition 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_request_disposition(sip_header_t const *header)
@@ -3552,9 +3427,9 @@ int sip_is_request_disposition(sip_header_t const *header);
 #define sip_request_disposition_p(h) sip_is_request_disposition((h))
 
 
-/**Duplicate (deep copy) @c sip_request_disposition_t.
+/**Duplicate a list of @ref sip_request_disposition "Request-Disposition header" header structures #sip_request_disposition_t.
  * 
- * The function sip_request_disposition_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -3575,8 +3450,8 @@ int sip_is_request_disposition(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_request_disposition_dup() returns a pointer to the
- * newly duplicated sip_request_disposition_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_request_disposition_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -3594,13 +3469,13 @@ sip_request_disposition_t *sip_request_disposition_dup(su_home_t *home, sip_requ
 }
 #endif
 
-/**Copy a sip_request_disposition_t header structure.
+/**Copy a list of @ref sip_request_disposition "Request-Disposition header" header structures #sip_request_disposition_t.
  * 
  * The function sip_request_disposition_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -3619,8 +3494,7 @@ sip_request_disposition_t *sip_request_disposition_dup(su_home_t *home, sip_requ
  * @endcode
  * 
  * @return
- * The function sip_request_disposition_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3637,23 +3511,19 @@ sip_request_disposition_t *sip_request_disposition_copy(su_home_t *home, sip_req
 }
 #endif
 
-/**Make a header structure sip_request_disposition_t.
+/**Make a @ref sip_request_disposition "Request-Disposition header" structure #sip_request_disposition_t.
  * 
  * The function sip_request_disposition_make() makes a new
- * sip_request_disposition_t header structure.  It allocates a new
+ * #sip_request_disposition_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_request_disposition_make() returns a pointer to
- * newly maked sip_request_disposition_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_request_disposition_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -3668,24 +3538,19 @@ su_inline sip_request_disposition_t *sip_request_disposition_make(su_home_t *hom
 }
 #endif
 
-/**Make a Request-Disposition header from formatting result.
+/**Make a @ref sip_request_disposition "Request-Disposition header" from formatting result.
  * 
- * The function sip_request_disposition_format() makes a new
- * Request-Disposition header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_request_disposition_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_request_disposition_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_request_disposition_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -3716,24 +3581,26 @@ su_inline sip_request_disposition_t *sip_request_disposition_format(su_home_t *h
  * @{
  */
 
-/** Parse a Accept-Contact header. @internal */
-SOFIAPUBFUN int sip_accept_contact_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_accept_contact "Accept-Contact header". @internal */
+SOFIAPUBFUN issize_t sip_accept_contact_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Accept-Contact header. @internal */
-SOFIAPUBFUN int sip_accept_contact_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_accept_contact "Accept-Contact header". @internal */
+SOFIAPUBFUN issize_t sip_accept_contact_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_accept_contact_t from sip_t.
+/**Access a SIP @ref sip_accept_contact "Accept-Contact header"
+ * structure #sip_accept_contact_t from #sip_t.
  * 
  */
 #define sip_accept_contact(sip) \
   ((sip_accept_contact_t *)msg_header_access((msg_pub_t*)(sip), sip_accept_contact_class))
 
-/**Initializer for structure sip_accept_contact_t.
+/**Initializer for structure #sip_accept_contact_t.
  * 
- * A static sip_accept_contact_t structure must be initialized.
- * The SIP_ACCEPT_CONTACT_INIT() macro provides initialization value. 
+ * A static #sip_accept_contact_t structure for
+ * @ref sip_accept_contact "Accept-Contact header" must be initialized with
+ * the SIP_ACCEPT_CONTACT_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -3744,9 +3611,10 @@ SOFIAPUBFUN int sip_accept_contact_e(char b[], int bsiz,
  */
 #define SIP_ACCEPT_CONTACT_INIT() SIP_HDR_INIT(accept_contact)
 
-/**Initialize a structure sip_accept_contact_t.
+/**Initialize a structure #sip_accept_contact_t.
  * 
- * An sip_accept_contact_t structure can be initialized with the
+ * An #sip_accept_contact_t structure for
+ * @ref sip_accept_contact "Accept-Contact header" can be initialized with the
  * sip_accept_contact_init() function/macro. For instance,
  * @code
  * 
@@ -3767,18 +3635,16 @@ su_inline sip_accept_contact_t *sip_accept_contact_init(sip_accept_contact_t x[1
   SIP_HEADER_INIT(x, sip_accept_contact_class, sizeof(sip_accept_contact_t))
 #endif
 
-/**Test if header object is instance of sip_accept_contact_t.
+/**Test if header object is instance of #sip_accept_contact_t.
  * 
- * The function sip_is_accept_contact() returns true (nonzero) if
- * the header class is an instance of Accept-Contact header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_accept_contact "Accept-Contact header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_accept_contact() returns true (nonzero) if
- * the header object is an instance of header accept_contact and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header accept_contact 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_accept_contact(sip_header_t const *header)
@@ -3792,9 +3658,9 @@ int sip_is_accept_contact(sip_header_t const *header);
 #define sip_accept_contact_p(h) sip_is_accept_contact((h))
 
 
-/**Duplicate (deep copy) @c sip_accept_contact_t.
+/**Duplicate a list of @ref sip_accept_contact "Accept-Contact header" header structures #sip_accept_contact_t.
  * 
- * The function sip_accept_contact_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -3815,8 +3681,8 @@ int sip_is_accept_contact(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_accept_contact_dup() returns a pointer to the
- * newly duplicated sip_accept_contact_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_accept_contact_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -3834,13 +3700,13 @@ sip_accept_contact_t *sip_accept_contact_dup(su_home_t *home, sip_accept_contact
 }
 #endif
 
-/**Copy a sip_accept_contact_t header structure.
+/**Copy a list of @ref sip_accept_contact "Accept-Contact header" header structures #sip_accept_contact_t.
  * 
  * The function sip_accept_contact_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -3859,8 +3725,7 @@ sip_accept_contact_t *sip_accept_contact_dup(su_home_t *home, sip_accept_contact
  * @endcode
  * 
  * @return
- * The function sip_accept_contact_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -3877,23 +3742,19 @@ sip_accept_contact_t *sip_accept_contact_copy(su_home_t *home, sip_accept_contac
 }
 #endif
 
-/**Make a header structure sip_accept_contact_t.
+/**Make a @ref sip_accept_contact "Accept-Contact header" structure #sip_accept_contact_t.
  * 
  * The function sip_accept_contact_make() makes a new
- * sip_accept_contact_t header structure.  It allocates a new
+ * #sip_accept_contact_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_accept_contact_make() returns a pointer to
- * newly maked sip_accept_contact_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_accept_contact_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -3908,24 +3769,19 @@ su_inline sip_accept_contact_t *sip_accept_contact_make(su_home_t *home, char co
 }
 #endif
 
-/**Make a Accept-Contact header from formatting result.
+/**Make a @ref sip_accept_contact "Accept-Contact header" from formatting result.
  * 
- * The function sip_accept_contact_format() makes a new
- * Accept-Contact header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_accept_contact_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_accept_contact_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_accept_contact_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -3956,24 +3812,26 @@ su_inline sip_accept_contact_t *sip_accept_contact_format(su_home_t *home, char 
  * @{
  */
 
-/** Parse a Reject-Contact header. @internal */
-SOFIAPUBFUN int sip_reject_contact_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_reject_contact "Reject-Contact header". @internal */
+SOFIAPUBFUN issize_t sip_reject_contact_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Reject-Contact header. @internal */
-SOFIAPUBFUN int sip_reject_contact_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_reject_contact "Reject-Contact header". @internal */
+SOFIAPUBFUN issize_t sip_reject_contact_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_reject_contact_t from sip_t.
+/**Access a SIP @ref sip_reject_contact "Reject-Contact header"
+ * structure #sip_reject_contact_t from #sip_t.
  * 
  */
 #define sip_reject_contact(sip) \
   ((sip_reject_contact_t *)msg_header_access((msg_pub_t*)(sip), sip_reject_contact_class))
 
-/**Initializer for structure sip_reject_contact_t.
+/**Initializer for structure #sip_reject_contact_t.
  * 
- * A static sip_reject_contact_t structure must be initialized.
- * The SIP_REJECT_CONTACT_INIT() macro provides initialization value. 
+ * A static #sip_reject_contact_t structure for
+ * @ref sip_reject_contact "Reject-Contact header" must be initialized with
+ * the SIP_REJECT_CONTACT_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -3984,9 +3842,10 @@ SOFIAPUBFUN int sip_reject_contact_e(char b[], int bsiz,
  */
 #define SIP_REJECT_CONTACT_INIT() SIP_HDR_INIT(reject_contact)
 
-/**Initialize a structure sip_reject_contact_t.
+/**Initialize a structure #sip_reject_contact_t.
  * 
- * An sip_reject_contact_t structure can be initialized with the
+ * An #sip_reject_contact_t structure for
+ * @ref sip_reject_contact "Reject-Contact header" can be initialized with the
  * sip_reject_contact_init() function/macro. For instance,
  * @code
  * 
@@ -4007,18 +3866,16 @@ su_inline sip_reject_contact_t *sip_reject_contact_init(sip_reject_contact_t x[1
   SIP_HEADER_INIT(x, sip_reject_contact_class, sizeof(sip_reject_contact_t))
 #endif
 
-/**Test if header object is instance of sip_reject_contact_t.
+/**Test if header object is instance of #sip_reject_contact_t.
  * 
- * The function sip_is_reject_contact() returns true (nonzero) if
- * the header class is an instance of Reject-Contact header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_reject_contact "Reject-Contact header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_reject_contact() returns true (nonzero) if
- * the header object is an instance of header reject_contact and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header reject_contact 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_reject_contact(sip_header_t const *header)
@@ -4032,9 +3889,9 @@ int sip_is_reject_contact(sip_header_t const *header);
 #define sip_reject_contact_p(h) sip_is_reject_contact((h))
 
 
-/**Duplicate (deep copy) @c sip_reject_contact_t.
+/**Duplicate a list of @ref sip_reject_contact "Reject-Contact header" header structures #sip_reject_contact_t.
  * 
- * The function sip_reject_contact_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -4055,8 +3912,8 @@ int sip_is_reject_contact(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_reject_contact_dup() returns a pointer to the
- * newly duplicated sip_reject_contact_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_reject_contact_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -4074,13 +3931,13 @@ sip_reject_contact_t *sip_reject_contact_dup(su_home_t *home, sip_reject_contact
 }
 #endif
 
-/**Copy a sip_reject_contact_t header structure.
+/**Copy a list of @ref sip_reject_contact "Reject-Contact header" header structures #sip_reject_contact_t.
  * 
  * The function sip_reject_contact_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -4099,8 +3956,7 @@ sip_reject_contact_t *sip_reject_contact_dup(su_home_t *home, sip_reject_contact
  * @endcode
  * 
  * @return
- * The function sip_reject_contact_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4117,23 +3973,19 @@ sip_reject_contact_t *sip_reject_contact_copy(su_home_t *home, sip_reject_contac
 }
 #endif
 
-/**Make a header structure sip_reject_contact_t.
+/**Make a @ref sip_reject_contact "Reject-Contact header" structure #sip_reject_contact_t.
  * 
  * The function sip_reject_contact_make() makes a new
- * sip_reject_contact_t header structure.  It allocates a new
+ * #sip_reject_contact_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_reject_contact_make() returns a pointer to
- * newly maked sip_reject_contact_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_reject_contact_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -4148,24 +4000,19 @@ su_inline sip_reject_contact_t *sip_reject_contact_make(su_home_t *home, char co
 }
 #endif
 
-/**Make a Reject-Contact header from formatting result.
+/**Make a @ref sip_reject_contact "Reject-Contact header" from formatting result.
  * 
- * The function sip_reject_contact_format() makes a new
- * Reject-Contact header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_reject_contact_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_reject_contact_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_reject_contact_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -4196,24 +4043,26 @@ su_inline sip_reject_contact_t *sip_reject_contact_format(su_home_t *home, char 
  * @{
  */
 
-/** Parse a Expires header. @internal */
-SOFIAPUBFUN int sip_expires_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_expires "Expires header". @internal */
+SOFIAPUBFUN issize_t sip_expires_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Expires header. @internal */
-SOFIAPUBFUN int sip_expires_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_expires "Expires header". @internal */
+SOFIAPUBFUN issize_t sip_expires_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_expires_t from sip_t.
+/**Access a SIP @ref sip_expires "Expires header"
+ * structure #sip_expires_t from #sip_t.
  * 
  */
 #define sip_expires(sip) \
   ((sip_expires_t *)msg_header_access((msg_pub_t*)(sip), sip_expires_class))
 
-/**Initializer for structure sip_expires_t.
+/**Initializer for structure #sip_expires_t.
  * 
- * A static sip_expires_t structure must be initialized.
- * The SIP_EXPIRES_INIT() macro provides initialization value. 
+ * A static #sip_expires_t structure for
+ * @ref sip_expires "Expires header" must be initialized with
+ * the SIP_EXPIRES_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -4224,9 +4073,10 @@ SOFIAPUBFUN int sip_expires_e(char b[], int bsiz,
  */
 #define SIP_EXPIRES_INIT() SIP_HDR_INIT(expires)
 
-/**Initialize a structure sip_expires_t.
+/**Initialize a structure #sip_expires_t.
  * 
- * An sip_expires_t structure can be initialized with the
+ * An #sip_expires_t structure for
+ * @ref sip_expires "Expires header" can be initialized with the
  * sip_expires_init() function/macro. For instance,
  * @code
  * 
@@ -4247,18 +4097,16 @@ su_inline sip_expires_t *sip_expires_init(sip_expires_t x[1])
   SIP_HEADER_INIT(x, sip_expires_class, sizeof(sip_expires_t))
 #endif
 
-/**Test if header object is instance of sip_expires_t.
+/**Test if header object is instance of #sip_expires_t.
  * 
- * The function sip_is_expires() returns true (nonzero) if
- * the header class is an instance of Expires header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_expires "Expires header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_expires() returns true (nonzero) if
- * the header object is an instance of header expires and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header expires 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_expires(sip_header_t const *header)
@@ -4272,9 +4120,9 @@ int sip_is_expires(sip_header_t const *header);
 #define sip_expires_p(h) sip_is_expires((h))
 
 
-/**Duplicate (deep copy) @c sip_expires_t.
+/**Duplicate a list of @ref sip_expires "Expires header" header structures #sip_expires_t.
  * 
- * The function sip_expires_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -4295,8 +4143,8 @@ int sip_is_expires(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_expires_dup() returns a pointer to the
- * newly duplicated sip_expires_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_expires_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -4314,13 +4162,13 @@ sip_expires_t *sip_expires_dup(su_home_t *home, sip_expires_t const *hdr)
 }
 #endif
 
-/**Copy a sip_expires_t header structure.
+/**Copy a list of @ref sip_expires "Expires header" header structures #sip_expires_t.
  * 
  * The function sip_expires_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -4339,8 +4187,7 @@ sip_expires_t *sip_expires_dup(su_home_t *home, sip_expires_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_expires_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4357,23 +4204,19 @@ sip_expires_t *sip_expires_copy(su_home_t *home, sip_expires_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_expires_t.
+/**Make a @ref sip_expires "Expires header" structure #sip_expires_t.
  * 
  * The function sip_expires_make() makes a new
- * sip_expires_t header structure.  It allocates a new
+ * #sip_expires_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_expires_make() returns a pointer to
- * newly maked sip_expires_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_expires_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -4388,24 +4231,19 @@ su_inline sip_expires_t *sip_expires_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Expires header from formatting result.
+/**Make a @ref sip_expires "Expires header" from formatting result.
  * 
- * The function sip_expires_format() makes a new
- * Expires header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_expires_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_expires_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_expires_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -4436,24 +4274,26 @@ su_inline sip_expires_t *sip_expires_format(su_home_t *home, char const *fmt, ..
  * @{
  */
 
-/** Parse a Date header. @internal */
-SOFIAPUBFUN int sip_date_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_date "Date header". @internal */
+SOFIAPUBFUN issize_t sip_date_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Date header. @internal */
-SOFIAPUBFUN int sip_date_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_date "Date header". @internal */
+SOFIAPUBFUN issize_t sip_date_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_date_t from sip_t.
+/**Access a SIP @ref sip_date "Date header"
+ * structure #sip_date_t from #sip_t.
  * 
  */
 #define sip_date(sip) \
   ((sip_date_t *)msg_header_access((msg_pub_t*)(sip), sip_date_class))
 
-/**Initializer for structure sip_date_t.
+/**Initializer for structure #sip_date_t.
  * 
- * A static sip_date_t structure must be initialized.
- * The SIP_DATE_INIT() macro provides initialization value. 
+ * A static #sip_date_t structure for
+ * @ref sip_date "Date header" must be initialized with
+ * the SIP_DATE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -4464,9 +4304,10 @@ SOFIAPUBFUN int sip_date_e(char b[], int bsiz,
  */
 #define SIP_DATE_INIT() SIP_HDR_INIT(date)
 
-/**Initialize a structure sip_date_t.
+/**Initialize a structure #sip_date_t.
  * 
- * An sip_date_t structure can be initialized with the
+ * An #sip_date_t structure for
+ * @ref sip_date "Date header" can be initialized with the
  * sip_date_init() function/macro. For instance,
  * @code
  * 
@@ -4487,18 +4328,16 @@ su_inline sip_date_t *sip_date_init(sip_date_t x[1])
   SIP_HEADER_INIT(x, sip_date_class, sizeof(sip_date_t))
 #endif
 
-/**Test if header object is instance of sip_date_t.
+/**Test if header object is instance of #sip_date_t.
  * 
- * The function sip_is_date() returns true (nonzero) if
- * the header class is an instance of Date header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_date "Date header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_date() returns true (nonzero) if
- * the header object is an instance of header date and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header date 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_date(sip_header_t const *header)
@@ -4512,9 +4351,9 @@ int sip_is_date(sip_header_t const *header);
 #define sip_date_p(h) sip_is_date((h))
 
 
-/**Duplicate (deep copy) @c sip_date_t.
+/**Duplicate a list of @ref sip_date "Date header" header structures #sip_date_t.
  * 
- * The function sip_date_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -4535,8 +4374,8 @@ int sip_is_date(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_date_dup() returns a pointer to the
- * newly duplicated sip_date_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_date_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -4554,13 +4393,13 @@ sip_date_t *sip_date_dup(su_home_t *home, sip_date_t const *hdr)
 }
 #endif
 
-/**Copy a sip_date_t header structure.
+/**Copy a list of @ref sip_date "Date header" header structures #sip_date_t.
  * 
  * The function sip_date_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -4579,8 +4418,7 @@ sip_date_t *sip_date_dup(su_home_t *home, sip_date_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_date_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4597,23 +4435,19 @@ sip_date_t *sip_date_copy(su_home_t *home, sip_date_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_date_t.
+/**Make a @ref sip_date "Date header" structure #sip_date_t.
  * 
  * The function sip_date_make() makes a new
- * sip_date_t header structure.  It allocates a new
+ * #sip_date_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_date_make() returns a pointer to
- * newly maked sip_date_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_date_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -4628,24 +4462,19 @@ su_inline sip_date_t *sip_date_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Date header from formatting result.
+/**Make a @ref sip_date "Date header" from formatting result.
  * 
- * The function sip_date_format() makes a new
- * Date header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_date_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_date_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_date_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -4676,24 +4505,26 @@ su_inline sip_date_t *sip_date_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Retry-After header. @internal */
-SOFIAPUBFUN int sip_retry_after_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_retry_after "Retry-After header". @internal */
+SOFIAPUBFUN issize_t sip_retry_after_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Retry-After header. @internal */
-SOFIAPUBFUN int sip_retry_after_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_retry_after "Retry-After header". @internal */
+SOFIAPUBFUN issize_t sip_retry_after_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_retry_after_t from sip_t.
+/**Access a SIP @ref sip_retry_after "Retry-After header"
+ * structure #sip_retry_after_t from #sip_t.
  * 
  */
 #define sip_retry_after(sip) \
   ((sip_retry_after_t *)msg_header_access((msg_pub_t*)(sip), sip_retry_after_class))
 
-/**Initializer for structure sip_retry_after_t.
+/**Initializer for structure #sip_retry_after_t.
  * 
- * A static sip_retry_after_t structure must be initialized.
- * The SIP_RETRY_AFTER_INIT() macro provides initialization value. 
+ * A static #sip_retry_after_t structure for
+ * @ref sip_retry_after "Retry-After header" must be initialized with
+ * the SIP_RETRY_AFTER_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -4704,9 +4535,10 @@ SOFIAPUBFUN int sip_retry_after_e(char b[], int bsiz,
  */
 #define SIP_RETRY_AFTER_INIT() SIP_HDR_INIT(retry_after)
 
-/**Initialize a structure sip_retry_after_t.
+/**Initialize a structure #sip_retry_after_t.
  * 
- * An sip_retry_after_t structure can be initialized with the
+ * An #sip_retry_after_t structure for
+ * @ref sip_retry_after "Retry-After header" can be initialized with the
  * sip_retry_after_init() function/macro. For instance,
  * @code
  * 
@@ -4727,18 +4559,16 @@ su_inline sip_retry_after_t *sip_retry_after_init(sip_retry_after_t x[1])
   SIP_HEADER_INIT(x, sip_retry_after_class, sizeof(sip_retry_after_t))
 #endif
 
-/**Test if header object is instance of sip_retry_after_t.
+/**Test if header object is instance of #sip_retry_after_t.
  * 
- * The function sip_is_retry_after() returns true (nonzero) if
- * the header class is an instance of Retry-After header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_retry_after "Retry-After header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_retry_after() returns true (nonzero) if
- * the header object is an instance of header retry_after and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header retry_after 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_retry_after(sip_header_t const *header)
@@ -4752,9 +4582,9 @@ int sip_is_retry_after(sip_header_t const *header);
 #define sip_retry_after_p(h) sip_is_retry_after((h))
 
 
-/**Duplicate (deep copy) @c sip_retry_after_t.
+/**Duplicate a list of @ref sip_retry_after "Retry-After header" header structures #sip_retry_after_t.
  * 
- * The function sip_retry_after_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -4775,8 +4605,8 @@ int sip_is_retry_after(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_retry_after_dup() returns a pointer to the
- * newly duplicated sip_retry_after_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_retry_after_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -4794,13 +4624,13 @@ sip_retry_after_t *sip_retry_after_dup(su_home_t *home, sip_retry_after_t const 
 }
 #endif
 
-/**Copy a sip_retry_after_t header structure.
+/**Copy a list of @ref sip_retry_after "Retry-After header" header structures #sip_retry_after_t.
  * 
  * The function sip_retry_after_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -4819,8 +4649,7 @@ sip_retry_after_t *sip_retry_after_dup(su_home_t *home, sip_retry_after_t const 
  * @endcode
  * 
  * @return
- * The function sip_retry_after_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -4837,23 +4666,19 @@ sip_retry_after_t *sip_retry_after_copy(su_home_t *home, sip_retry_after_t const
 }
 #endif
 
-/**Make a header structure sip_retry_after_t.
+/**Make a @ref sip_retry_after "Retry-After header" structure #sip_retry_after_t.
  * 
  * The function sip_retry_after_make() makes a new
- * sip_retry_after_t header structure.  It allocates a new
+ * #sip_retry_after_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_retry_after_make() returns a pointer to
- * newly maked sip_retry_after_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_retry_after_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -4868,24 +4693,19 @@ su_inline sip_retry_after_t *sip_retry_after_make(su_home_t *home, char const *s
 }
 #endif
 
-/**Make a Retry-After header from formatting result.
+/**Make a @ref sip_retry_after "Retry-After header" from formatting result.
  * 
- * The function sip_retry_after_format() makes a new
- * Retry-After header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_retry_after_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_retry_after_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_retry_after_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -4916,24 +4736,26 @@ su_inline sip_retry_after_t *sip_retry_after_format(su_home_t *home, char const 
  * @{
  */
 
-/** Parse a Timestamp header. @internal */
-SOFIAPUBFUN int sip_timestamp_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_timestamp "Timestamp header". @internal */
+SOFIAPUBFUN issize_t sip_timestamp_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Timestamp header. @internal */
-SOFIAPUBFUN int sip_timestamp_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_timestamp "Timestamp header". @internal */
+SOFIAPUBFUN issize_t sip_timestamp_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_timestamp_t from sip_t.
+/**Access a SIP @ref sip_timestamp "Timestamp header"
+ * structure #sip_timestamp_t from #sip_t.
  * 
  */
 #define sip_timestamp(sip) \
   ((sip_timestamp_t *)msg_header_access((msg_pub_t*)(sip), sip_timestamp_class))
 
-/**Initializer for structure sip_timestamp_t.
+/**Initializer for structure #sip_timestamp_t.
  * 
- * A static sip_timestamp_t structure must be initialized.
- * The SIP_TIMESTAMP_INIT() macro provides initialization value. 
+ * A static #sip_timestamp_t structure for
+ * @ref sip_timestamp "Timestamp header" must be initialized with
+ * the SIP_TIMESTAMP_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -4944,9 +4766,10 @@ SOFIAPUBFUN int sip_timestamp_e(char b[], int bsiz,
  */
 #define SIP_TIMESTAMP_INIT() SIP_HDR_INIT(timestamp)
 
-/**Initialize a structure sip_timestamp_t.
+/**Initialize a structure #sip_timestamp_t.
  * 
- * An sip_timestamp_t structure can be initialized with the
+ * An #sip_timestamp_t structure for
+ * @ref sip_timestamp "Timestamp header" can be initialized with the
  * sip_timestamp_init() function/macro. For instance,
  * @code
  * 
@@ -4967,18 +4790,16 @@ su_inline sip_timestamp_t *sip_timestamp_init(sip_timestamp_t x[1])
   SIP_HEADER_INIT(x, sip_timestamp_class, sizeof(sip_timestamp_t))
 #endif
 
-/**Test if header object is instance of sip_timestamp_t.
+/**Test if header object is instance of #sip_timestamp_t.
  * 
- * The function sip_is_timestamp() returns true (nonzero) if
- * the header class is an instance of Timestamp header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_timestamp "Timestamp header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_timestamp() returns true (nonzero) if
- * the header object is an instance of header timestamp and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header timestamp 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_timestamp(sip_header_t const *header)
@@ -4992,9 +4813,9 @@ int sip_is_timestamp(sip_header_t const *header);
 #define sip_timestamp_p(h) sip_is_timestamp((h))
 
 
-/**Duplicate (deep copy) @c sip_timestamp_t.
+/**Duplicate a list of @ref sip_timestamp "Timestamp header" header structures #sip_timestamp_t.
  * 
- * The function sip_timestamp_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -5015,8 +4836,8 @@ int sip_is_timestamp(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_timestamp_dup() returns a pointer to the
- * newly duplicated sip_timestamp_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_timestamp_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -5034,13 +4855,13 @@ sip_timestamp_t *sip_timestamp_dup(su_home_t *home, sip_timestamp_t const *hdr)
 }
 #endif
 
-/**Copy a sip_timestamp_t header structure.
+/**Copy a list of @ref sip_timestamp "Timestamp header" header structures #sip_timestamp_t.
  * 
  * The function sip_timestamp_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -5059,8 +4880,7 @@ sip_timestamp_t *sip_timestamp_dup(su_home_t *home, sip_timestamp_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_timestamp_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5077,23 +4897,19 @@ sip_timestamp_t *sip_timestamp_copy(su_home_t *home, sip_timestamp_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_timestamp_t.
+/**Make a @ref sip_timestamp "Timestamp header" structure #sip_timestamp_t.
  * 
  * The function sip_timestamp_make() makes a new
- * sip_timestamp_t header structure.  It allocates a new
+ * #sip_timestamp_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_timestamp_make() returns a pointer to
- * newly maked sip_timestamp_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_timestamp_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -5108,24 +4924,19 @@ su_inline sip_timestamp_t *sip_timestamp_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Timestamp header from formatting result.
+/**Make a @ref sip_timestamp "Timestamp header" from formatting result.
  * 
- * The function sip_timestamp_format() makes a new
- * Timestamp header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_timestamp_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_timestamp_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_timestamp_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -5156,24 +4967,26 @@ su_inline sip_timestamp_t *sip_timestamp_format(su_home_t *home, char const *fmt
  * @{
  */
 
-/** Parse a Min-Expires header. @internal */
-SOFIAPUBFUN int sip_min_expires_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_min_expires "Min-Expires header". @internal */
+SOFIAPUBFUN issize_t sip_min_expires_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Min-Expires header. @internal */
-SOFIAPUBFUN int sip_min_expires_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_min_expires "Min-Expires header". @internal */
+SOFIAPUBFUN issize_t sip_min_expires_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_min_expires_t from sip_t.
+/**Access a SIP @ref sip_min_expires "Min-Expires header"
+ * structure #sip_min_expires_t from #sip_t.
  * 
  */
 #define sip_min_expires(sip) \
   ((sip_min_expires_t *)msg_header_access((msg_pub_t*)(sip), sip_min_expires_class))
 
-/**Initializer for structure sip_min_expires_t.
+/**Initializer for structure #sip_min_expires_t.
  * 
- * A static sip_min_expires_t structure must be initialized.
- * The SIP_MIN_EXPIRES_INIT() macro provides initialization value. 
+ * A static #sip_min_expires_t structure for
+ * @ref sip_min_expires "Min-Expires header" must be initialized with
+ * the SIP_MIN_EXPIRES_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -5184,9 +4997,10 @@ SOFIAPUBFUN int sip_min_expires_e(char b[], int bsiz,
  */
 #define SIP_MIN_EXPIRES_INIT() SIP_HDR_INIT(min_expires)
 
-/**Initialize a structure sip_min_expires_t.
+/**Initialize a structure #sip_min_expires_t.
  * 
- * An sip_min_expires_t structure can be initialized with the
+ * An #sip_min_expires_t structure for
+ * @ref sip_min_expires "Min-Expires header" can be initialized with the
  * sip_min_expires_init() function/macro. For instance,
  * @code
  * 
@@ -5207,18 +5021,16 @@ su_inline sip_min_expires_t *sip_min_expires_init(sip_min_expires_t x[1])
   SIP_HEADER_INIT(x, sip_min_expires_class, sizeof(sip_min_expires_t))
 #endif
 
-/**Test if header object is instance of sip_min_expires_t.
+/**Test if header object is instance of #sip_min_expires_t.
  * 
- * The function sip_is_min_expires() returns true (nonzero) if
- * the header class is an instance of Min-Expires header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_min_expires "Min-Expires header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_min_expires() returns true (nonzero) if
- * the header object is an instance of header min_expires and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header min_expires 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_min_expires(sip_header_t const *header)
@@ -5232,9 +5044,9 @@ int sip_is_min_expires(sip_header_t const *header);
 #define sip_min_expires_p(h) sip_is_min_expires((h))
 
 
-/**Duplicate (deep copy) @c sip_min_expires_t.
+/**Duplicate a list of @ref sip_min_expires "Min-Expires header" header structures #sip_min_expires_t.
  * 
- * The function sip_min_expires_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -5255,8 +5067,8 @@ int sip_is_min_expires(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_min_expires_dup() returns a pointer to the
- * newly duplicated sip_min_expires_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_min_expires_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -5274,13 +5086,13 @@ sip_min_expires_t *sip_min_expires_dup(su_home_t *home, sip_min_expires_t const 
 }
 #endif
 
-/**Copy a sip_min_expires_t header structure.
+/**Copy a list of @ref sip_min_expires "Min-Expires header" header structures #sip_min_expires_t.
  * 
  * The function sip_min_expires_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -5299,8 +5111,7 @@ sip_min_expires_t *sip_min_expires_dup(su_home_t *home, sip_min_expires_t const 
  * @endcode
  * 
  * @return
- * The function sip_min_expires_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5317,23 +5128,19 @@ sip_min_expires_t *sip_min_expires_copy(su_home_t *home, sip_min_expires_t const
 }
 #endif
 
-/**Make a header structure sip_min_expires_t.
+/**Make a @ref sip_min_expires "Min-Expires header" structure #sip_min_expires_t.
  * 
  * The function sip_min_expires_make() makes a new
- * sip_min_expires_t header structure.  It allocates a new
+ * #sip_min_expires_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_min_expires_make() returns a pointer to
- * newly maked sip_min_expires_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_min_expires_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -5348,24 +5155,19 @@ su_inline sip_min_expires_t *sip_min_expires_make(su_home_t *home, char const *s
 }
 #endif
 
-/**Make a Min-Expires header from formatting result.
+/**Make a @ref sip_min_expires "Min-Expires header" from formatting result.
  * 
- * The function sip_min_expires_format() makes a new
- * Min-Expires header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_min_expires_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_min_expires_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_min_expires_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -5396,24 +5198,26 @@ su_inline sip_min_expires_t *sip_min_expires_format(su_home_t *home, char const 
  * @{
  */
 
-/** Parse a Subject header. @internal */
-SOFIAPUBFUN int sip_subject_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_subject "Subject header". @internal */
+SOFIAPUBFUN issize_t sip_subject_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Subject header. @internal */
-SOFIAPUBFUN int sip_subject_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_subject "Subject header". @internal */
+SOFIAPUBFUN issize_t sip_subject_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_subject_t from sip_t.
+/**Access a SIP @ref sip_subject "Subject header"
+ * structure #sip_subject_t from #sip_t.
  * 
  */
 #define sip_subject(sip) \
   ((sip_subject_t *)msg_header_access((msg_pub_t*)(sip), sip_subject_class))
 
-/**Initializer for structure sip_subject_t.
+/**Initializer for structure #sip_subject_t.
  * 
- * A static sip_subject_t structure must be initialized.
- * The SIP_SUBJECT_INIT() macro provides initialization value. 
+ * A static #sip_subject_t structure for
+ * @ref sip_subject "Subject header" must be initialized with
+ * the SIP_SUBJECT_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -5424,9 +5228,10 @@ SOFIAPUBFUN int sip_subject_e(char b[], int bsiz,
  */
 #define SIP_SUBJECT_INIT() SIP_HDR_INIT(subject)
 
-/**Initialize a structure sip_subject_t.
+/**Initialize a structure #sip_subject_t.
  * 
- * An sip_subject_t structure can be initialized with the
+ * An #sip_subject_t structure for
+ * @ref sip_subject "Subject header" can be initialized with the
  * sip_subject_init() function/macro. For instance,
  * @code
  * 
@@ -5447,18 +5252,16 @@ su_inline sip_subject_t *sip_subject_init(sip_subject_t x[1])
   SIP_HEADER_INIT(x, sip_subject_class, sizeof(sip_subject_t))
 #endif
 
-/**Test if header object is instance of sip_subject_t.
+/**Test if header object is instance of #sip_subject_t.
  * 
- * The function sip_is_subject() returns true (nonzero) if
- * the header class is an instance of Subject header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_subject "Subject header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_subject() returns true (nonzero) if
- * the header object is an instance of header subject and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header subject 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_subject(sip_header_t const *header)
@@ -5472,9 +5275,9 @@ int sip_is_subject(sip_header_t const *header);
 #define sip_subject_p(h) sip_is_subject((h))
 
 
-/**Duplicate (deep copy) @c sip_subject_t.
+/**Duplicate a list of @ref sip_subject "Subject header" header structures #sip_subject_t.
  * 
- * The function sip_subject_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -5495,8 +5298,8 @@ int sip_is_subject(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_subject_dup() returns a pointer to the
- * newly duplicated sip_subject_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_subject_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -5514,13 +5317,13 @@ sip_subject_t *sip_subject_dup(su_home_t *home, sip_subject_t const *hdr)
 }
 #endif
 
-/**Copy a sip_subject_t header structure.
+/**Copy a list of @ref sip_subject "Subject header" header structures #sip_subject_t.
  * 
  * The function sip_subject_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -5539,8 +5342,7 @@ sip_subject_t *sip_subject_dup(su_home_t *home, sip_subject_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_subject_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5557,23 +5359,19 @@ sip_subject_t *sip_subject_copy(su_home_t *home, sip_subject_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_subject_t.
+/**Make a @ref sip_subject "Subject header" structure #sip_subject_t.
  * 
  * The function sip_subject_make() makes a new
- * sip_subject_t header structure.  It allocates a new
+ * #sip_subject_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_subject_make() returns a pointer to
- * newly maked sip_subject_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_subject_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -5588,24 +5386,19 @@ su_inline sip_subject_t *sip_subject_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Subject header from formatting result.
+/**Make a @ref sip_subject "Subject header" from formatting result.
  * 
- * The function sip_subject_format() makes a new
- * Subject header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_subject_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_subject_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_subject_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -5636,24 +5429,26 @@ su_inline sip_subject_t *sip_subject_format(su_home_t *home, char const *fmt, ..
  * @{
  */
 
-/** Parse a Priority header. @internal */
-SOFIAPUBFUN int sip_priority_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_priority "Priority header". @internal */
+SOFIAPUBFUN issize_t sip_priority_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Priority header. @internal */
-SOFIAPUBFUN int sip_priority_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_priority "Priority header". @internal */
+SOFIAPUBFUN issize_t sip_priority_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_priority_t from sip_t.
+/**Access a SIP @ref sip_priority "Priority header"
+ * structure #sip_priority_t from #sip_t.
  * 
  */
 #define sip_priority(sip) \
   ((sip_priority_t *)msg_header_access((msg_pub_t*)(sip), sip_priority_class))
 
-/**Initializer for structure sip_priority_t.
+/**Initializer for structure #sip_priority_t.
  * 
- * A static sip_priority_t structure must be initialized.
- * The SIP_PRIORITY_INIT() macro provides initialization value. 
+ * A static #sip_priority_t structure for
+ * @ref sip_priority "Priority header" must be initialized with
+ * the SIP_PRIORITY_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -5664,9 +5459,10 @@ SOFIAPUBFUN int sip_priority_e(char b[], int bsiz,
  */
 #define SIP_PRIORITY_INIT() SIP_HDR_INIT(priority)
 
-/**Initialize a structure sip_priority_t.
+/**Initialize a structure #sip_priority_t.
  * 
- * An sip_priority_t structure can be initialized with the
+ * An #sip_priority_t structure for
+ * @ref sip_priority "Priority header" can be initialized with the
  * sip_priority_init() function/macro. For instance,
  * @code
  * 
@@ -5687,18 +5483,16 @@ su_inline sip_priority_t *sip_priority_init(sip_priority_t x[1])
   SIP_HEADER_INIT(x, sip_priority_class, sizeof(sip_priority_t))
 #endif
 
-/**Test if header object is instance of sip_priority_t.
+/**Test if header object is instance of #sip_priority_t.
  * 
- * The function sip_is_priority() returns true (nonzero) if
- * the header class is an instance of Priority header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_priority "Priority header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_priority() returns true (nonzero) if
- * the header object is an instance of header priority and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header priority 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_priority(sip_header_t const *header)
@@ -5712,9 +5506,9 @@ int sip_is_priority(sip_header_t const *header);
 #define sip_priority_p(h) sip_is_priority((h))
 
 
-/**Duplicate (deep copy) @c sip_priority_t.
+/**Duplicate a list of @ref sip_priority "Priority header" header structures #sip_priority_t.
  * 
- * The function sip_priority_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -5735,8 +5529,8 @@ int sip_is_priority(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_priority_dup() returns a pointer to the
- * newly duplicated sip_priority_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_priority_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -5754,13 +5548,13 @@ sip_priority_t *sip_priority_dup(su_home_t *home, sip_priority_t const *hdr)
 }
 #endif
 
-/**Copy a sip_priority_t header structure.
+/**Copy a list of @ref sip_priority "Priority header" header structures #sip_priority_t.
  * 
  * The function sip_priority_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -5779,8 +5573,7 @@ sip_priority_t *sip_priority_dup(su_home_t *home, sip_priority_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_priority_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -5797,23 +5590,19 @@ sip_priority_t *sip_priority_copy(su_home_t *home, sip_priority_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_priority_t.
+/**Make a @ref sip_priority "Priority header" structure #sip_priority_t.
  * 
  * The function sip_priority_make() makes a new
- * sip_priority_t header structure.  It allocates a new
+ * #sip_priority_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_priority_make() returns a pointer to
- * newly maked sip_priority_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_priority_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -5828,24 +5617,19 @@ su_inline sip_priority_t *sip_priority_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Priority header from formatting result.
+/**Make a @ref sip_priority "Priority header" from formatting result.
  * 
- * The function sip_priority_format() makes a new
- * Priority header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_priority_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_priority_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_priority_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -5876,24 +5660,26 @@ su_inline sip_priority_t *sip_priority_format(su_home_t *home, char const *fmt, 
  * @{
  */
 
-/** Parse a Call-Info header. @internal */
-SOFIAPUBFUN int sip_call_info_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_call_info "Call-Info header". @internal */
+SOFIAPUBFUN issize_t sip_call_info_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Call-Info header. @internal */
-SOFIAPUBFUN int sip_call_info_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_call_info "Call-Info header". @internal */
+SOFIAPUBFUN issize_t sip_call_info_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_call_info_t from sip_t.
+/**Access a SIP @ref sip_call_info "Call-Info header"
+ * structure #sip_call_info_t from #sip_t.
  * 
  */
 #define sip_call_info(sip) \
   ((sip_call_info_t *)msg_header_access((msg_pub_t*)(sip), sip_call_info_class))
 
-/**Initializer for structure sip_call_info_t.
+/**Initializer for structure #sip_call_info_t.
  * 
- * A static sip_call_info_t structure must be initialized.
- * The SIP_CALL_INFO_INIT() macro provides initialization value. 
+ * A static #sip_call_info_t structure for
+ * @ref sip_call_info "Call-Info header" must be initialized with
+ * the SIP_CALL_INFO_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -5904,9 +5690,10 @@ SOFIAPUBFUN int sip_call_info_e(char b[], int bsiz,
  */
 #define SIP_CALL_INFO_INIT() SIP_HDR_INIT(call_info)
 
-/**Initialize a structure sip_call_info_t.
+/**Initialize a structure #sip_call_info_t.
  * 
- * An sip_call_info_t structure can be initialized with the
+ * An #sip_call_info_t structure for
+ * @ref sip_call_info "Call-Info header" can be initialized with the
  * sip_call_info_init() function/macro. For instance,
  * @code
  * 
@@ -5927,18 +5714,16 @@ su_inline sip_call_info_t *sip_call_info_init(sip_call_info_t x[1])
   SIP_HEADER_INIT(x, sip_call_info_class, sizeof(sip_call_info_t))
 #endif
 
-/**Test if header object is instance of sip_call_info_t.
+/**Test if header object is instance of #sip_call_info_t.
  * 
- * The function sip_is_call_info() returns true (nonzero) if
- * the header class is an instance of Call-Info header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_call_info "Call-Info header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_call_info() returns true (nonzero) if
- * the header object is an instance of header call_info and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header call_info 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_call_info(sip_header_t const *header)
@@ -5952,9 +5737,9 @@ int sip_is_call_info(sip_header_t const *header);
 #define sip_call_info_p(h) sip_is_call_info((h))
 
 
-/**Duplicate (deep copy) @c sip_call_info_t.
+/**Duplicate a list of @ref sip_call_info "Call-Info header" header structures #sip_call_info_t.
  * 
- * The function sip_call_info_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -5975,8 +5760,8 @@ int sip_is_call_info(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_call_info_dup() returns a pointer to the
- * newly duplicated sip_call_info_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_call_info_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -5994,13 +5779,13 @@ sip_call_info_t *sip_call_info_dup(su_home_t *home, sip_call_info_t const *hdr)
 }
 #endif
 
-/**Copy a sip_call_info_t header structure.
+/**Copy a list of @ref sip_call_info "Call-Info header" header structures #sip_call_info_t.
  * 
  * The function sip_call_info_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -6019,8 +5804,7 @@ sip_call_info_t *sip_call_info_dup(su_home_t *home, sip_call_info_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_call_info_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6037,23 +5821,19 @@ sip_call_info_t *sip_call_info_copy(su_home_t *home, sip_call_info_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_call_info_t.
+/**Make a @ref sip_call_info "Call-Info header" structure #sip_call_info_t.
  * 
  * The function sip_call_info_make() makes a new
- * sip_call_info_t header structure.  It allocates a new
+ * #sip_call_info_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_call_info_make() returns a pointer to
- * newly maked sip_call_info_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_call_info_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -6068,24 +5848,19 @@ su_inline sip_call_info_t *sip_call_info_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Call-Info header from formatting result.
+/**Make a @ref sip_call_info "Call-Info header" from formatting result.
  * 
- * The function sip_call_info_format() makes a new
- * Call-Info header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_call_info_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_call_info_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_call_info_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -6116,24 +5891,26 @@ su_inline sip_call_info_t *sip_call_info_format(su_home_t *home, char const *fmt
  * @{
  */
 
-/** Parse a Organization header. @internal */
-SOFIAPUBFUN int sip_organization_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_organization "Organization header". @internal */
+SOFIAPUBFUN issize_t sip_organization_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Organization header. @internal */
-SOFIAPUBFUN int sip_organization_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_organization "Organization header". @internal */
+SOFIAPUBFUN issize_t sip_organization_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_organization_t from sip_t.
+/**Access a SIP @ref sip_organization "Organization header"
+ * structure #sip_organization_t from #sip_t.
  * 
  */
 #define sip_organization(sip) \
   ((sip_organization_t *)msg_header_access((msg_pub_t*)(sip), sip_organization_class))
 
-/**Initializer for structure sip_organization_t.
+/**Initializer for structure #sip_organization_t.
  * 
- * A static sip_organization_t structure must be initialized.
- * The SIP_ORGANIZATION_INIT() macro provides initialization value. 
+ * A static #sip_organization_t structure for
+ * @ref sip_organization "Organization header" must be initialized with
+ * the SIP_ORGANIZATION_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -6144,9 +5921,10 @@ SOFIAPUBFUN int sip_organization_e(char b[], int bsiz,
  */
 #define SIP_ORGANIZATION_INIT() SIP_HDR_INIT(organization)
 
-/**Initialize a structure sip_organization_t.
+/**Initialize a structure #sip_organization_t.
  * 
- * An sip_organization_t structure can be initialized with the
+ * An #sip_organization_t structure for
+ * @ref sip_organization "Organization header" can be initialized with the
  * sip_organization_init() function/macro. For instance,
  * @code
  * 
@@ -6167,18 +5945,16 @@ su_inline sip_organization_t *sip_organization_init(sip_organization_t x[1])
   SIP_HEADER_INIT(x, sip_organization_class, sizeof(sip_organization_t))
 #endif
 
-/**Test if header object is instance of sip_organization_t.
+/**Test if header object is instance of #sip_organization_t.
  * 
- * The function sip_is_organization() returns true (nonzero) if
- * the header class is an instance of Organization header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_organization "Organization header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_organization() returns true (nonzero) if
- * the header object is an instance of header organization and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header organization 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_organization(sip_header_t const *header)
@@ -6192,9 +5968,9 @@ int sip_is_organization(sip_header_t const *header);
 #define sip_organization_p(h) sip_is_organization((h))
 
 
-/**Duplicate (deep copy) @c sip_organization_t.
+/**Duplicate a list of @ref sip_organization "Organization header" header structures #sip_organization_t.
  * 
- * The function sip_organization_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -6215,8 +5991,8 @@ int sip_is_organization(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_organization_dup() returns a pointer to the
- * newly duplicated sip_organization_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_organization_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -6234,13 +6010,13 @@ sip_organization_t *sip_organization_dup(su_home_t *home, sip_organization_t con
 }
 #endif
 
-/**Copy a sip_organization_t header structure.
+/**Copy a list of @ref sip_organization "Organization header" header structures #sip_organization_t.
  * 
  * The function sip_organization_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -6259,8 +6035,7 @@ sip_organization_t *sip_organization_dup(su_home_t *home, sip_organization_t con
  * @endcode
  * 
  * @return
- * The function sip_organization_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6277,23 +6052,19 @@ sip_organization_t *sip_organization_copy(su_home_t *home, sip_organization_t co
 }
 #endif
 
-/**Make a header structure sip_organization_t.
+/**Make a @ref sip_organization "Organization header" structure #sip_organization_t.
  * 
  * The function sip_organization_make() makes a new
- * sip_organization_t header structure.  It allocates a new
+ * #sip_organization_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_organization_make() returns a pointer to
- * newly maked sip_organization_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_organization_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -6308,24 +6079,19 @@ su_inline sip_organization_t *sip_organization_make(su_home_t *home, char const 
 }
 #endif
 
-/**Make a Organization header from formatting result.
+/**Make a @ref sip_organization "Organization header" from formatting result.
  * 
- * The function sip_organization_format() makes a new
- * Organization header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_organization_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_organization_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_organization_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -6356,24 +6122,26 @@ su_inline sip_organization_t *sip_organization_format(su_home_t *home, char cons
  * @{
  */
 
-/** Parse a Server header. @internal */
-SOFIAPUBFUN int sip_server_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_server "Server header". @internal */
+SOFIAPUBFUN issize_t sip_server_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Server header. @internal */
-SOFIAPUBFUN int sip_server_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_server "Server header". @internal */
+SOFIAPUBFUN issize_t sip_server_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_server_t from sip_t.
+/**Access a SIP @ref sip_server "Server header"
+ * structure #sip_server_t from #sip_t.
  * 
  */
 #define sip_server(sip) \
   ((sip_server_t *)msg_header_access((msg_pub_t*)(sip), sip_server_class))
 
-/**Initializer for structure sip_server_t.
+/**Initializer for structure #sip_server_t.
  * 
- * A static sip_server_t structure must be initialized.
- * The SIP_SERVER_INIT() macro provides initialization value. 
+ * A static #sip_server_t structure for
+ * @ref sip_server "Server header" must be initialized with
+ * the SIP_SERVER_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -6384,9 +6152,10 @@ SOFIAPUBFUN int sip_server_e(char b[], int bsiz,
  */
 #define SIP_SERVER_INIT() SIP_HDR_INIT(server)
 
-/**Initialize a structure sip_server_t.
+/**Initialize a structure #sip_server_t.
  * 
- * An sip_server_t structure can be initialized with the
+ * An #sip_server_t structure for
+ * @ref sip_server "Server header" can be initialized with the
  * sip_server_init() function/macro. For instance,
  * @code
  * 
@@ -6407,18 +6176,16 @@ su_inline sip_server_t *sip_server_init(sip_server_t x[1])
   SIP_HEADER_INIT(x, sip_server_class, sizeof(sip_server_t))
 #endif
 
-/**Test if header object is instance of sip_server_t.
+/**Test if header object is instance of #sip_server_t.
  * 
- * The function sip_is_server() returns true (nonzero) if
- * the header class is an instance of Server header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_server "Server header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_server() returns true (nonzero) if
- * the header object is an instance of header server and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header server 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_server(sip_header_t const *header)
@@ -6432,9 +6199,9 @@ int sip_is_server(sip_header_t const *header);
 #define sip_server_p(h) sip_is_server((h))
 
 
-/**Duplicate (deep copy) @c sip_server_t.
+/**Duplicate a list of @ref sip_server "Server header" header structures #sip_server_t.
  * 
- * The function sip_server_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -6455,8 +6222,8 @@ int sip_is_server(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_server_dup() returns a pointer to the
- * newly duplicated sip_server_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_server_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -6474,13 +6241,13 @@ sip_server_t *sip_server_dup(su_home_t *home, sip_server_t const *hdr)
 }
 #endif
 
-/**Copy a sip_server_t header structure.
+/**Copy a list of @ref sip_server "Server header" header structures #sip_server_t.
  * 
  * The function sip_server_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -6499,8 +6266,7 @@ sip_server_t *sip_server_dup(su_home_t *home, sip_server_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_server_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6517,23 +6283,19 @@ sip_server_t *sip_server_copy(su_home_t *home, sip_server_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_server_t.
+/**Make a @ref sip_server "Server header" structure #sip_server_t.
  * 
  * The function sip_server_make() makes a new
- * sip_server_t header structure.  It allocates a new
+ * #sip_server_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_server_make() returns a pointer to
- * newly maked sip_server_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_server_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -6548,24 +6310,19 @@ su_inline sip_server_t *sip_server_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Server header from formatting result.
+/**Make a @ref sip_server "Server header" from formatting result.
  * 
- * The function sip_server_format() makes a new
- * Server header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_server_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_server_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_server_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -6596,24 +6353,26 @@ su_inline sip_server_t *sip_server_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a User-Agent header. @internal */
-SOFIAPUBFUN int sip_user_agent_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_user_agent "User-Agent header". @internal */
+SOFIAPUBFUN issize_t sip_user_agent_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a User-Agent header. @internal */
-SOFIAPUBFUN int sip_user_agent_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_user_agent "User-Agent header". @internal */
+SOFIAPUBFUN issize_t sip_user_agent_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_user_agent_t from sip_t.
+/**Access a SIP @ref sip_user_agent "User-Agent header"
+ * structure #sip_user_agent_t from #sip_t.
  * 
  */
 #define sip_user_agent(sip) \
   ((sip_user_agent_t *)msg_header_access((msg_pub_t*)(sip), sip_user_agent_class))
 
-/**Initializer for structure sip_user_agent_t.
+/**Initializer for structure #sip_user_agent_t.
  * 
- * A static sip_user_agent_t structure must be initialized.
- * The SIP_USER_AGENT_INIT() macro provides initialization value. 
+ * A static #sip_user_agent_t structure for
+ * @ref sip_user_agent "User-Agent header" must be initialized with
+ * the SIP_USER_AGENT_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -6624,9 +6383,10 @@ SOFIAPUBFUN int sip_user_agent_e(char b[], int bsiz,
  */
 #define SIP_USER_AGENT_INIT() SIP_HDR_INIT(user_agent)
 
-/**Initialize a structure sip_user_agent_t.
+/**Initialize a structure #sip_user_agent_t.
  * 
- * An sip_user_agent_t structure can be initialized with the
+ * An #sip_user_agent_t structure for
+ * @ref sip_user_agent "User-Agent header" can be initialized with the
  * sip_user_agent_init() function/macro. For instance,
  * @code
  * 
@@ -6647,18 +6407,16 @@ su_inline sip_user_agent_t *sip_user_agent_init(sip_user_agent_t x[1])
   SIP_HEADER_INIT(x, sip_user_agent_class, sizeof(sip_user_agent_t))
 #endif
 
-/**Test if header object is instance of sip_user_agent_t.
+/**Test if header object is instance of #sip_user_agent_t.
  * 
- * The function sip_is_user_agent() returns true (nonzero) if
- * the header class is an instance of User-Agent header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_user_agent "User-Agent header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_user_agent() returns true (nonzero) if
- * the header object is an instance of header user_agent and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header user_agent 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_user_agent(sip_header_t const *header)
@@ -6672,9 +6430,9 @@ int sip_is_user_agent(sip_header_t const *header);
 #define sip_user_agent_p(h) sip_is_user_agent((h))
 
 
-/**Duplicate (deep copy) @c sip_user_agent_t.
+/**Duplicate a list of @ref sip_user_agent "User-Agent header" header structures #sip_user_agent_t.
  * 
- * The function sip_user_agent_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -6695,8 +6453,8 @@ int sip_is_user_agent(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_user_agent_dup() returns a pointer to the
- * newly duplicated sip_user_agent_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_user_agent_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -6714,13 +6472,13 @@ sip_user_agent_t *sip_user_agent_dup(su_home_t *home, sip_user_agent_t const *hd
 }
 #endif
 
-/**Copy a sip_user_agent_t header structure.
+/**Copy a list of @ref sip_user_agent "User-Agent header" header structures #sip_user_agent_t.
  * 
  * The function sip_user_agent_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -6739,8 +6497,7 @@ sip_user_agent_t *sip_user_agent_dup(su_home_t *home, sip_user_agent_t const *hd
  * @endcode
  * 
  * @return
- * The function sip_user_agent_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6757,23 +6514,19 @@ sip_user_agent_t *sip_user_agent_copy(su_home_t *home, sip_user_agent_t const *h
 }
 #endif
 
-/**Make a header structure sip_user_agent_t.
+/**Make a @ref sip_user_agent "User-Agent header" structure #sip_user_agent_t.
  * 
  * The function sip_user_agent_make() makes a new
- * sip_user_agent_t header structure.  It allocates a new
+ * #sip_user_agent_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_user_agent_make() returns a pointer to
- * newly maked sip_user_agent_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_user_agent_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -6788,24 +6541,19 @@ su_inline sip_user_agent_t *sip_user_agent_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a User-Agent header from formatting result.
+/**Make a @ref sip_user_agent "User-Agent header" from formatting result.
  * 
- * The function sip_user_agent_format() makes a new
- * User-Agent header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_user_agent_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_user_agent_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_user_agent_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -6836,24 +6584,26 @@ su_inline sip_user_agent_t *sip_user_agent_format(su_home_t *home, char const *f
  * @{
  */
 
-/** Parse a In-Reply-To header. @internal */
-SOFIAPUBFUN int sip_in_reply_to_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_in_reply_to "In-Reply-To header". @internal */
+SOFIAPUBFUN issize_t sip_in_reply_to_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a In-Reply-To header. @internal */
-SOFIAPUBFUN int sip_in_reply_to_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_in_reply_to "In-Reply-To header". @internal */
+SOFIAPUBFUN issize_t sip_in_reply_to_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_in_reply_to_t from sip_t.
+/**Access a SIP @ref sip_in_reply_to "In-Reply-To header"
+ * structure #sip_in_reply_to_t from #sip_t.
  * 
  */
 #define sip_in_reply_to(sip) \
   ((sip_in_reply_to_t *)msg_header_access((msg_pub_t*)(sip), sip_in_reply_to_class))
 
-/**Initializer for structure sip_in_reply_to_t.
+/**Initializer for structure #sip_in_reply_to_t.
  * 
- * A static sip_in_reply_to_t structure must be initialized.
- * The SIP_IN_REPLY_TO_INIT() macro provides initialization value. 
+ * A static #sip_in_reply_to_t structure for
+ * @ref sip_in_reply_to "In-Reply-To header" must be initialized with
+ * the SIP_IN_REPLY_TO_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -6864,9 +6614,10 @@ SOFIAPUBFUN int sip_in_reply_to_e(char b[], int bsiz,
  */
 #define SIP_IN_REPLY_TO_INIT() SIP_HDR_INIT(in_reply_to)
 
-/**Initialize a structure sip_in_reply_to_t.
+/**Initialize a structure #sip_in_reply_to_t.
  * 
- * An sip_in_reply_to_t structure can be initialized with the
+ * An #sip_in_reply_to_t structure for
+ * @ref sip_in_reply_to "In-Reply-To header" can be initialized with the
  * sip_in_reply_to_init() function/macro. For instance,
  * @code
  * 
@@ -6887,18 +6638,16 @@ su_inline sip_in_reply_to_t *sip_in_reply_to_init(sip_in_reply_to_t x[1])
   SIP_HEADER_INIT(x, sip_in_reply_to_class, sizeof(sip_in_reply_to_t))
 #endif
 
-/**Test if header object is instance of sip_in_reply_to_t.
+/**Test if header object is instance of #sip_in_reply_to_t.
  * 
- * The function sip_is_in_reply_to() returns true (nonzero) if
- * the header class is an instance of In-Reply-To header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_in_reply_to "In-Reply-To header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_in_reply_to() returns true (nonzero) if
- * the header object is an instance of header in_reply_to and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header in_reply_to 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_in_reply_to(sip_header_t const *header)
@@ -6912,9 +6661,9 @@ int sip_is_in_reply_to(sip_header_t const *header);
 #define sip_in_reply_to_p(h) sip_is_in_reply_to((h))
 
 
-/**Duplicate (deep copy) @c sip_in_reply_to_t.
+/**Duplicate a list of @ref sip_in_reply_to "In-Reply-To header" header structures #sip_in_reply_to_t.
  * 
- * The function sip_in_reply_to_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -6935,8 +6684,8 @@ int sip_is_in_reply_to(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_in_reply_to_dup() returns a pointer to the
- * newly duplicated sip_in_reply_to_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_in_reply_to_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -6954,13 +6703,13 @@ sip_in_reply_to_t *sip_in_reply_to_dup(su_home_t *home, sip_in_reply_to_t const 
 }
 #endif
 
-/**Copy a sip_in_reply_to_t header structure.
+/**Copy a list of @ref sip_in_reply_to "In-Reply-To header" header structures #sip_in_reply_to_t.
  * 
  * The function sip_in_reply_to_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -6979,8 +6728,7 @@ sip_in_reply_to_t *sip_in_reply_to_dup(su_home_t *home, sip_in_reply_to_t const 
  * @endcode
  * 
  * @return
- * The function sip_in_reply_to_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -6997,23 +6745,19 @@ sip_in_reply_to_t *sip_in_reply_to_copy(su_home_t *home, sip_in_reply_to_t const
 }
 #endif
 
-/**Make a header structure sip_in_reply_to_t.
+/**Make a @ref sip_in_reply_to "In-Reply-To header" structure #sip_in_reply_to_t.
  * 
  * The function sip_in_reply_to_make() makes a new
- * sip_in_reply_to_t header structure.  It allocates a new
+ * #sip_in_reply_to_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_in_reply_to_make() returns a pointer to
- * newly maked sip_in_reply_to_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_in_reply_to_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7028,24 +6772,19 @@ su_inline sip_in_reply_to_t *sip_in_reply_to_make(su_home_t *home, char const *s
 }
 #endif
 
-/**Make a In-Reply-To header from formatting result.
+/**Make a @ref sip_in_reply_to "In-Reply-To header" from formatting result.
  * 
- * The function sip_in_reply_to_format() makes a new
- * In-Reply-To header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_in_reply_to_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_in_reply_to_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_in_reply_to_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -7076,24 +6815,26 @@ su_inline sip_in_reply_to_t *sip_in_reply_to_format(su_home_t *home, char const 
  * @{
  */
 
-/** Parse a Accept header. @internal */
-SOFIAPUBFUN int sip_accept_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_accept "Accept header". @internal */
+SOFIAPUBFUN issize_t sip_accept_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Accept header. @internal */
-SOFIAPUBFUN int sip_accept_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_accept "Accept header". @internal */
+SOFIAPUBFUN issize_t sip_accept_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_accept_t from sip_t.
+/**Access a SIP @ref sip_accept "Accept header"
+ * structure #sip_accept_t from #sip_t.
  * 
  */
 #define sip_accept(sip) \
   ((sip_accept_t *)msg_header_access((msg_pub_t*)(sip), sip_accept_class))
 
-/**Initializer for structure sip_accept_t.
+/**Initializer for structure #sip_accept_t.
  * 
- * A static sip_accept_t structure must be initialized.
- * The SIP_ACCEPT_INIT() macro provides initialization value. 
+ * A static #sip_accept_t structure for
+ * @ref sip_accept "Accept header" must be initialized with
+ * the SIP_ACCEPT_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -7104,9 +6845,10 @@ SOFIAPUBFUN int sip_accept_e(char b[], int bsiz,
  */
 #define SIP_ACCEPT_INIT() SIP_HDR_INIT(accept)
 
-/**Initialize a structure sip_accept_t.
+/**Initialize a structure #sip_accept_t.
  * 
- * An sip_accept_t structure can be initialized with the
+ * An #sip_accept_t structure for
+ * @ref sip_accept "Accept header" can be initialized with the
  * sip_accept_init() function/macro. For instance,
  * @code
  * 
@@ -7127,18 +6869,16 @@ su_inline sip_accept_t *sip_accept_init(sip_accept_t x[1])
   SIP_HEADER_INIT(x, sip_accept_class, sizeof(sip_accept_t))
 #endif
 
-/**Test if header object is instance of sip_accept_t.
+/**Test if header object is instance of #sip_accept_t.
  * 
- * The function sip_is_accept() returns true (nonzero) if
- * the header class is an instance of Accept header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_accept "Accept header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_accept() returns true (nonzero) if
- * the header object is an instance of header accept and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header accept 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_accept(sip_header_t const *header)
@@ -7152,9 +6892,9 @@ int sip_is_accept(sip_header_t const *header);
 #define sip_accept_p(h) sip_is_accept((h))
 
 
-/**Duplicate (deep copy) @c sip_accept_t.
+/**Duplicate a list of @ref sip_accept "Accept header" header structures #sip_accept_t.
  * 
- * The function sip_accept_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -7175,8 +6915,8 @@ int sip_is_accept(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_accept_dup() returns a pointer to the
- * newly duplicated sip_accept_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_accept_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -7194,13 +6934,13 @@ sip_accept_t *sip_accept_dup(su_home_t *home, sip_accept_t const *hdr)
 }
 #endif
 
-/**Copy a sip_accept_t header structure.
+/**Copy a list of @ref sip_accept "Accept header" header structures #sip_accept_t.
  * 
  * The function sip_accept_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -7219,8 +6959,7 @@ sip_accept_t *sip_accept_dup(su_home_t *home, sip_accept_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_accept_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7237,23 +6976,19 @@ sip_accept_t *sip_accept_copy(su_home_t *home, sip_accept_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_accept_t.
+/**Make a @ref sip_accept "Accept header" structure #sip_accept_t.
  * 
  * The function sip_accept_make() makes a new
- * sip_accept_t header structure.  It allocates a new
+ * #sip_accept_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_accept_make() returns a pointer to
- * newly maked sip_accept_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_accept_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7268,24 +7003,19 @@ su_inline sip_accept_t *sip_accept_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Accept header from formatting result.
+/**Make a @ref sip_accept "Accept header" from formatting result.
  * 
- * The function sip_accept_format() makes a new
- * Accept header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_accept_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_accept_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_accept_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -7316,24 +7046,26 @@ su_inline sip_accept_t *sip_accept_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Accept-Encoding header. @internal */
-SOFIAPUBFUN int sip_accept_encoding_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_accept_encoding "Accept-Encoding header". @internal */
+SOFIAPUBFUN issize_t sip_accept_encoding_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Accept-Encoding header. @internal */
-SOFIAPUBFUN int sip_accept_encoding_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_accept_encoding "Accept-Encoding header". @internal */
+SOFIAPUBFUN issize_t sip_accept_encoding_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_accept_encoding_t from sip_t.
+/**Access a SIP @ref sip_accept_encoding "Accept-Encoding header"
+ * structure #sip_accept_encoding_t from #sip_t.
  * 
  */
 #define sip_accept_encoding(sip) \
   ((sip_accept_encoding_t *)msg_header_access((msg_pub_t*)(sip), sip_accept_encoding_class))
 
-/**Initializer for structure sip_accept_encoding_t.
+/**Initializer for structure #sip_accept_encoding_t.
  * 
- * A static sip_accept_encoding_t structure must be initialized.
- * The SIP_ACCEPT_ENCODING_INIT() macro provides initialization value. 
+ * A static #sip_accept_encoding_t structure for
+ * @ref sip_accept_encoding "Accept-Encoding header" must be initialized with
+ * the SIP_ACCEPT_ENCODING_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -7344,9 +7076,10 @@ SOFIAPUBFUN int sip_accept_encoding_e(char b[], int bsiz,
  */
 #define SIP_ACCEPT_ENCODING_INIT() SIP_HDR_INIT(accept_encoding)
 
-/**Initialize a structure sip_accept_encoding_t.
+/**Initialize a structure #sip_accept_encoding_t.
  * 
- * An sip_accept_encoding_t structure can be initialized with the
+ * An #sip_accept_encoding_t structure for
+ * @ref sip_accept_encoding "Accept-Encoding header" can be initialized with the
  * sip_accept_encoding_init() function/macro. For instance,
  * @code
  * 
@@ -7367,18 +7100,16 @@ su_inline sip_accept_encoding_t *sip_accept_encoding_init(sip_accept_encoding_t 
   SIP_HEADER_INIT(x, sip_accept_encoding_class, sizeof(sip_accept_encoding_t))
 #endif
 
-/**Test if header object is instance of sip_accept_encoding_t.
+/**Test if header object is instance of #sip_accept_encoding_t.
  * 
- * The function sip_is_accept_encoding() returns true (nonzero) if
- * the header class is an instance of Accept-Encoding header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_accept_encoding "Accept-Encoding header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_accept_encoding() returns true (nonzero) if
- * the header object is an instance of header accept_encoding and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header accept_encoding 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_accept_encoding(sip_header_t const *header)
@@ -7392,9 +7123,9 @@ int sip_is_accept_encoding(sip_header_t const *header);
 #define sip_accept_encoding_p(h) sip_is_accept_encoding((h))
 
 
-/**Duplicate (deep copy) @c sip_accept_encoding_t.
+/**Duplicate a list of @ref sip_accept_encoding "Accept-Encoding header" header structures #sip_accept_encoding_t.
  * 
- * The function sip_accept_encoding_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -7415,8 +7146,8 @@ int sip_is_accept_encoding(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_accept_encoding_dup() returns a pointer to the
- * newly duplicated sip_accept_encoding_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_accept_encoding_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -7434,13 +7165,13 @@ sip_accept_encoding_t *sip_accept_encoding_dup(su_home_t *home, sip_accept_encod
 }
 #endif
 
-/**Copy a sip_accept_encoding_t header structure.
+/**Copy a list of @ref sip_accept_encoding "Accept-Encoding header" header structures #sip_accept_encoding_t.
  * 
  * The function sip_accept_encoding_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -7459,8 +7190,7 @@ sip_accept_encoding_t *sip_accept_encoding_dup(su_home_t *home, sip_accept_encod
  * @endcode
  * 
  * @return
- * The function sip_accept_encoding_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7477,23 +7207,19 @@ sip_accept_encoding_t *sip_accept_encoding_copy(su_home_t *home, sip_accept_enco
 }
 #endif
 
-/**Make a header structure sip_accept_encoding_t.
+/**Make a @ref sip_accept_encoding "Accept-Encoding header" structure #sip_accept_encoding_t.
  * 
  * The function sip_accept_encoding_make() makes a new
- * sip_accept_encoding_t header structure.  It allocates a new
+ * #sip_accept_encoding_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_accept_encoding_make() returns a pointer to
- * newly maked sip_accept_encoding_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_accept_encoding_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7508,24 +7234,19 @@ su_inline sip_accept_encoding_t *sip_accept_encoding_make(su_home_t *home, char 
 }
 #endif
 
-/**Make a Accept-Encoding header from formatting result.
+/**Make a @ref sip_accept_encoding "Accept-Encoding header" from formatting result.
  * 
- * The function sip_accept_encoding_format() makes a new
- * Accept-Encoding header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_accept_encoding_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_accept_encoding_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_accept_encoding_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -7556,24 +7277,26 @@ su_inline sip_accept_encoding_t *sip_accept_encoding_format(su_home_t *home, cha
  * @{
  */
 
-/** Parse a Accept-Language header. @internal */
-SOFIAPUBFUN int sip_accept_language_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_accept_language "Accept-Language header". @internal */
+SOFIAPUBFUN issize_t sip_accept_language_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Accept-Language header. @internal */
-SOFIAPUBFUN int sip_accept_language_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_accept_language "Accept-Language header". @internal */
+SOFIAPUBFUN issize_t sip_accept_language_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_accept_language_t from sip_t.
+/**Access a SIP @ref sip_accept_language "Accept-Language header"
+ * structure #sip_accept_language_t from #sip_t.
  * 
  */
 #define sip_accept_language(sip) \
   ((sip_accept_language_t *)msg_header_access((msg_pub_t*)(sip), sip_accept_language_class))
 
-/**Initializer for structure sip_accept_language_t.
+/**Initializer for structure #sip_accept_language_t.
  * 
- * A static sip_accept_language_t structure must be initialized.
- * The SIP_ACCEPT_LANGUAGE_INIT() macro provides initialization value. 
+ * A static #sip_accept_language_t structure for
+ * @ref sip_accept_language "Accept-Language header" must be initialized with
+ * the SIP_ACCEPT_LANGUAGE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -7584,9 +7307,10 @@ SOFIAPUBFUN int sip_accept_language_e(char b[], int bsiz,
  */
 #define SIP_ACCEPT_LANGUAGE_INIT() SIP_HDR_INIT(accept_language)
 
-/**Initialize a structure sip_accept_language_t.
+/**Initialize a structure #sip_accept_language_t.
  * 
- * An sip_accept_language_t structure can be initialized with the
+ * An #sip_accept_language_t structure for
+ * @ref sip_accept_language "Accept-Language header" can be initialized with the
  * sip_accept_language_init() function/macro. For instance,
  * @code
  * 
@@ -7607,18 +7331,16 @@ su_inline sip_accept_language_t *sip_accept_language_init(sip_accept_language_t 
   SIP_HEADER_INIT(x, sip_accept_language_class, sizeof(sip_accept_language_t))
 #endif
 
-/**Test if header object is instance of sip_accept_language_t.
+/**Test if header object is instance of #sip_accept_language_t.
  * 
- * The function sip_is_accept_language() returns true (nonzero) if
- * the header class is an instance of Accept-Language header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_accept_language "Accept-Language header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_accept_language() returns true (nonzero) if
- * the header object is an instance of header accept_language and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header accept_language 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_accept_language(sip_header_t const *header)
@@ -7632,9 +7354,9 @@ int sip_is_accept_language(sip_header_t const *header);
 #define sip_accept_language_p(h) sip_is_accept_language((h))
 
 
-/**Duplicate (deep copy) @c sip_accept_language_t.
+/**Duplicate a list of @ref sip_accept_language "Accept-Language header" header structures #sip_accept_language_t.
  * 
- * The function sip_accept_language_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -7655,8 +7377,8 @@ int sip_is_accept_language(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_accept_language_dup() returns a pointer to the
- * newly duplicated sip_accept_language_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_accept_language_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -7674,13 +7396,13 @@ sip_accept_language_t *sip_accept_language_dup(su_home_t *home, sip_accept_langu
 }
 #endif
 
-/**Copy a sip_accept_language_t header structure.
+/**Copy a list of @ref sip_accept_language "Accept-Language header" header structures #sip_accept_language_t.
  * 
  * The function sip_accept_language_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -7699,8 +7421,7 @@ sip_accept_language_t *sip_accept_language_dup(su_home_t *home, sip_accept_langu
  * @endcode
  * 
  * @return
- * The function sip_accept_language_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7717,23 +7438,19 @@ sip_accept_language_t *sip_accept_language_copy(su_home_t *home, sip_accept_lang
 }
 #endif
 
-/**Make a header structure sip_accept_language_t.
+/**Make a @ref sip_accept_language "Accept-Language header" structure #sip_accept_language_t.
  * 
  * The function sip_accept_language_make() makes a new
- * sip_accept_language_t header structure.  It allocates a new
+ * #sip_accept_language_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_accept_language_make() returns a pointer to
- * newly maked sip_accept_language_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_accept_language_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7748,24 +7465,19 @@ su_inline sip_accept_language_t *sip_accept_language_make(su_home_t *home, char 
 }
 #endif
 
-/**Make a Accept-Language header from formatting result.
+/**Make a @ref sip_accept_language "Accept-Language header" from formatting result.
  * 
- * The function sip_accept_language_format() makes a new
- * Accept-Language header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_accept_language_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_accept_language_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_accept_language_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -7796,24 +7508,26 @@ su_inline sip_accept_language_t *sip_accept_language_format(su_home_t *home, cha
  * @{
  */
 
-/** Parse a Allow header. @internal */
-SOFIAPUBFUN int sip_allow_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_allow "Allow header". @internal */
+SOFIAPUBFUN issize_t sip_allow_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Allow header. @internal */
-SOFIAPUBFUN int sip_allow_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_allow "Allow header". @internal */
+SOFIAPUBFUN issize_t sip_allow_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_allow_t from sip_t.
+/**Access a SIP @ref sip_allow "Allow header"
+ * structure #sip_allow_t from #sip_t.
  * 
  */
 #define sip_allow(sip) \
   ((sip_allow_t *)msg_header_access((msg_pub_t*)(sip), sip_allow_class))
 
-/**Initializer for structure sip_allow_t.
+/**Initializer for structure #sip_allow_t.
  * 
- * A static sip_allow_t structure must be initialized.
- * The SIP_ALLOW_INIT() macro provides initialization value. 
+ * A static #sip_allow_t structure for
+ * @ref sip_allow "Allow header" must be initialized with
+ * the SIP_ALLOW_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -7824,9 +7538,10 @@ SOFIAPUBFUN int sip_allow_e(char b[], int bsiz,
  */
 #define SIP_ALLOW_INIT() SIP_HDR_INIT(allow)
 
-/**Initialize a structure sip_allow_t.
+/**Initialize a structure #sip_allow_t.
  * 
- * An sip_allow_t structure can be initialized with the
+ * An #sip_allow_t structure for
+ * @ref sip_allow "Allow header" can be initialized with the
  * sip_allow_init() function/macro. For instance,
  * @code
  * 
@@ -7847,18 +7562,16 @@ su_inline sip_allow_t *sip_allow_init(sip_allow_t x[1])
   SIP_HEADER_INIT(x, sip_allow_class, sizeof(sip_allow_t))
 #endif
 
-/**Test if header object is instance of sip_allow_t.
+/**Test if header object is instance of #sip_allow_t.
  * 
- * The function sip_is_allow() returns true (nonzero) if
- * the header class is an instance of Allow header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_allow "Allow header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_allow() returns true (nonzero) if
- * the header object is an instance of header allow and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header allow 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_allow(sip_header_t const *header)
@@ -7872,9 +7585,9 @@ int sip_is_allow(sip_header_t const *header);
 #define sip_allow_p(h) sip_is_allow((h))
 
 
-/**Duplicate (deep copy) @c sip_allow_t.
+/**Duplicate a list of @ref sip_allow "Allow header" header structures #sip_allow_t.
  * 
- * The function sip_allow_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -7895,8 +7608,8 @@ int sip_is_allow(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_allow_dup() returns a pointer to the
- * newly duplicated sip_allow_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_allow_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -7914,13 +7627,13 @@ sip_allow_t *sip_allow_dup(su_home_t *home, sip_allow_t const *hdr)
 }
 #endif
 
-/**Copy a sip_allow_t header structure.
+/**Copy a list of @ref sip_allow "Allow header" header structures #sip_allow_t.
  * 
  * The function sip_allow_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -7939,8 +7652,7 @@ sip_allow_t *sip_allow_dup(su_home_t *home, sip_allow_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_allow_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -7957,23 +7669,19 @@ sip_allow_t *sip_allow_copy(su_home_t *home, sip_allow_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_allow_t.
+/**Make a @ref sip_allow "Allow header" structure #sip_allow_t.
  * 
  * The function sip_allow_make() makes a new
- * sip_allow_t header structure.  It allocates a new
+ * #sip_allow_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_allow_make() returns a pointer to
- * newly maked sip_allow_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_allow_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -7988,24 +7696,19 @@ su_inline sip_allow_t *sip_allow_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Allow header from formatting result.
+/**Make a @ref sip_allow "Allow header" from formatting result.
  * 
- * The function sip_allow_format() makes a new
- * Allow header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_allow_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_allow_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_allow_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -8036,24 +7739,26 @@ su_inline sip_allow_t *sip_allow_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Require header. @internal */
-SOFIAPUBFUN int sip_require_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_require "Require header". @internal */
+SOFIAPUBFUN issize_t sip_require_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Require header. @internal */
-SOFIAPUBFUN int sip_require_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_require "Require header". @internal */
+SOFIAPUBFUN issize_t sip_require_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_require_t from sip_t.
+/**Access a SIP @ref sip_require "Require header"
+ * structure #sip_require_t from #sip_t.
  * 
  */
 #define sip_require(sip) \
   ((sip_require_t *)msg_header_access((msg_pub_t*)(sip), sip_require_class))
 
-/**Initializer for structure sip_require_t.
+/**Initializer for structure #sip_require_t.
  * 
- * A static sip_require_t structure must be initialized.
- * The SIP_REQUIRE_INIT() macro provides initialization value. 
+ * A static #sip_require_t structure for
+ * @ref sip_require "Require header" must be initialized with
+ * the SIP_REQUIRE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -8064,9 +7769,10 @@ SOFIAPUBFUN int sip_require_e(char b[], int bsiz,
  */
 #define SIP_REQUIRE_INIT() SIP_HDR_INIT(require)
 
-/**Initialize a structure sip_require_t.
+/**Initialize a structure #sip_require_t.
  * 
- * An sip_require_t structure can be initialized with the
+ * An #sip_require_t structure for
+ * @ref sip_require "Require header" can be initialized with the
  * sip_require_init() function/macro. For instance,
  * @code
  * 
@@ -8087,18 +7793,16 @@ su_inline sip_require_t *sip_require_init(sip_require_t x[1])
   SIP_HEADER_INIT(x, sip_require_class, sizeof(sip_require_t))
 #endif
 
-/**Test if header object is instance of sip_require_t.
+/**Test if header object is instance of #sip_require_t.
  * 
- * The function sip_is_require() returns true (nonzero) if
- * the header class is an instance of Require header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_require "Require header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_require() returns true (nonzero) if
- * the header object is an instance of header require and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header require 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_require(sip_header_t const *header)
@@ -8112,9 +7816,9 @@ int sip_is_require(sip_header_t const *header);
 #define sip_require_p(h) sip_is_require((h))
 
 
-/**Duplicate (deep copy) @c sip_require_t.
+/**Duplicate a list of @ref sip_require "Require header" header structures #sip_require_t.
  * 
- * The function sip_require_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -8135,8 +7839,8 @@ int sip_is_require(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_require_dup() returns a pointer to the
- * newly duplicated sip_require_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_require_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -8154,13 +7858,13 @@ sip_require_t *sip_require_dup(su_home_t *home, sip_require_t const *hdr)
 }
 #endif
 
-/**Copy a sip_require_t header structure.
+/**Copy a list of @ref sip_require "Require header" header structures #sip_require_t.
  * 
  * The function sip_require_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -8179,8 +7883,7 @@ sip_require_t *sip_require_dup(su_home_t *home, sip_require_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_require_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8197,23 +7900,19 @@ sip_require_t *sip_require_copy(su_home_t *home, sip_require_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_require_t.
+/**Make a @ref sip_require "Require header" structure #sip_require_t.
  * 
  * The function sip_require_make() makes a new
- * sip_require_t header structure.  It allocates a new
+ * #sip_require_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_require_make() returns a pointer to
- * newly maked sip_require_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_require_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -8228,24 +7927,19 @@ su_inline sip_require_t *sip_require_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Require header from formatting result.
+/**Make a @ref sip_require "Require header" from formatting result.
  * 
- * The function sip_require_format() makes a new
- * Require header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_require_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_require_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_require_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -8276,24 +7970,26 @@ su_inline sip_require_t *sip_require_format(su_home_t *home, char const *fmt, ..
  * @{
  */
 
-/** Parse a Supported header. @internal */
-SOFIAPUBFUN int sip_supported_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_supported "Supported header". @internal */
+SOFIAPUBFUN issize_t sip_supported_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Supported header. @internal */
-SOFIAPUBFUN int sip_supported_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_supported "Supported header". @internal */
+SOFIAPUBFUN issize_t sip_supported_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_supported_t from sip_t.
+/**Access a SIP @ref sip_supported "Supported header"
+ * structure #sip_supported_t from #sip_t.
  * 
  */
 #define sip_supported(sip) \
   ((sip_supported_t *)msg_header_access((msg_pub_t*)(sip), sip_supported_class))
 
-/**Initializer for structure sip_supported_t.
+/**Initializer for structure #sip_supported_t.
  * 
- * A static sip_supported_t structure must be initialized.
- * The SIP_SUPPORTED_INIT() macro provides initialization value. 
+ * A static #sip_supported_t structure for
+ * @ref sip_supported "Supported header" must be initialized with
+ * the SIP_SUPPORTED_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -8304,9 +8000,10 @@ SOFIAPUBFUN int sip_supported_e(char b[], int bsiz,
  */
 #define SIP_SUPPORTED_INIT() SIP_HDR_INIT(supported)
 
-/**Initialize a structure sip_supported_t.
+/**Initialize a structure #sip_supported_t.
  * 
- * An sip_supported_t structure can be initialized with the
+ * An #sip_supported_t structure for
+ * @ref sip_supported "Supported header" can be initialized with the
  * sip_supported_init() function/macro. For instance,
  * @code
  * 
@@ -8327,18 +8024,16 @@ su_inline sip_supported_t *sip_supported_init(sip_supported_t x[1])
   SIP_HEADER_INIT(x, sip_supported_class, sizeof(sip_supported_t))
 #endif
 
-/**Test if header object is instance of sip_supported_t.
+/**Test if header object is instance of #sip_supported_t.
  * 
- * The function sip_is_supported() returns true (nonzero) if
- * the header class is an instance of Supported header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_supported "Supported header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_supported() returns true (nonzero) if
- * the header object is an instance of header supported and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header supported 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_supported(sip_header_t const *header)
@@ -8352,9 +8047,9 @@ int sip_is_supported(sip_header_t const *header);
 #define sip_supported_p(h) sip_is_supported((h))
 
 
-/**Duplicate (deep copy) @c sip_supported_t.
+/**Duplicate a list of @ref sip_supported "Supported header" header structures #sip_supported_t.
  * 
- * The function sip_supported_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -8375,8 +8070,8 @@ int sip_is_supported(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_supported_dup() returns a pointer to the
- * newly duplicated sip_supported_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_supported_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -8394,13 +8089,13 @@ sip_supported_t *sip_supported_dup(su_home_t *home, sip_supported_t const *hdr)
 }
 #endif
 
-/**Copy a sip_supported_t header structure.
+/**Copy a list of @ref sip_supported "Supported header" header structures #sip_supported_t.
  * 
  * The function sip_supported_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -8419,8 +8114,7 @@ sip_supported_t *sip_supported_dup(su_home_t *home, sip_supported_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_supported_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8437,23 +8131,19 @@ sip_supported_t *sip_supported_copy(su_home_t *home, sip_supported_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_supported_t.
+/**Make a @ref sip_supported "Supported header" structure #sip_supported_t.
  * 
  * The function sip_supported_make() makes a new
- * sip_supported_t header structure.  It allocates a new
+ * #sip_supported_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_supported_make() returns a pointer to
- * newly maked sip_supported_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_supported_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -8468,24 +8158,19 @@ su_inline sip_supported_t *sip_supported_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Supported header from formatting result.
+/**Make a @ref sip_supported "Supported header" from formatting result.
  * 
- * The function sip_supported_format() makes a new
- * Supported header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_supported_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_supported_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_supported_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -8516,24 +8201,26 @@ su_inline sip_supported_t *sip_supported_format(su_home_t *home, char const *fmt
  * @{
  */
 
-/** Parse a Unsupported header. @internal */
-SOFIAPUBFUN int sip_unsupported_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_unsupported "Unsupported header". @internal */
+SOFIAPUBFUN issize_t sip_unsupported_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Unsupported header. @internal */
-SOFIAPUBFUN int sip_unsupported_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_unsupported "Unsupported header". @internal */
+SOFIAPUBFUN issize_t sip_unsupported_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_unsupported_t from sip_t.
+/**Access a SIP @ref sip_unsupported "Unsupported header"
+ * structure #sip_unsupported_t from #sip_t.
  * 
  */
 #define sip_unsupported(sip) \
   ((sip_unsupported_t *)msg_header_access((msg_pub_t*)(sip), sip_unsupported_class))
 
-/**Initializer for structure sip_unsupported_t.
+/**Initializer for structure #sip_unsupported_t.
  * 
- * A static sip_unsupported_t structure must be initialized.
- * The SIP_UNSUPPORTED_INIT() macro provides initialization value. 
+ * A static #sip_unsupported_t structure for
+ * @ref sip_unsupported "Unsupported header" must be initialized with
+ * the SIP_UNSUPPORTED_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -8544,9 +8231,10 @@ SOFIAPUBFUN int sip_unsupported_e(char b[], int bsiz,
  */
 #define SIP_UNSUPPORTED_INIT() SIP_HDR_INIT(unsupported)
 
-/**Initialize a structure sip_unsupported_t.
+/**Initialize a structure #sip_unsupported_t.
  * 
- * An sip_unsupported_t structure can be initialized with the
+ * An #sip_unsupported_t structure for
+ * @ref sip_unsupported "Unsupported header" can be initialized with the
  * sip_unsupported_init() function/macro. For instance,
  * @code
  * 
@@ -8567,18 +8255,16 @@ su_inline sip_unsupported_t *sip_unsupported_init(sip_unsupported_t x[1])
   SIP_HEADER_INIT(x, sip_unsupported_class, sizeof(sip_unsupported_t))
 #endif
 
-/**Test if header object is instance of sip_unsupported_t.
+/**Test if header object is instance of #sip_unsupported_t.
  * 
- * The function sip_is_unsupported() returns true (nonzero) if
- * the header class is an instance of Unsupported header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_unsupported "Unsupported header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_unsupported() returns true (nonzero) if
- * the header object is an instance of header unsupported and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header unsupported 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_unsupported(sip_header_t const *header)
@@ -8592,9 +8278,9 @@ int sip_is_unsupported(sip_header_t const *header);
 #define sip_unsupported_p(h) sip_is_unsupported((h))
 
 
-/**Duplicate (deep copy) @c sip_unsupported_t.
+/**Duplicate a list of @ref sip_unsupported "Unsupported header" header structures #sip_unsupported_t.
  * 
- * The function sip_unsupported_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -8615,8 +8301,8 @@ int sip_is_unsupported(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_unsupported_dup() returns a pointer to the
- * newly duplicated sip_unsupported_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_unsupported_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -8634,13 +8320,13 @@ sip_unsupported_t *sip_unsupported_dup(su_home_t *home, sip_unsupported_t const 
 }
 #endif
 
-/**Copy a sip_unsupported_t header structure.
+/**Copy a list of @ref sip_unsupported "Unsupported header" header structures #sip_unsupported_t.
  * 
  * The function sip_unsupported_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -8659,8 +8345,7 @@ sip_unsupported_t *sip_unsupported_dup(su_home_t *home, sip_unsupported_t const 
  * @endcode
  * 
  * @return
- * The function sip_unsupported_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8677,23 +8362,19 @@ sip_unsupported_t *sip_unsupported_copy(su_home_t *home, sip_unsupported_t const
 }
 #endif
 
-/**Make a header structure sip_unsupported_t.
+/**Make a @ref sip_unsupported "Unsupported header" structure #sip_unsupported_t.
  * 
  * The function sip_unsupported_make() makes a new
- * sip_unsupported_t header structure.  It allocates a new
+ * #sip_unsupported_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_unsupported_make() returns a pointer to
- * newly maked sip_unsupported_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_unsupported_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -8708,24 +8389,19 @@ su_inline sip_unsupported_t *sip_unsupported_make(su_home_t *home, char const *s
 }
 #endif
 
-/**Make a Unsupported header from formatting result.
+/**Make a @ref sip_unsupported "Unsupported header" from formatting result.
  * 
- * The function sip_unsupported_format() makes a new
- * Unsupported header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_unsupported_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_unsupported_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_unsupported_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -8756,24 +8432,26 @@ su_inline sip_unsupported_t *sip_unsupported_format(su_home_t *home, char const 
  * @{
  */
 
-/** Parse a Event header. @internal */
-SOFIAPUBFUN int sip_event_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_event "Event header". @internal */
+SOFIAPUBFUN issize_t sip_event_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Event header. @internal */
-SOFIAPUBFUN int sip_event_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_event "Event header". @internal */
+SOFIAPUBFUN issize_t sip_event_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_event_t from sip_t.
+/**Access a SIP @ref sip_event "Event header"
+ * structure #sip_event_t from #sip_t.
  * 
  */
 #define sip_event(sip) \
   ((sip_event_t *)msg_header_access((msg_pub_t*)(sip), sip_event_class))
 
-/**Initializer for structure sip_event_t.
+/**Initializer for structure #sip_event_t.
  * 
- * A static sip_event_t structure must be initialized.
- * The SIP_EVENT_INIT() macro provides initialization value. 
+ * A static #sip_event_t structure for
+ * @ref sip_event "Event header" must be initialized with
+ * the SIP_EVENT_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -8784,9 +8462,10 @@ SOFIAPUBFUN int sip_event_e(char b[], int bsiz,
  */
 #define SIP_EVENT_INIT() SIP_HDR_INIT(event)
 
-/**Initialize a structure sip_event_t.
+/**Initialize a structure #sip_event_t.
  * 
- * An sip_event_t structure can be initialized with the
+ * An #sip_event_t structure for
+ * @ref sip_event "Event header" can be initialized with the
  * sip_event_init() function/macro. For instance,
  * @code
  * 
@@ -8807,18 +8486,16 @@ su_inline sip_event_t *sip_event_init(sip_event_t x[1])
   SIP_HEADER_INIT(x, sip_event_class, sizeof(sip_event_t))
 #endif
 
-/**Test if header object is instance of sip_event_t.
+/**Test if header object is instance of #sip_event_t.
  * 
- * The function sip_is_event() returns true (nonzero) if
- * the header class is an instance of Event header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_event "Event header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_event() returns true (nonzero) if
- * the header object is an instance of header event and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header event 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_event(sip_header_t const *header)
@@ -8832,9 +8509,9 @@ int sip_is_event(sip_header_t const *header);
 #define sip_event_p(h) sip_is_event((h))
 
 
-/**Duplicate (deep copy) @c sip_event_t.
+/**Duplicate a list of @ref sip_event "Event header" header structures #sip_event_t.
  * 
- * The function sip_event_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -8855,8 +8532,8 @@ int sip_is_event(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_event_dup() returns a pointer to the
- * newly duplicated sip_event_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_event_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -8874,13 +8551,13 @@ sip_event_t *sip_event_dup(su_home_t *home, sip_event_t const *hdr)
 }
 #endif
 
-/**Copy a sip_event_t header structure.
+/**Copy a list of @ref sip_event "Event header" header structures #sip_event_t.
  * 
  * The function sip_event_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -8899,8 +8576,7 @@ sip_event_t *sip_event_dup(su_home_t *home, sip_event_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_event_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -8917,23 +8593,19 @@ sip_event_t *sip_event_copy(su_home_t *home, sip_event_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_event_t.
+/**Make a @ref sip_event "Event header" structure #sip_event_t.
  * 
  * The function sip_event_make() makes a new
- * sip_event_t header structure.  It allocates a new
+ * #sip_event_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_event_make() returns a pointer to
- * newly maked sip_event_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_event_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -8948,24 +8620,19 @@ su_inline sip_event_t *sip_event_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Event header from formatting result.
+/**Make a @ref sip_event "Event header" from formatting result.
  * 
- * The function sip_event_format() makes a new
- * Event header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_event_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_event_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_event_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -8996,24 +8663,26 @@ su_inline sip_event_t *sip_event_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Allow-Events header. @internal */
-SOFIAPUBFUN int sip_allow_events_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_allow_events "Allow-Events header". @internal */
+SOFIAPUBFUN issize_t sip_allow_events_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Allow-Events header. @internal */
-SOFIAPUBFUN int sip_allow_events_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_allow_events "Allow-Events header". @internal */
+SOFIAPUBFUN issize_t sip_allow_events_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_allow_events_t from sip_t.
+/**Access a SIP @ref sip_allow_events "Allow-Events header"
+ * structure #sip_allow_events_t from #sip_t.
  * 
  */
 #define sip_allow_events(sip) \
   ((sip_allow_events_t *)msg_header_access((msg_pub_t*)(sip), sip_allow_events_class))
 
-/**Initializer for structure sip_allow_events_t.
+/**Initializer for structure #sip_allow_events_t.
  * 
- * A static sip_allow_events_t structure must be initialized.
- * The SIP_ALLOW_EVENTS_INIT() macro provides initialization value. 
+ * A static #sip_allow_events_t structure for
+ * @ref sip_allow_events "Allow-Events header" must be initialized with
+ * the SIP_ALLOW_EVENTS_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -9024,9 +8693,10 @@ SOFIAPUBFUN int sip_allow_events_e(char b[], int bsiz,
  */
 #define SIP_ALLOW_EVENTS_INIT() SIP_HDR_INIT(allow_events)
 
-/**Initialize a structure sip_allow_events_t.
+/**Initialize a structure #sip_allow_events_t.
  * 
- * An sip_allow_events_t structure can be initialized with the
+ * An #sip_allow_events_t structure for
+ * @ref sip_allow_events "Allow-Events header" can be initialized with the
  * sip_allow_events_init() function/macro. For instance,
  * @code
  * 
@@ -9047,18 +8717,16 @@ su_inline sip_allow_events_t *sip_allow_events_init(sip_allow_events_t x[1])
   SIP_HEADER_INIT(x, sip_allow_events_class, sizeof(sip_allow_events_t))
 #endif
 
-/**Test if header object is instance of sip_allow_events_t.
+/**Test if header object is instance of #sip_allow_events_t.
  * 
- * The function sip_is_allow_events() returns true (nonzero) if
- * the header class is an instance of Allow-Events header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_allow_events "Allow-Events header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_allow_events() returns true (nonzero) if
- * the header object is an instance of header allow_events and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header allow_events 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_allow_events(sip_header_t const *header)
@@ -9072,9 +8740,9 @@ int sip_is_allow_events(sip_header_t const *header);
 #define sip_allow_events_p(h) sip_is_allow_events((h))
 
 
-/**Duplicate (deep copy) @c sip_allow_events_t.
+/**Duplicate a list of @ref sip_allow_events "Allow-Events header" header structures #sip_allow_events_t.
  * 
- * The function sip_allow_events_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -9095,8 +8763,8 @@ int sip_is_allow_events(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_allow_events_dup() returns a pointer to the
- * newly duplicated sip_allow_events_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_allow_events_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -9114,13 +8782,13 @@ sip_allow_events_t *sip_allow_events_dup(su_home_t *home, sip_allow_events_t con
 }
 #endif
 
-/**Copy a sip_allow_events_t header structure.
+/**Copy a list of @ref sip_allow_events "Allow-Events header" header structures #sip_allow_events_t.
  * 
  * The function sip_allow_events_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -9139,8 +8807,7 @@ sip_allow_events_t *sip_allow_events_dup(su_home_t *home, sip_allow_events_t con
  * @endcode
  * 
  * @return
- * The function sip_allow_events_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9157,23 +8824,19 @@ sip_allow_events_t *sip_allow_events_copy(su_home_t *home, sip_allow_events_t co
 }
 #endif
 
-/**Make a header structure sip_allow_events_t.
+/**Make a @ref sip_allow_events "Allow-Events header" structure #sip_allow_events_t.
  * 
  * The function sip_allow_events_make() makes a new
- * sip_allow_events_t header structure.  It allocates a new
+ * #sip_allow_events_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_allow_events_make() returns a pointer to
- * newly maked sip_allow_events_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_allow_events_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -9188,24 +8851,19 @@ su_inline sip_allow_events_t *sip_allow_events_make(su_home_t *home, char const 
 }
 #endif
 
-/**Make a Allow-Events header from formatting result.
+/**Make a @ref sip_allow_events "Allow-Events header" from formatting result.
  * 
- * The function sip_allow_events_format() makes a new
- * Allow-Events header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_allow_events_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_allow_events_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_allow_events_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -9236,24 +8894,26 @@ su_inline sip_allow_events_t *sip_allow_events_format(su_home_t *home, char cons
  * @{
  */
 
-/** Parse a Subscription-State header. @internal */
-SOFIAPUBFUN int sip_subscription_state_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_subscription_state "Subscription-State header". @internal */
+SOFIAPUBFUN issize_t sip_subscription_state_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Subscription-State header. @internal */
-SOFIAPUBFUN int sip_subscription_state_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_subscription_state "Subscription-State header". @internal */
+SOFIAPUBFUN issize_t sip_subscription_state_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_subscription_state_t from sip_t.
+/**Access a SIP @ref sip_subscription_state "Subscription-State header"
+ * structure #sip_subscription_state_t from #sip_t.
  * 
  */
 #define sip_subscription_state(sip) \
   ((sip_subscription_state_t *)msg_header_access((msg_pub_t*)(sip), sip_subscription_state_class))
 
-/**Initializer for structure sip_subscription_state_t.
+/**Initializer for structure #sip_subscription_state_t.
  * 
- * A static sip_subscription_state_t structure must be initialized.
- * The SIP_SUBSCRIPTION_STATE_INIT() macro provides initialization value. 
+ * A static #sip_subscription_state_t structure for
+ * @ref sip_subscription_state "Subscription-State header" must be initialized with
+ * the SIP_SUBSCRIPTION_STATE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -9264,9 +8924,10 @@ SOFIAPUBFUN int sip_subscription_state_e(char b[], int bsiz,
  */
 #define SIP_SUBSCRIPTION_STATE_INIT() SIP_HDR_INIT(subscription_state)
 
-/**Initialize a structure sip_subscription_state_t.
+/**Initialize a structure #sip_subscription_state_t.
  * 
- * An sip_subscription_state_t structure can be initialized with the
+ * An #sip_subscription_state_t structure for
+ * @ref sip_subscription_state "Subscription-State header" can be initialized with the
  * sip_subscription_state_init() function/macro. For instance,
  * @code
  * 
@@ -9287,18 +8948,16 @@ su_inline sip_subscription_state_t *sip_subscription_state_init(sip_subscription
   SIP_HEADER_INIT(x, sip_subscription_state_class, sizeof(sip_subscription_state_t))
 #endif
 
-/**Test if header object is instance of sip_subscription_state_t.
+/**Test if header object is instance of #sip_subscription_state_t.
  * 
- * The function sip_is_subscription_state() returns true (nonzero) if
- * the header class is an instance of Subscription-State header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_subscription_state "Subscription-State header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_subscription_state() returns true (nonzero) if
- * the header object is an instance of header subscription_state and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header subscription_state 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_subscription_state(sip_header_t const *header)
@@ -9312,9 +8971,9 @@ int sip_is_subscription_state(sip_header_t const *header);
 #define sip_subscription_state_p(h) sip_is_subscription_state((h))
 
 
-/**Duplicate (deep copy) @c sip_subscription_state_t.
+/**Duplicate a list of @ref sip_subscription_state "Subscription-State header" header structures #sip_subscription_state_t.
  * 
- * The function sip_subscription_state_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -9335,8 +8994,8 @@ int sip_is_subscription_state(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_subscription_state_dup() returns a pointer to the
- * newly duplicated sip_subscription_state_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_subscription_state_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -9354,13 +9013,13 @@ sip_subscription_state_t *sip_subscription_state_dup(su_home_t *home, sip_subscr
 }
 #endif
 
-/**Copy a sip_subscription_state_t header structure.
+/**Copy a list of @ref sip_subscription_state "Subscription-State header" header structures #sip_subscription_state_t.
  * 
  * The function sip_subscription_state_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -9379,8 +9038,7 @@ sip_subscription_state_t *sip_subscription_state_dup(su_home_t *home, sip_subscr
  * @endcode
  * 
  * @return
- * The function sip_subscription_state_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9397,23 +9055,19 @@ sip_subscription_state_t *sip_subscription_state_copy(su_home_t *home, sip_subsc
 }
 #endif
 
-/**Make a header structure sip_subscription_state_t.
+/**Make a @ref sip_subscription_state "Subscription-State header" structure #sip_subscription_state_t.
  * 
  * The function sip_subscription_state_make() makes a new
- * sip_subscription_state_t header structure.  It allocates a new
+ * #sip_subscription_state_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_subscription_state_make() returns a pointer to
- * newly maked sip_subscription_state_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_subscription_state_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -9428,24 +9082,19 @@ su_inline sip_subscription_state_t *sip_subscription_state_make(su_home_t *home,
 }
 #endif
 
-/**Make a Subscription-State header from formatting result.
+/**Make a @ref sip_subscription_state "Subscription-State header" from formatting result.
  * 
- * The function sip_subscription_state_format() makes a new
- * Subscription-State header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_subscription_state_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_subscription_state_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_subscription_state_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -9476,24 +9125,26 @@ su_inline sip_subscription_state_t *sip_subscription_state_format(su_home_t *hom
  * @{
  */
 
-/** Parse a Proxy-Authenticate header. @internal */
-SOFIAPUBFUN int sip_proxy_authenticate_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_proxy_authenticate "Proxy-Authenticate header". @internal */
+SOFIAPUBFUN issize_t sip_proxy_authenticate_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Proxy-Authenticate header. @internal */
-SOFIAPUBFUN int sip_proxy_authenticate_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_proxy_authenticate "Proxy-Authenticate header". @internal */
+SOFIAPUBFUN issize_t sip_proxy_authenticate_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_proxy_authenticate_t from sip_t.
+/**Access a SIP @ref sip_proxy_authenticate "Proxy-Authenticate header"
+ * structure #sip_proxy_authenticate_t from #sip_t.
  * 
  */
 #define sip_proxy_authenticate(sip) \
   ((sip_proxy_authenticate_t *)msg_header_access((msg_pub_t*)(sip), sip_proxy_authenticate_class))
 
-/**Initializer for structure sip_proxy_authenticate_t.
+/**Initializer for structure #sip_proxy_authenticate_t.
  * 
- * A static sip_proxy_authenticate_t structure must be initialized.
- * The SIP_PROXY_AUTHENTICATE_INIT() macro provides initialization value. 
+ * A static #sip_proxy_authenticate_t structure for
+ * @ref sip_proxy_authenticate "Proxy-Authenticate header" must be initialized with
+ * the SIP_PROXY_AUTHENTICATE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -9504,9 +9155,10 @@ SOFIAPUBFUN int sip_proxy_authenticate_e(char b[], int bsiz,
  */
 #define SIP_PROXY_AUTHENTICATE_INIT() SIP_HDR_INIT(proxy_authenticate)
 
-/**Initialize a structure sip_proxy_authenticate_t.
+/**Initialize a structure #sip_proxy_authenticate_t.
  * 
- * An sip_proxy_authenticate_t structure can be initialized with the
+ * An #sip_proxy_authenticate_t structure for
+ * @ref sip_proxy_authenticate "Proxy-Authenticate header" can be initialized with the
  * sip_proxy_authenticate_init() function/macro. For instance,
  * @code
  * 
@@ -9527,18 +9179,16 @@ su_inline sip_proxy_authenticate_t *sip_proxy_authenticate_init(sip_proxy_authen
   SIP_HEADER_INIT(x, sip_proxy_authenticate_class, sizeof(sip_proxy_authenticate_t))
 #endif
 
-/**Test if header object is instance of sip_proxy_authenticate_t.
+/**Test if header object is instance of #sip_proxy_authenticate_t.
  * 
- * The function sip_is_proxy_authenticate() returns true (nonzero) if
- * the header class is an instance of Proxy-Authenticate header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_proxy_authenticate "Proxy-Authenticate header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_proxy_authenticate() returns true (nonzero) if
- * the header object is an instance of header proxy_authenticate and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header proxy_authenticate 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_proxy_authenticate(sip_header_t const *header)
@@ -9552,9 +9202,9 @@ int sip_is_proxy_authenticate(sip_header_t const *header);
 #define sip_proxy_authenticate_p(h) sip_is_proxy_authenticate((h))
 
 
-/**Duplicate (deep copy) @c sip_proxy_authenticate_t.
+/**Duplicate a list of @ref sip_proxy_authenticate "Proxy-Authenticate header" header structures #sip_proxy_authenticate_t.
  * 
- * The function sip_proxy_authenticate_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -9575,8 +9225,8 @@ int sip_is_proxy_authenticate(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_proxy_authenticate_dup() returns a pointer to the
- * newly duplicated sip_proxy_authenticate_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_proxy_authenticate_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -9594,13 +9244,13 @@ sip_proxy_authenticate_t *sip_proxy_authenticate_dup(su_home_t *home, sip_proxy_
 }
 #endif
 
-/**Copy a sip_proxy_authenticate_t header structure.
+/**Copy a list of @ref sip_proxy_authenticate "Proxy-Authenticate header" header structures #sip_proxy_authenticate_t.
  * 
  * The function sip_proxy_authenticate_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -9619,8 +9269,7 @@ sip_proxy_authenticate_t *sip_proxy_authenticate_dup(su_home_t *home, sip_proxy_
  * @endcode
  * 
  * @return
- * The function sip_proxy_authenticate_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9637,23 +9286,19 @@ sip_proxy_authenticate_t *sip_proxy_authenticate_copy(su_home_t *home, sip_proxy
 }
 #endif
 
-/**Make a header structure sip_proxy_authenticate_t.
+/**Make a @ref sip_proxy_authenticate "Proxy-Authenticate header" structure #sip_proxy_authenticate_t.
  * 
  * The function sip_proxy_authenticate_make() makes a new
- * sip_proxy_authenticate_t header structure.  It allocates a new
+ * #sip_proxy_authenticate_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_proxy_authenticate_make() returns a pointer to
- * newly maked sip_proxy_authenticate_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_proxy_authenticate_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -9668,24 +9313,19 @@ su_inline sip_proxy_authenticate_t *sip_proxy_authenticate_make(su_home_t *home,
 }
 #endif
 
-/**Make a Proxy-Authenticate header from formatting result.
+/**Make a @ref sip_proxy_authenticate "Proxy-Authenticate header" from formatting result.
  * 
- * The function sip_proxy_authenticate_format() makes a new
- * Proxy-Authenticate header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_proxy_authenticate_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_proxy_authenticate_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_proxy_authenticate_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -9716,24 +9356,26 @@ su_inline sip_proxy_authenticate_t *sip_proxy_authenticate_format(su_home_t *hom
  * @{
  */
 
-/** Parse a Proxy-Authentication-Info header. @internal */
-SOFIAPUBFUN int sip_proxy_authentication_info_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_proxy_authentication_info "Proxy-Authentication-Info header". @internal */
+SOFIAPUBFUN issize_t sip_proxy_authentication_info_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Proxy-Authentication-Info header. @internal */
-SOFIAPUBFUN int sip_proxy_authentication_info_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_proxy_authentication_info "Proxy-Authentication-Info header". @internal */
+SOFIAPUBFUN issize_t sip_proxy_authentication_info_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_proxy_authentication_info_t from sip_t.
+/**Access a SIP @ref sip_proxy_authentication_info "Proxy-Authentication-Info header"
+ * structure #sip_proxy_authentication_info_t from #sip_t.
  * 
  */
 #define sip_proxy_authentication_info(sip) \
   ((sip_proxy_authentication_info_t *)msg_header_access((msg_pub_t*)(sip), sip_proxy_authentication_info_class))
 
-/**Initializer for structure sip_proxy_authentication_info_t.
+/**Initializer for structure #sip_proxy_authentication_info_t.
  * 
- * A static sip_proxy_authentication_info_t structure must be initialized.
- * The SIP_PROXY_AUTHENTICATION_INFO_INIT() macro provides initialization value. 
+ * A static #sip_proxy_authentication_info_t structure for
+ * @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" must be initialized with
+ * the SIP_PROXY_AUTHENTICATION_INFO_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -9744,9 +9386,10 @@ SOFIAPUBFUN int sip_proxy_authentication_info_e(char b[], int bsiz,
  */
 #define SIP_PROXY_AUTHENTICATION_INFO_INIT() SIP_HDR_INIT(proxy_authentication_info)
 
-/**Initialize a structure sip_proxy_authentication_info_t.
+/**Initialize a structure #sip_proxy_authentication_info_t.
  * 
- * An sip_proxy_authentication_info_t structure can be initialized with the
+ * An #sip_proxy_authentication_info_t structure for
+ * @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" can be initialized with the
  * sip_proxy_authentication_info_init() function/macro. For instance,
  * @code
  * 
@@ -9767,18 +9410,16 @@ su_inline sip_proxy_authentication_info_t *sip_proxy_authentication_info_init(si
   SIP_HEADER_INIT(x, sip_proxy_authentication_info_class, sizeof(sip_proxy_authentication_info_t))
 #endif
 
-/**Test if header object is instance of sip_proxy_authentication_info_t.
+/**Test if header object is instance of #sip_proxy_authentication_info_t.
  * 
- * The function sip_is_proxy_authentication_info() returns true (nonzero) if
- * the header class is an instance of Proxy-Authentication-Info header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_proxy_authentication_info() returns true (nonzero) if
- * the header object is an instance of header proxy_authentication_info and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header proxy_authentication_info 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_proxy_authentication_info(sip_header_t const *header)
@@ -9792,9 +9433,9 @@ int sip_is_proxy_authentication_info(sip_header_t const *header);
 #define sip_proxy_authentication_info_p(h) sip_is_proxy_authentication_info((h))
 
 
-/**Duplicate (deep copy) @c sip_proxy_authentication_info_t.
+/**Duplicate a list of @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" header structures #sip_proxy_authentication_info_t.
  * 
- * The function sip_proxy_authentication_info_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -9815,8 +9456,8 @@ int sip_is_proxy_authentication_info(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_proxy_authentication_info_dup() returns a pointer to the
- * newly duplicated sip_proxy_authentication_info_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_proxy_authentication_info_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -9834,13 +9475,13 @@ sip_proxy_authentication_info_t *sip_proxy_authentication_info_dup(su_home_t *ho
 }
 #endif
 
-/**Copy a sip_proxy_authentication_info_t header structure.
+/**Copy a list of @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" header structures #sip_proxy_authentication_info_t.
  * 
  * The function sip_proxy_authentication_info_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -9859,8 +9500,7 @@ sip_proxy_authentication_info_t *sip_proxy_authentication_info_dup(su_home_t *ho
  * @endcode
  * 
  * @return
- * The function sip_proxy_authentication_info_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -9877,23 +9517,19 @@ sip_proxy_authentication_info_t *sip_proxy_authentication_info_copy(su_home_t *h
 }
 #endif
 
-/**Make a header structure sip_proxy_authentication_info_t.
+/**Make a @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" structure #sip_proxy_authentication_info_t.
  * 
  * The function sip_proxy_authentication_info_make() makes a new
- * sip_proxy_authentication_info_t header structure.  It allocates a new
+ * #sip_proxy_authentication_info_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_proxy_authentication_info_make() returns a pointer to
- * newly maked sip_proxy_authentication_info_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_proxy_authentication_info_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -9908,24 +9544,19 @@ su_inline sip_proxy_authentication_info_t *sip_proxy_authentication_info_make(su
 }
 #endif
 
-/**Make a Proxy-Authentication-Info header from formatting result.
+/**Make a @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" from formatting result.
  * 
- * The function sip_proxy_authentication_info_format() makes a new
- * Proxy-Authentication-Info header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_proxy_authentication_info_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_proxy_authentication_info_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_proxy_authentication_info_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -9956,24 +9587,26 @@ su_inline sip_proxy_authentication_info_t *sip_proxy_authentication_info_format(
  * @{
  */
 
-/** Parse a Proxy-Authorization header. @internal */
-SOFIAPUBFUN int sip_proxy_authorization_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_proxy_authorization "Proxy-Authorization header". @internal */
+SOFIAPUBFUN issize_t sip_proxy_authorization_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Proxy-Authorization header. @internal */
-SOFIAPUBFUN int sip_proxy_authorization_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_proxy_authorization "Proxy-Authorization header". @internal */
+SOFIAPUBFUN issize_t sip_proxy_authorization_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_proxy_authorization_t from sip_t.
+/**Access a SIP @ref sip_proxy_authorization "Proxy-Authorization header"
+ * structure #sip_proxy_authorization_t from #sip_t.
  * 
  */
 #define sip_proxy_authorization(sip) \
   ((sip_proxy_authorization_t *)msg_header_access((msg_pub_t*)(sip), sip_proxy_authorization_class))
 
-/**Initializer for structure sip_proxy_authorization_t.
+/**Initializer for structure #sip_proxy_authorization_t.
  * 
- * A static sip_proxy_authorization_t structure must be initialized.
- * The SIP_PROXY_AUTHORIZATION_INIT() macro provides initialization value. 
+ * A static #sip_proxy_authorization_t structure for
+ * @ref sip_proxy_authorization "Proxy-Authorization header" must be initialized with
+ * the SIP_PROXY_AUTHORIZATION_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -9984,9 +9617,10 @@ SOFIAPUBFUN int sip_proxy_authorization_e(char b[], int bsiz,
  */
 #define SIP_PROXY_AUTHORIZATION_INIT() SIP_HDR_INIT(proxy_authorization)
 
-/**Initialize a structure sip_proxy_authorization_t.
+/**Initialize a structure #sip_proxy_authorization_t.
  * 
- * An sip_proxy_authorization_t structure can be initialized with the
+ * An #sip_proxy_authorization_t structure for
+ * @ref sip_proxy_authorization "Proxy-Authorization header" can be initialized with the
  * sip_proxy_authorization_init() function/macro. For instance,
  * @code
  * 
@@ -10007,18 +9641,16 @@ su_inline sip_proxy_authorization_t *sip_proxy_authorization_init(sip_proxy_auth
   SIP_HEADER_INIT(x, sip_proxy_authorization_class, sizeof(sip_proxy_authorization_t))
 #endif
 
-/**Test if header object is instance of sip_proxy_authorization_t.
+/**Test if header object is instance of #sip_proxy_authorization_t.
  * 
- * The function sip_is_proxy_authorization() returns true (nonzero) if
- * the header class is an instance of Proxy-Authorization header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_proxy_authorization "Proxy-Authorization header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_proxy_authorization() returns true (nonzero) if
- * the header object is an instance of header proxy_authorization and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header proxy_authorization 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_proxy_authorization(sip_header_t const *header)
@@ -10032,9 +9664,9 @@ int sip_is_proxy_authorization(sip_header_t const *header);
 #define sip_proxy_authorization_p(h) sip_is_proxy_authorization((h))
 
 
-/**Duplicate (deep copy) @c sip_proxy_authorization_t.
+/**Duplicate a list of @ref sip_proxy_authorization "Proxy-Authorization header" header structures #sip_proxy_authorization_t.
  * 
- * The function sip_proxy_authorization_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -10055,8 +9687,8 @@ int sip_is_proxy_authorization(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_proxy_authorization_dup() returns a pointer to the
- * newly duplicated sip_proxy_authorization_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_proxy_authorization_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -10074,13 +9706,13 @@ sip_proxy_authorization_t *sip_proxy_authorization_dup(su_home_t *home, sip_prox
 }
 #endif
 
-/**Copy a sip_proxy_authorization_t header structure.
+/**Copy a list of @ref sip_proxy_authorization "Proxy-Authorization header" header structures #sip_proxy_authorization_t.
  * 
  * The function sip_proxy_authorization_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -10099,8 +9731,7 @@ sip_proxy_authorization_t *sip_proxy_authorization_dup(su_home_t *home, sip_prox
  * @endcode
  * 
  * @return
- * The function sip_proxy_authorization_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10117,23 +9748,19 @@ sip_proxy_authorization_t *sip_proxy_authorization_copy(su_home_t *home, sip_pro
 }
 #endif
 
-/**Make a header structure sip_proxy_authorization_t.
+/**Make a @ref sip_proxy_authorization "Proxy-Authorization header" structure #sip_proxy_authorization_t.
  * 
  * The function sip_proxy_authorization_make() makes a new
- * sip_proxy_authorization_t header structure.  It allocates a new
+ * #sip_proxy_authorization_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_proxy_authorization_make() returns a pointer to
- * newly maked sip_proxy_authorization_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_proxy_authorization_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -10148,24 +9775,19 @@ su_inline sip_proxy_authorization_t *sip_proxy_authorization_make(su_home_t *hom
 }
 #endif
 
-/**Make a Proxy-Authorization header from formatting result.
+/**Make a @ref sip_proxy_authorization "Proxy-Authorization header" from formatting result.
  * 
- * The function sip_proxy_authorization_format() makes a new
- * Proxy-Authorization header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_proxy_authorization_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_proxy_authorization_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_proxy_authorization_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -10196,24 +9818,26 @@ su_inline sip_proxy_authorization_t *sip_proxy_authorization_format(su_home_t *h
  * @{
  */
 
-/** Parse a Authorization header. @internal */
-SOFIAPUBFUN int sip_authorization_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_authorization "Authorization header". @internal */
+SOFIAPUBFUN issize_t sip_authorization_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Authorization header. @internal */
-SOFIAPUBFUN int sip_authorization_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_authorization "Authorization header". @internal */
+SOFIAPUBFUN issize_t sip_authorization_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_authorization_t from sip_t.
+/**Access a SIP @ref sip_authorization "Authorization header"
+ * structure #sip_authorization_t from #sip_t.
  * 
  */
 #define sip_authorization(sip) \
   ((sip_authorization_t *)msg_header_access((msg_pub_t*)(sip), sip_authorization_class))
 
-/**Initializer for structure sip_authorization_t.
+/**Initializer for structure #sip_authorization_t.
  * 
- * A static sip_authorization_t structure must be initialized.
- * The SIP_AUTHORIZATION_INIT() macro provides initialization value. 
+ * A static #sip_authorization_t structure for
+ * @ref sip_authorization "Authorization header" must be initialized with
+ * the SIP_AUTHORIZATION_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -10224,9 +9848,10 @@ SOFIAPUBFUN int sip_authorization_e(char b[], int bsiz,
  */
 #define SIP_AUTHORIZATION_INIT() SIP_HDR_INIT(authorization)
 
-/**Initialize a structure sip_authorization_t.
+/**Initialize a structure #sip_authorization_t.
  * 
- * An sip_authorization_t structure can be initialized with the
+ * An #sip_authorization_t structure for
+ * @ref sip_authorization "Authorization header" can be initialized with the
  * sip_authorization_init() function/macro. For instance,
  * @code
  * 
@@ -10247,18 +9872,16 @@ su_inline sip_authorization_t *sip_authorization_init(sip_authorization_t x[1])
   SIP_HEADER_INIT(x, sip_authorization_class, sizeof(sip_authorization_t))
 #endif
 
-/**Test if header object is instance of sip_authorization_t.
+/**Test if header object is instance of #sip_authorization_t.
  * 
- * The function sip_is_authorization() returns true (nonzero) if
- * the header class is an instance of Authorization header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_authorization "Authorization header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_authorization() returns true (nonzero) if
- * the header object is an instance of header authorization and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header authorization 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_authorization(sip_header_t const *header)
@@ -10272,9 +9895,9 @@ int sip_is_authorization(sip_header_t const *header);
 #define sip_authorization_p(h) sip_is_authorization((h))
 
 
-/**Duplicate (deep copy) @c sip_authorization_t.
+/**Duplicate a list of @ref sip_authorization "Authorization header" header structures #sip_authorization_t.
  * 
- * The function sip_authorization_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -10295,8 +9918,8 @@ int sip_is_authorization(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_authorization_dup() returns a pointer to the
- * newly duplicated sip_authorization_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_authorization_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -10314,13 +9937,13 @@ sip_authorization_t *sip_authorization_dup(su_home_t *home, sip_authorization_t 
 }
 #endif
 
-/**Copy a sip_authorization_t header structure.
+/**Copy a list of @ref sip_authorization "Authorization header" header structures #sip_authorization_t.
  * 
  * The function sip_authorization_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -10339,8 +9962,7 @@ sip_authorization_t *sip_authorization_dup(su_home_t *home, sip_authorization_t 
  * @endcode
  * 
  * @return
- * The function sip_authorization_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10357,23 +9979,19 @@ sip_authorization_t *sip_authorization_copy(su_home_t *home, sip_authorization_t
 }
 #endif
 
-/**Make a header structure sip_authorization_t.
+/**Make a @ref sip_authorization "Authorization header" structure #sip_authorization_t.
  * 
  * The function sip_authorization_make() makes a new
- * sip_authorization_t header structure.  It allocates a new
+ * #sip_authorization_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_authorization_make() returns a pointer to
- * newly maked sip_authorization_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_authorization_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -10388,24 +10006,19 @@ su_inline sip_authorization_t *sip_authorization_make(su_home_t *home, char cons
 }
 #endif
 
-/**Make a Authorization header from formatting result.
+/**Make a @ref sip_authorization "Authorization header" from formatting result.
  * 
- * The function sip_authorization_format() makes a new
- * Authorization header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_authorization_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_authorization_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_authorization_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -10436,24 +10049,26 @@ su_inline sip_authorization_t *sip_authorization_format(su_home_t *home, char co
  * @{
  */
 
-/** Parse a WWW-Authenticate header. @internal */
-SOFIAPUBFUN int sip_www_authenticate_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_www_authenticate "WWW-Authenticate header". @internal */
+SOFIAPUBFUN issize_t sip_www_authenticate_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a WWW-Authenticate header. @internal */
-SOFIAPUBFUN int sip_www_authenticate_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_www_authenticate "WWW-Authenticate header". @internal */
+SOFIAPUBFUN issize_t sip_www_authenticate_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_www_authenticate_t from sip_t.
+/**Access a SIP @ref sip_www_authenticate "WWW-Authenticate header"
+ * structure #sip_www_authenticate_t from #sip_t.
  * 
  */
 #define sip_www_authenticate(sip) \
   ((sip_www_authenticate_t *)msg_header_access((msg_pub_t*)(sip), sip_www_authenticate_class))
 
-/**Initializer for structure sip_www_authenticate_t.
+/**Initializer for structure #sip_www_authenticate_t.
  * 
- * A static sip_www_authenticate_t structure must be initialized.
- * The SIP_WWW_AUTHENTICATE_INIT() macro provides initialization value. 
+ * A static #sip_www_authenticate_t structure for
+ * @ref sip_www_authenticate "WWW-Authenticate header" must be initialized with
+ * the SIP_WWW_AUTHENTICATE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -10464,9 +10079,10 @@ SOFIAPUBFUN int sip_www_authenticate_e(char b[], int bsiz,
  */
 #define SIP_WWW_AUTHENTICATE_INIT() SIP_HDR_INIT(www_authenticate)
 
-/**Initialize a structure sip_www_authenticate_t.
+/**Initialize a structure #sip_www_authenticate_t.
  * 
- * An sip_www_authenticate_t structure can be initialized with the
+ * An #sip_www_authenticate_t structure for
+ * @ref sip_www_authenticate "WWW-Authenticate header" can be initialized with the
  * sip_www_authenticate_init() function/macro. For instance,
  * @code
  * 
@@ -10487,18 +10103,16 @@ su_inline sip_www_authenticate_t *sip_www_authenticate_init(sip_www_authenticate
   SIP_HEADER_INIT(x, sip_www_authenticate_class, sizeof(sip_www_authenticate_t))
 #endif
 
-/**Test if header object is instance of sip_www_authenticate_t.
+/**Test if header object is instance of #sip_www_authenticate_t.
  * 
- * The function sip_is_www_authenticate() returns true (nonzero) if
- * the header class is an instance of WWW-Authenticate header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_www_authenticate "WWW-Authenticate header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_www_authenticate() returns true (nonzero) if
- * the header object is an instance of header www_authenticate and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header www_authenticate 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_www_authenticate(sip_header_t const *header)
@@ -10512,9 +10126,9 @@ int sip_is_www_authenticate(sip_header_t const *header);
 #define sip_www_authenticate_p(h) sip_is_www_authenticate((h))
 
 
-/**Duplicate (deep copy) @c sip_www_authenticate_t.
+/**Duplicate a list of @ref sip_www_authenticate "WWW-Authenticate header" header structures #sip_www_authenticate_t.
  * 
- * The function sip_www_authenticate_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -10535,8 +10149,8 @@ int sip_is_www_authenticate(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_www_authenticate_dup() returns a pointer to the
- * newly duplicated sip_www_authenticate_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_www_authenticate_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -10554,13 +10168,13 @@ sip_www_authenticate_t *sip_www_authenticate_dup(su_home_t *home, sip_www_authen
 }
 #endif
 
-/**Copy a sip_www_authenticate_t header structure.
+/**Copy a list of @ref sip_www_authenticate "WWW-Authenticate header" header structures #sip_www_authenticate_t.
  * 
  * The function sip_www_authenticate_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -10579,8 +10193,7 @@ sip_www_authenticate_t *sip_www_authenticate_dup(su_home_t *home, sip_www_authen
  * @endcode
  * 
  * @return
- * The function sip_www_authenticate_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10597,23 +10210,19 @@ sip_www_authenticate_t *sip_www_authenticate_copy(su_home_t *home, sip_www_authe
 }
 #endif
 
-/**Make a header structure sip_www_authenticate_t.
+/**Make a @ref sip_www_authenticate "WWW-Authenticate header" structure #sip_www_authenticate_t.
  * 
  * The function sip_www_authenticate_make() makes a new
- * sip_www_authenticate_t header structure.  It allocates a new
+ * #sip_www_authenticate_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_www_authenticate_make() returns a pointer to
- * newly maked sip_www_authenticate_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_www_authenticate_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -10628,24 +10237,19 @@ su_inline sip_www_authenticate_t *sip_www_authenticate_make(su_home_t *home, cha
 }
 #endif
 
-/**Make a WWW-Authenticate header from formatting result.
+/**Make a @ref sip_www_authenticate "WWW-Authenticate header" from formatting result.
  * 
- * The function sip_www_authenticate_format() makes a new
- * WWW-Authenticate header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_www_authenticate_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_www_authenticate_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_www_authenticate_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -10676,24 +10280,26 @@ su_inline sip_www_authenticate_t *sip_www_authenticate_format(su_home_t *home, c
  * @{
  */
 
-/** Parse a Authentication-Info header. @internal */
-SOFIAPUBFUN int sip_authentication_info_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_authentication_info "Authentication-Info header". @internal */
+SOFIAPUBFUN issize_t sip_authentication_info_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Authentication-Info header. @internal */
-SOFIAPUBFUN int sip_authentication_info_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_authentication_info "Authentication-Info header". @internal */
+SOFIAPUBFUN issize_t sip_authentication_info_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_authentication_info_t from sip_t.
+/**Access a SIP @ref sip_authentication_info "Authentication-Info header"
+ * structure #sip_authentication_info_t from #sip_t.
  * 
  */
 #define sip_authentication_info(sip) \
   ((sip_authentication_info_t *)msg_header_access((msg_pub_t*)(sip), sip_authentication_info_class))
 
-/**Initializer for structure sip_authentication_info_t.
+/**Initializer for structure #sip_authentication_info_t.
  * 
- * A static sip_authentication_info_t structure must be initialized.
- * The SIP_AUTHENTICATION_INFO_INIT() macro provides initialization value. 
+ * A static #sip_authentication_info_t structure for
+ * @ref sip_authentication_info "Authentication-Info header" must be initialized with
+ * the SIP_AUTHENTICATION_INFO_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -10704,9 +10310,10 @@ SOFIAPUBFUN int sip_authentication_info_e(char b[], int bsiz,
  */
 #define SIP_AUTHENTICATION_INFO_INIT() SIP_HDR_INIT(authentication_info)
 
-/**Initialize a structure sip_authentication_info_t.
+/**Initialize a structure #sip_authentication_info_t.
  * 
- * An sip_authentication_info_t structure can be initialized with the
+ * An #sip_authentication_info_t structure for
+ * @ref sip_authentication_info "Authentication-Info header" can be initialized with the
  * sip_authentication_info_init() function/macro. For instance,
  * @code
  * 
@@ -10727,18 +10334,16 @@ su_inline sip_authentication_info_t *sip_authentication_info_init(sip_authentica
   SIP_HEADER_INIT(x, sip_authentication_info_class, sizeof(sip_authentication_info_t))
 #endif
 
-/**Test if header object is instance of sip_authentication_info_t.
+/**Test if header object is instance of #sip_authentication_info_t.
  * 
- * The function sip_is_authentication_info() returns true (nonzero) if
- * the header class is an instance of Authentication-Info header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_authentication_info "Authentication-Info header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_authentication_info() returns true (nonzero) if
- * the header object is an instance of header authentication_info and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header authentication_info 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_authentication_info(sip_header_t const *header)
@@ -10752,9 +10357,9 @@ int sip_is_authentication_info(sip_header_t const *header);
 #define sip_authentication_info_p(h) sip_is_authentication_info((h))
 
 
-/**Duplicate (deep copy) @c sip_authentication_info_t.
+/**Duplicate a list of @ref sip_authentication_info "Authentication-Info header" header structures #sip_authentication_info_t.
  * 
- * The function sip_authentication_info_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -10775,8 +10380,8 @@ int sip_is_authentication_info(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_authentication_info_dup() returns a pointer to the
- * newly duplicated sip_authentication_info_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_authentication_info_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -10794,13 +10399,13 @@ sip_authentication_info_t *sip_authentication_info_dup(su_home_t *home, sip_auth
 }
 #endif
 
-/**Copy a sip_authentication_info_t header structure.
+/**Copy a list of @ref sip_authentication_info "Authentication-Info header" header structures #sip_authentication_info_t.
  * 
  * The function sip_authentication_info_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -10819,8 +10424,7 @@ sip_authentication_info_t *sip_authentication_info_dup(su_home_t *home, sip_auth
  * @endcode
  * 
  * @return
- * The function sip_authentication_info_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -10837,23 +10441,19 @@ sip_authentication_info_t *sip_authentication_info_copy(su_home_t *home, sip_aut
 }
 #endif
 
-/**Make a header structure sip_authentication_info_t.
+/**Make a @ref sip_authentication_info "Authentication-Info header" structure #sip_authentication_info_t.
  * 
  * The function sip_authentication_info_make() makes a new
- * sip_authentication_info_t header structure.  It allocates a new
+ * #sip_authentication_info_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_authentication_info_make() returns a pointer to
- * newly maked sip_authentication_info_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_authentication_info_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -10868,24 +10468,19 @@ su_inline sip_authentication_info_t *sip_authentication_info_make(su_home_t *hom
 }
 #endif
 
-/**Make a Authentication-Info header from formatting result.
+/**Make a @ref sip_authentication_info "Authentication-Info header" from formatting result.
  * 
- * The function sip_authentication_info_format() makes a new
- * Authentication-Info header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_authentication_info_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_authentication_info_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_authentication_info_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -10916,24 +10511,26 @@ su_inline sip_authentication_info_t *sip_authentication_info_format(su_home_t *h
  * @{
  */
 
-/** Parse a Error-Info header. @internal */
-SOFIAPUBFUN int sip_error_info_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_error_info "Error-Info header". @internal */
+SOFIAPUBFUN issize_t sip_error_info_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Error-Info header. @internal */
-SOFIAPUBFUN int sip_error_info_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_error_info "Error-Info header". @internal */
+SOFIAPUBFUN issize_t sip_error_info_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_error_info_t from sip_t.
+/**Access a SIP @ref sip_error_info "Error-Info header"
+ * structure #sip_error_info_t from #sip_t.
  * 
  */
 #define sip_error_info(sip) \
   ((sip_error_info_t *)msg_header_access((msg_pub_t*)(sip), sip_error_info_class))
 
-/**Initializer for structure sip_error_info_t.
+/**Initializer for structure #sip_error_info_t.
  * 
- * A static sip_error_info_t structure must be initialized.
- * The SIP_ERROR_INFO_INIT() macro provides initialization value. 
+ * A static #sip_error_info_t structure for
+ * @ref sip_error_info "Error-Info header" must be initialized with
+ * the SIP_ERROR_INFO_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -10944,9 +10541,10 @@ SOFIAPUBFUN int sip_error_info_e(char b[], int bsiz,
  */
 #define SIP_ERROR_INFO_INIT() SIP_HDR_INIT(error_info)
 
-/**Initialize a structure sip_error_info_t.
+/**Initialize a structure #sip_error_info_t.
  * 
- * An sip_error_info_t structure can be initialized with the
+ * An #sip_error_info_t structure for
+ * @ref sip_error_info "Error-Info header" can be initialized with the
  * sip_error_info_init() function/macro. For instance,
  * @code
  * 
@@ -10967,18 +10565,16 @@ su_inline sip_error_info_t *sip_error_info_init(sip_error_info_t x[1])
   SIP_HEADER_INIT(x, sip_error_info_class, sizeof(sip_error_info_t))
 #endif
 
-/**Test if header object is instance of sip_error_info_t.
+/**Test if header object is instance of #sip_error_info_t.
  * 
- * The function sip_is_error_info() returns true (nonzero) if
- * the header class is an instance of Error-Info header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_error_info "Error-Info header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_error_info() returns true (nonzero) if
- * the header object is an instance of header error_info and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header error_info 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_error_info(sip_header_t const *header)
@@ -10992,9 +10588,9 @@ int sip_is_error_info(sip_header_t const *header);
 #define sip_error_info_p(h) sip_is_error_info((h))
 
 
-/**Duplicate (deep copy) @c sip_error_info_t.
+/**Duplicate a list of @ref sip_error_info "Error-Info header" header structures #sip_error_info_t.
  * 
- * The function sip_error_info_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -11015,8 +10611,8 @@ int sip_is_error_info(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_error_info_dup() returns a pointer to the
- * newly duplicated sip_error_info_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_error_info_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -11034,13 +10630,13 @@ sip_error_info_t *sip_error_info_dup(su_home_t *home, sip_error_info_t const *hd
 }
 #endif
 
-/**Copy a sip_error_info_t header structure.
+/**Copy a list of @ref sip_error_info "Error-Info header" header structures #sip_error_info_t.
  * 
  * The function sip_error_info_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -11059,8 +10655,7 @@ sip_error_info_t *sip_error_info_dup(su_home_t *home, sip_error_info_t const *hd
  * @endcode
  * 
  * @return
- * The function sip_error_info_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11077,23 +10672,19 @@ sip_error_info_t *sip_error_info_copy(su_home_t *home, sip_error_info_t const *h
 }
 #endif
 
-/**Make a header structure sip_error_info_t.
+/**Make a @ref sip_error_info "Error-Info header" structure #sip_error_info_t.
  * 
  * The function sip_error_info_make() makes a new
- * sip_error_info_t header structure.  It allocates a new
+ * #sip_error_info_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_error_info_make() returns a pointer to
- * newly maked sip_error_info_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_error_info_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -11108,24 +10699,19 @@ su_inline sip_error_info_t *sip_error_info_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Error-Info header from formatting result.
+/**Make a @ref sip_error_info "Error-Info header" from formatting result.
  * 
- * The function sip_error_info_format() makes a new
- * Error-Info header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_error_info_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_error_info_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_error_info_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -11156,24 +10742,26 @@ su_inline sip_error_info_t *sip_error_info_format(su_home_t *home, char const *f
  * @{
  */
 
-/** Parse a Warning header. @internal */
-SOFIAPUBFUN int sip_warning_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_warning "Warning header". @internal */
+SOFIAPUBFUN issize_t sip_warning_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Warning header. @internal */
-SOFIAPUBFUN int sip_warning_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_warning "Warning header". @internal */
+SOFIAPUBFUN issize_t sip_warning_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_warning_t from sip_t.
+/**Access a SIP @ref sip_warning "Warning header"
+ * structure #sip_warning_t from #sip_t.
  * 
  */
 #define sip_warning(sip) \
   ((sip_warning_t *)msg_header_access((msg_pub_t*)(sip), sip_warning_class))
 
-/**Initializer for structure sip_warning_t.
+/**Initializer for structure #sip_warning_t.
  * 
- * A static sip_warning_t structure must be initialized.
- * The SIP_WARNING_INIT() macro provides initialization value. 
+ * A static #sip_warning_t structure for
+ * @ref sip_warning "Warning header" must be initialized with
+ * the SIP_WARNING_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -11184,9 +10772,10 @@ SOFIAPUBFUN int sip_warning_e(char b[], int bsiz,
  */
 #define SIP_WARNING_INIT() SIP_HDR_INIT(warning)
 
-/**Initialize a structure sip_warning_t.
+/**Initialize a structure #sip_warning_t.
  * 
- * An sip_warning_t structure can be initialized with the
+ * An #sip_warning_t structure for
+ * @ref sip_warning "Warning header" can be initialized with the
  * sip_warning_init() function/macro. For instance,
  * @code
  * 
@@ -11207,18 +10796,16 @@ su_inline sip_warning_t *sip_warning_init(sip_warning_t x[1])
   SIP_HEADER_INIT(x, sip_warning_class, sizeof(sip_warning_t))
 #endif
 
-/**Test if header object is instance of sip_warning_t.
+/**Test if header object is instance of #sip_warning_t.
  * 
- * The function sip_is_warning() returns true (nonzero) if
- * the header class is an instance of Warning header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_warning "Warning header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_warning() returns true (nonzero) if
- * the header object is an instance of header warning and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header warning 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_warning(sip_header_t const *header)
@@ -11232,9 +10819,9 @@ int sip_is_warning(sip_header_t const *header);
 #define sip_warning_p(h) sip_is_warning((h))
 
 
-/**Duplicate (deep copy) @c sip_warning_t.
+/**Duplicate a list of @ref sip_warning "Warning header" header structures #sip_warning_t.
  * 
- * The function sip_warning_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -11255,8 +10842,8 @@ int sip_is_warning(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_warning_dup() returns a pointer to the
- * newly duplicated sip_warning_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_warning_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -11274,13 +10861,13 @@ sip_warning_t *sip_warning_dup(su_home_t *home, sip_warning_t const *hdr)
 }
 #endif
 
-/**Copy a sip_warning_t header structure.
+/**Copy a list of @ref sip_warning "Warning header" header structures #sip_warning_t.
  * 
  * The function sip_warning_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -11299,8 +10886,7 @@ sip_warning_t *sip_warning_dup(su_home_t *home, sip_warning_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_warning_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11317,23 +10903,19 @@ sip_warning_t *sip_warning_copy(su_home_t *home, sip_warning_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_warning_t.
+/**Make a @ref sip_warning "Warning header" structure #sip_warning_t.
  * 
  * The function sip_warning_make() makes a new
- * sip_warning_t header structure.  It allocates a new
+ * #sip_warning_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_warning_make() returns a pointer to
- * newly maked sip_warning_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_warning_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -11348,24 +10930,19 @@ su_inline sip_warning_t *sip_warning_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Warning header from formatting result.
+/**Make a @ref sip_warning "Warning header" from formatting result.
  * 
- * The function sip_warning_format() makes a new
- * Warning header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_warning_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_warning_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_warning_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -11396,24 +10973,26 @@ su_inline sip_warning_t *sip_warning_format(su_home_t *home, char const *fmt, ..
  * @{
  */
 
-/** Parse a Refer-To header. @internal */
-SOFIAPUBFUN int sip_refer_to_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_refer_to "Refer-To header". @internal */
+SOFIAPUBFUN issize_t sip_refer_to_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Refer-To header. @internal */
-SOFIAPUBFUN int sip_refer_to_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_refer_to "Refer-To header". @internal */
+SOFIAPUBFUN issize_t sip_refer_to_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_refer_to_t from sip_t.
+/**Access a SIP @ref sip_refer_to "Refer-To header"
+ * structure #sip_refer_to_t from #sip_t.
  * 
  */
 #define sip_refer_to(sip) \
   ((sip_refer_to_t *)msg_header_access((msg_pub_t*)(sip), sip_refer_to_class))
 
-/**Initializer for structure sip_refer_to_t.
+/**Initializer for structure #sip_refer_to_t.
  * 
- * A static sip_refer_to_t structure must be initialized.
- * The SIP_REFER_TO_INIT() macro provides initialization value. 
+ * A static #sip_refer_to_t structure for
+ * @ref sip_refer_to "Refer-To header" must be initialized with
+ * the SIP_REFER_TO_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -11424,9 +11003,10 @@ SOFIAPUBFUN int sip_refer_to_e(char b[], int bsiz,
  */
 #define SIP_REFER_TO_INIT() SIP_HDR_INIT(refer_to)
 
-/**Initialize a structure sip_refer_to_t.
+/**Initialize a structure #sip_refer_to_t.
  * 
- * An sip_refer_to_t structure can be initialized with the
+ * An #sip_refer_to_t structure for
+ * @ref sip_refer_to "Refer-To header" can be initialized with the
  * sip_refer_to_init() function/macro. For instance,
  * @code
  * 
@@ -11447,18 +11027,16 @@ su_inline sip_refer_to_t *sip_refer_to_init(sip_refer_to_t x[1])
   SIP_HEADER_INIT(x, sip_refer_to_class, sizeof(sip_refer_to_t))
 #endif
 
-/**Test if header object is instance of sip_refer_to_t.
+/**Test if header object is instance of #sip_refer_to_t.
  * 
- * The function sip_is_refer_to() returns true (nonzero) if
- * the header class is an instance of Refer-To header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_refer_to "Refer-To header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_refer_to() returns true (nonzero) if
- * the header object is an instance of header refer_to and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header refer_to 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_refer_to(sip_header_t const *header)
@@ -11472,9 +11050,9 @@ int sip_is_refer_to(sip_header_t const *header);
 #define sip_refer_to_p(h) sip_is_refer_to((h))
 
 
-/**Duplicate (deep copy) @c sip_refer_to_t.
+/**Duplicate a list of @ref sip_refer_to "Refer-To header" header structures #sip_refer_to_t.
  * 
- * The function sip_refer_to_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -11495,8 +11073,8 @@ int sip_is_refer_to(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_refer_to_dup() returns a pointer to the
- * newly duplicated sip_refer_to_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_refer_to_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -11514,13 +11092,13 @@ sip_refer_to_t *sip_refer_to_dup(su_home_t *home, sip_refer_to_t const *hdr)
 }
 #endif
 
-/**Copy a sip_refer_to_t header structure.
+/**Copy a list of @ref sip_refer_to "Refer-To header" header structures #sip_refer_to_t.
  * 
  * The function sip_refer_to_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -11539,8 +11117,7 @@ sip_refer_to_t *sip_refer_to_dup(su_home_t *home, sip_refer_to_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_refer_to_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11557,23 +11134,19 @@ sip_refer_to_t *sip_refer_to_copy(su_home_t *home, sip_refer_to_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_refer_to_t.
+/**Make a @ref sip_refer_to "Refer-To header" structure #sip_refer_to_t.
  * 
  * The function sip_refer_to_make() makes a new
- * sip_refer_to_t header structure.  It allocates a new
+ * #sip_refer_to_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_refer_to_make() returns a pointer to
- * newly maked sip_refer_to_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_refer_to_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -11588,24 +11161,19 @@ su_inline sip_refer_to_t *sip_refer_to_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Refer-To header from formatting result.
+/**Make a @ref sip_refer_to "Refer-To header" from formatting result.
  * 
- * The function sip_refer_to_format() makes a new
- * Refer-To header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_refer_to_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_refer_to_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_refer_to_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -11636,24 +11204,26 @@ su_inline sip_refer_to_t *sip_refer_to_format(su_home_t *home, char const *fmt, 
  * @{
  */
 
-/** Parse a Referred-By header. @internal */
-SOFIAPUBFUN int sip_referred_by_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_referred_by "Referred-By header". @internal */
+SOFIAPUBFUN issize_t sip_referred_by_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Referred-By header. @internal */
-SOFIAPUBFUN int sip_referred_by_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_referred_by "Referred-By header". @internal */
+SOFIAPUBFUN issize_t sip_referred_by_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_referred_by_t from sip_t.
+/**Access a SIP @ref sip_referred_by "Referred-By header"
+ * structure #sip_referred_by_t from #sip_t.
  * 
  */
 #define sip_referred_by(sip) \
   ((sip_referred_by_t *)msg_header_access((msg_pub_t*)(sip), sip_referred_by_class))
 
-/**Initializer for structure sip_referred_by_t.
+/**Initializer for structure #sip_referred_by_t.
  * 
- * A static sip_referred_by_t structure must be initialized.
- * The SIP_REFERRED_BY_INIT() macro provides initialization value. 
+ * A static #sip_referred_by_t structure for
+ * @ref sip_referred_by "Referred-By header" must be initialized with
+ * the SIP_REFERRED_BY_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -11664,9 +11234,10 @@ SOFIAPUBFUN int sip_referred_by_e(char b[], int bsiz,
  */
 #define SIP_REFERRED_BY_INIT() SIP_HDR_INIT(referred_by)
 
-/**Initialize a structure sip_referred_by_t.
+/**Initialize a structure #sip_referred_by_t.
  * 
- * An sip_referred_by_t structure can be initialized with the
+ * An #sip_referred_by_t structure for
+ * @ref sip_referred_by "Referred-By header" can be initialized with the
  * sip_referred_by_init() function/macro. For instance,
  * @code
  * 
@@ -11687,18 +11258,16 @@ su_inline sip_referred_by_t *sip_referred_by_init(sip_referred_by_t x[1])
   SIP_HEADER_INIT(x, sip_referred_by_class, sizeof(sip_referred_by_t))
 #endif
 
-/**Test if header object is instance of sip_referred_by_t.
+/**Test if header object is instance of #sip_referred_by_t.
  * 
- * The function sip_is_referred_by() returns true (nonzero) if
- * the header class is an instance of Referred-By header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_referred_by "Referred-By header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_referred_by() returns true (nonzero) if
- * the header object is an instance of header referred_by and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header referred_by 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_referred_by(sip_header_t const *header)
@@ -11712,9 +11281,9 @@ int sip_is_referred_by(sip_header_t const *header);
 #define sip_referred_by_p(h) sip_is_referred_by((h))
 
 
-/**Duplicate (deep copy) @c sip_referred_by_t.
+/**Duplicate a list of @ref sip_referred_by "Referred-By header" header structures #sip_referred_by_t.
  * 
- * The function sip_referred_by_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -11735,8 +11304,8 @@ int sip_is_referred_by(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_referred_by_dup() returns a pointer to the
- * newly duplicated sip_referred_by_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_referred_by_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -11754,13 +11323,13 @@ sip_referred_by_t *sip_referred_by_dup(su_home_t *home, sip_referred_by_t const 
 }
 #endif
 
-/**Copy a sip_referred_by_t header structure.
+/**Copy a list of @ref sip_referred_by "Referred-By header" header structures #sip_referred_by_t.
  * 
  * The function sip_referred_by_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -11779,8 +11348,7 @@ sip_referred_by_t *sip_referred_by_dup(su_home_t *home, sip_referred_by_t const 
  * @endcode
  * 
  * @return
- * The function sip_referred_by_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -11797,23 +11365,19 @@ sip_referred_by_t *sip_referred_by_copy(su_home_t *home, sip_referred_by_t const
 }
 #endif
 
-/**Make a header structure sip_referred_by_t.
+/**Make a @ref sip_referred_by "Referred-By header" structure #sip_referred_by_t.
  * 
  * The function sip_referred_by_make() makes a new
- * sip_referred_by_t header structure.  It allocates a new
+ * #sip_referred_by_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_referred_by_make() returns a pointer to
- * newly maked sip_referred_by_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_referred_by_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -11828,24 +11392,19 @@ su_inline sip_referred_by_t *sip_referred_by_make(su_home_t *home, char const *s
 }
 #endif
 
-/**Make a Referred-By header from formatting result.
+/**Make a @ref sip_referred_by "Referred-By header" from formatting result.
  * 
- * The function sip_referred_by_format() makes a new
- * Referred-By header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_referred_by_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_referred_by_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_referred_by_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -11876,24 +11435,26 @@ su_inline sip_referred_by_t *sip_referred_by_format(su_home_t *home, char const 
  * @{
  */
 
-/** Parse a Replaces header. @internal */
-SOFIAPUBFUN int sip_replaces_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_replaces "Replaces header". @internal */
+SOFIAPUBFUN issize_t sip_replaces_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Replaces header. @internal */
-SOFIAPUBFUN int sip_replaces_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_replaces "Replaces header". @internal */
+SOFIAPUBFUN issize_t sip_replaces_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_replaces_t from sip_t.
+/**Access a SIP @ref sip_replaces "Replaces header"
+ * structure #sip_replaces_t from #sip_t.
  * 
  */
 #define sip_replaces(sip) \
   ((sip_replaces_t *)msg_header_access((msg_pub_t*)(sip), sip_replaces_class))
 
-/**Initializer for structure sip_replaces_t.
+/**Initializer for structure #sip_replaces_t.
  * 
- * A static sip_replaces_t structure must be initialized.
- * The SIP_REPLACES_INIT() macro provides initialization value. 
+ * A static #sip_replaces_t structure for
+ * @ref sip_replaces "Replaces header" must be initialized with
+ * the SIP_REPLACES_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -11904,9 +11465,10 @@ SOFIAPUBFUN int sip_replaces_e(char b[], int bsiz,
  */
 #define SIP_REPLACES_INIT() SIP_HDR_INIT(replaces)
 
-/**Initialize a structure sip_replaces_t.
+/**Initialize a structure #sip_replaces_t.
  * 
- * An sip_replaces_t structure can be initialized with the
+ * An #sip_replaces_t structure for
+ * @ref sip_replaces "Replaces header" can be initialized with the
  * sip_replaces_init() function/macro. For instance,
  * @code
  * 
@@ -11927,18 +11489,16 @@ su_inline sip_replaces_t *sip_replaces_init(sip_replaces_t x[1])
   SIP_HEADER_INIT(x, sip_replaces_class, sizeof(sip_replaces_t))
 #endif
 
-/**Test if header object is instance of sip_replaces_t.
+/**Test if header object is instance of #sip_replaces_t.
  * 
- * The function sip_is_replaces() returns true (nonzero) if
- * the header class is an instance of Replaces header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_replaces "Replaces header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_replaces() returns true (nonzero) if
- * the header object is an instance of header replaces and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header replaces 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_replaces(sip_header_t const *header)
@@ -11952,9 +11512,9 @@ int sip_is_replaces(sip_header_t const *header);
 #define sip_replaces_p(h) sip_is_replaces((h))
 
 
-/**Duplicate (deep copy) @c sip_replaces_t.
+/**Duplicate a list of @ref sip_replaces "Replaces header" header structures #sip_replaces_t.
  * 
- * The function sip_replaces_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -11975,8 +11535,8 @@ int sip_is_replaces(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_replaces_dup() returns a pointer to the
- * newly duplicated sip_replaces_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_replaces_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -11994,13 +11554,13 @@ sip_replaces_t *sip_replaces_dup(su_home_t *home, sip_replaces_t const *hdr)
 }
 #endif
 
-/**Copy a sip_replaces_t header structure.
+/**Copy a list of @ref sip_replaces "Replaces header" header structures #sip_replaces_t.
  * 
  * The function sip_replaces_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -12019,8 +11579,7 @@ sip_replaces_t *sip_replaces_dup(su_home_t *home, sip_replaces_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_replaces_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12037,23 +11596,19 @@ sip_replaces_t *sip_replaces_copy(su_home_t *home, sip_replaces_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_replaces_t.
+/**Make a @ref sip_replaces "Replaces header" structure #sip_replaces_t.
  * 
  * The function sip_replaces_make() makes a new
- * sip_replaces_t header structure.  It allocates a new
+ * #sip_replaces_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_replaces_make() returns a pointer to
- * newly maked sip_replaces_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_replaces_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -12068,24 +11623,19 @@ su_inline sip_replaces_t *sip_replaces_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Replaces header from formatting result.
+/**Make a @ref sip_replaces "Replaces header" from formatting result.
  * 
- * The function sip_replaces_format() makes a new
- * Replaces header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_replaces_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_replaces_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_replaces_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -12116,24 +11666,26 @@ su_inline sip_replaces_t *sip_replaces_format(su_home_t *home, char const *fmt, 
  * @{
  */
 
-/** Parse a Session-Expires header. @internal */
-SOFIAPUBFUN int sip_session_expires_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_session_expires "Session-Expires header". @internal */
+SOFIAPUBFUN issize_t sip_session_expires_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Session-Expires header. @internal */
-SOFIAPUBFUN int sip_session_expires_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_session_expires "Session-Expires header". @internal */
+SOFIAPUBFUN issize_t sip_session_expires_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_session_expires_t from sip_t.
+/**Access a SIP @ref sip_session_expires "Session-Expires header"
+ * structure #sip_session_expires_t from #sip_t.
  * 
  */
 #define sip_session_expires(sip) \
   ((sip_session_expires_t *)msg_header_access((msg_pub_t*)(sip), sip_session_expires_class))
 
-/**Initializer for structure sip_session_expires_t.
+/**Initializer for structure #sip_session_expires_t.
  * 
- * A static sip_session_expires_t structure must be initialized.
- * The SIP_SESSION_EXPIRES_INIT() macro provides initialization value. 
+ * A static #sip_session_expires_t structure for
+ * @ref sip_session_expires "Session-Expires header" must be initialized with
+ * the SIP_SESSION_EXPIRES_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -12144,9 +11696,10 @@ SOFIAPUBFUN int sip_session_expires_e(char b[], int bsiz,
  */
 #define SIP_SESSION_EXPIRES_INIT() SIP_HDR_INIT(session_expires)
 
-/**Initialize a structure sip_session_expires_t.
+/**Initialize a structure #sip_session_expires_t.
  * 
- * An sip_session_expires_t structure can be initialized with the
+ * An #sip_session_expires_t structure for
+ * @ref sip_session_expires "Session-Expires header" can be initialized with the
  * sip_session_expires_init() function/macro. For instance,
  * @code
  * 
@@ -12167,18 +11720,16 @@ su_inline sip_session_expires_t *sip_session_expires_init(sip_session_expires_t 
   SIP_HEADER_INIT(x, sip_session_expires_class, sizeof(sip_session_expires_t))
 #endif
 
-/**Test if header object is instance of sip_session_expires_t.
+/**Test if header object is instance of #sip_session_expires_t.
  * 
- * The function sip_is_session_expires() returns true (nonzero) if
- * the header class is an instance of Session-Expires header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_session_expires "Session-Expires header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_session_expires() returns true (nonzero) if
- * the header object is an instance of header session_expires and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header session_expires 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_session_expires(sip_header_t const *header)
@@ -12192,9 +11743,9 @@ int sip_is_session_expires(sip_header_t const *header);
 #define sip_session_expires_p(h) sip_is_session_expires((h))
 
 
-/**Duplicate (deep copy) @c sip_session_expires_t.
+/**Duplicate a list of @ref sip_session_expires "Session-Expires header" header structures #sip_session_expires_t.
  * 
- * The function sip_session_expires_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -12215,8 +11766,8 @@ int sip_is_session_expires(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_session_expires_dup() returns a pointer to the
- * newly duplicated sip_session_expires_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_session_expires_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -12234,13 +11785,13 @@ sip_session_expires_t *sip_session_expires_dup(su_home_t *home, sip_session_expi
 }
 #endif
 
-/**Copy a sip_session_expires_t header structure.
+/**Copy a list of @ref sip_session_expires "Session-Expires header" header structures #sip_session_expires_t.
  * 
  * The function sip_session_expires_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -12259,8 +11810,7 @@ sip_session_expires_t *sip_session_expires_dup(su_home_t *home, sip_session_expi
  * @endcode
  * 
  * @return
- * The function sip_session_expires_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12277,23 +11827,19 @@ sip_session_expires_t *sip_session_expires_copy(su_home_t *home, sip_session_exp
 }
 #endif
 
-/**Make a header structure sip_session_expires_t.
+/**Make a @ref sip_session_expires "Session-Expires header" structure #sip_session_expires_t.
  * 
  * The function sip_session_expires_make() makes a new
- * sip_session_expires_t header structure.  It allocates a new
+ * #sip_session_expires_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_session_expires_make() returns a pointer to
- * newly maked sip_session_expires_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_session_expires_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -12308,24 +11854,19 @@ su_inline sip_session_expires_t *sip_session_expires_make(su_home_t *home, char 
 }
 #endif
 
-/**Make a Session-Expires header from formatting result.
+/**Make a @ref sip_session_expires "Session-Expires header" from formatting result.
  * 
- * The function sip_session_expires_format() makes a new
- * Session-Expires header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_session_expires_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_session_expires_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_session_expires_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -12356,24 +11897,26 @@ su_inline sip_session_expires_t *sip_session_expires_format(su_home_t *home, cha
  * @{
  */
 
-/** Parse a Min-SE header. @internal */
-SOFIAPUBFUN int sip_min_se_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_min_se "Min-SE header". @internal */
+SOFIAPUBFUN issize_t sip_min_se_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Min-SE header. @internal */
-SOFIAPUBFUN int sip_min_se_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_min_se "Min-SE header". @internal */
+SOFIAPUBFUN issize_t sip_min_se_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_min_se_t from sip_t.
+/**Access a SIP @ref sip_min_se "Min-SE header"
+ * structure #sip_min_se_t from #sip_t.
  * 
  */
 #define sip_min_se(sip) \
   ((sip_min_se_t *)msg_header_access((msg_pub_t*)(sip), sip_min_se_class))
 
-/**Initializer for structure sip_min_se_t.
+/**Initializer for structure #sip_min_se_t.
  * 
- * A static sip_min_se_t structure must be initialized.
- * The SIP_MIN_SE_INIT() macro provides initialization value. 
+ * A static #sip_min_se_t structure for
+ * @ref sip_min_se "Min-SE header" must be initialized with
+ * the SIP_MIN_SE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -12384,9 +11927,10 @@ SOFIAPUBFUN int sip_min_se_e(char b[], int bsiz,
  */
 #define SIP_MIN_SE_INIT() SIP_HDR_INIT(min_se)
 
-/**Initialize a structure sip_min_se_t.
+/**Initialize a structure #sip_min_se_t.
  * 
- * An sip_min_se_t structure can be initialized with the
+ * An #sip_min_se_t structure for
+ * @ref sip_min_se "Min-SE header" can be initialized with the
  * sip_min_se_init() function/macro. For instance,
  * @code
  * 
@@ -12407,18 +11951,16 @@ su_inline sip_min_se_t *sip_min_se_init(sip_min_se_t x[1])
   SIP_HEADER_INIT(x, sip_min_se_class, sizeof(sip_min_se_t))
 #endif
 
-/**Test if header object is instance of sip_min_se_t.
+/**Test if header object is instance of #sip_min_se_t.
  * 
- * The function sip_is_min_se() returns true (nonzero) if
- * the header class is an instance of Min-SE header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_min_se "Min-SE header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_min_se() returns true (nonzero) if
- * the header object is an instance of header min_se and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header min_se 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_min_se(sip_header_t const *header)
@@ -12432,9 +11974,9 @@ int sip_is_min_se(sip_header_t const *header);
 #define sip_min_se_p(h) sip_is_min_se((h))
 
 
-/**Duplicate (deep copy) @c sip_min_se_t.
+/**Duplicate a list of @ref sip_min_se "Min-SE header" header structures #sip_min_se_t.
  * 
- * The function sip_min_se_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -12455,8 +11997,8 @@ int sip_is_min_se(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_min_se_dup() returns a pointer to the
- * newly duplicated sip_min_se_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_min_se_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -12474,13 +12016,13 @@ sip_min_se_t *sip_min_se_dup(su_home_t *home, sip_min_se_t const *hdr)
 }
 #endif
 
-/**Copy a sip_min_se_t header structure.
+/**Copy a list of @ref sip_min_se "Min-SE header" header structures #sip_min_se_t.
  * 
  * The function sip_min_se_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -12499,8 +12041,7 @@ sip_min_se_t *sip_min_se_dup(su_home_t *home, sip_min_se_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_min_se_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12517,23 +12058,19 @@ sip_min_se_t *sip_min_se_copy(su_home_t *home, sip_min_se_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_min_se_t.
+/**Make a @ref sip_min_se "Min-SE header" structure #sip_min_se_t.
  * 
  * The function sip_min_se_make() makes a new
- * sip_min_se_t header structure.  It allocates a new
+ * #sip_min_se_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_min_se_make() returns a pointer to
- * newly maked sip_min_se_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_min_se_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -12548,24 +12085,19 @@ su_inline sip_min_se_t *sip_min_se_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Min-SE header from formatting result.
+/**Make a @ref sip_min_se "Min-SE header" from formatting result.
  * 
- * The function sip_min_se_format() makes a new
- * Min-SE header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_min_se_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_min_se_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_min_se_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -12596,24 +12128,26 @@ su_inline sip_min_se_t *sip_min_se_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Path header. @internal */
-SOFIAPUBFUN int sip_path_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_path "Path header". @internal */
+SOFIAPUBFUN issize_t sip_path_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Path header. @internal */
-SOFIAPUBFUN int sip_path_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_path "Path header". @internal */
+SOFIAPUBFUN issize_t sip_path_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_path_t from sip_t.
+/**Access a SIP @ref sip_path "Path header"
+ * structure #sip_path_t from #sip_t.
  * 
  */
 #define sip_path(sip) \
   ((sip_path_t *)msg_header_access((msg_pub_t*)(sip), sip_path_class))
 
-/**Initializer for structure sip_path_t.
+/**Initializer for structure #sip_path_t.
  * 
- * A static sip_path_t structure must be initialized.
- * The SIP_PATH_INIT() macro provides initialization value. 
+ * A static #sip_path_t structure for
+ * @ref sip_path "Path header" must be initialized with
+ * the SIP_PATH_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -12624,9 +12158,10 @@ SOFIAPUBFUN int sip_path_e(char b[], int bsiz,
  */
 #define SIP_PATH_INIT() SIP_HDR_INIT(path)
 
-/**Initialize a structure sip_path_t.
+/**Initialize a structure #sip_path_t.
  * 
- * An sip_path_t structure can be initialized with the
+ * An #sip_path_t structure for
+ * @ref sip_path "Path header" can be initialized with the
  * sip_path_init() function/macro. For instance,
  * @code
  * 
@@ -12647,18 +12182,16 @@ su_inline sip_path_t *sip_path_init(sip_path_t x[1])
   SIP_HEADER_INIT(x, sip_path_class, sizeof(sip_path_t))
 #endif
 
-/**Test if header object is instance of sip_path_t.
+/**Test if header object is instance of #sip_path_t.
  * 
- * The function sip_is_path() returns true (nonzero) if
- * the header class is an instance of Path header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_path "Path header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_path() returns true (nonzero) if
- * the header object is an instance of header path and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header path 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_path(sip_header_t const *header)
@@ -12672,9 +12205,9 @@ int sip_is_path(sip_header_t const *header);
 #define sip_path_p(h) sip_is_path((h))
 
 
-/**Duplicate (deep copy) @c sip_path_t.
+/**Duplicate a list of @ref sip_path "Path header" header structures #sip_path_t.
  * 
- * The function sip_path_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -12695,8 +12228,8 @@ int sip_is_path(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_path_dup() returns a pointer to the
- * newly duplicated sip_path_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_path_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -12714,13 +12247,13 @@ sip_path_t *sip_path_dup(su_home_t *home, sip_path_t const *hdr)
 }
 #endif
 
-/**Copy a sip_path_t header structure.
+/**Copy a list of @ref sip_path "Path header" header structures #sip_path_t.
  * 
  * The function sip_path_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -12739,8 +12272,7 @@ sip_path_t *sip_path_dup(su_home_t *home, sip_path_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_path_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12757,23 +12289,19 @@ sip_path_t *sip_path_copy(su_home_t *home, sip_path_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_path_t.
+/**Make a @ref sip_path "Path header" structure #sip_path_t.
  * 
  * The function sip_path_make() makes a new
- * sip_path_t header structure.  It allocates a new
+ * #sip_path_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_path_make() returns a pointer to
- * newly maked sip_path_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_path_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -12788,24 +12316,19 @@ su_inline sip_path_t *sip_path_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Path header from formatting result.
+/**Make a @ref sip_path "Path header" from formatting result.
  * 
- * The function sip_path_format() makes a new
- * Path header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_path_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_path_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_path_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -12836,24 +12359,26 @@ su_inline sip_path_t *sip_path_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Service-Route header. @internal */
-SOFIAPUBFUN int sip_service_route_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_service_route "Service-Route header". @internal */
+SOFIAPUBFUN issize_t sip_service_route_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Service-Route header. @internal */
-SOFIAPUBFUN int sip_service_route_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_service_route "Service-Route header". @internal */
+SOFIAPUBFUN issize_t sip_service_route_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_service_route_t from sip_t.
+/**Access a SIP @ref sip_service_route "Service-Route header"
+ * structure #sip_service_route_t from #sip_t.
  * 
  */
 #define sip_service_route(sip) \
   ((sip_service_route_t *)msg_header_access((msg_pub_t*)(sip), sip_service_route_class))
 
-/**Initializer for structure sip_service_route_t.
+/**Initializer for structure #sip_service_route_t.
  * 
- * A static sip_service_route_t structure must be initialized.
- * The SIP_SERVICE_ROUTE_INIT() macro provides initialization value. 
+ * A static #sip_service_route_t structure for
+ * @ref sip_service_route "Service-Route header" must be initialized with
+ * the SIP_SERVICE_ROUTE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -12864,9 +12389,10 @@ SOFIAPUBFUN int sip_service_route_e(char b[], int bsiz,
  */
 #define SIP_SERVICE_ROUTE_INIT() SIP_HDR_INIT(service_route)
 
-/**Initialize a structure sip_service_route_t.
+/**Initialize a structure #sip_service_route_t.
  * 
- * An sip_service_route_t structure can be initialized with the
+ * An #sip_service_route_t structure for
+ * @ref sip_service_route "Service-Route header" can be initialized with the
  * sip_service_route_init() function/macro. For instance,
  * @code
  * 
@@ -12887,18 +12413,16 @@ su_inline sip_service_route_t *sip_service_route_init(sip_service_route_t x[1])
   SIP_HEADER_INIT(x, sip_service_route_class, sizeof(sip_service_route_t))
 #endif
 
-/**Test if header object is instance of sip_service_route_t.
+/**Test if header object is instance of #sip_service_route_t.
  * 
- * The function sip_is_service_route() returns true (nonzero) if
- * the header class is an instance of Service-Route header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_service_route "Service-Route header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_service_route() returns true (nonzero) if
- * the header object is an instance of header service_route and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header service_route 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_service_route(sip_header_t const *header)
@@ -12912,9 +12436,9 @@ int sip_is_service_route(sip_header_t const *header);
 #define sip_service_route_p(h) sip_is_service_route((h))
 
 
-/**Duplicate (deep copy) @c sip_service_route_t.
+/**Duplicate a list of @ref sip_service_route "Service-Route header" header structures #sip_service_route_t.
  * 
- * The function sip_service_route_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -12935,8 +12459,8 @@ int sip_is_service_route(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_service_route_dup() returns a pointer to the
- * newly duplicated sip_service_route_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_service_route_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -12954,13 +12478,13 @@ sip_service_route_t *sip_service_route_dup(su_home_t *home, sip_service_route_t 
 }
 #endif
 
-/**Copy a sip_service_route_t header structure.
+/**Copy a list of @ref sip_service_route "Service-Route header" header structures #sip_service_route_t.
  * 
  * The function sip_service_route_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -12979,8 +12503,7 @@ sip_service_route_t *sip_service_route_dup(su_home_t *home, sip_service_route_t 
  * @endcode
  * 
  * @return
- * The function sip_service_route_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -12997,23 +12520,19 @@ sip_service_route_t *sip_service_route_copy(su_home_t *home, sip_service_route_t
 }
 #endif
 
-/**Make a header structure sip_service_route_t.
+/**Make a @ref sip_service_route "Service-Route header" structure #sip_service_route_t.
  * 
  * The function sip_service_route_make() makes a new
- * sip_service_route_t header structure.  It allocates a new
+ * #sip_service_route_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_service_route_make() returns a pointer to
- * newly maked sip_service_route_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_service_route_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13028,24 +12547,19 @@ su_inline sip_service_route_t *sip_service_route_make(su_home_t *home, char cons
 }
 #endif
 
-/**Make a Service-Route header from formatting result.
+/**Make a @ref sip_service_route "Service-Route header" from formatting result.
  * 
- * The function sip_service_route_format() makes a new
- * Service-Route header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_service_route_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_service_route_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_service_route_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -13076,24 +12590,26 @@ su_inline sip_service_route_t *sip_service_route_format(su_home_t *home, char co
  * @{
  */
 
-/** Parse a Reason header. @internal */
-SOFIAPUBFUN int sip_reason_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_reason "Reason header". @internal */
+SOFIAPUBFUN issize_t sip_reason_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Reason header. @internal */
-SOFIAPUBFUN int sip_reason_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_reason "Reason header". @internal */
+SOFIAPUBFUN issize_t sip_reason_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_reason_t from sip_t.
+/**Access a SIP @ref sip_reason "Reason header"
+ * structure #sip_reason_t from #sip_t.
  * 
  */
 #define sip_reason(sip) \
   ((sip_reason_t *)msg_header_access((msg_pub_t*)(sip), sip_reason_class))
 
-/**Initializer for structure sip_reason_t.
+/**Initializer for structure #sip_reason_t.
  * 
- * A static sip_reason_t structure must be initialized.
- * The SIP_REASON_INIT() macro provides initialization value. 
+ * A static #sip_reason_t structure for
+ * @ref sip_reason "Reason header" must be initialized with
+ * the SIP_REASON_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -13104,9 +12620,10 @@ SOFIAPUBFUN int sip_reason_e(char b[], int bsiz,
  */
 #define SIP_REASON_INIT() SIP_HDR_INIT(reason)
 
-/**Initialize a structure sip_reason_t.
+/**Initialize a structure #sip_reason_t.
  * 
- * An sip_reason_t structure can be initialized with the
+ * An #sip_reason_t structure for
+ * @ref sip_reason "Reason header" can be initialized with the
  * sip_reason_init() function/macro. For instance,
  * @code
  * 
@@ -13127,18 +12644,16 @@ su_inline sip_reason_t *sip_reason_init(sip_reason_t x[1])
   SIP_HEADER_INIT(x, sip_reason_class, sizeof(sip_reason_t))
 #endif
 
-/**Test if header object is instance of sip_reason_t.
+/**Test if header object is instance of #sip_reason_t.
  * 
- * The function sip_is_reason() returns true (nonzero) if
- * the header class is an instance of Reason header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_reason "Reason header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_reason() returns true (nonzero) if
- * the header object is an instance of header reason and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header reason 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_reason(sip_header_t const *header)
@@ -13152,9 +12667,9 @@ int sip_is_reason(sip_header_t const *header);
 #define sip_reason_p(h) sip_is_reason((h))
 
 
-/**Duplicate (deep copy) @c sip_reason_t.
+/**Duplicate a list of @ref sip_reason "Reason header" header structures #sip_reason_t.
  * 
- * The function sip_reason_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -13175,8 +12690,8 @@ int sip_is_reason(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_reason_dup() returns a pointer to the
- * newly duplicated sip_reason_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_reason_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -13194,13 +12709,13 @@ sip_reason_t *sip_reason_dup(su_home_t *home, sip_reason_t const *hdr)
 }
 #endif
 
-/**Copy a sip_reason_t header structure.
+/**Copy a list of @ref sip_reason "Reason header" header structures #sip_reason_t.
  * 
  * The function sip_reason_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -13219,8 +12734,7 @@ sip_reason_t *sip_reason_dup(su_home_t *home, sip_reason_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_reason_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13237,23 +12751,19 @@ sip_reason_t *sip_reason_copy(su_home_t *home, sip_reason_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_reason_t.
+/**Make a @ref sip_reason "Reason header" structure #sip_reason_t.
  * 
  * The function sip_reason_make() makes a new
- * sip_reason_t header structure.  It allocates a new
+ * #sip_reason_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_reason_make() returns a pointer to
- * newly maked sip_reason_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_reason_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13268,24 +12778,19 @@ su_inline sip_reason_t *sip_reason_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Reason header from formatting result.
+/**Make a @ref sip_reason "Reason header" from formatting result.
  * 
- * The function sip_reason_format() makes a new
- * Reason header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_reason_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_reason_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_reason_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -13316,24 +12821,26 @@ su_inline sip_reason_t *sip_reason_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a Security-Client header. @internal */
-SOFIAPUBFUN int sip_security_client_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_security_client "Security-Client header". @internal */
+SOFIAPUBFUN issize_t sip_security_client_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Security-Client header. @internal */
-SOFIAPUBFUN int sip_security_client_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_security_client "Security-Client header". @internal */
+SOFIAPUBFUN issize_t sip_security_client_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_security_client_t from sip_t.
+/**Access a SIP @ref sip_security_client "Security-Client header"
+ * structure #sip_security_client_t from #sip_t.
  * 
  */
 #define sip_security_client(sip) \
   ((sip_security_client_t *)msg_header_access((msg_pub_t*)(sip), sip_security_client_class))
 
-/**Initializer for structure sip_security_client_t.
+/**Initializer for structure #sip_security_client_t.
  * 
- * A static sip_security_client_t structure must be initialized.
- * The SIP_SECURITY_CLIENT_INIT() macro provides initialization value. 
+ * A static #sip_security_client_t structure for
+ * @ref sip_security_client "Security-Client header" must be initialized with
+ * the SIP_SECURITY_CLIENT_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -13344,9 +12851,10 @@ SOFIAPUBFUN int sip_security_client_e(char b[], int bsiz,
  */
 #define SIP_SECURITY_CLIENT_INIT() SIP_HDR_INIT(security_client)
 
-/**Initialize a structure sip_security_client_t.
+/**Initialize a structure #sip_security_client_t.
  * 
- * An sip_security_client_t structure can be initialized with the
+ * An #sip_security_client_t structure for
+ * @ref sip_security_client "Security-Client header" can be initialized with the
  * sip_security_client_init() function/macro. For instance,
  * @code
  * 
@@ -13367,18 +12875,16 @@ su_inline sip_security_client_t *sip_security_client_init(sip_security_client_t 
   SIP_HEADER_INIT(x, sip_security_client_class, sizeof(sip_security_client_t))
 #endif
 
-/**Test if header object is instance of sip_security_client_t.
+/**Test if header object is instance of #sip_security_client_t.
  * 
- * The function sip_is_security_client() returns true (nonzero) if
- * the header class is an instance of Security-Client header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_security_client "Security-Client header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_security_client() returns true (nonzero) if
- * the header object is an instance of header security_client and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header security_client 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_security_client(sip_header_t const *header)
@@ -13392,9 +12898,9 @@ int sip_is_security_client(sip_header_t const *header);
 #define sip_security_client_p(h) sip_is_security_client((h))
 
 
-/**Duplicate (deep copy) @c sip_security_client_t.
+/**Duplicate a list of @ref sip_security_client "Security-Client header" header structures #sip_security_client_t.
  * 
- * The function sip_security_client_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -13415,8 +12921,8 @@ int sip_is_security_client(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_security_client_dup() returns a pointer to the
- * newly duplicated sip_security_client_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_security_client_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -13434,13 +12940,13 @@ sip_security_client_t *sip_security_client_dup(su_home_t *home, sip_security_cli
 }
 #endif
 
-/**Copy a sip_security_client_t header structure.
+/**Copy a list of @ref sip_security_client "Security-Client header" header structures #sip_security_client_t.
  * 
  * The function sip_security_client_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -13459,8 +12965,7 @@ sip_security_client_t *sip_security_client_dup(su_home_t *home, sip_security_cli
  * @endcode
  * 
  * @return
- * The function sip_security_client_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13477,23 +12982,19 @@ sip_security_client_t *sip_security_client_copy(su_home_t *home, sip_security_cl
 }
 #endif
 
-/**Make a header structure sip_security_client_t.
+/**Make a @ref sip_security_client "Security-Client header" structure #sip_security_client_t.
  * 
  * The function sip_security_client_make() makes a new
- * sip_security_client_t header structure.  It allocates a new
+ * #sip_security_client_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_security_client_make() returns a pointer to
- * newly maked sip_security_client_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_security_client_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13508,24 +13009,19 @@ su_inline sip_security_client_t *sip_security_client_make(su_home_t *home, char 
 }
 #endif
 
-/**Make a Security-Client header from formatting result.
+/**Make a @ref sip_security_client "Security-Client header" from formatting result.
  * 
- * The function sip_security_client_format() makes a new
- * Security-Client header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_security_client_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_security_client_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_security_client_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -13556,24 +13052,26 @@ su_inline sip_security_client_t *sip_security_client_format(su_home_t *home, cha
  * @{
  */
 
-/** Parse a Security-Server header. @internal */
-SOFIAPUBFUN int sip_security_server_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_security_server "Security-Server header". @internal */
+SOFIAPUBFUN issize_t sip_security_server_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Security-Server header. @internal */
-SOFIAPUBFUN int sip_security_server_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_security_server "Security-Server header". @internal */
+SOFIAPUBFUN issize_t sip_security_server_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_security_server_t from sip_t.
+/**Access a SIP @ref sip_security_server "Security-Server header"
+ * structure #sip_security_server_t from #sip_t.
  * 
  */
 #define sip_security_server(sip) \
   ((sip_security_server_t *)msg_header_access((msg_pub_t*)(sip), sip_security_server_class))
 
-/**Initializer for structure sip_security_server_t.
+/**Initializer for structure #sip_security_server_t.
  * 
- * A static sip_security_server_t structure must be initialized.
- * The SIP_SECURITY_SERVER_INIT() macro provides initialization value. 
+ * A static #sip_security_server_t structure for
+ * @ref sip_security_server "Security-Server header" must be initialized with
+ * the SIP_SECURITY_SERVER_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -13584,9 +13082,10 @@ SOFIAPUBFUN int sip_security_server_e(char b[], int bsiz,
  */
 #define SIP_SECURITY_SERVER_INIT() SIP_HDR_INIT(security_server)
 
-/**Initialize a structure sip_security_server_t.
+/**Initialize a structure #sip_security_server_t.
  * 
- * An sip_security_server_t structure can be initialized with the
+ * An #sip_security_server_t structure for
+ * @ref sip_security_server "Security-Server header" can be initialized with the
  * sip_security_server_init() function/macro. For instance,
  * @code
  * 
@@ -13607,18 +13106,16 @@ su_inline sip_security_server_t *sip_security_server_init(sip_security_server_t 
   SIP_HEADER_INIT(x, sip_security_server_class, sizeof(sip_security_server_t))
 #endif
 
-/**Test if header object is instance of sip_security_server_t.
+/**Test if header object is instance of #sip_security_server_t.
  * 
- * The function sip_is_security_server() returns true (nonzero) if
- * the header class is an instance of Security-Server header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_security_server "Security-Server header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_security_server() returns true (nonzero) if
- * the header object is an instance of header security_server and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header security_server 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_security_server(sip_header_t const *header)
@@ -13632,9 +13129,9 @@ int sip_is_security_server(sip_header_t const *header);
 #define sip_security_server_p(h) sip_is_security_server((h))
 
 
-/**Duplicate (deep copy) @c sip_security_server_t.
+/**Duplicate a list of @ref sip_security_server "Security-Server header" header structures #sip_security_server_t.
  * 
- * The function sip_security_server_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -13655,8 +13152,8 @@ int sip_is_security_server(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_security_server_dup() returns a pointer to the
- * newly duplicated sip_security_server_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_security_server_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -13674,13 +13171,13 @@ sip_security_server_t *sip_security_server_dup(su_home_t *home, sip_security_ser
 }
 #endif
 
-/**Copy a sip_security_server_t header structure.
+/**Copy a list of @ref sip_security_server "Security-Server header" header structures #sip_security_server_t.
  * 
  * The function sip_security_server_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -13699,8 +13196,7 @@ sip_security_server_t *sip_security_server_dup(su_home_t *home, sip_security_ser
  * @endcode
  * 
  * @return
- * The function sip_security_server_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13717,23 +13213,19 @@ sip_security_server_t *sip_security_server_copy(su_home_t *home, sip_security_se
 }
 #endif
 
-/**Make a header structure sip_security_server_t.
+/**Make a @ref sip_security_server "Security-Server header" structure #sip_security_server_t.
  * 
  * The function sip_security_server_make() makes a new
- * sip_security_server_t header structure.  It allocates a new
+ * #sip_security_server_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_security_server_make() returns a pointer to
- * newly maked sip_security_server_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_security_server_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13748,24 +13240,19 @@ su_inline sip_security_server_t *sip_security_server_make(su_home_t *home, char 
 }
 #endif
 
-/**Make a Security-Server header from formatting result.
+/**Make a @ref sip_security_server "Security-Server header" from formatting result.
  * 
- * The function sip_security_server_format() makes a new
- * Security-Server header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_security_server_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_security_server_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_security_server_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -13796,24 +13283,26 @@ su_inline sip_security_server_t *sip_security_server_format(su_home_t *home, cha
  * @{
  */
 
-/** Parse a Security-Verify header. @internal */
-SOFIAPUBFUN int sip_security_verify_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_security_verify "Security-Verify header". @internal */
+SOFIAPUBFUN issize_t sip_security_verify_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Security-Verify header. @internal */
-SOFIAPUBFUN int sip_security_verify_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_security_verify "Security-Verify header". @internal */
+SOFIAPUBFUN issize_t sip_security_verify_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_security_verify_t from sip_t.
+/**Access a SIP @ref sip_security_verify "Security-Verify header"
+ * structure #sip_security_verify_t from #sip_t.
  * 
  */
 #define sip_security_verify(sip) \
   ((sip_security_verify_t *)msg_header_access((msg_pub_t*)(sip), sip_security_verify_class))
 
-/**Initializer for structure sip_security_verify_t.
+/**Initializer for structure #sip_security_verify_t.
  * 
- * A static sip_security_verify_t structure must be initialized.
- * The SIP_SECURITY_VERIFY_INIT() macro provides initialization value. 
+ * A static #sip_security_verify_t structure for
+ * @ref sip_security_verify "Security-Verify header" must be initialized with
+ * the SIP_SECURITY_VERIFY_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -13824,9 +13313,10 @@ SOFIAPUBFUN int sip_security_verify_e(char b[], int bsiz,
  */
 #define SIP_SECURITY_VERIFY_INIT() SIP_HDR_INIT(security_verify)
 
-/**Initialize a structure sip_security_verify_t.
+/**Initialize a structure #sip_security_verify_t.
  * 
- * An sip_security_verify_t structure can be initialized with the
+ * An #sip_security_verify_t structure for
+ * @ref sip_security_verify "Security-Verify header" can be initialized with the
  * sip_security_verify_init() function/macro. For instance,
  * @code
  * 
@@ -13847,18 +13337,16 @@ su_inline sip_security_verify_t *sip_security_verify_init(sip_security_verify_t 
   SIP_HEADER_INIT(x, sip_security_verify_class, sizeof(sip_security_verify_t))
 #endif
 
-/**Test if header object is instance of sip_security_verify_t.
+/**Test if header object is instance of #sip_security_verify_t.
  * 
- * The function sip_is_security_verify() returns true (nonzero) if
- * the header class is an instance of Security-Verify header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_security_verify "Security-Verify header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_security_verify() returns true (nonzero) if
- * the header object is an instance of header security_verify and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header security_verify 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_security_verify(sip_header_t const *header)
@@ -13872,9 +13360,9 @@ int sip_is_security_verify(sip_header_t const *header);
 #define sip_security_verify_p(h) sip_is_security_verify((h))
 
 
-/**Duplicate (deep copy) @c sip_security_verify_t.
+/**Duplicate a list of @ref sip_security_verify "Security-Verify header" header structures #sip_security_verify_t.
  * 
- * The function sip_security_verify_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -13895,8 +13383,8 @@ int sip_is_security_verify(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_security_verify_dup() returns a pointer to the
- * newly duplicated sip_security_verify_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_security_verify_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -13914,13 +13402,13 @@ sip_security_verify_t *sip_security_verify_dup(su_home_t *home, sip_security_ver
 }
 #endif
 
-/**Copy a sip_security_verify_t header structure.
+/**Copy a list of @ref sip_security_verify "Security-Verify header" header structures #sip_security_verify_t.
  * 
  * The function sip_security_verify_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -13939,8 +13427,7 @@ sip_security_verify_t *sip_security_verify_dup(su_home_t *home, sip_security_ver
  * @endcode
  * 
  * @return
- * The function sip_security_verify_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -13957,23 +13444,19 @@ sip_security_verify_t *sip_security_verify_copy(su_home_t *home, sip_security_ve
 }
 #endif
 
-/**Make a header structure sip_security_verify_t.
+/**Make a @ref sip_security_verify "Security-Verify header" structure #sip_security_verify_t.
  * 
  * The function sip_security_verify_make() makes a new
- * sip_security_verify_t header structure.  It allocates a new
+ * #sip_security_verify_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_security_verify_make() returns a pointer to
- * newly maked sip_security_verify_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_security_verify_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -13988,24 +13471,19 @@ su_inline sip_security_verify_t *sip_security_verify_make(su_home_t *home, char 
 }
 #endif
 
-/**Make a Security-Verify header from formatting result.
+/**Make a @ref sip_security_verify "Security-Verify header" from formatting result.
  * 
- * The function sip_security_verify_format() makes a new
- * Security-Verify header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_security_verify_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_security_verify_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_security_verify_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -14036,24 +13514,26 @@ su_inline sip_security_verify_t *sip_security_verify_format(su_home_t *home, cha
  * @{
  */
 
-/** Parse a Privacy header. @internal */
-SOFIAPUBFUN int sip_privacy_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_privacy "Privacy header". @internal */
+SOFIAPUBFUN issize_t sip_privacy_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Privacy header. @internal */
-SOFIAPUBFUN int sip_privacy_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_privacy "Privacy header". @internal */
+SOFIAPUBFUN issize_t sip_privacy_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_privacy_t from sip_t.
+/**Access a SIP @ref sip_privacy "Privacy header"
+ * structure #sip_privacy_t from #sip_t.
  * 
  */
 #define sip_privacy(sip) \
   ((sip_privacy_t *)msg_header_access((msg_pub_t*)(sip), sip_privacy_class))
 
-/**Initializer for structure sip_privacy_t.
+/**Initializer for structure #sip_privacy_t.
  * 
- * A static sip_privacy_t structure must be initialized.
- * The SIP_PRIVACY_INIT() macro provides initialization value. 
+ * A static #sip_privacy_t structure for
+ * @ref sip_privacy "Privacy header" must be initialized with
+ * the SIP_PRIVACY_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -14064,9 +13544,10 @@ SOFIAPUBFUN int sip_privacy_e(char b[], int bsiz,
  */
 #define SIP_PRIVACY_INIT() SIP_HDR_INIT(privacy)
 
-/**Initialize a structure sip_privacy_t.
+/**Initialize a structure #sip_privacy_t.
  * 
- * An sip_privacy_t structure can be initialized with the
+ * An #sip_privacy_t structure for
+ * @ref sip_privacy "Privacy header" can be initialized with the
  * sip_privacy_init() function/macro. For instance,
  * @code
  * 
@@ -14087,18 +13568,16 @@ su_inline sip_privacy_t *sip_privacy_init(sip_privacy_t x[1])
   SIP_HEADER_INIT(x, sip_privacy_class, sizeof(sip_privacy_t))
 #endif
 
-/**Test if header object is instance of sip_privacy_t.
+/**Test if header object is instance of #sip_privacy_t.
  * 
- * The function sip_is_privacy() returns true (nonzero) if
- * the header class is an instance of Privacy header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_privacy "Privacy header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_privacy() returns true (nonzero) if
- * the header object is an instance of header privacy and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header privacy 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_privacy(sip_header_t const *header)
@@ -14112,9 +13591,9 @@ int sip_is_privacy(sip_header_t const *header);
 #define sip_privacy_p(h) sip_is_privacy((h))
 
 
-/**Duplicate (deep copy) @c sip_privacy_t.
+/**Duplicate a list of @ref sip_privacy "Privacy header" header structures #sip_privacy_t.
  * 
- * The function sip_privacy_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -14135,8 +13614,8 @@ int sip_is_privacy(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_privacy_dup() returns a pointer to the
- * newly duplicated sip_privacy_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_privacy_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -14154,13 +13633,13 @@ sip_privacy_t *sip_privacy_dup(su_home_t *home, sip_privacy_t const *hdr)
 }
 #endif
 
-/**Copy a sip_privacy_t header structure.
+/**Copy a list of @ref sip_privacy "Privacy header" header structures #sip_privacy_t.
  * 
  * The function sip_privacy_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -14179,8 +13658,7 @@ sip_privacy_t *sip_privacy_dup(su_home_t *home, sip_privacy_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_privacy_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14197,23 +13675,19 @@ sip_privacy_t *sip_privacy_copy(su_home_t *home, sip_privacy_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_privacy_t.
+/**Make a @ref sip_privacy "Privacy header" structure #sip_privacy_t.
  * 
  * The function sip_privacy_make() makes a new
- * sip_privacy_t header structure.  It allocates a new
+ * #sip_privacy_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_privacy_make() returns a pointer to
- * newly maked sip_privacy_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_privacy_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -14228,24 +13702,19 @@ su_inline sip_privacy_t *sip_privacy_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a Privacy header from formatting result.
+/**Make a @ref sip_privacy "Privacy header" from formatting result.
  * 
- * The function sip_privacy_format() makes a new
- * Privacy header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_privacy_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_privacy_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_privacy_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -14276,24 +13745,26 @@ su_inline sip_privacy_t *sip_privacy_format(su_home_t *home, char const *fmt, ..
  * @{
  */
 
-/** Parse a SIP-ETag header. @internal */
-SOFIAPUBFUN int sip_etag_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_etag "SIP-ETag header". @internal */
+SOFIAPUBFUN issize_t sip_etag_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a SIP-ETag header. @internal */
-SOFIAPUBFUN int sip_etag_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_etag "SIP-ETag header". @internal */
+SOFIAPUBFUN issize_t sip_etag_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_etag_t from sip_t.
+/**Access a SIP @ref sip_etag "SIP-ETag header"
+ * structure #sip_etag_t from #sip_t.
  * 
  */
 #define sip_etag(sip) \
   ((sip_etag_t *)msg_header_access((msg_pub_t*)(sip), sip_etag_class))
 
-/**Initializer for structure sip_etag_t.
+/**Initializer for structure #sip_etag_t.
  * 
- * A static sip_etag_t structure must be initialized.
- * The SIP_ETAG_INIT() macro provides initialization value. 
+ * A static #sip_etag_t structure for
+ * @ref sip_etag "SIP-ETag header" must be initialized with
+ * the SIP_ETAG_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -14304,9 +13775,10 @@ SOFIAPUBFUN int sip_etag_e(char b[], int bsiz,
  */
 #define SIP_ETAG_INIT() SIP_HDR_INIT(etag)
 
-/**Initialize a structure sip_etag_t.
+/**Initialize a structure #sip_etag_t.
  * 
- * An sip_etag_t structure can be initialized with the
+ * An #sip_etag_t structure for
+ * @ref sip_etag "SIP-ETag header" can be initialized with the
  * sip_etag_init() function/macro. For instance,
  * @code
  * 
@@ -14327,18 +13799,16 @@ su_inline sip_etag_t *sip_etag_init(sip_etag_t x[1])
   SIP_HEADER_INIT(x, sip_etag_class, sizeof(sip_etag_t))
 #endif
 
-/**Test if header object is instance of sip_etag_t.
+/**Test if header object is instance of #sip_etag_t.
  * 
- * The function sip_is_etag() returns true (nonzero) if
- * the header class is an instance of SIP-ETag header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_etag "SIP-ETag header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_etag() returns true (nonzero) if
- * the header object is an instance of header etag and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header etag 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_etag(sip_header_t const *header)
@@ -14352,9 +13822,9 @@ int sip_is_etag(sip_header_t const *header);
 #define sip_etag_p(h) sip_is_etag((h))
 
 
-/**Duplicate (deep copy) @c sip_etag_t.
+/**Duplicate a list of @ref sip_etag "SIP-ETag header" header structures #sip_etag_t.
  * 
- * The function sip_etag_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -14375,8 +13845,8 @@ int sip_is_etag(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_etag_dup() returns a pointer to the
- * newly duplicated sip_etag_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_etag_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -14394,13 +13864,13 @@ sip_etag_t *sip_etag_dup(su_home_t *home, sip_etag_t const *hdr)
 }
 #endif
 
-/**Copy a sip_etag_t header structure.
+/**Copy a list of @ref sip_etag "SIP-ETag header" header structures #sip_etag_t.
  * 
  * The function sip_etag_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -14419,8 +13889,7 @@ sip_etag_t *sip_etag_dup(su_home_t *home, sip_etag_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_etag_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14437,23 +13906,19 @@ sip_etag_t *sip_etag_copy(su_home_t *home, sip_etag_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_etag_t.
+/**Make a @ref sip_etag "SIP-ETag header" structure #sip_etag_t.
  * 
  * The function sip_etag_make() makes a new
- * sip_etag_t header structure.  It allocates a new
+ * #sip_etag_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_etag_make() returns a pointer to
- * newly maked sip_etag_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_etag_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -14468,24 +13933,19 @@ su_inline sip_etag_t *sip_etag_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a SIP-ETag header from formatting result.
+/**Make a @ref sip_etag "SIP-ETag header" from formatting result.
  * 
- * The function sip_etag_format() makes a new
- * SIP-ETag header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_etag_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_etag_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_etag_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -14516,24 +13976,26 @@ su_inline sip_etag_t *sip_etag_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a SIP-If-Match header. @internal */
-SOFIAPUBFUN int sip_if_match_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_if_match "SIP-If-Match header". @internal */
+SOFIAPUBFUN issize_t sip_if_match_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a SIP-If-Match header. @internal */
-SOFIAPUBFUN int sip_if_match_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_if_match "SIP-If-Match header". @internal */
+SOFIAPUBFUN issize_t sip_if_match_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_if_match_t from sip_t.
+/**Access a SIP @ref sip_if_match "SIP-If-Match header"
+ * structure #sip_if_match_t from #sip_t.
  * 
  */
 #define sip_if_match(sip) \
   ((sip_if_match_t *)msg_header_access((msg_pub_t*)(sip), sip_if_match_class))
 
-/**Initializer for structure sip_if_match_t.
+/**Initializer for structure #sip_if_match_t.
  * 
- * A static sip_if_match_t structure must be initialized.
- * The SIP_IF_MATCH_INIT() macro provides initialization value. 
+ * A static #sip_if_match_t structure for
+ * @ref sip_if_match "SIP-If-Match header" must be initialized with
+ * the SIP_IF_MATCH_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -14544,9 +14006,10 @@ SOFIAPUBFUN int sip_if_match_e(char b[], int bsiz,
  */
 #define SIP_IF_MATCH_INIT() SIP_HDR_INIT(if_match)
 
-/**Initialize a structure sip_if_match_t.
+/**Initialize a structure #sip_if_match_t.
  * 
- * An sip_if_match_t structure can be initialized with the
+ * An #sip_if_match_t structure for
+ * @ref sip_if_match "SIP-If-Match header" can be initialized with the
  * sip_if_match_init() function/macro. For instance,
  * @code
  * 
@@ -14567,18 +14030,16 @@ su_inline sip_if_match_t *sip_if_match_init(sip_if_match_t x[1])
   SIP_HEADER_INIT(x, sip_if_match_class, sizeof(sip_if_match_t))
 #endif
 
-/**Test if header object is instance of sip_if_match_t.
+/**Test if header object is instance of #sip_if_match_t.
  * 
- * The function sip_is_if_match() returns true (nonzero) if
- * the header class is an instance of SIP-If-Match header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_if_match "SIP-If-Match header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_if_match() returns true (nonzero) if
- * the header object is an instance of header if_match and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header if_match 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_if_match(sip_header_t const *header)
@@ -14592,9 +14053,9 @@ int sip_is_if_match(sip_header_t const *header);
 #define sip_if_match_p(h) sip_is_if_match((h))
 
 
-/**Duplicate (deep copy) @c sip_if_match_t.
+/**Duplicate a list of @ref sip_if_match "SIP-If-Match header" header structures #sip_if_match_t.
  * 
- * The function sip_if_match_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -14615,8 +14076,8 @@ int sip_is_if_match(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_if_match_dup() returns a pointer to the
- * newly duplicated sip_if_match_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_if_match_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -14634,13 +14095,13 @@ sip_if_match_t *sip_if_match_dup(su_home_t *home, sip_if_match_t const *hdr)
 }
 #endif
 
-/**Copy a sip_if_match_t header structure.
+/**Copy a list of @ref sip_if_match "SIP-If-Match header" header structures #sip_if_match_t.
  * 
  * The function sip_if_match_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -14659,8 +14120,7 @@ sip_if_match_t *sip_if_match_dup(su_home_t *home, sip_if_match_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_if_match_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14677,23 +14137,19 @@ sip_if_match_t *sip_if_match_copy(su_home_t *home, sip_if_match_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_if_match_t.
+/**Make a @ref sip_if_match "SIP-If-Match header" structure #sip_if_match_t.
  * 
  * The function sip_if_match_make() makes a new
- * sip_if_match_t header structure.  It allocates a new
+ * #sip_if_match_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_if_match_make() returns a pointer to
- * newly maked sip_if_match_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_if_match_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -14708,24 +14164,19 @@ su_inline sip_if_match_t *sip_if_match_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a SIP-If-Match header from formatting result.
+/**Make a @ref sip_if_match "SIP-If-Match header" from formatting result.
  * 
- * The function sip_if_match_format() makes a new
- * SIP-If-Match header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_if_match_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_if_match_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_if_match_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -14756,24 +14207,26 @@ su_inline sip_if_match_t *sip_if_match_format(su_home_t *home, char const *fmt, 
  * @{
  */
 
-/** Parse a MIME-Version header. @internal */
-SOFIAPUBFUN int sip_mime_version_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_mime_version "MIME-Version header". @internal */
+SOFIAPUBFUN issize_t sip_mime_version_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a MIME-Version header. @internal */
-SOFIAPUBFUN int sip_mime_version_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_mime_version "MIME-Version header". @internal */
+SOFIAPUBFUN issize_t sip_mime_version_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_mime_version_t from sip_t.
+/**Access a SIP @ref sip_mime_version "MIME-Version header"
+ * structure #sip_mime_version_t from #sip_t.
  * 
  */
 #define sip_mime_version(sip) \
   ((sip_mime_version_t *)msg_header_access((msg_pub_t*)(sip), sip_mime_version_class))
 
-/**Initializer for structure sip_mime_version_t.
+/**Initializer for structure #sip_mime_version_t.
  * 
- * A static sip_mime_version_t structure must be initialized.
- * The SIP_MIME_VERSION_INIT() macro provides initialization value. 
+ * A static #sip_mime_version_t structure for
+ * @ref sip_mime_version "MIME-Version header" must be initialized with
+ * the SIP_MIME_VERSION_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -14784,9 +14237,10 @@ SOFIAPUBFUN int sip_mime_version_e(char b[], int bsiz,
  */
 #define SIP_MIME_VERSION_INIT() SIP_HDR_INIT(mime_version)
 
-/**Initialize a structure sip_mime_version_t.
+/**Initialize a structure #sip_mime_version_t.
  * 
- * An sip_mime_version_t structure can be initialized with the
+ * An #sip_mime_version_t structure for
+ * @ref sip_mime_version "MIME-Version header" can be initialized with the
  * sip_mime_version_init() function/macro. For instance,
  * @code
  * 
@@ -14807,18 +14261,16 @@ su_inline sip_mime_version_t *sip_mime_version_init(sip_mime_version_t x[1])
   SIP_HEADER_INIT(x, sip_mime_version_class, sizeof(sip_mime_version_t))
 #endif
 
-/**Test if header object is instance of sip_mime_version_t.
+/**Test if header object is instance of #sip_mime_version_t.
  * 
- * The function sip_is_mime_version() returns true (nonzero) if
- * the header class is an instance of MIME-Version header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_mime_version "MIME-Version header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_mime_version() returns true (nonzero) if
- * the header object is an instance of header mime_version and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header mime_version 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_mime_version(sip_header_t const *header)
@@ -14832,9 +14284,9 @@ int sip_is_mime_version(sip_header_t const *header);
 #define sip_mime_version_p(h) sip_is_mime_version((h))
 
 
-/**Duplicate (deep copy) @c sip_mime_version_t.
+/**Duplicate a list of @ref sip_mime_version "MIME-Version header" header structures #sip_mime_version_t.
  * 
- * The function sip_mime_version_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -14855,8 +14307,8 @@ int sip_is_mime_version(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_mime_version_dup() returns a pointer to the
- * newly duplicated sip_mime_version_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_mime_version_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -14874,13 +14326,13 @@ sip_mime_version_t *sip_mime_version_dup(su_home_t *home, sip_mime_version_t con
 }
 #endif
 
-/**Copy a sip_mime_version_t header structure.
+/**Copy a list of @ref sip_mime_version "MIME-Version header" header structures #sip_mime_version_t.
  * 
  * The function sip_mime_version_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -14899,8 +14351,7 @@ sip_mime_version_t *sip_mime_version_dup(su_home_t *home, sip_mime_version_t con
  * @endcode
  * 
  * @return
- * The function sip_mime_version_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -14917,23 +14368,19 @@ sip_mime_version_t *sip_mime_version_copy(su_home_t *home, sip_mime_version_t co
 }
 #endif
 
-/**Make a header structure sip_mime_version_t.
+/**Make a @ref sip_mime_version "MIME-Version header" structure #sip_mime_version_t.
  * 
  * The function sip_mime_version_make() makes a new
- * sip_mime_version_t header structure.  It allocates a new
+ * #sip_mime_version_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_mime_version_make() returns a pointer to
- * newly maked sip_mime_version_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_mime_version_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -14948,24 +14395,19 @@ su_inline sip_mime_version_t *sip_mime_version_make(su_home_t *home, char const 
 }
 #endif
 
-/**Make a MIME-Version header from formatting result.
+/**Make a @ref sip_mime_version "MIME-Version header" from formatting result.
  * 
- * The function sip_mime_version_format() makes a new
- * MIME-Version header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_mime_version_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_mime_version_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_mime_version_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -14996,24 +14438,26 @@ su_inline sip_mime_version_t *sip_mime_version_format(su_home_t *home, char cons
  * @{
  */
 
-/** Parse a Content-Type header. @internal */
-SOFIAPUBFUN int sip_content_type_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_content_type "Content-Type header". @internal */
+SOFIAPUBFUN issize_t sip_content_type_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Content-Type header. @internal */
-SOFIAPUBFUN int sip_content_type_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_content_type "Content-Type header". @internal */
+SOFIAPUBFUN issize_t sip_content_type_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_content_type_t from sip_t.
+/**Access a SIP @ref sip_content_type "Content-Type header"
+ * structure #sip_content_type_t from #sip_t.
  * 
  */
 #define sip_content_type(sip) \
   ((sip_content_type_t *)msg_header_access((msg_pub_t*)(sip), sip_content_type_class))
 
-/**Initializer for structure sip_content_type_t.
+/**Initializer for structure #sip_content_type_t.
  * 
- * A static sip_content_type_t structure must be initialized.
- * The SIP_CONTENT_TYPE_INIT() macro provides initialization value. 
+ * A static #sip_content_type_t structure for
+ * @ref sip_content_type "Content-Type header" must be initialized with
+ * the SIP_CONTENT_TYPE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -15024,9 +14468,10 @@ SOFIAPUBFUN int sip_content_type_e(char b[], int bsiz,
  */
 #define SIP_CONTENT_TYPE_INIT() SIP_HDR_INIT(content_type)
 
-/**Initialize a structure sip_content_type_t.
+/**Initialize a structure #sip_content_type_t.
  * 
- * An sip_content_type_t structure can be initialized with the
+ * An #sip_content_type_t structure for
+ * @ref sip_content_type "Content-Type header" can be initialized with the
  * sip_content_type_init() function/macro. For instance,
  * @code
  * 
@@ -15047,18 +14492,16 @@ su_inline sip_content_type_t *sip_content_type_init(sip_content_type_t x[1])
   SIP_HEADER_INIT(x, sip_content_type_class, sizeof(sip_content_type_t))
 #endif
 
-/**Test if header object is instance of sip_content_type_t.
+/**Test if header object is instance of #sip_content_type_t.
  * 
- * The function sip_is_content_type() returns true (nonzero) if
- * the header class is an instance of Content-Type header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_content_type "Content-Type header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_content_type() returns true (nonzero) if
- * the header object is an instance of header content_type and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header content_type 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_type(sip_header_t const *header)
@@ -15072,9 +14515,9 @@ int sip_is_content_type(sip_header_t const *header);
 #define sip_content_type_p(h) sip_is_content_type((h))
 
 
-/**Duplicate (deep copy) @c sip_content_type_t.
+/**Duplicate a list of @ref sip_content_type "Content-Type header" header structures #sip_content_type_t.
  * 
- * The function sip_content_type_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -15095,8 +14538,8 @@ int sip_is_content_type(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_content_type_dup() returns a pointer to the
- * newly duplicated sip_content_type_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_content_type_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -15114,13 +14557,13 @@ sip_content_type_t *sip_content_type_dup(su_home_t *home, sip_content_type_t con
 }
 #endif
 
-/**Copy a sip_content_type_t header structure.
+/**Copy a list of @ref sip_content_type "Content-Type header" header structures #sip_content_type_t.
  * 
  * The function sip_content_type_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -15139,8 +14582,7 @@ sip_content_type_t *sip_content_type_dup(su_home_t *home, sip_content_type_t con
  * @endcode
  * 
  * @return
- * The function sip_content_type_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15157,23 +14599,19 @@ sip_content_type_t *sip_content_type_copy(su_home_t *home, sip_content_type_t co
 }
 #endif
 
-/**Make a header structure sip_content_type_t.
+/**Make a @ref sip_content_type "Content-Type header" structure #sip_content_type_t.
  * 
  * The function sip_content_type_make() makes a new
- * sip_content_type_t header structure.  It allocates a new
+ * #sip_content_type_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_content_type_make() returns a pointer to
- * newly maked sip_content_type_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_content_type_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -15188,24 +14626,19 @@ su_inline sip_content_type_t *sip_content_type_make(su_home_t *home, char const 
 }
 #endif
 
-/**Make a Content-Type header from formatting result.
+/**Make a @ref sip_content_type "Content-Type header" from formatting result.
  * 
- * The function sip_content_type_format() makes a new
- * Content-Type header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_content_type_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_content_type_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_content_type_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -15236,24 +14669,26 @@ su_inline sip_content_type_t *sip_content_type_format(su_home_t *home, char cons
  * @{
  */
 
-/** Parse a Content-Encoding header. @internal */
-SOFIAPUBFUN int sip_content_encoding_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_content_encoding "Content-Encoding header". @internal */
+SOFIAPUBFUN issize_t sip_content_encoding_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Content-Encoding header. @internal */
-SOFIAPUBFUN int sip_content_encoding_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_content_encoding "Content-Encoding header". @internal */
+SOFIAPUBFUN issize_t sip_content_encoding_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_content_encoding_t from sip_t.
+/**Access a SIP @ref sip_content_encoding "Content-Encoding header"
+ * structure #sip_content_encoding_t from #sip_t.
  * 
  */
 #define sip_content_encoding(sip) \
   ((sip_content_encoding_t *)msg_header_access((msg_pub_t*)(sip), sip_content_encoding_class))
 
-/**Initializer for structure sip_content_encoding_t.
+/**Initializer for structure #sip_content_encoding_t.
  * 
- * A static sip_content_encoding_t structure must be initialized.
- * The SIP_CONTENT_ENCODING_INIT() macro provides initialization value. 
+ * A static #sip_content_encoding_t structure for
+ * @ref sip_content_encoding "Content-Encoding header" must be initialized with
+ * the SIP_CONTENT_ENCODING_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -15264,9 +14699,10 @@ SOFIAPUBFUN int sip_content_encoding_e(char b[], int bsiz,
  */
 #define SIP_CONTENT_ENCODING_INIT() SIP_HDR_INIT(content_encoding)
 
-/**Initialize a structure sip_content_encoding_t.
+/**Initialize a structure #sip_content_encoding_t.
  * 
- * An sip_content_encoding_t structure can be initialized with the
+ * An #sip_content_encoding_t structure for
+ * @ref sip_content_encoding "Content-Encoding header" can be initialized with the
  * sip_content_encoding_init() function/macro. For instance,
  * @code
  * 
@@ -15287,18 +14723,16 @@ su_inline sip_content_encoding_t *sip_content_encoding_init(sip_content_encoding
   SIP_HEADER_INIT(x, sip_content_encoding_class, sizeof(sip_content_encoding_t))
 #endif
 
-/**Test if header object is instance of sip_content_encoding_t.
+/**Test if header object is instance of #sip_content_encoding_t.
  * 
- * The function sip_is_content_encoding() returns true (nonzero) if
- * the header class is an instance of Content-Encoding header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_content_encoding "Content-Encoding header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_content_encoding() returns true (nonzero) if
- * the header object is an instance of header content_encoding and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header content_encoding 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_encoding(sip_header_t const *header)
@@ -15312,9 +14746,9 @@ int sip_is_content_encoding(sip_header_t const *header);
 #define sip_content_encoding_p(h) sip_is_content_encoding((h))
 
 
-/**Duplicate (deep copy) @c sip_content_encoding_t.
+/**Duplicate a list of @ref sip_content_encoding "Content-Encoding header" header structures #sip_content_encoding_t.
  * 
- * The function sip_content_encoding_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -15335,8 +14769,8 @@ int sip_is_content_encoding(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_content_encoding_dup() returns a pointer to the
- * newly duplicated sip_content_encoding_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_content_encoding_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -15354,13 +14788,13 @@ sip_content_encoding_t *sip_content_encoding_dup(su_home_t *home, sip_content_en
 }
 #endif
 
-/**Copy a sip_content_encoding_t header structure.
+/**Copy a list of @ref sip_content_encoding "Content-Encoding header" header structures #sip_content_encoding_t.
  * 
  * The function sip_content_encoding_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -15379,8 +14813,7 @@ sip_content_encoding_t *sip_content_encoding_dup(su_home_t *home, sip_content_en
  * @endcode
  * 
  * @return
- * The function sip_content_encoding_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15397,23 +14830,19 @@ sip_content_encoding_t *sip_content_encoding_copy(su_home_t *home, sip_content_e
 }
 #endif
 
-/**Make a header structure sip_content_encoding_t.
+/**Make a @ref sip_content_encoding "Content-Encoding header" structure #sip_content_encoding_t.
  * 
  * The function sip_content_encoding_make() makes a new
- * sip_content_encoding_t header structure.  It allocates a new
+ * #sip_content_encoding_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_content_encoding_make() returns a pointer to
- * newly maked sip_content_encoding_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_content_encoding_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -15428,24 +14857,19 @@ su_inline sip_content_encoding_t *sip_content_encoding_make(su_home_t *home, cha
 }
 #endif
 
-/**Make a Content-Encoding header from formatting result.
+/**Make a @ref sip_content_encoding "Content-Encoding header" from formatting result.
  * 
- * The function sip_content_encoding_format() makes a new
- * Content-Encoding header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_content_encoding_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_content_encoding_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_content_encoding_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -15476,24 +14900,26 @@ su_inline sip_content_encoding_t *sip_content_encoding_format(su_home_t *home, c
  * @{
  */
 
-/** Parse a Content-Language header. @internal */
-SOFIAPUBFUN int sip_content_language_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_content_language "Content-Language header". @internal */
+SOFIAPUBFUN issize_t sip_content_language_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Content-Language header. @internal */
-SOFIAPUBFUN int sip_content_language_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_content_language "Content-Language header". @internal */
+SOFIAPUBFUN issize_t sip_content_language_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_content_language_t from sip_t.
+/**Access a SIP @ref sip_content_language "Content-Language header"
+ * structure #sip_content_language_t from #sip_t.
  * 
  */
 #define sip_content_language(sip) \
   ((sip_content_language_t *)msg_header_access((msg_pub_t*)(sip), sip_content_language_class))
 
-/**Initializer for structure sip_content_language_t.
+/**Initializer for structure #sip_content_language_t.
  * 
- * A static sip_content_language_t structure must be initialized.
- * The SIP_CONTENT_LANGUAGE_INIT() macro provides initialization value. 
+ * A static #sip_content_language_t structure for
+ * @ref sip_content_language "Content-Language header" must be initialized with
+ * the SIP_CONTENT_LANGUAGE_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -15504,9 +14930,10 @@ SOFIAPUBFUN int sip_content_language_e(char b[], int bsiz,
  */
 #define SIP_CONTENT_LANGUAGE_INIT() SIP_HDR_INIT(content_language)
 
-/**Initialize a structure sip_content_language_t.
+/**Initialize a structure #sip_content_language_t.
  * 
- * An sip_content_language_t structure can be initialized with the
+ * An #sip_content_language_t structure for
+ * @ref sip_content_language "Content-Language header" can be initialized with the
  * sip_content_language_init() function/macro. For instance,
  * @code
  * 
@@ -15527,18 +14954,16 @@ su_inline sip_content_language_t *sip_content_language_init(sip_content_language
   SIP_HEADER_INIT(x, sip_content_language_class, sizeof(sip_content_language_t))
 #endif
 
-/**Test if header object is instance of sip_content_language_t.
+/**Test if header object is instance of #sip_content_language_t.
  * 
- * The function sip_is_content_language() returns true (nonzero) if
- * the header class is an instance of Content-Language header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_content_language "Content-Language header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_content_language() returns true (nonzero) if
- * the header object is an instance of header content_language and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header content_language 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_language(sip_header_t const *header)
@@ -15552,9 +14977,9 @@ int sip_is_content_language(sip_header_t const *header);
 #define sip_content_language_p(h) sip_is_content_language((h))
 
 
-/**Duplicate (deep copy) @c sip_content_language_t.
+/**Duplicate a list of @ref sip_content_language "Content-Language header" header structures #sip_content_language_t.
  * 
- * The function sip_content_language_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -15575,8 +15000,8 @@ int sip_is_content_language(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_content_language_dup() returns a pointer to the
- * newly duplicated sip_content_language_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_content_language_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -15594,13 +15019,13 @@ sip_content_language_t *sip_content_language_dup(su_home_t *home, sip_content_la
 }
 #endif
 
-/**Copy a sip_content_language_t header structure.
+/**Copy a list of @ref sip_content_language "Content-Language header" header structures #sip_content_language_t.
  * 
  * The function sip_content_language_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -15619,8 +15044,7 @@ sip_content_language_t *sip_content_language_dup(su_home_t *home, sip_content_la
  * @endcode
  * 
  * @return
- * The function sip_content_language_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15637,23 +15061,19 @@ sip_content_language_t *sip_content_language_copy(su_home_t *home, sip_content_l
 }
 #endif
 
-/**Make a header structure sip_content_language_t.
+/**Make a @ref sip_content_language "Content-Language header" structure #sip_content_language_t.
  * 
  * The function sip_content_language_make() makes a new
- * sip_content_language_t header structure.  It allocates a new
+ * #sip_content_language_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_content_language_make() returns a pointer to
- * newly maked sip_content_language_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_content_language_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -15668,24 +15088,19 @@ su_inline sip_content_language_t *sip_content_language_make(su_home_t *home, cha
 }
 #endif
 
-/**Make a Content-Language header from formatting result.
+/**Make a @ref sip_content_language "Content-Language header" from formatting result.
  * 
- * The function sip_content_language_format() makes a new
- * Content-Language header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_content_language_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_content_language_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_content_language_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -15716,24 +15131,26 @@ su_inline sip_content_language_t *sip_content_language_format(su_home_t *home, c
  * @{
  */
 
-/** Parse a Content-Disposition header. @internal */
-SOFIAPUBFUN int sip_content_disposition_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_content_disposition "Content-Disposition header". @internal */
+SOFIAPUBFUN issize_t sip_content_disposition_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Content-Disposition header. @internal */
-SOFIAPUBFUN int sip_content_disposition_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_content_disposition "Content-Disposition header". @internal */
+SOFIAPUBFUN issize_t sip_content_disposition_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_content_disposition_t from sip_t.
+/**Access a SIP @ref sip_content_disposition "Content-Disposition header"
+ * structure #sip_content_disposition_t from #sip_t.
  * 
  */
 #define sip_content_disposition(sip) \
   ((sip_content_disposition_t *)msg_header_access((msg_pub_t*)(sip), sip_content_disposition_class))
 
-/**Initializer for structure sip_content_disposition_t.
+/**Initializer for structure #sip_content_disposition_t.
  * 
- * A static sip_content_disposition_t structure must be initialized.
- * The SIP_CONTENT_DISPOSITION_INIT() macro provides initialization value. 
+ * A static #sip_content_disposition_t structure for
+ * @ref sip_content_disposition "Content-Disposition header" must be initialized with
+ * the SIP_CONTENT_DISPOSITION_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -15744,9 +15161,10 @@ SOFIAPUBFUN int sip_content_disposition_e(char b[], int bsiz,
  */
 #define SIP_CONTENT_DISPOSITION_INIT() SIP_HDR_INIT(content_disposition)
 
-/**Initialize a structure sip_content_disposition_t.
+/**Initialize a structure #sip_content_disposition_t.
  * 
- * An sip_content_disposition_t structure can be initialized with the
+ * An #sip_content_disposition_t structure for
+ * @ref sip_content_disposition "Content-Disposition header" can be initialized with the
  * sip_content_disposition_init() function/macro. For instance,
  * @code
  * 
@@ -15767,18 +15185,16 @@ su_inline sip_content_disposition_t *sip_content_disposition_init(sip_content_di
   SIP_HEADER_INIT(x, sip_content_disposition_class, sizeof(sip_content_disposition_t))
 #endif
 
-/**Test if header object is instance of sip_content_disposition_t.
+/**Test if header object is instance of #sip_content_disposition_t.
  * 
- * The function sip_is_content_disposition() returns true (nonzero) if
- * the header class is an instance of Content-Disposition header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_content_disposition "Content-Disposition header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_content_disposition() returns true (nonzero) if
- * the header object is an instance of header content_disposition and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header content_disposition 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_disposition(sip_header_t const *header)
@@ -15792,9 +15208,9 @@ int sip_is_content_disposition(sip_header_t const *header);
 #define sip_content_disposition_p(h) sip_is_content_disposition((h))
 
 
-/**Duplicate (deep copy) @c sip_content_disposition_t.
+/**Duplicate a list of @ref sip_content_disposition "Content-Disposition header" header structures #sip_content_disposition_t.
  * 
- * The function sip_content_disposition_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -15815,8 +15231,8 @@ int sip_is_content_disposition(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_content_disposition_dup() returns a pointer to the
- * newly duplicated sip_content_disposition_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_content_disposition_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -15834,13 +15250,13 @@ sip_content_disposition_t *sip_content_disposition_dup(su_home_t *home, sip_cont
 }
 #endif
 
-/**Copy a sip_content_disposition_t header structure.
+/**Copy a list of @ref sip_content_disposition "Content-Disposition header" header structures #sip_content_disposition_t.
  * 
  * The function sip_content_disposition_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -15859,8 +15275,7 @@ sip_content_disposition_t *sip_content_disposition_dup(su_home_t *home, sip_cont
  * @endcode
  * 
  * @return
- * The function sip_content_disposition_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -15877,23 +15292,19 @@ sip_content_disposition_t *sip_content_disposition_copy(su_home_t *home, sip_con
 }
 #endif
 
-/**Make a header structure sip_content_disposition_t.
+/**Make a @ref sip_content_disposition "Content-Disposition header" structure #sip_content_disposition_t.
  * 
  * The function sip_content_disposition_make() makes a new
- * sip_content_disposition_t header structure.  It allocates a new
+ * #sip_content_disposition_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_content_disposition_make() returns a pointer to
- * newly maked sip_content_disposition_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_content_disposition_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -15908,24 +15319,19 @@ su_inline sip_content_disposition_t *sip_content_disposition_make(su_home_t *hom
 }
 #endif
 
-/**Make a Content-Disposition header from formatting result.
+/**Make a @ref sip_content_disposition "Content-Disposition header" from formatting result.
  * 
- * The function sip_content_disposition_format() makes a new
- * Content-Disposition header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_content_disposition_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_content_disposition_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_content_disposition_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -15956,24 +15362,26 @@ su_inline sip_content_disposition_t *sip_content_disposition_format(su_home_t *h
  * @{
  */
 
-/** Parse a Content-Length header. @internal */
-SOFIAPUBFUN int sip_content_length_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_content_length "Content-Length header". @internal */
+SOFIAPUBFUN issize_t sip_content_length_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a Content-Length header. @internal */
-SOFIAPUBFUN int sip_content_length_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_content_length "Content-Length header". @internal */
+SOFIAPUBFUN issize_t sip_content_length_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_content_length_t from sip_t.
+/**Access a SIP @ref sip_content_length "Content-Length header"
+ * structure #sip_content_length_t from #sip_t.
  * 
  */
 #define sip_content_length(sip) \
   ((sip_content_length_t *)msg_header_access((msg_pub_t*)(sip), sip_content_length_class))
 
-/**Initializer for structure sip_content_length_t.
+/**Initializer for structure #sip_content_length_t.
  * 
- * A static sip_content_length_t structure must be initialized.
- * The SIP_CONTENT_LENGTH_INIT() macro provides initialization value. 
+ * A static #sip_content_length_t structure for
+ * @ref sip_content_length "Content-Length header" must be initialized with
+ * the SIP_CONTENT_LENGTH_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -15984,9 +15392,10 @@ SOFIAPUBFUN int sip_content_length_e(char b[], int bsiz,
  */
 #define SIP_CONTENT_LENGTH_INIT() SIP_HDR_INIT(content_length)
 
-/**Initialize a structure sip_content_length_t.
+/**Initialize a structure #sip_content_length_t.
  * 
- * An sip_content_length_t structure can be initialized with the
+ * An #sip_content_length_t structure for
+ * @ref sip_content_length "Content-Length header" can be initialized with the
  * sip_content_length_init() function/macro. For instance,
  * @code
  * 
@@ -16007,18 +15416,16 @@ su_inline sip_content_length_t *sip_content_length_init(sip_content_length_t x[1
   SIP_HEADER_INIT(x, sip_content_length_class, sizeof(sip_content_length_t))
 #endif
 
-/**Test if header object is instance of sip_content_length_t.
+/**Test if header object is instance of #sip_content_length_t.
  * 
- * The function sip_is_content_length() returns true (nonzero) if
- * the header class is an instance of Content-Length header
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_content_length "Content-Length header" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_content_length() returns true (nonzero) if
- * the header object is an instance of header content_length and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header content_length 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_content_length(sip_header_t const *header)
@@ -16032,9 +15439,9 @@ int sip_is_content_length(sip_header_t const *header);
 #define sip_content_length_p(h) sip_is_content_length((h))
 
 
-/**Duplicate (deep copy) @c sip_content_length_t.
+/**Duplicate a list of @ref sip_content_length "Content-Length header" header structures #sip_content_length_t.
  * 
- * The function sip_content_length_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -16055,8 +15462,8 @@ int sip_is_content_length(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_content_length_dup() returns a pointer to the
- * newly duplicated sip_content_length_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_content_length_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -16074,13 +15481,13 @@ sip_content_length_t *sip_content_length_dup(su_home_t *home, sip_content_length
 }
 #endif
 
-/**Copy a sip_content_length_t header structure.
+/**Copy a list of @ref sip_content_length "Content-Length header" header structures #sip_content_length_t.
  * 
  * The function sip_content_length_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -16099,8 +15506,7 @@ sip_content_length_t *sip_content_length_dup(su_home_t *home, sip_content_length
  * @endcode
  * 
  * @return
- * The function sip_content_length_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16117,23 +15523,19 @@ sip_content_length_t *sip_content_length_copy(su_home_t *home, sip_content_lengt
 }
 #endif
 
-/**Make a header structure sip_content_length_t.
+/**Make a @ref sip_content_length "Content-Length header" structure #sip_content_length_t.
  * 
  * The function sip_content_length_make() makes a new
- * sip_content_length_t header structure.  It allocates a new
+ * #sip_content_length_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_content_length_make() returns a pointer to
- * newly maked sip_content_length_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_content_length_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -16148,24 +15550,19 @@ su_inline sip_content_length_t *sip_content_length_make(su_home_t *home, char co
 }
 #endif
 
-/**Make a Content-Length header from formatting result.
+/**Make a @ref sip_content_length "Content-Length header" from formatting result.
  * 
- * The function sip_content_length_format() makes a new
- * Content-Length header object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_content_length_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_content_length_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_content_length_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -16196,24 +15593,26 @@ su_inline sip_content_length_t *sip_content_length_format(su_home_t *home, char 
  * @{
  */
 
-/** Parse a unknown headers. @internal */
-SOFIAPUBFUN int sip_unknown_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_unknown "unknown headers". @internal */
+SOFIAPUBFUN issize_t sip_unknown_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a unknown headers. @internal */
-SOFIAPUBFUN int sip_unknown_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_unknown "unknown headers". @internal */
+SOFIAPUBFUN issize_t sip_unknown_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_unknown_t from sip_t.
+/**Access a SIP @ref sip_unknown "unknown headers"
+ * structure #sip_unknown_t from #sip_t.
  * 
  */
 #define sip_unknown(sip) \
   ((sip_unknown_t *)msg_header_access((msg_pub_t*)(sip), sip_unknown_class))
 
-/**Initializer for structure sip_unknown_t.
+/**Initializer for structure #sip_unknown_t.
  * 
- * A static sip_unknown_t structure must be initialized.
- * The SIP_UNKNOWN_INIT() macro provides initialization value. 
+ * A static #sip_unknown_t structure for
+ * @ref sip_unknown "unknown headers" must be initialized with
+ * the SIP_UNKNOWN_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -16224,9 +15623,10 @@ SOFIAPUBFUN int sip_unknown_e(char b[], int bsiz,
  */
 #define SIP_UNKNOWN_INIT() SIP_HDR_INIT(unknown)
 
-/**Initialize a structure sip_unknown_t.
+/**Initialize a structure #sip_unknown_t.
  * 
- * An sip_unknown_t structure can be initialized with the
+ * An #sip_unknown_t structure for
+ * @ref sip_unknown "unknown headers" can be initialized with the
  * sip_unknown_init() function/macro. For instance,
  * @code
  * 
@@ -16247,18 +15647,16 @@ su_inline sip_unknown_t *sip_unknown_init(sip_unknown_t x[1])
   SIP_HEADER_INIT(x, sip_unknown_class, sizeof(sip_unknown_t))
 #endif
 
-/**Test if header object is instance of sip_unknown_t.
+/**Test if header object is instance of #sip_unknown_t.
  * 
- * The function sip_is_unknown() returns true (nonzero) if
- * the header class is an instance of unknown headers
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_unknown "unknown headers" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_unknown() returns true (nonzero) if
- * the header object is an instance of header unknown and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header unknown 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_unknown(sip_header_t const *header)
@@ -16272,9 +15670,9 @@ int sip_is_unknown(sip_header_t const *header);
 #define sip_unknown_p(h) sip_is_unknown((h))
 
 
-/**Duplicate (deep copy) @c sip_unknown_t.
+/**Duplicate a list of @ref sip_unknown "unknown headers" header structures #sip_unknown_t.
  * 
- * The function sip_unknown_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -16295,8 +15693,8 @@ int sip_is_unknown(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_unknown_dup() returns a pointer to the
- * newly duplicated sip_unknown_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_unknown_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -16314,13 +15712,13 @@ sip_unknown_t *sip_unknown_dup(su_home_t *home, sip_unknown_t const *hdr)
 }
 #endif
 
-/**Copy a sip_unknown_t header structure.
+/**Copy a list of @ref sip_unknown "unknown headers" header structures #sip_unknown_t.
  * 
  * The function sip_unknown_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -16339,8 +15737,7 @@ sip_unknown_t *sip_unknown_dup(su_home_t *home, sip_unknown_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_unknown_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16357,23 +15754,19 @@ sip_unknown_t *sip_unknown_copy(su_home_t *home, sip_unknown_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_unknown_t.
+/**Make a @ref sip_unknown "unknown headers" structure #sip_unknown_t.
  * 
  * The function sip_unknown_make() makes a new
- * sip_unknown_t header structure.  It allocates a new
+ * #sip_unknown_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_unknown_make() returns a pointer to
- * newly maked sip_unknown_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_unknown_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -16388,24 +15781,19 @@ su_inline sip_unknown_t *sip_unknown_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a unknown headers from formatting result.
+/**Make a @ref sip_unknown "unknown headers" from formatting result.
  * 
- * The function sip_unknown_format() makes a new
- * unknown headers object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_unknown_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_unknown_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_unknown_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -16436,24 +15824,26 @@ su_inline sip_unknown_t *sip_unknown_format(su_home_t *home, char const *fmt, ..
  * @{
  */
 
-/** Parse a erroneous headers. @internal */
-SOFIAPUBFUN int sip_error_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_error "erroneous headers". @internal */
+SOFIAPUBFUN issize_t sip_error_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a erroneous headers. @internal */
-SOFIAPUBFUN int sip_error_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_error "erroneous headers". @internal */
+SOFIAPUBFUN issize_t sip_error_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_error_t from sip_t.
+/**Access a SIP @ref sip_error "erroneous headers"
+ * structure #sip_error_t from #sip_t.
  * 
  */
 #define sip_error(sip) \
   ((sip_error_t *)msg_header_access((msg_pub_t*)(sip), sip_error_class))
 
-/**Initializer for structure sip_error_t.
+/**Initializer for structure #sip_error_t.
  * 
- * A static sip_error_t structure must be initialized.
- * The SIP_ERROR_INIT() macro provides initialization value. 
+ * A static #sip_error_t structure for
+ * @ref sip_error "erroneous headers" must be initialized with
+ * the SIP_ERROR_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -16464,9 +15854,10 @@ SOFIAPUBFUN int sip_error_e(char b[], int bsiz,
  */
 #define SIP_ERROR_INIT() SIP_HDR_INIT(error)
 
-/**Initialize a structure sip_error_t.
+/**Initialize a structure #sip_error_t.
  * 
- * An sip_error_t structure can be initialized with the
+ * An #sip_error_t structure for
+ * @ref sip_error "erroneous headers" can be initialized with the
  * sip_error_init() function/macro. For instance,
  * @code
  * 
@@ -16487,18 +15878,16 @@ su_inline sip_error_t *sip_error_init(sip_error_t x[1])
   SIP_HEADER_INIT(x, sip_error_class, sizeof(sip_error_t))
 #endif
 
-/**Test if header object is instance of sip_error_t.
+/**Test if header object is instance of #sip_error_t.
  * 
- * The function sip_is_error() returns true (nonzero) if
- * the header class is an instance of erroneous headers
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_error "erroneous headers" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_error() returns true (nonzero) if
- * the header object is an instance of header error and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header error 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_error(sip_header_t const *header)
@@ -16512,9 +15901,9 @@ int sip_is_error(sip_header_t const *header);
 #define sip_error_p(h) sip_is_error((h))
 
 
-/**Duplicate (deep copy) @c sip_error_t.
+/**Duplicate a list of @ref sip_error "erroneous headers" header structures #sip_error_t.
  * 
- * The function sip_error_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -16535,8 +15924,8 @@ int sip_is_error(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_error_dup() returns a pointer to the
- * newly duplicated sip_error_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_error_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -16554,13 +15943,13 @@ sip_error_t *sip_error_dup(su_home_t *home, sip_error_t const *hdr)
 }
 #endif
 
-/**Copy a sip_error_t header structure.
+/**Copy a list of @ref sip_error "erroneous headers" header structures #sip_error_t.
  * 
  * The function sip_error_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -16579,8 +15968,7 @@ sip_error_t *sip_error_dup(su_home_t *home, sip_error_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_error_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16597,23 +15985,19 @@ sip_error_t *sip_error_copy(su_home_t *home, sip_error_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_error_t.
+/**Make a @ref sip_error "erroneous headers" structure #sip_error_t.
  * 
  * The function sip_error_make() makes a new
- * sip_error_t header structure.  It allocates a new
+ * #sip_error_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_error_make() returns a pointer to
- * newly maked sip_error_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_error_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -16628,24 +16012,19 @@ su_inline sip_error_t *sip_error_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a erroneous headers from formatting result.
+/**Make a @ref sip_error "erroneous headers" from formatting result.
  * 
- * The function sip_error_format() makes a new
- * erroneous headers object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_error_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_error_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_error_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -16676,24 +16055,26 @@ su_inline sip_error_t *sip_error_format(su_home_t *home, char const *fmt, ...)
  * @{
  */
 
-/** Parse a separator line between headers and payload. @internal */
-SOFIAPUBFUN int sip_separator_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_separator "separator line between headers and payload". @internal */
+SOFIAPUBFUN issize_t sip_separator_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a separator line between headers and payload. @internal */
-SOFIAPUBFUN int sip_separator_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_separator "separator line between headers and payload". @internal */
+SOFIAPUBFUN issize_t sip_separator_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_separator_t from sip_t.
+/**Access a SIP @ref sip_separator "separator line between headers and payload"
+ * structure #sip_separator_t from #sip_t.
  * 
  */
 #define sip_separator(sip) \
   ((sip_separator_t *)msg_header_access((msg_pub_t*)(sip), sip_separator_class))
 
-/**Initializer for structure sip_separator_t.
+/**Initializer for structure #sip_separator_t.
  * 
- * A static sip_separator_t structure must be initialized.
- * The SIP_SEPARATOR_INIT() macro provides initialization value. 
+ * A static #sip_separator_t structure for
+ * @ref sip_separator "separator line between headers and payload" must be initialized with
+ * the SIP_SEPARATOR_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -16704,9 +16085,10 @@ SOFIAPUBFUN int sip_separator_e(char b[], int bsiz,
  */
 #define SIP_SEPARATOR_INIT() SIP_HDR_INIT(separator)
 
-/**Initialize a structure sip_separator_t.
+/**Initialize a structure #sip_separator_t.
  * 
- * An sip_separator_t structure can be initialized with the
+ * An #sip_separator_t structure for
+ * @ref sip_separator "separator line between headers and payload" can be initialized with the
  * sip_separator_init() function/macro. For instance,
  * @code
  * 
@@ -16727,18 +16109,16 @@ su_inline sip_separator_t *sip_separator_init(sip_separator_t x[1])
   SIP_HEADER_INIT(x, sip_separator_class, sizeof(sip_separator_t))
 #endif
 
-/**Test if header object is instance of sip_separator_t.
+/**Test if header object is instance of #sip_separator_t.
  * 
- * The function sip_is_separator() returns true (nonzero) if
- * the header class is an instance of separator line between headers and payload
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_separator "separator line between headers and payload" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_separator() returns true (nonzero) if
- * the header object is an instance of header separator and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header separator 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_separator(sip_header_t const *header)
@@ -16752,9 +16132,9 @@ int sip_is_separator(sip_header_t const *header);
 #define sip_separator_p(h) sip_is_separator((h))
 
 
-/**Duplicate (deep copy) @c sip_separator_t.
+/**Duplicate a list of @ref sip_separator "separator line between headers and payload" header structures #sip_separator_t.
  * 
- * The function sip_separator_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -16775,8 +16155,8 @@ int sip_is_separator(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_separator_dup() returns a pointer to the
- * newly duplicated sip_separator_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_separator_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -16794,13 +16174,13 @@ sip_separator_t *sip_separator_dup(su_home_t *home, sip_separator_t const *hdr)
 }
 #endif
 
-/**Copy a sip_separator_t header structure.
+/**Copy a list of @ref sip_separator "separator line between headers and payload" header structures #sip_separator_t.
  * 
  * The function sip_separator_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -16819,8 +16199,7 @@ sip_separator_t *sip_separator_dup(su_home_t *home, sip_separator_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_separator_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -16837,23 +16216,19 @@ sip_separator_t *sip_separator_copy(su_home_t *home, sip_separator_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_separator_t.
+/**Make a @ref sip_separator "separator line between headers and payload" structure #sip_separator_t.
  * 
  * The function sip_separator_make() makes a new
- * sip_separator_t header structure.  It allocates a new
+ * #sip_separator_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_separator_make() returns a pointer to
- * newly maked sip_separator_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_separator_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -16868,24 +16243,19 @@ su_inline sip_separator_t *sip_separator_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a separator line between headers and payload from formatting result.
+/**Make a @ref sip_separator "separator line between headers and payload" from formatting result.
  * 
- * The function sip_separator_format() makes a new
- * separator line between headers and payload object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_separator_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_separator_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_separator_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE
@@ -16916,24 +16286,26 @@ su_inline sip_separator_t *sip_separator_format(su_home_t *home, char const *fmt
  * @{
  */
 
-/** Parse a message payload. @internal */
-SOFIAPUBFUN int sip_payload_d(su_home_t *, msg_header_t *,
-			       char *s, int slen);
+/** Parse a SIP @ref sip_payload "message payload". @internal */
+SOFIAPUBFUN issize_t sip_payload_d(su_home_t *, msg_header_t *,
+				       char *s, isize_t slen);
 
-/** Print a message payload. @internal */
-SOFIAPUBFUN int sip_payload_e(char b[], int bsiz,
-                               msg_header_t const *h, int flags);
+/** Print a SIP @ref sip_payload "message payload". @internal */
+SOFIAPUBFUN issize_t sip_payload_e(char b[], isize_t bsiz,
+                    	            msg_header_t const *h, int flags);
 
-/**Access a sip_payload_t from sip_t.
+/**Access a SIP @ref sip_payload "message payload"
+ * structure #sip_payload_t from #sip_t.
  * 
  */
 #define sip_payload(sip) \
   ((sip_payload_t *)msg_header_access((msg_pub_t*)(sip), sip_payload_class))
 
-/**Initializer for structure sip_payload_t.
+/**Initializer for structure #sip_payload_t.
  * 
- * A static sip_payload_t structure must be initialized.
- * The SIP_PAYLOAD_INIT() macro provides initialization value. 
+ * A static #sip_payload_t structure for
+ * @ref sip_payload "message payload" must be initialized with
+ * the SIP_PAYLOAD_INIT() macro. 
  * For instance,
  * @code 
  * 
@@ -16944,9 +16316,10 @@ SOFIAPUBFUN int sip_payload_e(char b[], int bsiz,
  */
 #define SIP_PAYLOAD_INIT() SIP_HDR_INIT(payload)
 
-/**Initialize a structure sip_payload_t.
+/**Initialize a structure #sip_payload_t.
  * 
- * An sip_payload_t structure can be initialized with the
+ * An #sip_payload_t structure for
+ * @ref sip_payload "message payload" can be initialized with the
  * sip_payload_init() function/macro. For instance,
  * @code
  * 
@@ -16967,18 +16340,16 @@ su_inline sip_payload_t *sip_payload_init(sip_payload_t x[1])
   SIP_HEADER_INIT(x, sip_payload_class, sizeof(sip_payload_t))
 #endif
 
-/**Test if header object is instance of sip_payload_t.
+/**Test if header object is instance of #sip_payload_t.
  * 
- * The function sip_is_payload() returns true (nonzero) if
- * the header class is an instance of message payload
- * object and false (zero) otherwise.
+ * Check if the header class is an instance of
+ * @ref sip_payload "message payload" object and return true (nonzero),
+ * otherwise return false (zero).
  * 
  * @param header pointer to the header structure to be tested
  * 
- * @return
- * The function sip_is_payload() returns true (nonzero) if
- * the header object is an instance of header payload and
- * false (zero) otherwise.
+ * @retval 1 (true) if the @a header is an instance of header payload 
+ * @retval 0 (false) otherwise
  */
 #if SU_HAVE_INLINE
 su_inline int sip_is_payload(sip_header_t const *header)
@@ -16992,9 +16363,9 @@ int sip_is_payload(sip_header_t const *header);
 #define sip_payload_p(h) sip_is_payload((h))
 
 
-/**Duplicate (deep copy) @c sip_payload_t.
+/**Duplicate a list of @ref sip_payload "message payload" header structures #sip_payload_t.
  * 
- * The function sip_payload_dup() duplicates a header
+ * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
@@ -17015,8 +16386,8 @@ int sip_is_payload(sip_header_t const *header);
  * @endcode
  * 
  * @return
- * The function sip_payload_dup() returns a pointer to the
- * newly duplicated sip_payload_t header structure, or NULL
+ * A pointer to the
+ * newly duplicated #sip_payload_t header structure, or NULL
  * upon an error.
  */
 #if SU_HAVE_INLINE
@@ -17034,13 +16405,13 @@ sip_payload_t *sip_payload_dup(su_home_t *home, sip_payload_t const *hdr)
 }
 #endif
 
-/**Copy a sip_payload_t header structure.
+/**Copy a list of @ref sip_payload "message payload" header structures #sip_payload_t.
  * 
  * The function sip_payload_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
- * to allocate all the memory areas used to copy the header
+ * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
  * 
  * @param home    memory home used to allocate new structure
@@ -17059,8 +16430,7 @@ sip_payload_t *sip_payload_dup(su_home_t *home, sip_payload_t const *hdr)
  * @endcode
  * 
  * @return
- * The function sip_payload_copy() returns a pointer to
- * newly copied header structure, or NULL upon an error.
+ * A pointer to newly copied header structure, or NULL upon an error.
  */
 #if SU_HAVE_INLINE
 su_inline
@@ -17077,23 +16447,19 @@ sip_payload_t *sip_payload_copy(su_home_t *home, sip_payload_t const *hdr)
 }
 #endif
 
-/**Make a header structure sip_payload_t.
+/**Make a @ref sip_payload "message payload" structure #sip_payload_t.
  * 
  * The function sip_payload_make() makes a new
- * sip_payload_t header structure.  It allocates a new
+ * #sip_payload_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
  * 
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
  * 
- * @note This function is usually implemented as a macro calling
- * sip_header_make().
- * 
  * @return
- * The function sip_payload_make() returns a pointer to
- * newly maked sip_payload_t header structure, or NULL upon
- * an error.
+ * A pointer to newly maked #sip_payload_t header structure, or NULL upon an
+ * error.
  */
 #if SU_HAVE_INLINE
 su_inline 
@@ -17108,24 +16474,19 @@ su_inline sip_payload_t *sip_payload_make(su_home_t *home, char const *s)
 }
 #endif
 
-/**Make a message payload from formatting result.
+/**Make a @ref sip_payload "message payload" from formatting result.
  * 
- * The function sip_payload_format() makes a new
- * message payload object using formatting result as its
- * value.  The function first prints the arguments according to
- * the format @a fmt specified.  Then it allocates a new header
- * structure, and uses the formatting result as the header
- * value.
+ * Make a new #sip_payload_t object using formatting result as its value. 
+ * The function first prints the arguments according to the format @a fmt
+ * specified. Then it allocates a new header structure, and parses the
+ * formatting result to the structure #sip_payload_t.
  * 
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
  * 
- * @note This function is usually implemented as a macro calling
- * msg_header_format().
- * 
  * @return
- * The function sip_payload_format() returns a pointer to newly
+ * A pointer to newly
  * makes header structure, or NULL upon an error.
  * 
  * @HIDE

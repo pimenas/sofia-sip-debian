@@ -81,6 +81,9 @@ int test_quote(void)
   
   BEGIN();
 
+  d = url_as_string(home, (url_t *)"sip:joe@example.com");
+  TEST_S(d, "sip:joe@example.com");
+
   TEST(strlen(EXCLUDED), 23);
   TEST(strlen(UNRESERVED), 71);
 
@@ -170,6 +173,7 @@ int test_any(void)
   TEST_S(url_scheme(url_im), "im");
   TEST_S(url_scheme(url_cid), "cid");
   TEST_S(url_scheme(url_msrp), "msrp");
+  TEST_S(url_scheme(url_msrps), "msrps");
 
   TEST_1(tst = su_strdup(home, "*"));
   TEST(url_d(url, tst), 0);
@@ -870,10 +874,18 @@ int test_tags(void)
   url_string_t *us0 = NULL;
 
   tagi_t *lst, *dup;
-
+  
+  tag_value_t value;
+  char *s;
   su_home_t home[1] = { SU_HOME_INIT(home) };
 
   BEGIN();
+
+  TEST(t_scan(urltag_url, home, c0, &value), 0);
+  TEST_S(s = url_as_string(home, (url_t *)value), c0);
+
+  TEST(t_scan(urltag_url, home, c3, &value), 0);
+  TEST_S(s = url_as_string(home, (url_t *)value), c3);
 
   TEST_1(url_d(u0, c0) == 0);
 

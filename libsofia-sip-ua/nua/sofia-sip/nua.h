@@ -38,6 +38,7 @@
 #include <sofia-sip/su_wait.h>
 #endif
 
+
 #ifndef URL_H
 #include <sofia-sip/url.h>
 #endif
@@ -63,6 +64,18 @@ typedef NUA_MAGIC_T nua_magic_t;
 #endif
 /** Application context for NUA handle. */
 typedef NUA_HMAGIC_T nua_hmagic_t;
+
+/**Network change event levels given to NUTAG_DETECT_NETWORK_UPDATES().
+ *
+ * @sa NUTAG_DETECT_NETWORK_UPDATES(), #nua_i_network_changed
+ *
+ * @since New in @VERSION_1_12_2.
+ */
+typedef enum nua_nw_detector_e {
+  NUA_NW_DETECT_NOTHING = 0,
+  NUA_NW_DETECT_ONLY_INFO,
+  NUA_NW_DETECT_TRY_FULL,
+} nua_nw_detector_t;
 
 /** Events */
 typedef enum nua_event_e {
@@ -123,7 +136,7 @@ typedef enum nua_event_e {
   nua_r_unsubscribe,		/**< Answer to outgoing un-SUBSCRIBE */
   nua_r_notify,			/**< Answer to outgoing NOTIFY */
   nua_r_method,			/**< Answer to unknown outgoing method */
-
+ 
   /* Internal events: nua hides them from application */
   nua_r_authenticate,
   nua_r_redirect,
@@ -131,6 +144,14 @@ typedef enum nua_event_e {
   nua_r_respond,
   nua_r_nit_respond,
   nua_r_ack,			/*#< Answer to ACK */
+
+  /* NOTE: Post 1.12 release events come here (below) to keep ABI
+     compatibility! */
+  nua_i_network_changed,        /**< Local IP(v6) address has changed */
+
+  
+  /* Event used by stack internally */
+  nua_i_none
 
 } nua_event_t;
 
@@ -299,7 +320,7 @@ SOFIAPUBFUN void nua_authenticate(nua_handle_t *, tag_type_t, tag_value_t, ...);
 /** Authorize a subscriber. */
 SOFIAPUBFUN void nua_authorize(nua_handle_t *, tag_type_t, tag_value_t, ...);
 
-/** Redirect an operation. */
+/*# Redirect an operation. @deprecated */
 SOFIAPUBFUN void nua_redirect(nua_handle_t *, tag_type_t, tag_value_t, ...);
 
 /** Respond with given status. */

@@ -45,6 +45,9 @@
 #ifndef URL_H
 #include <sofia-sip/url.h>
 #endif
+#ifndef TPORT_TAG_H
+#include <sofia-sip/tport_tag.h>
+#endif
 
 SOFIA_BEGIN_DECLS
 
@@ -97,7 +100,7 @@ typedef struct {
 
   /** Ask stack to allocate a message. */
   msg_t *(*tpac_alloc)(tp_stack_t *, int flags,
-		       char const [], unsigned,
+		       char const [], usize_t,
 		       tport_t const *, tp_client_t *);
 
   /** Indicate stack that address has changed */
@@ -163,8 +166,6 @@ typedef struct {
   (n)->tpn_comp ? ";comp=" : "", (n)->tpn_comp ? (n)->tpn_comp : "",    \
   (n)->tpn_ident ? "/" : "", (n)->tpn_ident ? (n)->tpn_ident : ""
 
-#include <sofia-sip/tport_tag.h>
-
 /** Create first primary transport. */
 TPORT_DLL tport_t *tport_tcreate(tp_stack_t *stack,
 				 tport_stack_class_t const *tpac,
@@ -209,7 +210,7 @@ TPORT_DLL tport_t *tport_tsend(tport_t *, msg_t *, tp_name_t const *,
 TPORT_DLL int tport_tqueue(tport_t *, msg_t *, tag_type_t, tag_value_t, ...);
 
 /** Return number of queued messages. */
-TPORT_DLL int tport_queuelen(tport_t const *self);
+TPORT_DLL isize_t tport_queuelen(tport_t const *self);
 
 /** Send a queued message (and queue another, if required). */
 TPORT_DLL int tport_tqsend(tport_t *, msg_t *, msg_t *, 
@@ -223,12 +224,12 @@ TPORT_DLL int tport_continue(tport_t *self);
 
 /** Mark message as waiting for a response. */
 TPORT_DLL int tport_pend(tport_t *self, msg_t *msg,
-	       tport_pending_error_f *callback, tp_client_t *client);
+			 tport_pending_error_f *callback, tp_client_t *client);
 
 /** Do not wait for response anymore. */
 TPORT_DLL int tport_release(tport_t *self, int pendd,
-		  msg_t *msg, msg_t *reply, tp_client_t *client,
-		  int still_pending);
+			    msg_t *msg, msg_t *reply, tp_client_t *client,
+			    int still_pending);
 
 /** Return true if transport is master. */
 TPORT_DLL int tport_is_master(tport_t const *self);
@@ -323,18 +324,19 @@ TPORT_DLL int tport_delivered_from(tport_t *tp, msg_t const *msg,
 TPORT_DLL int tport_name_is_resolved(tp_name_t const *);
 
 /** Duplicate a transport name. */
-TPORT_DLL int tport_name_dup(su_home_t *, tp_name_t *dst, tp_name_t const *src);
+TPORT_DLL int tport_name_dup(su_home_t *,
+			     tp_name_t *dst, tp_name_t const *src);
 
 /** Convert a socket address to a transport name. */
 TPORT_DLL int tport_convert_addr(su_home_t *home,
-		       tp_name_t *tpn,
-		       char const *protoname,
-		       char const *canon,
-		       su_sockaddr_t const *su);
+				 tp_name_t *tpn,
+				 char const *protoname,
+				 char const *canon,
+				 su_sockaddr_t const *su);
 
 /** Print host and port separated with ':' to a string. */
-TPORT_DLL char *tport_hostport(char buf[], int bufsize,
-		     su_sockaddr_t const *su, int with_port);
+TPORT_DLL char *tport_hostport(char buf[], isize_t bufsize,
+			       su_sockaddr_t const *su, int with_port);
 
 /** Initialize STUN keepalives. */
 TPORT_DLL int tport_keepalive(tport_t *tp, su_addrinfo_t const *ai,
@@ -364,7 +366,7 @@ int tport_sigcomp_option(tport_t const *self,
 /** Obtain a SigComp compartment with given name. */
 TPORT_DLL struct sigcomp_compartment *
 tport_sigcomp_compartment(tport_t *self,
-			  char const *name, int namelen,
+			  char const *name, isize_t namelen,
 			  int create_if_needed);
 
 TPORT_DLL struct sigcomp_compartment *

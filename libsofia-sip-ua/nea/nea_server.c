@@ -762,11 +762,11 @@ int nea_view_update(nea_server_t *nes,
     primary_p = eevv = ev->ev_views + i;
     
     /* Search for fakeness/eventlist/private view */
-    if (evv && (private || evv->evv_private || evv->evv_fake != fake)) {
+    if (evv && (private || evv->evv_private || evv->evv_fake != (unsigned)fake)) {
       for (eevv = &evv->evv_next; (evv = *eevv); eevv = &evv->evv_next) {
 	if (private || evv->evv_private)
 	  continue;
-	if (evv->evv_fake == fake)
+	if (evv->evv_fake == (unsigned)fake)
 	  break;
       }
     }
@@ -1216,7 +1216,7 @@ nea_event_t *nea_event_tcreate(nea_server_t *nes,
 			       tag_type_t tag, tag_value_t value, ...)
 {
   nea_event_t *ev, **pev;
-  int len = strlen(name);
+  size_t len = strlen(name);
   ta_list ta;
 
   /* Find a matching event */

@@ -22,7 +22,7 @@
  *
  */
 
-/**@CFILE tport_connect.c Transport using HTTP CONNECT.
+/**@CFILE tport_logging.c Logging transported messages.
  *
  * See tport.docs for more detailed description of tport interface.
  *
@@ -115,7 +115,7 @@ void tport_open_log(tport_master_t *mr, tagi_t *tags)
 /** Create log stamp */
 void tport_stamp(tport_t const *self, msg_t *msg, 
 		 char stamp[128], char const *what, 
-		 int n, char const *via,
+		 size_t n, char const *via,
 		 su_time_t now)
 {
   char label[24] = "";
@@ -141,21 +141,20 @@ void tport_stamp(tport_t const *self, msg_t *msg,
   inet_ntop(su->su_family, SU_ADDR(su), name, sizeof(name));
 
   snprintf(stamp, 128,
-	   "%s %d bytes %s %s/[%s]:%u%s%s at %02u:%02u:%02u.%06lu:\n",
-	   what, n, via, self->tp_name->tpn_proto,
+	   "%s "MOD_ZU" bytes %s %s/[%s]:%u%s%s at %02u:%02u:%02u.%06lu:\n",
+	   what, (size_t)n, via, self->tp_name->tpn_proto,
 	   name, ntohs(su->su_port), label[0] ? label : "", comp,
 	   hour, minute, second, now.tv_usec);
-
 }
 
 /** Dump the data from the iovec */
 void tport_dump_iovec(tport_t const *self, msg_t *msg, 
-		      int n, su_iovec_t const iov[], int iovused,
+		      size_t n, su_iovec_t const iov[], size_t iovused,
 		      char const *what, char const *how)
 {
   tport_master_t *mr = self->tp_master;
   char stamp[128];
-  int i;
+  size_t i;
 
   if (!mr->mr_dump_file)
     return;
@@ -164,7 +163,7 @@ void tport_dump_iovec(tport_t const *self, msg_t *msg,
   fputs(stamp, mr->mr_dump_file);
 
   for (i = 0; i < iovused && n > 0; i++) {
-    int len = iov[i].mv_len;
+    size_t len = iov[i].mv_len;
     if (len > n)
       len = n;
     fwrite(iov[i].mv_base, len, 1, mr->mr_dump_file);
@@ -178,71 +177,72 @@ void tport_dump_iovec(tport_t const *self, msg_t *msg,
 /** Log the message. */
 void tport_log_msg(tport_t *self, msg_t *msg, 
 		   char const *what, char const *via,
-		   char const *first, su_time_t now)
+		   su_time_t now)
 {
   char stamp[128];
   msg_iovec_t iov[80];
-  int i, n, iovlen = msg_iovec(msg, iov, 80);
-  int skip_lf = 0, linelen = 0;
-  char const *prefix = first;
+  size_t i, iovlen = msg_iovec(msg, iov, 80);
+  size_t linelen = 0, n, logged = 0, truncated = 0;
+  int skip_lf = 0;
 
-  if (iovlen < 0) return;
+#define MSG_SEPARATOR \
+  "------------------------------------------------------------------------\n"
+#define MAX_LINELEN 2047
 
   for (i = n = 0; i < iovlen && i < 80; i++)
     n += iov[i].mv_len;
 
   tport_stamp(self, msg, stamp, what, n, via, now);
   su_log(stamp);
-
-  for (i = 0; i < iovlen && i < 80; i++) {
+  su_log("   " MSG_SEPARATOR);
+ 
+  for (i = 0; truncated == 0 && i < iovlen && i < 80; i++) {
     char *s = iov[i].mv_base, *end = s + iov[i].mv_len;
-    int n;
 
-    if (skip_lf && s < end && s[0] == '\n') { s++; skip_lf = 0; }
+    if (skip_lf && s < end && s[0] == '\n') { s++; logged++; skip_lf = 0; }
 
     while (s < end) {
       if (s[0] == '\0') {
-	int j, len = s - (char *)iov[i].mv_base;
-	for (j = 0; j < i; j++)
-	  len += iov[j].mv_len;
-	su_log("\n%s*** message truncated at %d\n", prefix, len);
-	return;
+	truncated = logged;
+	break;
       }
 
       n = strncspn(s, end - s, "\r\n");
-      if (prefix) {
-	su_log("%s", prefix); linelen = n;
-      } else {
-	linelen += n;
+
+      if (linelen + n > MAX_LINELEN) {
+	n = MAX_LINELEN - n - linelen;
+	truncated = logged + n;
       }
-      su_log("%.*s", n, s);
-      if (s + n < end) {
-	su_log("\n");
-	prefix = first;
+
+      su_log("%s%.*s", linelen > n ? "" : "   ", (int)n, s);
+      s += n, linelen += n, logged += n;
+
+      if (truncated)
+	break;
+      if (s == end)
+	continue;
+
+      linelen = 0;
+      su_log("\n");
+
+      /* Skip eol */
+      if (s[0] == '\r') {
+	s++, logged++;
+	if (s == end) {
+	  skip_lf = 1;
+	  continue;
+	}
       }
-      else {
-	prefix = "";
-      }
-      s += n;
-      /* Skip a eol */
-      if (s < end) {
-	if (s + 1 < end && s[0] == '\r' && s[1] == '\n')
-	  s += 2;
-	else if (s[0] == '\r')
-	  s++, (skip_lf = s + 1 == end);
-	else if (s[0] == '\n')
-	  s++;
-      }
+      if (s[0] == '\n')
+	s++, logged++;
     }
   }
 
-  if (linelen) su_log("\n");
+  su_log("%s   " MSG_SEPARATOR, linelen > 0 ? "\n" : "");
 
-  if (i == 80) {
-    int j, len = 0;
-    for (j = 0; j < i; j++)
-      len += iov[j].mv_len;
-    su_log("\n%s*** message truncated at %d\n", prefix, len);
-    return;
-  }
+  if (!truncated && i == 80)
+    truncated = logged;
+
+  if (truncated)
+    su_log("   *** message truncated at "MOD_ZU" ***\n", truncated);
 }

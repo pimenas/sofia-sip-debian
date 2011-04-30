@@ -33,9 +33,7 @@
  * @author Kai Vehmanen <kai.vehmanen@nokia.com>
  */
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #define STUN_SRV_SERVICE_TCP "_stun._tcp"
 #define STUN_SRV_SERVICE_UDP "_stun._udp"
@@ -61,7 +59,7 @@ struct stun_dns_lookup_s {
   su_root_t         *stun_root;
   stun_magic_t      *stun_magic;
   sres_resolver_t   *stun_sres;
-  int                stun_socket;
+  su_socket_t        stun_socket;
   stun_dns_lookup_f  stun_cb;
   char              *stun_tcp_target;
   char              *stun_udp_target;
@@ -117,8 +115,7 @@ static void priv_sres_cb(stun_dns_lookup_t *self,
   if (self->stun_state == stun_dns_done) {
     self->stun_cb(self, self->stun_magic);
 
-    if (self->stun_socket >= 0) 
-      sres_resolver_timer(self->stun_sres, self->stun_socket);
+    sres_resolver_timer(self->stun_sres, -1);
   }
 
   sres_free_answers(self->stun_sres, answer);
@@ -138,7 +135,6 @@ stun_dns_lookup_t *stun_dns_lookup(stun_magic_t *magic,
 {
   stun_dns_lookup_t *self = su_zalloc(NULL, sizeof(stun_dns_lookup_t));
   sres_query_t *query;
-  int socket;
   
   /* see nta.c:outgoing_answer_srv() */
 
@@ -148,21 +144,11 @@ stun_dns_lookup_t *stun_dns_lookup(stun_magic_t *magic,
   self->stun_root = root;
   self->stun_sres = sres_resolver_create(root, NULL, TAG_END());
   if (self->stun_sres) {
-    socket = sres_resolver_root_socket(self->stun_sres);
-    if (socket >= 0) {
-      char *query_udp = su_sprintf(self->stun_home, "%s.%s", STUN_SRV_SERVICE_UDP, domain);
-      char *query_tcp = su_sprintf(self->stun_home, "%s.%s", STUN_SRV_SERVICE_TCP, domain);
+    char *query_udp = su_sprintf(self->stun_home, "%s.%s", STUN_SRV_SERVICE_UDP, domain);
+    char *query_tcp = su_sprintf(self->stun_home, "%s.%s", STUN_SRV_SERVICE_TCP, domain);
       
-      self->stun_socket = socket;
-
-      query = sres_query_make(self->stun_sres, priv_sres_cb, self, socket, sres_type_srv, query_udp);
-      query = sres_query_make(self->stun_sres, priv_sres_cb, self, socket, sres_type_srv, query_tcp);
-    }
-    else {
-      sres_resolver_destroy(self->stun_sres);
-      self->stun_socket = -1;
-      su_free(NULL, self), self = NULL;
-    }
+    query = sres_query(self->stun_sres, priv_sres_cb, self, sres_type_srv, query_udp);
+    query = sres_query(self->stun_sres, priv_sres_cb, self, sres_type_srv, query_tcp);
   }
   else {
     su_free(NULL, self), self = NULL;

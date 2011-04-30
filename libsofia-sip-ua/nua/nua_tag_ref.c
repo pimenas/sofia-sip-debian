@@ -44,6 +44,9 @@ EXPORT tag_typedef_t nutag_early_media_ref =
 extern tag_typedef_t nutag_only183_100rel;
 EXPORT tag_typedef_t nutag_only183_100rel_ref = 
   REFTAG_TYPEDEF(nutag_only183_100rel);
+extern tag_typedef_t nutag_early_answer;
+EXPORT tag_typedef_t nutag_early_answer_ref = 
+  REFTAG_TYPEDEF(nutag_early_answer);
 extern tag_typedef_t nutag_media_enable;
 EXPORT tag_typedef_t nutag_media_enable_ref = 
   REFTAG_TYPEDEF(nutag_media_enable);
@@ -95,6 +98,9 @@ EXPORT tag_typedef_t nutag_update_refresh_ref =
 extern tag_typedef_t nutag_refer_expires;
 EXPORT tag_typedef_t nutag_refer_expires_ref = 
   REFTAG_TYPEDEF(nutag_refer_expires);
+extern tag_typedef_t nutag_refer_with_id;
+EXPORT tag_typedef_t nutag_refer_with_id_ref = 
+  REFTAG_TYPEDEF(nutag_refer_with_id);
 extern tag_typedef_t nutag_autoalert;
 EXPORT tag_typedef_t nutag_autoalert_ref = 
   REFTAG_TYPEDEF(nutag_autoalert);
@@ -149,6 +155,18 @@ EXPORT tag_typedef_t nutag_registrar_ref =
 extern tag_typedef_t nutag_identity;
 EXPORT tag_typedef_t nutag_identity_ref = 
   REFTAG_TYPEDEF(nutag_identity);
+extern tag_typedef_t nutag_m_display;
+EXPORT tag_typedef_t nutag_m_display_ref = 
+  REFTAG_TYPEDEF(nutag_m_display);
+extern tag_typedef_t nutag_m_username;
+EXPORT tag_typedef_t nutag_m_username_ref = 
+  REFTAG_TYPEDEF(nutag_m_username);
+extern tag_typedef_t nutag_m_params;
+EXPORT tag_typedef_t nutag_m_params_ref = 
+  REFTAG_TYPEDEF(nutag_m_params);
+extern tag_typedef_t nutag_m_features;
+EXPORT tag_typedef_t nutag_m_features_ref = 
+  REFTAG_TYPEDEF(nutag_m_features);
 extern tag_typedef_t nutag_instance;
 EXPORT tag_typedef_t nutag_instance_ref = 
   REFTAG_TYPEDEF(nutag_instance);
@@ -212,12 +230,18 @@ EXPORT tag_typedef_t nutag_user_agent_ref =
 extern tag_typedef_t nutag_allow;
 EXPORT tag_typedef_t nutag_allow_ref = 
   REFTAG_TYPEDEF(nutag_allow);
+extern tag_typedef_t nutag_supported;
+EXPORT tag_typedef_t nutag_supported_ref = 
+  REFTAG_TYPEDEF(nutag_supported);
 extern tag_typedef_t nutag_path_enable;
 EXPORT tag_typedef_t nutag_path_enable_ref = 
   REFTAG_TYPEDEF(nutag_path_enable);
 extern tag_typedef_t nutag_service_route_enable;
 EXPORT tag_typedef_t nutag_service_route_enable_ref = 
   REFTAG_TYPEDEF(nutag_service_route_enable);
+extern tag_typedef_t nutag_detect_network_updates;
+EXPORT tag_typedef_t nutag_detect_network_updates_ref = 
+  REFTAG_TYPEDEF(nutag_detect_network_updates);
 extern tag_typedef_t _nutag_add_contact;
 EXPORT tag_typedef_t _nutag_add_contact_ref = 
   REFTAG_TYPEDEF(_nutag_add_contact);
@@ -227,72 +251,80 @@ EXPORT tag_typedef_t _nutag_copy_ref =
 
 EXPORT tag_type_t nua_tag_list[] =
 {
-  nutag_status,
-  nutag_smime_message_digest,
-  nutag_enablemessenger,
-  nutag_enableinvite,
-  nutag_session_refresher,
-  nutag_outbound,
-  nutag_callstate,
-  nutag_substate,
-  nutag_allow,
-  nutag_enablemessage,
-  nutag_user_agent,
-  nutag_smime_opt,
-  nutag_use_dialog,
-  nutag_soa_name,
-  nutag_outbound_set4,
-  nutag_outbound_set3,
-  nutag_outbound_set2,
-  nutag_outbound_set1,
-  nutag_service_route_enable,
-  nutag_min_se,
-  nutag_media_features,
-  nutag_address,
-  nutag_registrar,
-  nutag_sips_url,
-  nutag_smime_signature,
-  nutag_answer_sent,
-  nutag_max_subscriptions,
-  nutag_offer_sent,
-  nutag_answer_recv,
-  nutag_offer_recv,
-  _nutag_add_contact,
-  nutag_smime_enable,
-  nutag_update_refresh,
-  nutag_media_enable,
-  nutag_path_enable,
-  nutag_uicc,
-  nutag_hold,
-  nutag_certificate_phrase,
-  nutag_autoanswer,
-  nutag_identity,
-  nutag_instance,
-  nutag_smime_message_encryption,
-  nutag_refer_pause,
-  nutag_autoalert,
-  nutag_smime_key_encryption,
-  nutag_session_timer,
-  nutag_invite_timer,
-  nutag_callee_caps,
-  nutag_phrase,
-  nutag_autoack,
-  nutag_soa_session,
-  nutag_handle,
-  nutag_keepalive,
   nutag_retry_count,
-  nutag_notify_refer,
-  nutag_refer_event,
-  nutag_smime_protection_mode,
+  nutag_uicc,
+  nutag_smime_opt,
+  nutag_sips_url,
+  nutag_soa_session,
   nutag_keepalive_stream,
-  nutag_only183_100rel,
+  nutag_enablemessenger,
+  nutag_path_enable,
   nutag_certificate_dir,
   nutag_authtime,
-  nutag_event,
+  nutag_enableinvite,
+  nutag_answer_sent,
+  nutag_smime_signature,
+  nutag_smime_message_encryption,
   _nutag_copy,
+  nutag_keepalive,
   nutag_auth,
-  nutag_early_media,
+  nutag_min_se,
   nutag_url,
+  nutag_identity,
+  nutag_notify_refer,
+  nutag_early_media,
+  nutag_service_route_enable,
+  nutag_only183_100rel,
+  nutag_smime_message_digest,
+  nutag_use_dialog,
+  nutag_outbound,
+  nutag_outbound_set1,
+  nutag_invite_timer,
+  nutag_outbound_set2,
+  nutag_session_timer,
+  nutag_outbound_set3,
+  nutag_phrase,
+  nutag_outbound_set4,
+  nutag_detect_network_updates,
+  nutag_offer_recv,
+  nutag_m_username,
+  _nutag_add_contact,
+  nutag_max_subscriptions,
+  nutag_smime_enable,
+  nutag_answer_recv,
+  nutag_session_refresher,
+  nutag_user_agent,
+  nutag_soa_name,
+  nutag_update_refresh,
+  nutag_substate,
+  nutag_m_display,
+  nutag_refer_with_id,
+  nutag_address,
+  nutag_media_features,
+  nutag_certificate_phrase,
+  nutag_m_features,
+  nutag_refer_event,
   nutag_refer_expires,
+  nutag_autoanswer,
+  nutag_enablemessage,
+  nutag_registrar,
+  nutag_m_params,
+  nutag_status,
+  nutag_refer_pause,
+  nutag_allow,
+  nutag_handle,
+  nutag_callee_caps,
+  nutag_hold,
+  nutag_smime_key_encryption,
+  nutag_supported,
+  nutag_smime_protection_mode,
+  nutag_early_answer,
+  nutag_event,
+  nutag_media_enable,
+  nutag_instance,
+  nutag_callstate,
+  nutag_autoack,
+  nutag_offer_sent,
+  nutag_autoalert,
   NULL
 };

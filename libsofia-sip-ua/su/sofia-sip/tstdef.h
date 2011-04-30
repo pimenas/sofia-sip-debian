@@ -87,7 +87,7 @@
  *
  * int socket_test(void)
  * {
- *   socket_t s;
+ *   su_socket_t s;
  *   char buf[64];
  *   unsigned long localhost = htonl(0x7f000001);
  *   unsigned long addr;
@@ -110,7 +110,7 @@
  *   TEST_M(&addr, &localhost, sizeof(addr));
  *
  *   // Test to create UDP socket (Test for true value)
- *   TEST_1((s = su_socket(AF_INET, SOCK_DGRAM, 0)) != SOCKET_ERROR);
+ *   TEST_1((s = su_socket(AF_INET, SOCK_DGRAM, 0)) != INVALID_SOCKET);
  *
  *   // Check max bandwidth
  *   TEST_D(max_bandwidth(), DBL_MAX);
@@ -178,8 +178,6 @@ enum {
 #define END(flags) (void) tstdef_dummy;  } END_(flags) 
 #endif
 
-typedef unsigned longlong ull;
-
 /** @HIDE */
 #define TEST_1_(flags, suite) do { \
   if (flags & tst_verbatim) { \
@@ -224,7 +222,8 @@ typedef unsigned longlong ull;
   printf("%s: %s%sok: %s == %s \n", TSTNAME, #suite, #expect); break; } \
   fprintf(stderr, "%s:%u: %s %s%sFAILED: %s != %s or "LLU" != "LLU"\n", \
 	 __FILE__, __LINE__, TSTNAME, \
-         #suite, #expect, (ull)_value, (ull)_expect); fflush(stderr); \
+	  #suite, #expect, (unsigned longlong)_value,	\
+	 (unsigned longlong)_expect); fflush(stderr);	\
     return 1; \
   } while(0)
 

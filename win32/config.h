@@ -363,13 +363,13 @@
 #define PACKAGE_NAME "sofia-sip"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "sofia-sip 1.12.1"
+#define PACKAGE_STRING "sofia-sip 1.12.3"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "sofia-sip"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.12.1"
+#define PACKAGE_VERSION "1.12.3"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -381,7 +381,7 @@
 #undef TIME_WITH_SYS_TIME
 
 /* Version number of package */
-#define VERSION "1.12.1"
+#define VERSION "1.12.3"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
@@ -448,4 +448,20 @@
 #pragma warning( disable : 4090 4204 4244 4018 4514 4706 4761)
 /* VC does not grok const */
 #pragma warning( disable : 4022 4028 )
+/* Temporarily disable high frequency, low value warnings.  
+   We may still want to re-enable and fix these */
+#pragma warning( disable : 4132 4100 4127 4295 4152 )
+#if (_MSC_VER >= 1400) // VC8+
+#ifndef _CRT_SECURE_NO_DEPRECATE
+#define _CRT_SECURE_NO_DEPRECATE
 #endif
+#ifndef _CRT_NONSTDC_NO_DEPRECATE
+#define _CRT_NONSTDC_NO_DEPRECATE
+#endif
+#endif // VC8+
+#endif
+
+/* size_t/ssize_t modifiers 
+ * ref: http://msdn2.microsoft.com/en-us/library/tcxf1dw6.aspx */
+#define MOD_ZD "%ld"
+#define MOD_ZU "%lu"

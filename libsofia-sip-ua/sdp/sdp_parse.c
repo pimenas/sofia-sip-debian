@@ -34,16 +34,29 @@
 
 #include "config.h"
 
+#include <sofia-sip/su_alloc.h>
+
+#include "sofia-sip/sdp.h"
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <limits.h>
 #include <assert.h>
 
-#include <sofia-sip/su_alloc.h>
-
-#include "sofia-sip/sdp.h"
+/** @typedef struct sdp_parser_s sdp_parser_t; 
+ *
+ * SDP parser handle.
+ *
+ * The SDP parser handle is returned by sdp_parse(). It contains either
+ * successfully parse SDP session #sdp_session_t or an error message.
+ * If sdp_session() returns non-NULL, parsing was successful.
+ *
+ * @sa #sdp_session_t, sdp_parse(), sdp_session(), sdp_parsing_error(),
+ * sdp_sanity_check(), sdp_parser_home(), sdp_parser_free().
+ */
 
 struct sdp_parser_s {
   su_home_t       pr_home[1];
@@ -91,34 +104,40 @@ static void parsing_error(sdp_parser_t *p, char const *fmt, ...);
  *
  * The function sdp_parse() parses an SDP message @a msg of size @a
  * msgsize. Parsing is done according to the given @a flags. The SDP message
- * may not contain a @c NUL.
+ * may not contain a NUL.
  * 
- * The parsing result is stored to an @c sdp_session_t structure.
+ * The parsing result is stored to an #sdp_session_t structure.
  *
  * @param home    memory home
  * @param msg     pointer to message
  * @param msgsize size of the message (excluding final NUL, if any)
  * @param flags   flags affecting the parsing.
  *
- * The following flags are defined:
+ * The following flags are used by parser:
  *
- * @li @c sdp_f_strict Parser should accept only messages conforming strictly 
- *   to the specification.
- * @li @c sdp_f_anynet Parser accepts unknown network or address types.
+ * @li #sdp_f_strict Parser should accept only messages conforming strictly 
+ *                   to the specification.
+ * @li #sdp_f_anynet Parser accepts unknown network or address types.
+ * @li #sdp_f_insane Do not run sanity check.
+ * @li #sdp_f_c_missing  Sanity check does not require c= for each m= line
+ * @li #sdp_f_mode_0000 Parser regards "c=IN IP4 0.0.0.0" as "a=inactive"
+ *                      (likewise with c=IN IP6 ::)
+ * @li #sdp_f_mode_manual Do not generate or parse SDP mode
+ * @li #sdp_f_config   Parse config files (any line can be missing)
  *
  * @return
- * The function sdp_parse() returns always a valid parser handle.  
+ * Always a valid parser handle.
+ *
+ * @todo Parser accepts some non-conforming SDP even with #sdp_f_strict.
  */
 sdp_parser_t *
-sdp_parse(su_home_t *home, char const msg[], int msgsize, int flags)
+sdp_parse(su_home_t *home, char const msg[], issize_t msgsize, int flags)
 {
   sdp_parser_t *p;
   char *b;
+  size_t len;
 
-  if (msgsize == -1 && msg)
-    msgsize = strlen(msg);
-
-  if (msgsize < 0 || msg == NULL) {
+  if (msgsize == -1 || msg == NULL) {
     p = su_home_clone(home, sizeof(*p));
     if (p) 
       parsing_error(p, "invalid input message");
@@ -127,11 +146,19 @@ sdp_parse(su_home_t *home, char const msg[], int msgsize, int flags)
     return p;
   }
 
-  p = su_home_clone(home, sizeof(*p) + msgsize + 1);
+  if (msgsize == -1 && msg)
+    len = strlen(msg);
+  else
+    len = msgsize;
+
+  if (len > ISSIZE_MAX)
+    len = ISSIZE_MAX;
+
+  p = su_home_clone(home, sizeof(*p) + len + 1);
 
   if (p) {
-    b = strncpy((void *)(p + 1), msg, msgsize);
-    b[msgsize] = 0;
+    b = strncpy((void *)(p + 1), msg, len);
+    b[len] = 0;
 
     p->pr_message = b;
     p->pr_strict = (flags & sdp_f_strict) != 0;
@@ -169,13 +196,13 @@ su_home_t *sdp_parser_home(sdp_parser_t *parser)
  *
  * The function sdp_session() returns a pointer to the SDP session
  * structure associated with the SDP parser @a p. The pointer and all the
- * data in the structure are valid until @c sdp_parser_free() is called.
+ * data in the structure are valid until sdp_parser_free() is called.
  *
  * @param p SDP parser
  *
  * @return
  *   The function sdp_session() returns a pointer to an parsed SDP message
- *   or @c NULL, if an error has occurred.  */
+ *   or NULL, if an error has occurred.  */
 sdp_session_t *
 sdp_session(sdp_parser_t *p)
 {
@@ -191,7 +218,7 @@ sdp_session(sdp_parser_t *p)
  *
  * @return 
  * The function sdp_parsing_error() returns a C string describing parsing
- * error, or @c NULL if no error occurred.
+ * error, or NULL if no error occurred.
  */
 char const *sdp_parsing_error(sdp_parser_t *p)
 {
@@ -508,7 +535,7 @@ static void post_session(sdp_parser_t *p, sdp_session_t *sdp)
 
 /** Validates that all mandatory fields exist 
  *
- * Checks that all necessary fields (v=, o=) exists in the given sdp. If
+ * Checks that all necessary fields (v=, o=) exists in the parsed sdp. If
  * strict, check that all mandatory fields (c=, o=, s=, t=) are present. 
  * This function also goes through all media, marks rejected media as such,
  * and updates the mode accordingly.
@@ -962,7 +989,8 @@ static void parse_repeat(sdp_parser_t *p, char *d, sdp_repeat_t **result)
    */
 
   unsigned long tt, *interval;
-  int i, n, N;
+  size_t i;
+  int n, N;
   char *s;
   sdp_repeat_t *r;
 
@@ -1023,13 +1051,12 @@ static void parse_repeat(sdp_parser_t *p, char *d, sdp_repeat_t **result)
  *   r      - pointer to record data
  *   result - pointer to which parsed record is assigned
  *
- * Note:
- *   This is unimplemented!
  */
 static void parse_zone(sdp_parser_t *p, char *r, sdp_zone_t **result)
 {
   char *s;
-  int i, n, N;
+  size_t i;
+  int n, N;
   sdp_zone_t *z;
 
   /*
@@ -1098,8 +1125,6 @@ static void parse_zone(sdp_parser_t *p, char *r, sdp_zone_t **result)
  *   r      - pointer to record data
  *   result - pointer to which parsed record is assigned
  *
- * Note:
- *   This function is unimplemented!
  */
 static void parse_key(sdp_parser_t *p, char *r, sdp_key_t **result)
 {
@@ -1400,6 +1425,8 @@ static sdp_rtpmap_t const
  *
  * The table of reserved payload numbers is constructed from @RFC3551
  * and @RFC1890. Note the clock rate of G722.
+ *
+ * Use sdp_rtpmap_dup() to copy these structures.
  */
 sdp_rtpmap_t const * const sdp_rtpmap_well_known[128] =
 {

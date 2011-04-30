@@ -205,7 +205,7 @@ void (*su_home_mutex_unlocker)(void *mutex);
 #define MEMCHECK 1
 #define MEMCHECK_EXTRA 0
 #elif !defined(MEMCHECK_EXTRA)
-#define MEMCHECK_EXTRA sizeof (unsigned)
+#define MEMCHECK_EXTRA sizeof (size_t)
 #endif
 
 enum { 
@@ -217,12 +217,13 @@ enum {
 };		
 
 #define ALIGNMENT (8)
-#define ALIGN(n)  (((n) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
-#define SIZEBITS (sizeof (unsigned) * 8 - 1)
+#define ALIGN(n) (size_t)(((n) + (ALIGNMENT - 1)) & (size_t)~(ALIGNMENT - 1))
+#define SIZEBITS (sizeof (size_t) * 8 - 1)
 
 typedef struct {
-  unsigned long sua_size:SIZEBITS; /**< Size of the block */
+  size_t   sua_size:SIZEBITS;	/**< Size of the block */
   unsigned sua_home:1;		/**< Is this another home? */
+  unsigned :0;
   void    *sua_data;		/**< Data pointer */
 } su_alloc_t;
 
@@ -231,9 +232,10 @@ struct su_block_s {
   char       *sub_preload;	/**< Preload area */
   su_home_stat_t *sub_stats;	/**< Statistics.. */
   void      (*sub_destructor)(void *); /**< Destructor function */
-  unsigned    sub_ref;		/**< Reference count */
-  unsigned    sub_used;		/**< Number of blocks allocated */
-  unsigned    sub_n;		/**< Size of hash table  */
+  size_t      sub_ref;		/**< Reference count */
+#define REF_MAX SIZE_MAX
+  size_t      sub_used;		/**< Number of blocks allocated */
+  size_t      sub_n;		/**< Size of hash table  */
 
   unsigned    sub_prsize:16;	/**< Preload size */
   unsigned    sub_prused:16;	/**< Used from preload */
@@ -248,28 +250,28 @@ struct su_block_s {
 static void su_home_check_blocks(su_block_t const *b);
 
 static void su_home_stats_alloc(su_block_t *, void *p, void *preload,
-				unsigned size, int zero);
+				size_t size, int zero);
 static void su_home_stats_free(su_block_t *sub, void *p, void *preload,
-			       unsigned size);
+			       size_t size);
 
 static void _su_home_deinit(su_home_t *home);
 
 #define SU_ALLOC_STATS 1
 
 #if SU_ALLOC_STATS
-unsigned count_su_block_find, count_su_block_find_loop;
-unsigned size_su_block_find, used_su_block_find;
-unsigned max_size_su_block_find, max_used_su_block_find;
-unsigned su_block_find_collision, su_block_find_collision_used, 
+size_t count_su_block_find, count_su_block_find_loop;
+size_t size_su_block_find, used_su_block_find;
+size_t max_size_su_block_find, max_used_su_block_find;
+size_t su_block_find_collision, su_block_find_collision_used, 
   su_block_find_collision_size;
 #endif
 
 static inline su_alloc_t *su_block_find(su_block_t *b, void *p)
 {
-  unsigned h, h0, probe;
+  size_t h, h0, probe;
 
 #if SU_ALLOC_STATS  
-  unsigned collision = 0;
+  size_t collision = 0;
 
   count_su_block_find++;
   size_su_block_find += b->sub_n;
@@ -282,7 +284,7 @@ static inline su_alloc_t *su_block_find(su_block_t *b, void *p)
 
   assert(p != NULL);
 
-  h = h0 = ((unsigned long)p) % b->sub_n;
+  h = h0 = (size_t)((uintptr_t)p % b->sub_n);
 
   probe = (b->sub_n > SUB_P) ? SUB_P : 1;
 
@@ -306,11 +308,11 @@ static inline su_alloc_t *su_block_find(su_block_t *b, void *p)
 
 static inline su_alloc_t *su_block_add(su_block_t *b, void *p)
 {
-  unsigned h, probe;
+  size_t h, probe;
 
   assert(p != NULL);
 
-  h = ((unsigned long)p) % b->sub_n;
+  h = (size_t)((uintptr_t)p % b->sub_n);
 
   probe = (b->sub_n > SUB_P) ? SUB_P : 1;
 
@@ -337,13 +339,13 @@ static inline int su_is_preloaded(su_block_t const *sub, char *data)
 static inline int su_alloc_check(su_block_t const *sub, su_alloc_t const *sua)
 {
 #if MEMCHECK_EXTRA
-  int size, term;
+  size_t size, term;
   assert(sua);
   if (sua) {
     size = sua->sua_size;
     memcpy(&term, (char *)sua->sua_data + size, sizeof (term));
-    assert(-term == size);
-    return -term == size;
+    assert(size - term == 0);
+    return size - term == 0;
   }
   else
     return 0;
@@ -363,7 +365,7 @@ static inline int su_alloc_check(su_block_t const *sub, su_alloc_t const *sua)
  *   This function returns a pointer to the allocated hash table or
  *   NULL if an error occurred.
  */
-static inline su_block_t *su_hash_alloc(int n)
+static inline su_block_t *su_hash_alloc(size_t n)
 {
   su_block_t *b = calloc(1, offsetof(su_block_t, sub_nodes[n]));
 
@@ -389,16 +391,16 @@ enum sub_zero { do_malloc, do_calloc, do_clone };
 static 
 void *sub_alloc(su_home_t *home, 
 		su_block_t *sub,
-		long size, 
+		size_t size,
 		enum sub_zero zero)
 {
   void *data, *preload = NULL;
   
-  assert (size >= 0);
+  assert (size < (1UL << SIZEBITS));
 
   if (sub == NULL || 3 * sub->sub_used > 2 * sub->sub_n) {
     /* Resize the hash table */
-    int i, n, n2, used;
+    size_t i, n, n2, used;
     su_block_t *b2;
 
     if (sub)
@@ -414,7 +416,7 @@ void *sub_alloc(su_home_t *home,
       return NULL;
 
     for (i = 0; i < n; i++) {
-      if (sub->sub_nodes[i].sua_data) 
+      if (sub->sub_nodes[i].sua_data)
 	su_block_add(b2, sub->sub_nodes[i].sua_data)[0] = sub->sub_nodes[i];
     }
 
@@ -444,7 +446,7 @@ void *sub_alloc(su_home_t *home,
     prused = ALIGN(prused);
     if (prused <= sub->sub_prsize) {
       preload = (char *)sub->sub_preload + sub->sub_prused;
-      sub->sub_prused = prused;
+      sub->sub_prused = (unsigned)prused;
     }
   }
 
@@ -461,7 +463,7 @@ void *sub_alloc(su_home_t *home,
     su_alloc_t *sua;
 
 #if MEMCHECK_EXTRA
-    int term = -size;
+    size_t term = 0 - size;
     memcpy((char *)data + size, &term, sizeof (term));
 #endif
 
@@ -478,7 +480,7 @@ void *sub_alloc(su_home_t *home,
       if (!subhome->suh_blocks) 
 	return (void)free(data), NULL;
 
-      subhome->suh_size = size;
+      subhome->suh_size = (unsigned)size;
       subhome->suh_blocks->sub_parent = home;
       subhome->suh_blocks->sub_ref = 1;
     }
@@ -511,18 +513,20 @@ void *sub_alloc(su_home_t *home,
  * This function returns a pointer to an su_home_t object, or NULL upon
  * an error.
  */
-void *su_home_new(int size)
+void *su_home_new(isize_t size)
 {
   su_home_t *home;
 
   assert(size >= sizeof (*home));
 
   if (size < sizeof (*home))
-    return NULL;
+    return (errno = EINVAL), NULL;
+  else if (size > INT_MAX)
+    return (errno = ENOMEM), NULL;
 
   home = calloc(1, size);
   if (home) {
-    home->suh_size = size;
+    home->suh_size = (int)size;
     home->suh_blocks = su_hash_alloc(SUB_N);
     if (home->suh_blocks)
       home->suh_blocks->sub_ref = 1;
@@ -545,7 +549,7 @@ void *su_home_ref(su_home_t const *home)
       return NULL;
     }
     
-    if (sub->sub_ref != UINT_MAX)
+    if (sub->sub_ref != REF_MAX)
       sub->sub_ref++;
     UNLOCK(home);
   }
@@ -600,7 +604,7 @@ int su_home_unref(su_home_t *home)
     /* Xyzzy */
     return 0;
   }
-  else if (sub->sub_ref == UINT_MAX) {
+  else if (sub->sub_ref == REF_MAX) {
     UNLOCK(home);
     return 0;
   }
@@ -642,14 +646,16 @@ int su_home_unref(su_home_t *home)
  * This function returns a pointer to an su_home_t object, or NULL upon
  * an error.
  */
-void *su_home_clone(su_home_t *parent, int size)
+void *su_home_clone(su_home_t *parent, isize_t size)
 {
   su_home_t *home;
 
   assert(size >= sizeof (*home));
 
   if (size < sizeof (*home))
-    return NULL;
+    return (void)(errno = EINVAL), NULL;
+  else if (size > INT_MAX)
+    return (void)(errno = ENOMEM), NULL;
 
   if (parent) {
     su_block_t *sub = MEMLOCK(parent);
@@ -683,7 +689,7 @@ int su_home_has_parent(su_home_t const *home)
  * This function returns a pointer to the allocated memory block or
  * NULL if an error occurred.
  */
-void *su_alloc(su_home_t *home, int size)
+void *su_alloc(su_home_t *home, isize_t size)
 {
   void *data;
 
@@ -730,7 +736,7 @@ void su_free(su_home_t *home, void *data)
 	su_home_t *subhome = data;
 	su_block_t *sub = MEMLOCK(subhome);
 
-	assert(sub->sub_ref != UINT_MAX);
+	assert(sub->sub_ref != REF_MAX);
 	/* assert(sub->sub_ref > 0); */
 
 	sub->sub_ref = 0;	/* Zap all references */
@@ -780,7 +786,7 @@ void su_home_check_blocks(su_block_t const *b)
 {
 #if MEMCHECK != 0
   if (b) {
-    unsigned i, used;
+    size_t i, used;
     assert(b->sub_used <= b->sub_n);
 
     for (i = 0, used = 0; i < b->sub_n; i++)
@@ -860,7 +866,7 @@ static
 void _su_home_deinit(su_home_t *home)
 {
   if (home->suh_blocks) {
-    unsigned i;
+    size_t i;
     su_block_t *b;
 
      if (home->suh_blocks->sub_destructor) {
@@ -941,7 +947,7 @@ void su_home_deinit(su_home_t *home)
  */
 int su_home_move(su_home_t *dst, su_home_t *src)
 {
-  unsigned i, n, n2, used;
+  size_t i, n, n2, used;
   su_block_t *s, *d, *d2;
 
   if (src == NULL || dst == src)
@@ -1032,7 +1038,7 @@ int su_home_move(su_home_t *dst, su_home_t *src)
  *
  * The function su_home_preload() preloads a memory home.
  */
-void su_home_preload(su_home_t *home, int n, int isize)
+void su_home_preload(su_home_t *home, isize_t n, isize_t isize)
 {
   su_block_t *sub;
 
@@ -1044,17 +1050,17 @@ void su_home_preload(su_home_t *home, int n, int isize)
 
   sub = MEMLOCK(home);
   if (!sub->sub_preload) {
-    int size;
+    size_t size;
     void *preload;
 
     size = n * ALIGN(isize);
-    if (size > USHRT_MAX)
-      size = USHRT_MAX & (ALIGNMENT - 1);
+    if (size > 65535)		/* We have 16 bits... */
+      size = 65535 & (ALIGNMENT - 1);
 
     preload = malloc(size);
 
     home->suh_blocks->sub_preload = preload;
-    home->suh_blocks->sub_prsize = size;
+    home->suh_blocks->sub_prsize = (unsigned)size;
   }
   UNLOCK(home);
 }
@@ -1064,7 +1070,7 @@ void su_home_preload(su_home_t *home, int n, int isize)
  * The function su_home_auto() initalizes a memory home using an area
  * allocated from stack. Poor mans alloca().
  */
-su_home_t *su_home_auto(void *area, int size)
+su_home_t *su_home_auto(void *area, isize_t size)
 {
   su_home_t *home;
   su_block_t *sub;
@@ -1079,15 +1085,21 @@ su_home_t *su_home_auto(void *area, int size)
   if (area == NULL || size < prepsize)
     return NULL;
 
+  if (size > INT_MAX)
+    size = INT_MAX;
+
   home = memset(p, 0, homesize);
-  home->suh_size = size;
+  home->suh_size = (int)size;
 
   sub = memset(p + homesize, 0, subsize);
   home->suh_blocks = sub;
 
+  if (size > prepsize + 65535)
+    size = prepsize + 65535;
+
   sub->sub_n = SUB_N_AUTO;
   sub->sub_preload = p + prepsize;
-  sub->sub_prsize = size - prepsize;
+  sub->sub_prsize = (unsigned)(size - prepsize);
   sub->sub_preauto = 1;
   sub->sub_auto = 1;
   sub->sub_auto_all = 1;
@@ -1112,13 +1124,13 @@ su_home_t *su_home_auto(void *area, int size)
  *   This function returns a pointer to the allocated memory block or
  *   NULL if an error occurred.
  */
-void *su_realloc(su_home_t *home, void *data, int size)
+void *su_realloc(su_home_t *home, void *data, isize_t size)
 {
   void *ndata;
   su_alloc_t *sua;
   su_block_t *sub;
-  int p;
-  int term = -size;
+  size_t p;
+  size_t term = 0 - size;
 
   if (!home) 
     return realloc(data, size);
@@ -1172,7 +1184,7 @@ void *su_realloc(su_home_t *home, void *data, int size)
   p = ALIGN(p);
 
   if (p == sub->sub_prused) {
-    int p2 = (char *)data - sub->sub_preload + size + MEMCHECK_EXTRA;
+    size_t p2 = (char *)data - sub->sub_preload + size + MEMCHECK_EXTRA;
     p2 = ALIGN(p2);
     if (p2 <= sub->sub_prsize) {
       /* Extend/reduce existing preload */
@@ -1181,7 +1193,7 @@ void *su_realloc(su_home_t *home, void *data, int size)
 	su_home_stats_alloc(sub, data, data, size, 0);
       }
 
-      sub->sub_prused = p2;
+      sub->sub_prused = (unsigned)p2;
       sua->sua_size = size;
 
 #if MEMCHECK_EXTRA
@@ -1250,7 +1262,7 @@ void *su_realloc(su_home_t *home, void *data, int size)
  * The function su_zalloc() returns a pointer to the allocated memory block,
  * or NULL upon an error.
  */
-void *su_zalloc(su_home_t *home, int  size)
+void *su_zalloc(su_home_t *home, isize_t size)
 {
   void *data;
 
@@ -1270,7 +1282,7 @@ void *su_zalloc(su_home_t *home, int  size)
  *
  * The function su_salloc() allocates a structure with a given size, zeros
  * it, and initializes the size field to the given size.  The size field
- * is the first in the structure.
+ * is the first in the structure. It has type of int. 
  *
  * @param home  pointer to memory pool object
  * @param size  size of the structure
@@ -1288,23 +1300,23 @@ void *su_zalloc(su_home_t *home, int  size)
  *   ...
  *   t = su_salloc(home, sizeof (*t)); 
  *   assert(t && t->t_size == sizeof (*t));
- *   t->name
+ *   
  * @endcode
  * After calling su_salloc() we get a pointer t to a struct test,
- * initialized to zero except the 
+ * initialized to zero except the tst_size field, which is initialized to
+ * sizeof (*t).
  *
- *
- * @return This function returns a pointer to the allocated structure, or
- * NULL upon an error.
+ * @return A pointer to the allocated structure, or NULL upon an error.
  */
-void *su_salloc(su_home_t *home, int size)
+void *su_salloc(su_home_t *home, isize_t size)
 {
   struct { int size; } *retval;
 
   if (size < sizeof (*retval))
     size = sizeof (*retval);
 
-  assert (size >= 0);
+  if (size > INT_MAX)
+    return (void)(errno = ENOMEM), NULL;
 
   if (home) {
     retval = sub_alloc(home, MEMLOCK(home), size, 1);
@@ -1314,7 +1326,7 @@ void *su_salloc(su_home_t *home, int size)
     retval = calloc(1, size);
 
   if (retval)
-    retval->size = size;
+    retval->size = (int)size;
 
   return retval;
 }
@@ -1360,11 +1372,12 @@ int su_home_mutex_unlock(su_home_t *home)
   return 0;
 }
 
+
 /** Initialize statistics structure */
 void su_home_init_stats(su_home_t *home)
 {
   su_block_t *sub;
-  int size;
+  size_t size;
 
   if (home == NULL)
     return;
@@ -1386,7 +1399,7 @@ void su_home_init_stats(su_home_t *home)
     size = sub->sub_stats->hs_size;
   
   memset(sub->sub_stats, 0, size);
-  sub->sub_stats->hs_size = size;
+  sub->sub_stats->hs_size = (int)size;
   sub->sub_stats->hs_blocksize = sub->sub_n;
 }
 
@@ -1394,7 +1407,7 @@ void su_home_init_stats(su_home_t *home)
  */
 void su_home_get_stats(su_home_t *home, int include_clones, 
 		       su_home_stat_t hs[1],
-		       int size)
+		       isize_t size)
 {
   su_block_t *sub;
 
@@ -1407,12 +1420,12 @@ void su_home_get_stats(su_home_t *home, int include_clones,
 
   if (sub && sub->sub_stats) {
     int sub_size = sub->sub_stats->hs_size;
-    if (sub_size > size)
-      sub_size = size;
+    if (sub_size > (int)size)
+      sub_size = (int)size;
     sub->sub_stats->hs_preload.hsp_size = sub->sub_prsize;
     sub->sub_stats->hs_preload.hsp_used = sub->sub_prused;
     memcpy(hs, sub->sub_stats, sub_size);
-    hs->hs_size = size;
+    hs->hs_size = sub_size;
   }
 
   UNLOCK(home);
@@ -1420,11 +1433,11 @@ void su_home_get_stats(su_home_t *home, int include_clones,
 
 static 
 void su_home_stats_alloc(su_block_t *sub, void *p, void *preload,
-			 unsigned size, int zero)
+			 size_t size, int zero)
 {
   su_home_stat_t *hs = sub->sub_stats;
 
-  unsigned rsize = ALIGN(size);
+  size_t rsize = ALIGN(size);
 
   hs->hs_rehash += (sub->sub_n != hs->hs_blocksize);
   hs->hs_blocksize = sub->sub_n;
@@ -1448,11 +1461,11 @@ void su_home_stats_alloc(su_block_t *sub, void *p, void *preload,
 }
 
 static 
-void su_home_stats_free(su_block_t *sub, void *p, void *preload, unsigned size)
+void su_home_stats_free(su_block_t *sub, void *p, void *preload, size_t size)
 {
   su_home_stat_t *hs = sub->sub_stats;
 
-  unsigned rsize = ALIGN(size);
+  size_t rsize = ALIGN(size);
 
   if (preload) {
     hs->hs_frees.hsf_preload++;

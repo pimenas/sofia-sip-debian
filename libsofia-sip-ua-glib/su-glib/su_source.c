@@ -25,7 +25,7 @@
 /**
  * @file su_source.c
  * @brief Wrapper for glib GSource.
- *  
+ * *  
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>.
  * 
  * @date Created: Thu Mar  4 15:15:15 2004 ppessi
@@ -54,6 +54,7 @@
 #define su_port_s su_source_s
 
 #include "sofia-sip/su_source.h"
+#include "sofia-sip/su_glib.h"
 
 #include "sofia-sip/su.h"
 #include "su_port.h"
@@ -226,11 +227,27 @@ typedef struct _SuSource
 #define enter (void)0
 #endif
 
+/*=============== Public function definitions ===============*/
+
 /** Create a root that uses GSource as reactor */
-su_root_t *su_root_source_create(su_root_magic_t *magic)
+su_root_t *su_glib_root_create(su_root_magic_t *magic)
 {
   return su_root_create_with_port(magic, su_source_create());
 }
+
+/** Deprecated */
+su_root_t *su_root_source_create(su_root_magic_t *magic)
+{
+  return su_glib_root_create(magic);
+}
+
+GSource *su_glib_root_gsource(su_root_t *root)
+{
+  g_assert(root);
+  return su_root_gsource(root);
+}
+
+/*=============== Private function definitions ===============*/
 
 /**@internal
  *
@@ -502,10 +519,7 @@ int su_source_getmsgs(su_port_t *self)
       SU_SOURCE_UNLOCK(self, "su_source_getmsgs");
       if (f) 
 	f(su_root_magic(root), &msg, msg->sum_data);
-      if (msg && msg->sum_report)
-	su_msg_delivery_report(&msg);
-      else
-	su_msg_destroy(&msg);
+      su_msg_delivery_report(&msg);
       SU_SOURCE_LOCK(self, "su_source_getmsgs");
     }
 
@@ -556,7 +570,7 @@ int su_source_register(su_port_t *self,
 
   if (n >= self->sup_size_waits) {
     /* Reallocate size arrays */
-    int size;
+    unsigned size;
     unsigned *indices;
     su_wait_t *waits;
     su_wakeup_f *wait_cbs;
@@ -763,7 +777,7 @@ int su_source_deregister(su_port_t *self, int i)
   I = self->sup_max_index;
   indices = self->sup_indices;
 
-  assert(i < I + 1);
+  assert((unsigned)i < I + 1);
 
   n = indices[i - 1];
 
@@ -793,7 +807,7 @@ int su_source_deregister(su_port_t *self, int i)
 
   indices[i - 1] = UINT_MAX;
 
-  if (i == I)
+  if ((unsigned)i == I)
     self->sup_max_index--;
 
   su_wait_destroy(wait);
@@ -879,9 +893,9 @@ int su_source_eventmask(su_port_t *self, int index, int socket, int events)
   
   assert(self);
   assert(SU_SOURCE_OWN_THREAD(self));
-  assert(index <= self->sup_max_index);
+  assert(0 < index && (unsigned)index <= self->sup_max_index);
 
-  if (index <= 0 || index > self->sup_max_index)
+  if (index <= 0 || (unsigned)index > self->sup_max_index)
     return -1;
 
   n = self->sup_indices[index - 1];

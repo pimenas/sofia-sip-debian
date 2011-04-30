@@ -78,6 +78,7 @@ tag_class_t sipstrtag_class[1] =
     /* tc_snprintf */ t_str_snprintf,
     /* tc_filter */   NULL /* msgtag_str_filter */,
     /* tc_ref_set */  t_ptr_ref_set,
+    /* tc_scan */     t_str_scan
   }};
 
 /** Tag class for SIP message tags. @HIDE */
@@ -96,21 +97,32 @@ tag_class_t sipmsgtag_class[1] =
     /* tc_ref_set */  t_ptr_ref_set,
   }};
 
-/** Filter a SIP header structure. */
+
+/** Filter a for SIP header tag.
+ *
+ * @param[in] dst tag list for filtering result. May be NULL.
+ * @param[in] f   filter tag 
+ * @param[in] src tag item from source list. 
+ * @param[in,out] bb pointer to pointer of mempory area used to dup 
+ *                   the filtering result
+ *
+ * This function is also used to calculate size for filtering result.
+ */
 tagi_t *siptag_filter(tagi_t *dst,
 		      tagi_t const f[],
 		      tagi_t const *src, 
 		      void **bb)
 {
   tagi_t stub[2] = {{ NULL }};
-  tag_type_t sctt, tt = f->t_tag;
+  tag_type_t srctt, tt = f->t_tag;
   msg_hclass_t *hc = (msg_hclass_t *)tt->tt_magic;
 
   assert(src);
 
-  sctt = src->t_tag;
+  srctt = src->t_tag;
 
-  if (sctt && sctt->tt_class == sipmsgtag_class) {
+  /* Match filtered header with a header from a SIP message */
+  if (srctt && srctt->tt_class == sipmsgtag_class) {
     sip_t const *sip = (sip_t const *)src->t_value;
     sip_header_t const **hh, *h;
 
@@ -121,8 +133,9 @@ tagi_t *siptag_filter(tagi_t *dst,
       msg_hclass_offset((msg_mclass_t *)sip->sip_common->h_class, 
 			(msg_pub_t *)sip, hc);
 
-    if (hh >= (sip_header_t const **)((char *)sip + sip->sip_size) ||
-	hh < (sip_header_t const **)&sip->sip_request)
+    /* Is header present in the SIP message? */
+    if ((char *)hh >= ((char *)sip + sip->sip_size) ||
+	(char *)hh < (char *)&sip->sip_request)
       return dst;
 
     h = *hh;
@@ -131,11 +144,11 @@ tagi_t *siptag_filter(tagi_t *dst,
       return dst;
 
     stub[0].t_tag = tt;
-    stub[0].t_value = (long)h;
-    src = stub; sctt = tt;
+    stub[0].t_value = (tag_value_t)h;
+    src = stub; srctt = tt;
   }
 
-  if (tt != sctt)
+  if (tt != srctt)
     return dst;
 
   if (!src->t_value)
@@ -150,37 +163,37 @@ tagi_t *siptag_filter(tagi_t *dst,
 }
 
 /** Add duplicates of headers from taglist to the SIP message. */
- int sip_add_tl(msg_t *msg, sip_t *sip,
-		tag_type_t tag, tag_value_t value, ...)
- {
-   tagi_t const *t;
-   ta_list ta;
-   int retval;
+int sip_add_tl(msg_t *msg, sip_t *sip,
+	       tag_type_t tag, tag_value_t value, ...)
+{
+  tagi_t const *t;
+  ta_list ta;
+  int retval;
 
-   ta_start(ta, tag, value);
+  ta_start(ta, tag, value);
 
-   t = ta_args(ta);
+  t = ta_args(ta);
 
-   retval = sip_add_tagis(msg, sip, &t);
+  retval = sip_add_tagis(msg, sip, &t);
 
-   ta_end(ta);
-   return retval;
- }
+  ta_end(ta);
+  return retval;
+}
 
- /** Add duplicates of headers from taglist to the SIP message. */
- int sip_add_tagis(msg_t *msg, sip_t *sip, tagi_t const **inout_list)
- {
-   tagi_t const *t;
-   tag_type_t tag;
-   tag_value_t value;
+/** Add duplicates of headers from taglist to the SIP message. */
+int sip_add_tagis(msg_t *msg, sip_t *sip, tagi_t const **inout_list)
+{
+  tagi_t const *t;
+  tag_type_t tag;
+  tag_value_t value;
 
-   if (!msg || !inout_list)
-     return -1;
+  if (!msg || !inout_list)
+    return -1;
 
-   for (t = *inout_list; t; t = tl_next(t)) {
-     tag = t->t_tag, value = t->t_value;
+  for (t = *inout_list; t; t = tl_next(t)) {
+    tag = t->t_tag, value = t->t_value;
 
-     if (tag == NULL || tag == siptag_end) {
+    if (tag == NULL || tag == siptag_end) {
       t = tl_next(t);
       break;
     }

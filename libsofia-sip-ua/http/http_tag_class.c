@@ -62,6 +62,7 @@ tag_class_t httphdrtag_class[1] =
     /* tc_snprintf */ msghdrtag_snprintf,
     /* tc_filter */   httptag_filter,
     /* tc_ref_set */  t_ptr_ref_set,
+    /* tc_scan */     msghdrtag_scan,
   }};
 
 tag_class_t httpstrtag_class[1] = 
@@ -77,6 +78,7 @@ tag_class_t httpstrtag_class[1] =
     /* tc_snprintf */ t_str_snprintf,
     /* tc_filter */   NULL /* msgtag_str_filter */,
     /* tc_ref_set */  t_ptr_ref_set,
+    /* tc_scan */     msghdrtag_scan,
   }};
 
 tag_class_t httpmsgtag_class[1] = 
@@ -92,6 +94,7 @@ tag_class_t httpmsgtag_class[1] =
     /* tc_snprintf */ msgobjtag_snprintf,
     /* tc_filter */   NULL /* httptag_http_filter */,
     /* tc_ref_set */  t_ptr_ref_set,
+    /* tc_scan */     t_str_scan
   }};
 
 /** Filter a HTTP header structure. */
@@ -118,8 +121,8 @@ tagi_t *httptag_filter(tagi_t *dst,
     hh = (void *)msg_hclass_offset(mc, http, hc);
 
     if (http == NULL ||
-	hh >= (http_header_t const **)((char *)http + http->http_size) ||
-	hh < (http_header_t const **)&http->http_request)
+	(char *)hh >= ((char *)http + http->http_size) ||
+	(char *)hh < (char *)&http->http_request)
       return dst;
 
     h = *hh;
@@ -128,7 +131,7 @@ tagi_t *httptag_filter(tagi_t *dst,
       return dst;
 
     stub[0].t_tag = tt;
-    stub[0].t_value = (long)h;
+    stub[0].t_value = (tag_value_t)h;
     src = stub; sctt = tt;
   }
 

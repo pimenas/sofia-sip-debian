@@ -46,7 +46,7 @@
  * The function sl_message_log() prints shorthand information identifying
  * the SIP message to the given output @a stream.  The shorthand information
  * include the method and URL by default.  If @a details is nonzero, topmost
- * @b Via, @b CSeq, @b To @b and @From is included, too.
+ * @Via, @CSeq, @To and @From is included, too.
  *
  * @param stream   output stream (if @c NULL, @c stdout is used).
  * @param prefix   string printed before the first line.
@@ -99,7 +99,7 @@ void sl_message_log(FILE *stream,
     sl_to_print(stream, "\tTo: %s\n", sip->sip_to);
 }
 
-/** Print @b From header. 
+/** Print @From header. 
  *
  * The function sl_from_print() prints the contents of @a from header to
  * the output @a stream.  The @a fmt specifies the output format, where %s
@@ -114,7 +114,7 @@ void sl_message_log(FILE *stream,
  * The function sl_from_print() returns number of bytes printed,
  * or -1 upon an error.
  */
-int sl_from_print(FILE *stream, char const *fmt, sip_from_t const *from)
+issize_t sl_from_print(FILE *stream, char const *fmt, sip_from_t const *from)
 {
   char s[1024];
 
@@ -127,11 +127,11 @@ int sl_from_print(FILE *stream, char const *fmt, sip_from_t const *from)
   if (fmt && strcmp(fmt, "%s"))
     return fprintf(stream, fmt, s);
   if (fputs(s, stream) >= 0)
-    return strlen(s);
+    return (issize_t)strlen(s);
   return -1;
 }
 
-/** Print @b To header.
+/** Print @To header.
  *
  * The function sl_to_print() prints the contents of @a to header to
  * the output @a stream.  The @a fmt specifies the output format, where %s
@@ -146,12 +146,12 @@ int sl_from_print(FILE *stream, char const *fmt, sip_from_t const *from)
  * The function sl_to_print() returns number of bytes printed,
  * or -1 upon an error.
  */
-int sl_to_print(FILE *stream, char const *fmt, sip_to_t const *to)
+issize_t sl_to_print(FILE *stream, char const *fmt, sip_to_t const *to)
 {
   return sl_from_print(stream, fmt, (sip_from_t const *)to);
 }
 
-/** Print @b Contact header. 
+/** Print @Contact header. 
  *
  * The function sl_contact_print() prints the contents of @a contact
  * header to the output @a stream.  The @a fmt specifies the output format,
@@ -166,12 +166,12 @@ int sl_to_print(FILE *stream, char const *fmt, sip_to_t const *to)
  * The function sl_contact_print() returns number of bytes printed,
  * or -1 upon an error.
 */
-int sl_contact_print(FILE *stream, char const *fmt, sip_contact_t const *m)
+issize_t sl_contact_print(FILE *stream, char const *fmt, sip_contact_t const *m)
 {
   return sl_from_print(stream, fmt, (sip_from_t const *)m);
 }
 
-/** Print @b Allow header(s). 
+/** Print @Allow header(s). 
  *
  * The function sl_allow_print() prints the contents of @a allow header to
  * the output @a stream.  The @a fmt specifies the output format, where %s
@@ -186,7 +186,7 @@ int sl_contact_print(FILE *stream, char const *fmt, sip_contact_t const *m)
  * The function sl_allow_print() returns number of bytes printed,
  * or -1 upon an error.
 */
-int sl_allow_print(FILE *stream, char const *fmt, sip_allow_t const *allow)
+issize_t sl_allow_print(FILE *stream, char const *fmt, sip_allow_t const *allow)
 {
   char *s, b[1024], *end = b + sizeof(b) - 1;
   msg_param_t const *p;
@@ -205,7 +205,7 @@ int sl_allow_print(FILE *stream, char const *fmt, sip_allow_t const *allow)
   if (fmt && strcmp(fmt, "%s"))
     return fprintf(stream, fmt, b);
   if (fputs(b, stream) >= 0)
-    return strlen(b);
+    return (issize_t)strlen(b);
   return -1;
 }
 
@@ -225,10 +225,10 @@ int sl_allow_print(FILE *stream, char const *fmt, sip_allow_t const *allow)
  * The function sl_payload_print() returns number of bytes printed,
  * or -1 upon an error.
 */
-int sl_payload_print(FILE *stream, char const *prefix, sip_payload_t const *pl)
+issize_t sl_payload_print(FILE *stream, char const *prefix, sip_payload_t const *pl)
 {
   char *s = pl->pl_data, *end = pl->pl_data + pl->pl_len;
-  int n, crlf = 1, total = 0;
+  size_t n, total = 0, crlf = 1; 
 
   while (s < end && *s != '\0') {
     n = strncspn(s, end - s, "\r\n");
@@ -242,10 +242,10 @@ int sl_payload_print(FILE *stream, char const *prefix, sip_payload_t const *pl)
   if (crlf == 0)
     fputs("\n", stream), total++;
 
-  return total;
+  return (issize_t)total;
 }
 
-/** Print @b Via header. 
+/** Print @Via header. 
  *
  * The function sl_via_print() prints the contents of @a via header to
  * the output @a stream.  The @a fmt specifies the output format, where %s
@@ -260,7 +260,7 @@ int sl_payload_print(FILE *stream, char const *prefix, sip_payload_t const *pl)
  * The function sl_via_print() returns number of bytes printed,
  * or -1 upon an error.
  */
-int sl_via_print(FILE *stream, char const *fmt, sip_via_t const *v)
+issize_t sl_via_print(FILE *stream, char const *fmt, sip_via_t const *v)
 {
   char s[1024];
 
@@ -270,7 +270,7 @@ int sl_via_print(FILE *stream, char const *fmt, sip_via_t const *v)
   if (fmt && strcmp(fmt, "%s"))
     return fprintf(stream, fmt, s);
   if (fputs(s, stream) >= 0)
-    return strlen(s);
+    return (issize_t)strlen(s);
   return -1;
 }
 
@@ -289,7 +289,7 @@ int sl_via_print(FILE *stream, char const *fmt, sip_via_t const *v)
  * The function sl_header_print() returns number of bytes printed,
  * or -1 upon an error.
  */
-int sl_header_print(FILE *stream, char const *fmt, sip_header_t const *h)
+issize_t sl_header_print(FILE *stream, char const *fmt, sip_header_t const *h)
 {
   char s[1024];
 
@@ -299,6 +299,6 @@ int sl_header_print(FILE *stream, char const *fmt, sip_header_t const *h)
   if (fmt && strcmp(fmt, "%s"))
     return fprintf(stream, fmt, s);
   if (fputs(s, stream) >= 0)
-    return strlen(s);
+    return (issize_t)strlen(s);
   return -1;
 }

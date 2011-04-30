@@ -34,15 +34,16 @@
 
 #include "config.h"
 
+#include "sofia-sip/auth_common.h"
+#include "sofia-sip/msg_header.h"
+
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
 
-#include <sofia-sip/su_md5.h>
-#include "sofia-sip/auth_digest.h"
-#include "sofia-sip/msg_header.h"
-
-#include "iptsec_debug.h"
+#if !HAVE_STRCASESTR
+char *strcasestr(char const *haystack, char const *needle);
+#endif
 
 static inline int has_token(char const *qstring, char const *token);
 
@@ -60,11 +61,12 @@ static inline int has_token(char const *qstring, char const *token);
  * The function auth_get_params() returns number of parameters found in
  * params, or -1 upon an error.
  */
-int auth_get_params(su_home_t *home,
-		    char const * const params[], ...
-		    /* char const *fmt, char const **return_value */)
+issize_t auth_get_params(su_home_t *home,
+			 char const * const params[], ...
+			 /* char const *fmt, char const **return_value */)
 {
-  int n, j, len, namelen;
+  int n, j;
+  size_t len, namelen;
   char const *fmt, *expected;
   char const *value, *p, **return_value;
   va_list(ap);
@@ -143,11 +145,14 @@ int auth_get_params(su_home_t *home,
   return n;
 }
 
-int auth_struct_copy(void *dst, void const *src, int s_size)
+int auth_struct_copy(void *dst, void const *src, isize_t s_size)
 {
   int d_size = *(int *)dst;
 
-  if (d_size > s_size) {
+  if (d_size < 0)
+    return -1;
+
+  if ((size_t)d_size > s_size) {
     memcpy(dst, src, s_size);
     memset((char *)dst + s_size, 0, d_size - s_size);
   }
@@ -158,28 +163,9 @@ int auth_struct_copy(void *dst, void const *src, int s_size)
   return 0;
 }
 
-#if !HAVE_STRCASESTR
-static inline char const *strcasestr(char const *haystack, char const *pin)
-{
-  int i, m ,n;
-
-  m = strlen(haystack);
-  n = strlen(pin);
-
-  for (i = 0; i + n <= m; i++)
-    if (strncasecmp(haystack + i, pin, n) == 0)
-      break;
-
-  if (i + n <= m)
-    return haystack + i;
-  else
-    return NULL;
-}
-#endif
-
 static inline int has_token(char const *qstring, char const *token)
 {
-  int n = strlen(token);
+  size_t n = strlen(token);
   char const *q;
 
   q = strcasestr(qstring, token);
@@ -192,7 +178,7 @@ static inline int has_token(char const *qstring, char const *token)
 /** Compare two strings, even if they are quoted */
 int auth_strcmp(char const *quoted, char const *unquoted)
 {
-  int i, j;
+  size_t i, j;
 
   if (quoted[0] != '"')
     return strcmp(quoted, unquoted);

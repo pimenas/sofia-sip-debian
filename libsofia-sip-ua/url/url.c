@@ -42,6 +42,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <ctype.h>
+#include <limits.h>
 
 /**@def URL_PRINT_FORMAT
  * Format string used when printing url with printf().
@@ -82,7 +83,7 @@
    || u >= '\177'					\
    || (u < 64 ? (m32 & (1 << (63 - u)))			\
        : (u < 96 ? (m64 & (1 << (95 - u)))		\
-	  : /*u < 128*/ (m96 & (1 << (127 - u))))))
+	  : /*u < 128*/ (m96 & (1 << (127 - u))))) != 0)
 
 #define MASKS_WITH_RESERVED(reserved, m32, m64, m96)		\
   if (reserved == NULL) {					\
@@ -137,12 +138,15 @@
 #define IS_EXCLUDED_MASK(u, m) IS_EXCLUDED(u, m)
 
 /* Internal prototypes */
-static char *url_canonize(char *d, char const *s, int n, char const allowed[]);
-static char *url_canonize2(char *d, char const *s, int n, 
+static char *url_canonize(char *d, char const *s, size_t n,
+			  char const allowed[]);
+static char *url_canonize2(char *d, char const *s, size_t n, 
 			   unsigned m32, unsigned m64, unsigned m96);
 static int url_tel_cmp_numbers(char const *A, char const *B);
 
 /**Test if string contains excluded or url-reserved characters. 
+ *
+ * 
  *
  * @param s  string to be searched
  *
@@ -162,17 +166,16 @@ int url_reserved_p(char const *s)
   return 0;
 }
 
-/** Calculate length of string escaped.
+/** Calculate length of string when escaped with %-notation.
  *
- * The function url_esclen() calculates the length of string @a s when
- * the excluded or reserved characters in it have been escaped.
+ * Calculate the length of string @a s when the excluded or reserved
+ * characters in it have been escaped.
  * 
  * @param s         String with reserved URL characters. [IN
  * @param reserved  Optional array of reserved characters [IN]
  *
  * @return 
- * The function url_esclen() returns the number of characters in
- * corresponding but escaped string.
+ * The number of characters in corresponding but escaped string.
  *
  * You can handle a part of URL with reserved characters like this:
  * @code
@@ -184,7 +187,6 @@ int url_reserved_p(char const *s)
  *   if (n) strcpy(n, s);
  * }
  * @endcode
- * 
  */
 int url_esclen(char const *s, char const reserved[])
 {
@@ -258,7 +260,7 @@ char *url_escape(char *d, char const *s, char const reserved[])
  * @param d  destination buffer
  * @param s  string to be copied
  *
- * @return Pointer to the destination array.
+ * @return Pointer to the destination buffer.
  */
 char *url_unescape(char *d, char const *s)
 {
@@ -289,7 +291,7 @@ char *url_unescape(char *d, char const *s)
 
 /** Canonize a URL component */
 static
-char *url_canonize(char *d, char const *s, int n, char const allowed[])
+char *url_canonize(char *d, char const *s, size_t n, char const allowed[])
 {
   unsigned mask32 = 0xbe19003f, mask64 = 0x8000001e, mask96 = 0x8000001d;
 
@@ -300,18 +302,18 @@ char *url_canonize(char *d, char const *s, int n, char const allowed[])
 
 /** Canonize a URL component (with precomputed mask) */
 static
-char *url_canonize2(char *d, char const *s, int n, 
+char *url_canonize2(char *d, char const * const s, size_t n, 
 		    unsigned m32, unsigned m64, unsigned m96)
 {
-  char const *s0 = s;
+  size_t i = 0;
 
   if (d == s)
-    for (;*s && s - s0 < (unsigned)n; d++, s++) 
-      if (*s == '%')
+    for (;s[i] && i < n; d++, i++) 
+      if (s[i] == '%')
 	break;
 
-  for (;*s && s - s0 < (unsigned)n; d++, s++) {
-    unsigned char c = *s, h1, h2;
+  for (;s[i] && i < n; d++, i++) {
+    unsigned char c = s[i], h1, h2;
 
     if (c != '%') {
       if (IS_EXCLUDED(c, m32, m64, m96))
@@ -320,7 +322,7 @@ char *url_canonize2(char *d, char const *s, int n,
       continue;
     }
 
-    h1 = s[1], h2 = s[2];
+    h1 = s[i + 1], h2 = s[i + 2];
     
     if (!IS_HEX(h1) || !IS_HEX(h2)) {
       *d = '\0';
@@ -331,7 +333,8 @@ char *url_canonize2(char *d, char const *s, int n,
     c = (UNHEX(h1) << 4) | UNHEX(h2);
 
     if (!IS_EXCLUDED(c, m32, m64, m96)) {
-      *d = c, s += 2;
+      /* Convert hex to normal character */
+      *d = c, i += 2;
       continue;
     }
 
@@ -343,7 +346,7 @@ char *url_canonize2(char *d, char const *s, int n,
 
     d[0] = '%', d[1] = h1, d[2] = h2;
 
-    d +=2, s += 2;
+    d +=2, i += 2;
 #undef    UNHEX
   }
   
@@ -353,27 +356,31 @@ char *url_canonize2(char *d, char const *s, int n,
 }
 
 
-/** Canonize a URL component (with precomputed mask) */
+/** Canonize a URL component (with precomputed mask).
+ *
+ * This version does not flag error if *s contains character that should 
+ * be escaped.
+ */
 static
-char *url_canonize3(char *d, char const *s, int n, 
+char *url_canonize3(char *d, char const * const s, size_t n, 
 		    unsigned m32, unsigned m64, unsigned m96)
 {
-  char const *s0 = s;
+  size_t i = 0;
 
   if (d == s)
-    for (;*s && s - s0 < (unsigned)n; d++, s++) 
-      if (*s == '%')
+    for (;s[i] && i < n; d++, i++) 
+      if (s[i] == '%')
 	break;
 
-  for (;*s && s - s0 < (unsigned)n; d++, s++) {
-    unsigned char c = *s, h1, h2;
+  for (;s[i] && i < n; d++, i++) {
+    unsigned char c = s[i], h1, h2;
 
     if (c != '%') {
       *d = c;
       continue;
     }
 
-    h1 = s[1], h2 = s[2];
+    h1 = s[i + 1], h2 = s[i + 2];
     
     if (!IS_HEX(h1) || !IS_HEX(h2)) {
       *d = '\0';
@@ -384,7 +391,7 @@ char *url_canonize3(char *d, char const *s, int n,
     c = (UNHEX(h1) << 4) | UNHEX(h2);
 
     if (!IS_EXCLUDED(c, m32, m64, m96)) {
-      *d = c, s += 2;
+      *d = c, i += 2;
       continue;
     }
 
@@ -396,7 +403,7 @@ char *url_canonize3(char *d, char const *s, int n,
 
     d[0] = '%', d[1] = h1, d[2] = h2;
 
-    d +=2, s += 2;
+    d +=2, i += 2;
 #undef    UNHEX
   }
   
@@ -427,6 +434,7 @@ char const* url_scheme(enum url_type_e url_type)
   case url_pres:   return "pres";
   case url_cid:    return "cid";
   case url_msrp:   return "msrp";
+  case url_msrps:  return "msrps";
   case url_wv:     return "wv";
   default:       
     assert(url_type == url_unknown);
@@ -459,7 +467,7 @@ void url_init(url_t *url, enum url_type_e type)
 
 /** Get url type */
 static inline
-enum url_type_e url_get_type(char const *scheme, int len)
+enum url_type_e url_get_type(char const *scheme, size_t len)
 {
 #define test_scheme(s) \
    if (len == strlen(#s) && !strncasecmp(scheme, #s, len)) return url_##s
@@ -476,7 +484,7 @@ enum url_type_e url_get_type(char const *scheme, int len)
     test_scheme(im); break;
   case 'm': case 'M': 
     test_scheme(mailto); test_scheme(modem); 
-    test_scheme(msrp); break;
+    test_scheme(msrp); test_scheme(msrps); break;
   case 'p': case 'P': 
     test_scheme(pres); break;
   case 'r': case 'R': 
@@ -516,7 +524,7 @@ enum url_type_e url_get_type(char const *scheme, int len)
 static
 int _url_d(url_t *url, char *s)
 {
-  int n;
+  size_t n;
   char *s0, rest_c, *host;
   int net_path = 1;
 
@@ -536,7 +544,7 @@ int _url_d(url_t *url, char *s)
     char *scheme;
     url->url_scheme = scheme = s; s[n] = '\0'; s = s + n + 1;
 
-    if (!(scheme = url_canonize(scheme, scheme, -1, "+")))
+    if (!(scheme = url_canonize(scheme, scheme, SIZE_MAX, "+")))
       return -1;
 
     n = scheme - url->url_scheme;
@@ -632,7 +640,7 @@ int _url_d(url_t *url, char *s)
 	case url_rtsp:
 	case url_rtspu:
 	  
-	  if (!url_canonize2(port, port, -1, RESERVED_MASK))
+	  if (!url_canonize2(port, port, SIZE_MAX, RESERVED_MASK))
 	    return -1;
 
 	  /* Check that port is really numeric or wildcard */
@@ -697,29 +705,29 @@ int url_d(url_t *url, char *s)
 
 #   define SIP_USER_UNRESERVED "&=+$,;?/"
     s = (char *)url->url_user;
-    if (s && !url_canonize(s, s, -1, SIP_USER_UNRESERVED))
+    if (s && !url_canonize(s, s, SIZE_MAX, SIP_USER_UNRESERVED))
       return -1;
 
 #   define SIP_PASS_UNRESERVED "&=+$,"
     s = (char *)url->url_password;
-    if (s && !url_canonize(s, s, -1, SIP_PASS_UNRESERVED))
+    if (s && !url_canonize(s, s, SIZE_MAX, SIP_PASS_UNRESERVED))
       return -1;
 
   } else {
 
 #   define USER_UNRESERVED "&=+$,;"
     s = (char *)url->url_user;
-    if (s && !url_canonize(s, s, -1, USER_UNRESERVED))
+    if (s && !url_canonize(s, s, SIZE_MAX, USER_UNRESERVED))
       return -1;
 
 #   define PASS_UNRESERVED "&=+$,;:"
     s = (char *)url->url_password;
-    if (s && !url_canonize(s, s, -1, PASS_UNRESERVED))
+    if (s && !url_canonize(s, s, SIZE_MAX, PASS_UNRESERVED))
       return -1;
   }
 
   s = (char *)url->url_host;
-  if (s && !url_canonize2(s, s, -1, RESERVED_MASK))
+  if (s && !url_canonize2(s, s, SIZE_MAX, RESERVED_MASK))
     return -1;
 
   /* port is canonized by _url_d() */
@@ -727,23 +735,23 @@ int url_d(url_t *url, char *s)
   /* Allow all URI characters but ? and ; */
 # define PATH_UNRESERVED "/:@&=+$,"
   s = (char *)url->url_path;
-  if (s && !url_canonize(s, s, -1, PATH_UNRESERVED))
+  if (s && !url_canonize(s, s, SIZE_MAX, PATH_UNRESERVED))
     return -1;
 
   /* Allow all URI characters but ? */
 # define PARAMS_UNRESERVED ";" PATH_UNRESERVED
   s = (char *)url->url_params;
-  if (s && !url_canonize(s, s, -1, PARAMS_UNRESERVED))
+  if (s && !url_canonize(s, s, SIZE_MAX, PARAMS_UNRESERVED))
     return -1;
   
   /* Unhex alphanumeric and unreserved URI characters */
   s = (char *)url->url_headers;
-  if (s && !url_canonize3(s, s, -1, RESERVED_MASK))
+  if (s && !url_canonize3(s, s, SIZE_MAX, RESERVED_MASK))
     return -1;
 
   /* Allow all URI characters (including reserved ones) */
   s = (char *)url->url_fragment;
-  if (s && !url_canonize2(s, s, -1, URIC_MASK))
+  if (s && !url_canonize2(s, s, SIZE_MAX, URIC_MASK))
     return -1;
 
   return 0;
@@ -760,17 +768,17 @@ int url_d(url_t *url, char *s)
  * @param url    URL to be encoded.
  *
  * @return 
- * The function url_e() returns the number of bytes in the encoding.  
+ * Return the number of bytes in the encoding.  
  *
  * @note The function follows the convention set by C99 snprintf().  Even if
  * the result does not fit into the @a buffer and it is truncated, the
  * function returns the number of bytes in an untruncated encoding.
  */
-int url_e(char buffer[], int n, url_t const *url)
+issize_t url_e(char buffer[], isize_t n, url_t const *url)
 {
-  int i;
+  size_t i;
   char *b = buffer;
-  int m = n;
+  size_t m = n;
   int do_copy = n > 0;
 
   if (url == NULL)
@@ -869,7 +877,7 @@ int url_e(char buffer[], int n, url_t const *url)
   {
     static char const sep[] = ";?#";
     char const *pp[3];
-    int j;
+    size_t j;
 
     pp[0] = url->url_params;
     pp[1] = url->url_headers;
@@ -892,7 +900,7 @@ int url_e(char buffer[], int n, url_t const *url)
   else if (buffer && m > 0)
     buffer[m - 1] = '\0';
 
-  assert(b - buffer == m - n);
+  assert((size_t)(b - buffer) == (size_t)(m - n));
   
   /* This follows the snprintf(C99) return value, 
    * Number of characters written (excluding NUL)
@@ -904,9 +912,9 @@ int url_e(char buffer[], int n, url_t const *url)
 /** Calculate the lengh of URL when encoded. 
  *
  */
-int url_len(url_t const * url)
+isize_t url_len(url_t const * url)
 {
-  int rv = 0;
+  size_t rv = 0;
 
   if (url->url_scheme) rv += strlen(url->url_scheme) + 1; /* plus ':' */
   if (url->url_user) {
@@ -936,13 +944,15 @@ int url_len(url_t const * url)
  * @param url pointer to a #url_t structure or string
  * @return Number of bytes for URL
  */
-int url_xtra(url_t const *url)
+isize_t url_xtra(url_t const *url)
 {
+  size_t xtra;
+
   if (URL_STRING_P(url)) {
-    return strlen((char const *)url) + 1;
+    xtra = strlen((char const *)url) + 1;
   }
   else {
-    unsigned len_scheme, len_user, len_password,
+    size_t len_scheme, len_user, len_password,
       len_host, len_port, len_path, len_params, 
       len_headers, len_fragment;
 
@@ -957,10 +967,12 @@ int url_xtra(url_t const *url)
     len_headers = url->url_headers ? strlen(url->url_headers) + 1 : 0;
     len_fragment = url->url_fragment ? strlen(url->url_fragment) + 1 : 0;
 
-    return 
+    xtra =
       len_scheme + len_user + len_password + len_host + len_port +
       len_path + len_params + len_headers + len_fragment;
   }
+
+  return xtra;
 }
 
 static inline
@@ -1000,16 +1012,16 @@ char *copy(char *buf, char *end, char const *src)
  * @param dst     Destination URL structure.
  * @param src     Source URL structure.
  *
- * @return The function url_dup() returns number of characters required for
+ * @return Number of characters required for
  * duplicating the strings in @a str, or -1 if an error
  * occurred.
  */
-int url_dup(char *buf, int bufsize, url_t *dst, url_t const *src)
+issize_t url_dup(char *buf, isize_t bufsize, url_t *dst, url_t const *src)
 {
   if (!src && !dst)
     return -1;
   else if (URL_STRING_P(src)) {
-    int n = strlen((char *)src) + 1;
+    size_t n = strlen((char *)src) + 1;
     if (n > bufsize || dst == NULL)
       return n;
 
@@ -1109,9 +1121,10 @@ int url_dup(char *buf, int bufsize, url_t *dst, url_t const *src)
 url_t *url_hdup(su_home_t *home, url_t const *src)
 {
   if (src) {
-    int len = sizeof(*src) + url_xtra(src), actual;
+    size_t len = sizeof(*src) + url_xtra(src);
     url_t *dst = su_alloc(home, len);
     if (dst) {
+      ssize_t actual;
       actual = url_dup((char *)(dst + 1), len - sizeof(*src), dst, src);
       if (actual < 0)
 	su_free(home, dst), dst = NULL;
@@ -1155,7 +1168,15 @@ url_t *url_format(su_home_t *h, char const *fmt, ...)
 }
 
 
-/** Convert @a url to a string allocated from @a home */
+/** Convert @a url to a string allocated from @a home.
+ *
+ * @param home memory home to allocate the new string
+ * @param url  url to convert to string
+ *
+ * The @a url can be a string, too.
+ *
+ * @return Newly allocated conversion result, or NULL upon an error.
+ */
 char *url_as_string(su_home_t *home, url_t const *url)
 {
   if (url) {
@@ -1193,9 +1214,9 @@ char *url_as_string(su_home_t *home, url_t const *url)
  * @retval positive length of parameter value (including final NUL) if found
  * @retval zero     if not found.
  */
-int url_param(char const *params, 
-	      char const *tag, 
-	      char value[], int vlen)
+isize_t url_param(char const *params, 
+		  char const *tag, 
+		  char value[], isize_t vlen)
 {
   size_t n, tlen, flen;
   char *p;
@@ -1239,7 +1260,7 @@ int url_param(char const *params,
  * @deprecated 
  * Bad grammar. Use url_has_param().
  */
-int url_have_param(char const *params, char const *tag)
+isize_t url_have_param(char const *params, char const *tag)
 {
   return url_param(params, tag, NULL, 0);
 }
@@ -1254,8 +1275,8 @@ int url_has_param(url_t const *url, char const *tag)
 int url_param_add(su_home_t *h, url_t *url, char const *param)
 {
   /* XXX - should remove existing parameters with same name? */
-  int n = url->url_params ? strlen(url->url_params) + 1: 0;
-  int nn = strlen(param) + 1;
+  size_t n = url->url_params ? strlen(url->url_params) + 1: 0;
+  size_t nn = strlen(param) + 1;
   char *s = su_alloc(h, n + nn);
 
   if (!s)
@@ -1352,7 +1373,7 @@ int url_strip_transport2(url_t *url, int modify)
  * - "method=" parameter
  *
  * @note
- * The @a url must be a pointer to a URL structure.
+ * The @a url must be a pointer to a URL structure. It is stripped in-place.
  *
  * @note
  * If the parameter string contains empty parameters, they are stripped, too.
@@ -1651,6 +1672,7 @@ char const *url_port_default(enum url_type_e url_type)
     return "*";
 
   case url_msrp:
+  case url_msrps:
     return "9999";		/* XXXX */
 
   case url_tel:	
@@ -1689,6 +1711,8 @@ char const *url_tport_default(enum url_type_e url_type)
     return "tcp";
   case url_msrp:
     return "tcp";
+  case url_msrps:
+    return "tls";
 
   case url_any:			/* "*" */
   case url_tel:
@@ -1759,36 +1783,37 @@ int url_sanitize(url_t *url)
 #include <sofia-sip/su_md5.h>
 
 static
-void canon_update(su_md5_t *md5, char const *s, int n, char const *allow)
+void canon_update(su_md5_t *md5, char const *s, size_t n, char const *allow)
 {
-  char const *s0 = s, *b = s;
+  size_t i, j;
 
-  for (;*s && s - s0 < n; s++) {
+  for (i = 0, j = 0; i < n && s[i]; i++) {
     char c;
 
-    if (*s == '%' && IS_HEX(s[1]) && IS_HEX(s[2]) && s - s0 + 2 < n) {
+    if (s[i] == '%' && i + 2 < n && IS_HEX(s[i+1]) && IS_HEX(s[i+2])) {
 #define   UNHEX(a) (a - (a >= 'a' ? 'a' - 10 : (a >= 'A' ? 'A' - 10 : '0')))
-      c = (UNHEX(s[1]) << 4) | UNHEX(s[2]);
+      c = (UNHEX(s[i+1]) << 4) | UNHEX(s[i+2]);
 #undef    UNHEX
       if (c != '%' && c > ' ' && c < '\177' && 
 	  (!strchr(EXCLUDED, c) || strchr(allow, c))) {
-	if (b != s)
-	  su_md5_iupdate(md5, b, s - b);
+	if (i != j)
+	  su_md5_iupdate(md5, s + j, i - j);
 	su_md5_iupdate(md5, &c, 1);
-	b = s + 3;
+	j = i + 3;
       }
-      s += 2;
+      i += 2;
     }
   }
-  if (b != s)
-    su_md5_iupdate(md5, b, s - b);
+
+  if (i != j)
+    su_md5_iupdate(md5, s + j, i - j);
 }
 
 /** Update MD5 sum with url-string contents */
 static
 void url_string_update(su_md5_t *md5, char const *s)
 {
-  int n;
+  size_t n;
   int hostpart = 1;
   enum url_type_e type = url_any;
   char const *at, *colon;

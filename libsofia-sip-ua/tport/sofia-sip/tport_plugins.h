@@ -46,9 +46,9 @@ typedef struct {
   int vst_size;
   tport_stun_server_t *(*vst_create)(su_root_t *root, tagi_t const *tags);
   void (*vst_destroy)(tport_stun_server_t *);
-  int (*vst_add_socket)(tport_stun_server_t *, int socket);
-  int (*vst_remove_socket)(tport_stun_server_t *, int socket);
-  void (*vst_request)(tport_stun_server_t *server, int socket,
+  int (*vst_add_socket)(tport_stun_server_t *, su_socket_t socket);
+  int (*vst_remove_socket)(tport_stun_server_t *, su_socket_t socket);
+  void (*vst_request)(tport_stun_server_t *server, su_socket_t socket,
 		     void *msg, ssize_t msglen,
 		     void *addr, socklen_t addrlen);
 } tport_stun_server_vtable_t;
@@ -156,10 +156,10 @@ struct tport_comp_vtable_s {
 		       su_sockaddr_t *from,
 		       socklen_t fromlen);
 
-  int (*vsc_send_comp)(tport_t const *self,
+  ssize_t (*vsc_send_comp)(tport_t const *self,
 		       msg_t *msg, 
 		       msg_iovec_t iov[], 
-		       int iovused,
+		       size_t iovused,
 		       struct sigcomp_compartment *cc,
 		       tport_compressor_t *sc);
 

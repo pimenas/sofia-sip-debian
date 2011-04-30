@@ -46,6 +46,9 @@
 #include <pthread.h>
 #endif
 
+#ifndef SU_OS_NW_H
+#include <sofia-sip/su_os_nw.h>
+#endif
 #ifndef SOA_H
 #include "sofia-sip/soa.h"
 #endif
@@ -109,7 +112,9 @@ struct nua_client_request
   nua_dialog_usage_t *cr_usage;
   unsigned short      cr_retry_count;   /**< Retry count for this request */
 
-  unsigned short      cr_answer_recv;   /**< Recv answer in response */
+  unsigned short      cr_answer_recv;   /**< Recv answer in response 
+					 *  with this status.
+					 */
   unsigned            cr_offer_sent:1;  /**< Sent offer in this request */
 
   unsigned            cr_offer_recv:1;  /**< Recv offer in a response */
@@ -132,7 +137,8 @@ typedef struct nua_session_state
   unsigned        ss_precondition:1;	/**< Precondition required */
 
   unsigned        ss_hold_remote:1;	/**< We are holding remote */
-  
+
+  unsigned        ss_timer_set:1;       /**< We have active session timer. */
   unsigned        : 0;
   
   unsigned        ss_session_timer;	/**< Value of Session-Expires (delta) */
@@ -205,18 +211,10 @@ struct nua_handle_s
   void           *nh_valid;
   nua_hmagic_t 	 *nh_magic;	/**< Application context */
 
-  tagi_t         *nh_tags;	/**< Default tags */
+  tagi_t         *nh_tags;	/**< Initial tags */
+  tagi_t         *nh_ptags;	/**< Initial parameters */
 
-#if HAVE_PTHREAD_H
-#if __CYGWIN__
-  pthread_mutex_t  sup_reflock[1];
-  int              sup_ref;
-#else
-  pthread_rwlock_t nh_refcount[1];  
-#endif
-#else
-  unsigned        nh_refcount;
-#endif
+  nua_handle_t   *nh_identity;	/**< Identity */
 
   nua_handle_preferences_t *nh_prefs; /**< Preferences */
 
@@ -225,7 +223,8 @@ struct nua_handle_s
 
   unsigned        nh_ref_by_stack:1;	/**< Has stack used the handle? */
   unsigned        nh_ref_by_user:1;	/**< Has user used the handle? */
-  unsigned        nh_init:1;
+  unsigned        nh_init:1;	        /**< Handle has been initialized */
+  unsigned        nh_used_ptags:1;	/**< Ptags has been used */
 
   unsigned        nh_has_invite:1;     /**< Has call */
   unsigned        nh_has_subscribe:1;  /**< Has watcher */
@@ -285,6 +284,9 @@ struct nua_s {
   su_root_t    	      *nua_api_root;
   su_clone_r   	       nua_clone;
   su_task_r            nua_client;
+
+  su_network_changed_t *nua_nw_changed;
+
   nua_callback_f       nua_callback;
   nua_magic_t         *nua_magic;
 
@@ -309,16 +311,10 @@ struct nua_s {
   /* Constants */
   sip_accept_t       *nua_invite_accept; /* What we accept for invite */
 
-  url_t        	     *nua_registrar;
-
   su_root_t          *nua_root;
   su_task_r           nua_server;
   nta_agent_t        *nua_nta;
   su_timer_t         *nua_timer;
-
-#if HAVE_UICC_H
-  uicc_t             *nua_uicc;
-#endif
 
   void         	      *nua_sip_parser;
 
@@ -414,6 +410,8 @@ nua_handle_t *nua_stack_incoming_handle(nua_t *nua,
 					enum nh_kind kind,
 					int create_dialog);
 
+int nua_handle_save_tags(nua_handle_t *h, tagi_t *tags);
+
 void nh_destroy(nua_t *nua, nua_handle_t *nh);
 
 nua_handle_t *nh_validate(nua_t *nua, nua_handle_t *maybe);
@@ -439,6 +437,8 @@ int nua_stack_process_response(nua_handle_t *nh,
 			       nta_outgoing_t *orq,
 			       sip_t const *sip,
 			       tag_type_t tag, tag_value_t value, ...);
+
+int nua_stack_launch_network_change_detector(nua_t *nua);
 
 msg_t *nua_creq_msg(nua_t *nua, nua_handle_t *nh,
 		    struct nua_client_request *cr,
@@ -474,11 +474,17 @@ void nua_creq_deinit(struct nua_client_request *cr, nta_outgoing_t *orq);
 
 sip_contact_t const *nua_stack_get_contact(nua_registration_t const *nr);
 
-int nua_registration_add_contact(nua_handle_t *nh,
-				 msg_t *msg, 
-				 sip_t *sip,
-				 int add_contact,
-				 int add_service_route);
+int nua_registration_add_contact_to_request(nua_handle_t *nh,
+					    msg_t *msg, 
+					    sip_t *sip,
+					    int add_contact,
+					    int add_service_route);
+
+int nua_registration_add_contact_to_response(nua_handle_t *nh,
+					     msg_t *msg,
+					     sip_t *sip,
+					     sip_record_route_t const *,
+					     sip_contact_t const *remote);
 
 msg_t *nh_make_response(nua_t *nua, nua_handle_t *nh, 
 			nta_incoming_t *irq,
@@ -498,7 +504,7 @@ nua_stack_process_request_t nua_stack_process_bye;
 nua_stack_process_request_t nua_stack_process_message;
 nua_stack_process_request_t nua_stack_process_options;
 nua_stack_process_request_t nua_stack_process_publish;
-nua_stack_process_request_t nua_stack_process_subsribe;
+nua_stack_process_request_t nua_stack_process_subscribe;
 nua_stack_process_request_t nua_stack_process_notify;
 nua_stack_process_request_t nua_stack_process_refer;
 nua_stack_process_request_t nua_stack_process_unknown;

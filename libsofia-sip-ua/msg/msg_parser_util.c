@@ -54,7 +54,7 @@
 
 #include "sofia-sip/url.h"
 
-static int msg_comma_scanner(char *start);
+static issize_t msg_comma_scanner(char *start);
 
 /**
  * Parse first line.
@@ -65,7 +65,7 @@ static int msg_comma_scanner(char *start);
 int msg_firstline_d(char *s, char **return_part2, char **return_part3)
 {
   char *s1 = s, *s2, *s3;
-  int n;
+  size_t n;
 
   /* Split line into three segments separated by whitespace */
   if (s1[n = span_non_ws(s1)]) {
@@ -102,16 +102,16 @@ int msg_firstline_d(char *s, char **return_part2, char **return_part3)
  * in @a return_token, and updates the @a ss to the end of token and
  * possible whitespace.
  */
-int msg_token_d(char **ss, char const **return_token) 
+issize_t msg_token_d(char **ss, char const **return_token) 
 {
   char *s = *ss;
-  int n = span_token(s);
+  size_t n = span_token(s);
   if (n) {
     for (; IS_LWS(s[n]); n++)
       s[n] = '\0';
     *return_token = s;
     *ss = s + n;
-    return 0;
+    return n;
   }
   else
     return -1;
@@ -122,8 +122,10 @@ int msg_token_d(char **ss, char const **return_token)
  * The function msg_uint32_d() parses a 32-bit unsigned integer in string
  * pointed by @a *ss. It stores the value in @a return_token and updates the
  * @a ss to the end of integer and possible whitespace.
+ *
+ * @retval length of parsed integer, or -1 upon an error.
  */
-int msg_uint32_d(char **ss, uint32_t *return_value)
+issize_t msg_uint32_d(char **ss, uint32_t *return_value)
 {
   char const *s = *ss, *s0 = s;
   uint32_t value;
@@ -143,7 +145,7 @@ int msg_uint32_d(char **ss, uint32_t *return_value)
 
   if (*s) {
     if (!IS_LWS(*s))
-      return -1;
+      return (issize_t)-1;
     skip_lws(&s);
   }
 
@@ -161,43 +163,46 @@ int msg_uint32_d(char **ss, uint32_t *return_value)
  * character after the list. The function modifies the string as it parses
  * it.
  *
- * A pointer to the resulting list is returned in the return-value parameter
- * @a return_list. If there already is a list in @a return_list, new items
- * are appended. Empty list items are ignored, and are not included in the
+ * The parsed items are appended to the list @a *append_list. If there the
+ * list in @a *append_list is NULL, allocate a new list and return it in @a
+ * *append_list. Empty list items are ignored, and are not appended to the
  * list.
  *
- * The function must be passed a scanning function @a scanner. The scanning
- * function scans for a legitimate list item, for example, a token. It
- * should also compact the list item, for instance, if the item consists of
- * @c name=value parameter definitions. The scanning function returns the
- * length of the scanned item, including any linear whitespace after it.
+ * The function @b must be passed a scanning function @a scanner. The
+ * scanning function scans for a legitimate list item, for example, a token. 
+ * It should also compact the list item, for instance, if the item consists
+ * of @c name=value parameter definitions it should remove whitespace around
+ * "=" sign. The scanning function returns the length of the scanned item,
+ * including any linear whitespace after it.
  *
- * @param home    memory home used to allocate memory for list pointers [IN]
- * @param ss      pointer to pointer to string to be parsed [IN/OUT]
- * @param return_list  return-value parameter for parsed list [IN/OUT]
- * @param sep     separator character [IN]
- * @param scanner pointer to function scanning a single item (optional) [IN]
+ * @param[in]     home    memory home for allocating list pointers 
+ * @param[in,out] ss      pointer to pointer to string to be parsed 
+ * @param[in,out] append_list  pointer to list
+ *                             where parsed list items are appended
+ * @param[in]     sep     separator character 
+ * @param[in]     scanner pointer to function for scanning a single item
  * 
  * @retval 0  if successful.
  * @retval -1 upon an error.
  */
-int msg_any_list_d(su_home_t *home, 
-		   char **ss, 
-		   msg_param_t **return_list,
-		   int (*scanner)(char *s), 
-		   int sep)
+issize_t msg_any_list_d(su_home_t *home, 
+			char **ss, 
+			msg_param_t **append_list,
+			issize_t (*scanner)(char *s), 
+			int sep)
 {
   char const *auto_list[MSG_N_PARAMS];
   char const **list = auto_list, **re_list;
-  int N = MSG_N_PARAMS, n = 0, tlen;
+  int N = MSG_N_PARAMS, n = 0;
+  issize_t tlen;
   char *s = *ss;
   char const **start;
 
   if (!scanner)
     return -1;
 
-  if (*return_list) {
-    list = *return_list;
+  if (*append_list) {
+    list = *append_list;
     while (list[n])
       n++;
     N = MSG_PARAMS_NUM(n + 1);
@@ -216,7 +221,7 @@ int msg_any_list_d(su_home_t *home,
     if (tlen > 0) {
       if (n + 1 == N) {		/* Reallocate list? */
 	N = MSG_PARAMS_NUM(N + 1);
-	if (list == auto_list || list == *return_list) {
+	if (list == auto_list || list == *append_list) {
 	  re_list = su_alloc(home, N * sizeof(*list));
 	  if (re_list)
 	    memcpy(re_list, list, n * sizeof(*list));
@@ -243,7 +248,7 @@ int msg_any_list_d(su_home_t *home,
   *ss = s;
 
   if (n > 0 && list == auto_list) {
-    int size = sizeof(*list) * MSG_PARAMS_NUM(n + 1);
+    size_t size = sizeof(*list) * MSG_PARAMS_NUM(n + 1);
     list = su_alloc(home, size);
     if (!list) return -1;
     memcpy((void *)list, auto_list, n * sizeof(*list));
@@ -253,21 +258,36 @@ int msg_any_list_d(su_home_t *home,
   if (n == 0)
     list = NULL;
 
-  *return_list = list;
+  *append_list = list;
   return 0;
 
  error:
   *start = NULL;
-  if (list != auto_list && list != *return_list)
+  if (list != auto_list && list != *append_list)
     su_free(home, list);
   return -1;
 }
 
-/** Scan an attribute [= value] pair  */
-int msg_attribute_value_scanner(char *s)
+/** Scan an attribute (name [= value]) pair.
+ *
+ * The attribute consists of name (a token) and optional value, separated by
+ * equal sign. The value can be a token or quoted string.
+ *
+ * This function compacts the scanned value. It removes the
+ * whitespace around equal sign "=" by moving the equal sign character and
+ * value towards name.
+ * 
+ * If there is whitespace within the scanned value or after it, 
+ * NUL-terminates the scanned attribute.
+ *
+ * @retval > 0 number of characters scanned, 
+ *             including the whitespace within the value
+ * @retval -1 upon an error
+ */
+issize_t msg_attribute_value_scanner(char *s)
 {
   char *p = s;
-  unsigned tlen;
+  size_t tlen;
 
   skip_token(&s);
 
@@ -285,7 +305,7 @@ int msg_attribute_value_scanner(char *s)
 
     /* get value */
     if (*s == '"') {
-      int qlen = span_quoted(s);
+      size_t qlen = span_quoted(s);
       if (!qlen)
 	return -1;
       v = s; s += qlen;
@@ -317,28 +337,28 @@ int msg_attribute_value_scanner(char *s)
  *  av-pair = token ["=" ( value / quoted-string) ]        ; optional value
  * @endcode
  *
- * @param home      pointer to a memory home [IN]
- * @param ss        pointer to string at the start of parameter list [IN/OUT]
- * @param return_list return-value parameter for parsed list [IN/OUT]
+ * @param[in]     home      pointer to a memory home 
+ * @param[in,out] ss        pointer to string at the start of parameter list 
+ * @param[in,out] append_list  pointer to list
+ *                             where parsed list items are appended
  *
- * @retval 0 if successful
+ * @retval >= 0 if successful
  * @retval -1 upon an error
  */
-int msg_avlist_d(su_home_t *home, 
-		 char **ss, 
-		 msg_param_t const **return_list)
+issize_t msg_avlist_d(su_home_t *home, 
+		      char **ss, 
+		      msg_param_t const **append_list)
 {
   char const *stack[MSG_N_PARAMS];
-  int N;
   char const **params;
-  int n = 0;
+  size_t n = 0, N;
   char *s = *ss;
 
   if (!*s)
     return -1;
 
-  if (*return_list) {
-    params = (char const **)*return_list;
+  if (*append_list) {
+    params = (char const **)*append_list;
     for (n = 0; params[n]; n++)
       ;
     N = MSG_PARAMS_NUM(n + 1);
@@ -348,7 +368,8 @@ int msg_avlist_d(su_home_t *home,
   }
   
   for (;;) {
-    char *p; int tlen;
+    char *p;
+    size_t tlen;
 
     /* XXX - we should handle also quoted parameters */
 
@@ -368,7 +389,7 @@ int msg_avlist_d(su_home_t *home,
 
       /* get value */
       if (*s == '"') {
-	int qlen = span_quoted(s);
+	size_t qlen = span_quoted(s);
 	if (!qlen)
 	  goto error;
 	v = s; s += qlen;
@@ -409,7 +430,7 @@ int msg_avlist_d(su_home_t *home,
   *ss = s;
 
   if (params == stack) {
-    int size = sizeof(*params) * MSG_PARAMS_NUM(n + 1);
+    size_t size = sizeof(*params) * MSG_PARAMS_NUM(n + 1);
     params = su_alloc(home, size);
     if (!params) return -1;
     memcpy((void *)params, stack, n * sizeof(*params));
@@ -426,7 +447,7 @@ int msg_avlist_d(su_home_t *home,
 
   params[n] = NULL;
 
-  *return_list = params;
+  *append_list = params;
 
   return 0;
 
@@ -443,23 +464,24 @@ int msg_avlist_d(su_home_t *home,
  *  *(";" token [ "=" (token | quoted-string)]).
  * @endcode
  *
- * @param home      pointer to a memory home [IN]
- * @param ss        pointer to string at the start of parameter list [IN/OUT]
- * @param return_list   return-value parameter for the parsed list [IN/OUT]
+ * @param[in]     home      pointer to a memory home 
+ * @param[in,out] ss        pointer to string at the start of parameter list 
+ * @param[in,out] append_list  pointer to list
+ *                             where parsed list items are appended
  *
- * @retval 0 if successful
+ * @retval >= 0 if successful
  * @retval -1 upon an error
  *
  * @sa msg_avlist_d()
  */
-int msg_params_d(su_home_t *home, 
-		 char **ss, 
-		 msg_param_t const **return_list)
+issize_t msg_params_d(su_home_t *home, 
+		      char **ss, 
+		      msg_param_t const **append_list)
 {
   if (**ss == ';') {
     *(*ss)++ = '\0';
-    *return_list = NULL;
-    return msg_avlist_d(home, ss, return_list);
+    *append_list = NULL;
+    return msg_avlist_d(home, ss, append_list);
   }
 
   if (IS_LWS(**ss)) { 
@@ -470,7 +492,7 @@ int msg_params_d(su_home_t *home,
 }
 
 /** Encode a list of parameters */
-int msg_params_e(char b[], int bsiz, msg_param_t const pparams[])
+isize_t msg_params_e(char b[], isize_t bsiz, msg_param_t const pparams[])
 {
   int i;
   char *end = b + bsiz, *b0 = b;
@@ -489,11 +511,12 @@ int msg_params_e(char b[], int bsiz, msg_param_t const pparams[])
 
 /** Duplicate a parameter list */
 char *msg_params_dup(msg_param_t const **d, msg_param_t const s[],
-		     char *b, int xtra)
+		     char *b, isize_t xtra)
 {
   char *end = b + xtra;
   char **pp;
-  int i, n;
+  int i;
+  isize_t n;
 
   n = msg_params_count(s);
 
@@ -539,25 +562,27 @@ char *msg_params_dup(msg_param_t const **d, msg_param_t const s[],
  * By default, the scanning function accepts tokens, quoted strings or
  * separators (except comma, of course).
  *
- * @param home    memory home used to allocate memory for list pointers [in]
- * @param ss      pointer to pointer to string to be parsed [in/out]
- * @param return_list  return-value parameter for parsed list [in/out]
- * @param scanner pointer to function scanning a single item (optional) [in]
+ * @param[in]     home    memory home for allocating list pointers 
+ * @param[in,out] ss      pointer to pointer to string to be parsed 
+ * @param[in,out] append_list  pointer to list
+ *                             where parsed list items are appended
+ * @param[in]     scanner pointer to function scanning a single item 
+ *                        (optional)
  * 
  * @retval 0  if successful.
  * @retval -1 upon an error.
  */
-int msg_commalist_d(su_home_t *home, 
-		    char **ss, 
-		    msg_param_t **return_list,
-		    int (*scanner)(char *s))
+issize_t msg_commalist_d(su_home_t *home, 
+			 char **ss, 
+			 msg_param_t **append_list,
+			 issize_t (*scanner)(char *s))
 {
   scanner = scanner ? scanner : msg_comma_scanner;
-  return msg_any_list_d(home, ss, return_list, scanner, ',');
+  return msg_any_list_d(home, ss, append_list, scanner, ',');
 }
 
 /** Token scanner for msg_commalist_d() accepting also empty entries. */
-int msg_token_scan(char *start)
+issize_t msg_token_scan(char *start)
 {
   char *s = start;
   skip_token(&s);
@@ -571,9 +596,9 @@ int msg_token_scan(char *start)
 
 /** Scan and compact a comma-separated item */
 static
-int msg_comma_scanner(char *start)
+issize_t msg_comma_scanner(char *start)
 {
-  int tlen;
+  size_t tlen;
   char *s, *p;
   
   s = p = start;
@@ -618,7 +643,7 @@ int msg_comma_scanner(char *start)
  * parameter @a ss is updated to point to first non-linear-whitespace
  * character after the comment.
  */
-int msg_comment_d(char **ss, char const **return_comment)
+issize_t msg_comment_d(char **ss, char const **return_comment)
 {
   /* skip comment */
   int level = 1;
@@ -650,10 +675,10 @@ int msg_comment_d(char **ss, char const **return_comment)
 }
 
 /** Parse a quoted string */
-int msg_quoted_d(char **ss, char **return_quoted)
+issize_t msg_quoted_d(char **ss, char **return_quoted)
 {
-  char *s = *ss;
-  int n = span_quoted(s);
+  char *s= *ss, *s0 = s;
+  ssize_t n = span_quoted(s);
 
   if (n <= 0)
     return -1;
@@ -666,7 +691,8 @@ int msg_quoted_d(char **ss, char **return_quoted)
   }
 
   *ss = s;
-  return 0;
+
+  return s - s0;
 }
 
 #if 0
@@ -732,7 +758,7 @@ int msg_hostport_d(char **ss,
   }
   else {
     /* IPv6 */
-    int n = strspn(++s, HEX ":.");
+    size_t n = strspn(++s, HEX ":.");
     if (s[n] != ']') return -1;
     s += n + 1;
   }
@@ -906,7 +932,11 @@ int msg_header_remove_param(msg_common_t *h, char const *name)
   return -1;
 }
 
-/** Update all parameters */
+/** Update all parameters.
+ *
+ * @retval 0 when successful
+ * @retval -1 upon an error
+ */
 int msg_header_update_params(msg_common_t *h, int clear)
 {
   int retval;
@@ -957,7 +987,7 @@ int msg_header_update_params(msg_common_t *h, int clear)
 msg_param_t msg_params_find(msg_param_t const params[], msg_param_t token)
 {
   if (params && token) {
-    int i, n = strcspn(token, "=");
+    size_t i, n = strcspn(token, "=");
 
     assert(n > 0);
 
@@ -991,7 +1021,8 @@ msg_param_t msg_params_find(msg_param_t const params[], msg_param_t token)
 msg_param_t *msg_params_find_slot(msg_param_t params[], msg_param_t token)
 {
   if (params && token) {
-    int i, n = strlen(token);
+    int i;
+	size_t n = strlen(token);
 
     assert(n > 0);
 
@@ -1030,7 +1061,7 @@ int msg_params_replace(su_home_t *home,
 		       msg_param_t param)
 {
   msg_param_t *params;
-  int i, n;
+  size_t i, n;
 
   assert(inout_params);
 
@@ -1040,7 +1071,6 @@ int msg_params_replace(su_home_t *home,
   params = *inout_params;
 
   n = strcspn(param, "=");
-  assert(n > 0);
 
   if (params) {
     /* Existing list, try to replace or remove  */
@@ -1068,7 +1098,7 @@ int msg_params_replace(su_home_t *home,
  */
 int msg_params_remove(msg_param_t *params, msg_param_t param)
 {
-  int i, n;
+  size_t i, n;
 
   if (!params || !param || !param[0])
     return -1;
@@ -1128,7 +1158,7 @@ int msg_params_add(su_home_t *home,
 		   msg_param_t **inout_params,
 		   msg_param_t param)
 {
-  int n, m_before, m_after;
+  size_t n, m_before, m_after;
   msg_param_t *p = *inout_params;  
 
   if (param == NULL)
@@ -1158,7 +1188,7 @@ int msg_params_add(su_home_t *home,
 static 
 int msg_param_prune(msg_param_t const d[], msg_param_t p, unsigned prune)
 {
-  int i, nlen;
+  size_t i, nlen;
 
   if (prune == 1)
     nlen = strcspn(p, "=");
@@ -1200,16 +1230,16 @@ int msg_param_prune(msg_param_t const d[], msg_param_t p, unsigned prune)
  * </table>
  *
  * @return
- * The function @c msg_params_join() returns 0 if successful, or a negative
- * value upon an error.
+ * @retval >= 0 when successful
+ * @retval -1 upon an error
  */
-int msg_params_join(su_home_t *home,
-		    msg_param_t **dst,
-		    msg_param_t const *src,
-		    unsigned prune,
-		    int dup)
+issize_t msg_params_join(su_home_t *home,
+			 msg_param_t **dst,
+			 msg_param_t const *src,
+			 unsigned prune,
+			 int dup)
 {
-  int n, m, n_before, n_after, pruned, total = 0;
+  size_t n, m, n_before, n_after, pruned, total = 0;
   msg_param_t *d = *dst;  
 
   if (prune > 3)
@@ -1276,7 +1306,7 @@ int msg_params_join(su_home_t *home,
 int msg_params_cmp(char const * const a[], char const * const b[])
 {
   int c;
-  int nlen;
+  size_t nlen;
 
   if (a == NULL || b == NULL)
     return (a != NULL) - (b != NULL);
@@ -1301,7 +1331,7 @@ int msg_params_cmp(char const * const a[], char const * const b[])
 char *msg_unquote_dup(su_home_t *home, char const *q)
 {
   char *d;
-  int total, n, m;
+  size_t total, n, m;
 
   /* First, easy case */
   if (q[0] == '"')
@@ -1348,7 +1378,7 @@ char *msg_unquote(char *dst, char const *s)
     return NULL;
 
   for (;;) {
-    int n = strcspn(s, "\"\\");
+    size_t n = strcspn(s, "\"\\");
     if (copy)
       memmove(d, s, n);
     s += n;
@@ -1370,7 +1400,7 @@ char *msg_unquote(char *dst, char const *s)
 }
 
 /** Quote string */
-int msg_unquoted_e(char *b, int bsiz, char const *s)
+issize_t msg_unquoted_e(char *b, isize_t bsiz, char const *s)
 {
   char *begin = b;
   char *end = b + bsiz;
@@ -1380,7 +1410,7 @@ int msg_unquoted_e(char *b, int bsiz, char const *s)
   b++;
   
   for (;*s;) {
-    int n = strcspn(s, "\"\\");
+    size_t n = strcspn(s, "\"\\");
 
     if (n == 0) {
       if (b && b + 2 < end)
@@ -1425,7 +1455,7 @@ unsigned long msg_hash_string(char const *id)
 
 
 /** Calculate the size of a duplicate of a header structure. */
-int msg_header_size(msg_header_t const *h)
+isize_t msg_header_size(msg_header_t const *h)
 {
   if (h == NULL || h == MSG_HEADER_NONE)
     return 0;
@@ -1445,9 +1475,10 @@ int msg_header_size(msg_header_t const *h)
  * @param mo       public message structure (#sip_t, #http_t)
  * @param flags    see #
  */
-int msg_object_e(char b[], int size, msg_pub_t const *mo, int flags)
+issize_t msg_object_e(char b[], isize_t size, msg_pub_t const *mo, int flags)
 {
-  int rv = 0, n;
+  size_t rv = 0;
+  ssize_t n;
   msg_header_t const *h;
 
   if (mo->msg_request)
@@ -1457,7 +1488,9 @@ int msg_object_e(char b[], int size, msg_pub_t const *mo, int flags)
 
   for (; h; h = h->sh_succ) {
     n = msg_header_e(b, size, h, flags);
-    if ((unsigned)n < (unsigned)size)
+    if (n < 0)
+      return -1;
+    if ((size_t)n < size)
       b += n, size -= n;
     else
       b = NULL, size = 0;
@@ -1468,7 +1501,7 @@ int msg_object_e(char b[], int size, msg_pub_t const *mo, int flags)
 }
 
 /** Encode header contents. */
-int msg_header_field_e(char b[], int bsiz, msg_header_t const *h, int flags)
+issize_t msg_header_field_e(char b[], isize_t bsiz, msg_header_t const *h, int flags)
 {
   assert(h); assert(h->sh_class); 
 
@@ -1513,13 +1546,14 @@ msg_header_access(msg_pub_t const *pub, msg_hclass_t *hc)
 /** Generates a random token.
  *
  */
-int msg_random_token(char token[], int tlen, 
-		     void const *rmemp, int rsize)
+issize_t msg_random_token(char token[], isize_t tlen, 
+			  void const *rmemp, isize_t rsize)
 {
   uint32_t random = 0, rword;
   uint8_t rbyte;
   uint8_t const *rmem = rmemp;
-  int i, n;
+  size_t i;
+  ssize_t n;
 
   static char const token_chars[32] = 
     /* Create aesthetically pleasing raNDom capS LooK */
@@ -1550,7 +1584,7 @@ int msg_random_token(char token[], int tlen,
 	random = random | (rbyte << n);
 	n += 8;
       } else {
-	rword = su_randint(0, UINT_MAX);
+	rword = su_random();
 	random = (rword >> 13) & 31;
 	n = 6;
       }

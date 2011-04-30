@@ -52,9 +52,9 @@
 
 /** Calculate size of a parameter vector */
 static inline
-int msg_params_copy_xtra(msg_param_t const pp[], int offset)
+size_t msg_params_copy_xtra(msg_param_t const pp[], size_t offset)
 {
-  int n = msg_params_count(pp);
+  size_t n = msg_params_count(pp);
   if (n) {
     MSG_STRUCT_SIZE_ALIGN(offset);
     offset += MSG_PARAMS_NUM(n + 1) * sizeof(pp[0]);
@@ -64,11 +64,11 @@ int msg_params_copy_xtra(msg_param_t const pp[], int offset)
 
 /** Copy a vector of parameters */
 static inline
-char *msg_params_copy(char *b, int size,
+char *msg_params_copy(char *b, size_t size,
 		      msg_param_t **dst, 
 		      msg_param_t const src[])
 {
-  int n = msg_params_count(src);
+  size_t n = msg_params_count(src);
 
   if (n) {
     MSG_STRUCT_ALIGN(b);
@@ -99,7 +99,7 @@ static msg_header_t *msg_header_copy_one_as(su_home_t *home,
 					    msg_header_t const *src)
 {
   msg_header_t *h;
-  int size = hc->hc_size, xtra;
+  size_t size = hc->hc_size, xtra;
   msg_param_t const *params;
   char *end;
 
@@ -112,7 +112,7 @@ static msg_header_t *msg_header_copy_one_as(su_home_t *home,
     xtra = 0;
   }
 
-  if (!(h = msg_header_alloc(home, hc, xtra)))
+  if (!(h = msg_header_alloc(home, hc, (isize_t)xtra)))
     return NULL;			/* error */
 
   memcpy(&h->sh_data, &src->sh_data, size - offsetof(msg_common_t, h_data));
@@ -214,7 +214,7 @@ msg_header_t *msg_header_dup_one(su_home_t *home,
 				 msg_header_t const *src)
 {
   msg_hclass_t *hc;
-  int size, xtra;
+  size_t size, xtra;
   msg_header_t *h;
   char *end;
 
@@ -270,11 +270,11 @@ msg_header_t *msg_header_dup_as(su_home_t *home, msg_hclass_t *hc,
   assert(hc);
 
   for (prev = &rv; src; src = src->sh_next, prev = &h->sh_next) {
-    int size = hc->hc_size;
-    int xtra = hc->hc_dxtra(src, size) - size;
+    size_t size = hc->hc_size;
+    size_t xtra = hc->hc_dxtra(src, size) - size;
     char *end;
 
-    if (!(h = msg_header_alloc(home, hc, xtra)))
+    if (!(h = msg_header_alloc(home, hc, (isize_t)xtra)))
       break;			/* error */
 
     if (!rv) 
@@ -322,7 +322,7 @@ msg_header_t *msg_header_dup(su_home_t *home, msg_header_t const *h)
 }
 
 /** Calculate extra size of a plain header. */
-int msg_default_dup_xtra(msg_header_t const *header, int offset)
+isize_t msg_default_dup_xtra(msg_header_t const *header, isize_t offset)
 {
   return offset;
 }
@@ -344,7 +344,7 @@ int msg_default_dup_xtra(msg_header_t const *header, int offset)
 char *msg_default_dup_one(msg_header_t *h,
 			  msg_header_t const *src,
 			  char *b, 
-			  int xtra)
+			  isize_t xtra)
 {
   memcpy(&h->sh_header_next[1],
 	 &src->sh_header_next[1],
@@ -365,7 +365,7 @@ static int msg_dup_or_copy_all(msg_t *msg,
 
 /**Copy a message shallowly.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * Copy a message and the header structures. The copied message will share
  * all the strings with the original message. It will keep a reference to
@@ -373,6 +373,9 @@ static int msg_dup_or_copy_all(msg_t *msg,
  * the copies have been destroyed.
  *
  * @param original message to be copied
+ *
+ * @retval pointer to newly copied message object when successful
+ * @retval NULL upon an error
  */
 msg_t *msg_copy(msg_t *original)
 {
@@ -385,8 +388,7 @@ msg_t *msg_copy(msg_t *original)
 	  : msg_dup_or_copy_all(copy, original, msg_header_copy_one) < 0) {
 	msg_destroy(copy), copy = NULL;
       }
-
-      if (copy)
+      else
 	msg_set_parent(copy, original);
 
       return copy;
@@ -396,6 +398,11 @@ msg_t *msg_copy(msg_t *original)
   return NULL;
 }
 
+/** Copy header chain.
+ *
+ * @retval 0 when successful
+ * @retval -1 upon an error
+ */
 static
 int msg_copy_chain(msg_t *msg, msg_t const *original)
 {
@@ -435,13 +442,16 @@ int msg_copy_chain(msg_t *msg, msg_t const *original)
 
 /**Deep copy a message.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * Copy a message, the header structures and all the related strings. The
  * duplicated message does not share any (non-const) data with original.
  * Note that the cached representation (in h_data) is not copied.
  *
  * @param original message to be duplicated
+ *
+ * @retval pointer to newly duplicated message object when successful
+ * @retval NULL upon an error
  */
 msg_t *msg_dup(msg_t const *original)
 {
@@ -458,7 +468,11 @@ msg_t *msg_dup(msg_t const *original)
   return NULL;
 }
 
-/** Copy a complete message, not keeping the header chain structure. */
+/** Copy a complete message, not keeping the header chain structure. 
+ *
+ * @retval 0 when successful
+ * @retval -1 upon an error
+ */
 static
 int msg_dup_or_copy_all(msg_t *msg, 
 			msg_t const *original,
@@ -497,8 +511,13 @@ int msg_dup_or_copy_all(msg_t *msg,
       if (*hh) {
 	/* If there is multiple instances of single headers,
 	   put the extra headers into the list of erroneous headers */
-	if (msg_is_single(h))
-	  hh = (msg_header_t**)&dst->msg_error;
+	if (msg_is_single(h)) {
+	  msg_error_t **e;
+	  for (e = &dst->msg_error; *e; e = &(*e)->er_next)
+	    ;
+	  *e = (msg_error_t *)h;
+	  continue;
+	}
 
 	while (*hh)
 	  hh = &(*hh)->sh_next;

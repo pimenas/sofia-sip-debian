@@ -47,13 +47,11 @@
 #endif
 
 #include <stdio.h>
-
-SOFIA_BEGIN_DECLS
+#include <limits.h>
 
 #if SU_HAVE_BSDSOCK		/* Unix-compatible includes */
 #include <errno.h>
 #include <unistd.h>
-#include <limits.h>
 
 #include <fcntl.h>
 #include <sys/types.h>
@@ -69,24 +67,6 @@ SOFIA_BEGIN_DECLS
 #  include <winsock2.h>
 #  include <ws2tcpip.h>
 
-static __inline
-uint16_t su_ntohs(uint16_t s)
-{
-  return (uint16_t)(((s & 255) << 8) | ((s & 0xff00) >> 8));
-}
-
-static __inline
-uint32_t su_ntohl(uint32_t l)
-{
-  return ((l & 0xff) << 24) | ((l & 0xff00) << 8)
-       | ((l & 0xff0000) >> 8) | ((l & 0xff000000U) >> 24);
-}
-
-#define ntohs su_ntohs
-#define htons su_ntohs
-#define ntohl su_ntohl
-#define htonl su_ntohl
-
 #  if defined(IPPROTO_IPV6)
 /* IPv6 defined in ws2tcpip.h */
 #  elif SU_HAVE_IN6 
@@ -95,20 +75,21 @@ uint32_t su_ntohl(uint32_t l)
 #    error Winsock with IPv6 support required
 #  endif
 
-#include <limits.h>
-
 #endif
+
+SOFIA_BEGIN_DECLS
 
 /* ---------------------------------------------------------------------- */
 /* Constant definitions */
 
 #if SU_HAVE_BSDSOCK || DOCUMENTATION_ONLY
 enum {
-  /** Invalid socket descriptor */ 
+  /** Invalid socket descriptor, error from socket() or accept() */ 
   INVALID_SOCKET = -1,
-  /** Error from su_socket() call */
+#define INVALID_SOCKET ((su_socket_t)INVALID_SOCKET)
+  /** Error from other socket calls */
   SOCKET_ERROR = -1,
-
+#define SOCKET_ERROR SOCKET_ERROR
   /** Return code for a successful call */
   su_success = 0, 
   /** Return code for an unsuccessful call */
@@ -206,24 +187,77 @@ union su_sockaddr_u {
 typedef union su_sockaddr_u su_sockaddr_t;
 
 #if SU_HAVE_BSDSOCK || DOCUMENTATION_ONLY
-/** IO vector for su_vsend() and su_vrecv(). 
- * @note Ordering of the fields is reversed on Windows.
+/**Type of @a siv_len field in #su_iovec_t.
+ *
+ * The @a siv_len field in #su_iovec_t has different types in with POSIX
+ * (size_t) and WINSOCK2 (u_long). Truncate the iovec element size to
+ * #SU_IOVECLEN_MAX, if needed, and cast using #su_ioveclen_t.
+ *
+ * @sa #su_iovec_t, #SU_IOVECLEN_MAX
+ *
+ * @since New in @VERSION_1_12_2.
  */
-struct su_iovec_s {
+typedef size_t su_ioveclen_t;
+
+/** I/O vector for scatter-gather I/O.
+ *
+ * This is the I/O vector element used with su_vsend() and su_vrecv(). It is
+ * defined like struct iovec with POSIX sockets:
+ * @code
+ * struct iovec {
+ *    void *iov_base;	// Pointer to data.
+ *    size_t iov_len;	// Length of data.
+ * };
+ * @endcode
+ *
+ * When using WINSOCK sockets it is defined as
+ * <a href="http://msdn.microsoft.com/library/en-us/winsock/winsock/wsabuf_2.asp">
+ * WSABUF</a>:
+ * @code
+ * typedef struct __WSABUF {
+ *   u_long len;
+ *   char FAR* buf;
+ * } WSABUF, *LPWSABUF;
+ * @endcode
+ *
+ * @note Ordering of the fields is reversed on Windows. Do not initialize this
+ * structure with static initializer, but assign both fields separately.
+ *
+ * For historical reasons, the structure is known as #msg_iovec_t in @msg
+ * module.
+ *
+ * @sa #su_iovec_t, #su_ioveclen_t, SU_IOVECLEN_MAX, su_vsend(), su_vrecv(), 
+ * #msg_iovec_t, msg_iovec(), msg_recv_iovec(), 
+ * @c struct @c iovec defined in <sys/uio.h>, writev(2), readv(2),
+ * sendmsg(), recvmsg(),
+ * <a href="http://msdn.microsoft.com/library/en-us/winsock/winsock/wsabuf_2.asp">
+ * WSABUF of WinSock2</a>
+ */
+typedef struct su_iovec_s {
   void  *siv_base;		/**< Pointer to buffer. */
-  size_t siv_len;		/**< Size of buffer.  */
-};
+  su_ioveclen_t siv_len;		/**< Size of buffer.  */
+} su_iovec_t;
+
+/** Maximum size of buffer in a single su_iovec_t element. 
+ * @sa #su_ioveclen_t, #su_iovec_t
+ *
+ * @since New in @VERSION_1_12_2.
+ * @HIDE
+ */
+#define SU_IOVECLEN_MAX SIZE_MAX
 #endif
 
 #if SU_HAVE_WINSOCK
-struct su_iovec_s {
-  long  siv_len;
-  void *siv_base;
-};
-#endif
+typedef u_long su_ioveclen_t;
 
-/** I/O vector for scatter-gather I/O. */
-typedef struct su_iovec_s   su_iovec_t;
+/* This is same as WSABUF */
+typedef struct su_iovec_s {
+  su_ioveclen_t  siv_len;
+  void   *siv_base;
+} su_iovec_t;
+
+#define SU_IOVECLEN_MAX ULONG_MAX
+#endif
 
 /* ---------------------------------------------------------------------- */
 /* Socket compatibility functions */
@@ -238,8 +272,15 @@ SOFIAPUBFUN int su_close(su_socket_t s);
 /** Control socket. */
 SOFIAPUBFUN int su_ioctl(su_socket_t s, int request, ...);
 
-/** Checks if the previous call failed because it would have blocked. */
-SOFIAPUBFUN int su_isblocking(void);
+/** Checks if the @a errcode indicates that the socket call failed because
+ * it would have blocked.
+ *
+ * Defined as macro with POSIX sockets.
+ *
+ * @since New in @VERSION_1_12_2.
+ */
+SOFIAPUBFUN int su_is_blocking(int errcode);
+
 /** Set/reset blocking option. */ 
 SOFIAPUBFUN int su_setblocking(su_socket_t s, int blocking);
 /** Set/reset address reusing option. */
@@ -247,30 +288,64 @@ SOFIAPUBFUN int su_setreuseaddr(su_socket_t s, int reuse);
 /** Get the error code associated with the socket. */
 SOFIAPUBFUN int su_soerror(su_socket_t s);
 /** Get size of message available in socket. */
-SOFIAPUBFUN int su_getmsgsize(su_socket_t s);
+SOFIAPUBFUN issize_t su_getmsgsize(su_socket_t s);
 
 /** Scatter-gather send. */
 SOFIAPUBFUN
-int su_vsend(su_socket_t s, su_iovec_t const iov[], int iovlen, int flags, 
-             su_sockaddr_t const *su, socklen_t sulen);
+issize_t su_vsend(su_socket_t, su_iovec_t const iov[], isize_t len, int flags,
+		  su_sockaddr_t const *su, socklen_t sulen);
 /** Scatter-gather receive. */
 SOFIAPUBFUN
-int su_vrecv(su_socket_t s, su_iovec_t iov[], int iovlen, int flags, 
-             su_sockaddr_t *su, socklen_t *sulen);
+issize_t su_vrecv(su_socket_t, su_iovec_t iov[], isize_t len, int flags,
+		  su_sockaddr_t *su, socklen_t *sulen);
 /** Return local IP address */
 SOFIAPUBFUN int su_getlocalip(su_sockaddr_t *sin);
 
-#include <sofia-sip/su_addrinfo.h>
-
 #if SU_HAVE_BSDSOCK
 #define su_ioctl  ioctl
-#define su_isblocking() (su_errno() == EAGAIN || su_errno() == EWOULDBLOCK)
+/*
+ * Note: before 1.12.2, there was su_isblocking() which did not take argument
+ * and which was missing from WINSOCK 
+ */
+#define su_is_blocking(e) \
+  ((e) == EINPROGRESS || (e) == EAGAIN || (e) == EWOULDBLOCK)
 #endif
 
 #if SU_HAVE_WINSOCK
 SOFIAPUBFUN int inet_pton(int af, char const *src, void *dst);
 SOFIAPUBFUN const char *inet_ntop(int af, void const *src,
 				  char *dst, size_t size);
+SOFIAPUBFUN ssize_t 
+  su_send(su_socket_t s, void *buffer, size_t length, int flags),
+  su_sendto(su_socket_t s, void *buffer, size_t length, int flags,
+	    su_sockaddr_t const *to, socklen_t tolen),
+  su_recv(su_socket_t s, void *buffer, size_t length, int flags),
+  su_recvfrom(su_socket_t s, void *buffer, size_t length, int flags,
+	      su_sockaddr_t *from, socklen_t *fromlen);
+
+static __inline
+uint16_t su_ntohs(uint16_t s)
+{
+  return (uint16_t)(((s & 255) << 8) | ((s & 0xff00) >> 8));
+}
+
+static __inline
+uint32_t su_ntohl(uint32_t l)
+{
+  return ((l & 0xff) << 24) | ((l & 0xff00) << 8)
+       | ((l & 0xff0000) >> 8) | ((l & 0xff000000U) >> 24);
+}
+
+#define ntohs su_ntohs
+#define htons su_ntohs
+#define ntohl su_ntohl
+#define htonl su_ntohl
+
+#else
+#define su_send(s,b,l,f) send((s),(b),(l),(f))
+#define su_sendto(s,b,l,f,a,L) sendto((s),(b),(l),(f),(void const*)(a),(L))
+#define su_recv(s,b,l,f) recv((s),(b),(l),(f))
+#define su_recvfrom(s,b,l,f,a,L) recvfrom((s),(b),(l),(f),(void *)(a),(L))
 #endif
 
 /* ---------------------------------------------------------------------- */
@@ -309,14 +384,17 @@ SOFIAPUBFUN const char *inet_ntop(int af, void const *src,
  * sin_addr or sin_addr6, depending on the address family).
  */
 #if SU_HAVE_IN6
-#define SU_ADDRLEN(su) \
-  ((su)->su_family == AF_INET ? sizeof((su)->su_sin.sin_addr) :	    \
-   ((su)->su_family == AF_INET6 ? sizeof((su)->su_sin6.sin6_addr) : \
-    sizeof((su)->su_sa.sa_data)))
+#define SU_ADDRLEN(su)					\
+  ((su)->su_family == AF_INET				\
+   ? (socklen_t)sizeof((su)->su_sin.sin_addr) :		\
+   ((su)->su_family == AF_INET6				\
+    ? (socklen_t)sizeof((su)->su_sin6.sin6_addr)	\
+    : (socklen_t)sizeof((su)->su_sa.sa_data)))
 #else
-#define SU_ADDRLEN(su) \
-  ((su)->su_family == AF_INET ? sizeof((su)->su_sin.sin_addr) :	    \
-   sizeof((su)->su_sa.sa_data))
+#define SU_ADDRLEN(su)					\
+  ((su)->su_family == AF_INET				\
+   ? (socklen_t)sizeof((su)->su_sin.sin_addr)		\
+   : (socklen_t)sizeof((su)->su_sa.sa_data))
 #endif
 
 /**@HI Test if su_sockaddr_t is INADDR_ANY or IN6ADDR_ANY. */
@@ -338,13 +416,13 @@ SOFIAPUBFUN const char *inet_ntop(int af, void const *src,
 /**@HI Calculate correct size of su_sockaddr_t structure. */ 
 #if SU_HAVE_IN6
 #define SU_SOCKADDR_SIZE(su) \
-  ((su)->su_family == AF_INET ? sizeof((su)->su_sin) \
-   : ((su)->su_family == AF_INET6 ? sizeof((su)->su_sin6) \
-      : sizeof(*su)))
+  ((socklen_t)((su)->su_family == AF_INET ? sizeof((su)->su_sin)	  \
+	       : ((su)->su_family == AF_INET6 ? sizeof((su)->su_sin6)	\
+		  : sizeof(*su))))
 #else
 #define SU_SOCKADDR_SIZE(su) \
-  ((su)->su_family == AF_INET ? sizeof((su)->su_sin) \
-    : sizeof(*su))
+  ((socklen_t)((su)->su_family == AF_INET ? sizeof((su)->su_sin)	\
+	       : sizeof(*su)))
 #endif
 #define su_sockaddr_size SU_SOCKADDR_SIZE
 
@@ -378,5 +456,9 @@ SOFIAPUBFUN void su_canonize_sockaddr(su_sockaddr_t *su);
 #endif
 
 SOFIA_END_DECLS
+
+#ifndef SU_ADDRINFO_H
+#include <sofia-sip/su_addrinfo.h>
+#endif
 
 #endif /* !defined(SU_H) */

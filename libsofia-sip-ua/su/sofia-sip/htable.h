@@ -71,12 +71,15 @@ typedef unsigned long hash_value_t;
  * @param pr      hash table field prefix
  * @param entry_t entry type
  */
-#define HTABLE_DECLARE(prefix, pr, entry_t) \
-typedef struct prefix##_s { \
-  unsigned pr##_size; \
-  unsigned pr##_used; \
-  entry_t**pr##_table; /**< Hash table itself */ \
-} prefix##_t
+#define HTABLE_DECLARE(prefix, pr, entry_t)		\
+  HTABLE_DECLARE_WITH(prefix, pr, entry_t, unsigned, hash_value_t)
+
+#define HTABLE_DECLARE_WITH(prefix, pr, entry_t, size_t, hash_value_t)	\
+  typedef struct prefix##_s {						\
+    size_t pr##_size;							\
+    size_t pr##_used;							\
+    entry_t**pr##_table; /**< Hash table itself */			\
+  } prefix##_t
 
 #ifndef HTABLE_SCOPE
 /** Default scope for hash table functions. */
@@ -94,7 +97,10 @@ typedef struct prefix##_s { \
  * @param entry_t entry type
  */
 #define HTABLE_PROTOS(prefix, pr, entry_t) \
-HTABLE_SCOPE int prefix##_resize(su_home_t *, prefix##_t pr[1], unsigned); \
+  HTABLE_PROTOS_WITH(prefix, pr, entry_t, unsigned, hash_value_t)
+
+#define HTABLE_PROTOS_WITH(prefix, pr, entry_t, size_t, hash_value_t)	\
+HTABLE_SCOPE int prefix##_resize(su_home_t *, prefix##_t pr[1], size_t); \
 HTABLE_SCOPE int prefix##_is_full(prefix##_t const *); \
 HTABLE_SCOPE entry_t **prefix##_hash(prefix##_t const *, hash_value_t hv); \
 HTABLE_SCOPE entry_t **prefix##_next(prefix##_t const *, entry_t * const *ee); \
@@ -115,17 +121,21 @@ HTABLE_SCOPE void prefix##_remove(prefix##_t *, entry_t const *e)
  * @param hfun    function or macro returning hash value of entry
  */
 #define HTABLE_BODIES(prefix, pr, entry_t, hfun) \
+  HTABLE_BODIES_WITH(prefix, pr, entry_t, hfun, unsigned, hash_value_t)
+
+#define HTABLE_BODIES_WITH(prefix, pr, entry_t, hfun, size_t, hash_value_t) \
 /** Reallocate new hash table */ \
 HTABLE_SCOPE \
 int prefix##_resize(su_home_t *home, \
                     prefix##_t pr[], \
-		    unsigned new_size) \
+		    size_t new_size) \
 { \
   entry_t **new_hash; \
   entry_t **old_hash = pr->pr##_table; \
-  unsigned old_size; \
-  unsigned i, j, i0; \
-  unsigned again = 0, used = 0, collisions = 0; \
+  size_t old_size; \
+  size_t i, j, i0; \
+  unsigned again = 0; \
+  size_t used = 0, collisions = 0; \
 \
   if (new_size == 0) \
     new_size = 2 * pr->pr##_size + 1; \
@@ -158,7 +168,7 @@ int prefix##_resize(su_home_t *home, \
 \
   pr->pr##_table = new_hash, pr->pr##_size = new_size; \
 \
-  assert(pr->pr##_used == used);\
+  assert(pr->pr##_used == used); \
 \
   return 0; \
 } \
@@ -212,7 +222,8 @@ void prefix##_insert(prefix##_t *pr, entry_t const *e) \
 HTABLE_SCOPE \
 void prefix##_remove(prefix##_t *pr, entry_t const *e) \
 { \
-  unsigned i, j, k, size = pr->pr##_size; \
+  size_t i, j, k; \
+  size_t size = pr->pr##_size; \
   entry_t **htable = pr->pr##_table; \
 \
   /* Search for entry */ \

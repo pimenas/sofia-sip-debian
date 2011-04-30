@@ -22,7 +22,7 @@
  *
  */
 
-/**@CFILE tport_connect.c Transport using HTTP CONNECT.
+/**@CFILE tport_type_tls.c TLS over TCP Transport
  *
  * See tport.docs for more detailed description of tport interface.
  *
@@ -72,8 +72,8 @@ static void tport_tls_shutdown(tport_t *self, int how);
 static int tport_tls_set_events(tport_t const *self);
 static int tport_tls_events(tport_t *self, int events);
 static int tport_tls_recv(tport_t *self);
-static int tport_tls_send(tport_t const *self, msg_t *msg,
-			  msg_iovec_t iov[], int iovused);
+static ssize_t tport_tls_send(tport_t const *self, msg_t *msg,
+			      msg_iovec_t iov[], size_t iovused);
 
 typedef struct
 {
@@ -352,19 +352,18 @@ int tport_tls_recv(tport_t *self)
 {
   tport_tls_t *tlstp = (tport_tls_t *)self;
   msg_t *msg;
-  int n, N, veclen, i, m;
+  ssize_t n, N, veclen, i, m;
   msg_iovec_t iovec[msg_n_fragments] = {{ 0 }};
   char *tls_buf;
 
   N = tls_read(tlstp->tlstp_context);
 
-  SU_DEBUG_7(("%s(%p): tls_read() returned %d\n", __func__, self, N));
+  SU_DEBUG_7(("%s(%p): tls_read() returned "MOD_ZD"\n", __func__, self, N));
 
   if (N == 0) /* End-of-stream */
     return 0;
   else if (N == -1) {
-    int err = su_errno();
-    if (err == EAGAIN || err == EWOULDBLOCK) {
+    if (su_is_blocking(su_errno())) {
       tport_tls_set_events(self);
       return 1;
     }
@@ -400,15 +399,16 @@ int tport_tls_recv(tport_t *self)
 }
 
 static
-int tport_tls_send(tport_t const *self,
-		   msg_t *msg,
-		   msg_iovec_t iov[],
-		   int iovlen)
+ssize_t tport_tls_send(tport_t const *self,
+		       msg_t *msg,
+		       msg_iovec_t iov[],
+		       size_t iovlen)
 {
   tport_tls_primary_t *tlspri = (tport_tls_primary_t *)self->tp_pri;
   tport_tls_t *tlstp = (tport_tls_t *)self;
   enum { TLSBUFSIZE = 2048 };
-  int i, j, n, m, size = 0;
+  size_t i, j, n, m, size = 0;
+  ssize_t nerror;
   int oldmask, mask;
 
   if (tlstp->tlstp_context == NULL) {
@@ -427,7 +427,7 @@ int tport_tls_send(tport_t const *self,
 
   for (i = 0; i < iovlen; i = j) {
 #if 0
-    n = tls_write(tlstp->tlstp_context, 
+    nerror = tls_write(tlstp->tlstp_context, 
 		  iov[i].siv_base,
 		  m = iov[i].siv_len);
     j = i + 1;
@@ -458,20 +458,22 @@ int tport_tls_send(tport_t const *self,
     else
       iov[j].siv_base = buf, iov[j].siv_len = m;
 
-    n = tls_write(tlstp->tlstp_context, buf, m);
+    nerror = tls_write(tlstp->tlstp_context, buf, m);
 #endif
 
-    SU_DEBUG_9(("tport_tls_writevec: vec %p %p %lu (%d)\n",  
-		tlstp->tlstp_context, iov[i].siv_base, (LU)iov[i].siv_len, n));
+    SU_DEBUG_9(("tport_tls_writevec: vec %p %p %lu ("MOD_ZD")\n",  
+		tlstp->tlstp_context, iov[i].siv_base, (LU)iov[i].siv_len, 
+		nerror));
 
-    if (n < 0) {
+    if (nerror == -1) {
       int err = su_errno();
-      if (err == EAGAIN || err == EWOULDBLOCK)
+      if (su_is_blocking(err))
 	break;
-      SU_DEBUG_3(("tls_write: %s\n", strerror(errno)));
+      SU_DEBUG_3(("tls_write: %s\n", strerror(err)));
       return -1;
     }
 
+    n = (size_t)nerror;
     size += n;
 
     /* Return if the write buffer is full for now */

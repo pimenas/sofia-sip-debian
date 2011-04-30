@@ -22,7 +22,7 @@
  *
  */
 
-/**@CFILE msg.c Message object implementation.
+/**@file msg.c Message object implementation.
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
  *
@@ -51,7 +51,7 @@
 /**
  * Create a message.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * @param mc    message class
  * @param flags message control flags
@@ -88,16 +88,16 @@ msg_t *msg_create(msg_mclass_t const *mc, int flags)
 
 /**Increment a message reference count.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
- * The function msg_ref_create() creates a reference to a message.  The
+ * Creates a reference to a message.  The
  * referenced message is not freed until all the references have been
  * destroyed.
  *
  * @param msg   message of which a reference is created
  * 
  * @return
- * The function msg_ref_create() returns a reference to a message.
+ * A pointer to a message.
  */
 msg_t *msg_ref_create(msg_t *msg)
 {
@@ -111,7 +111,7 @@ msg_t *msg_ref_create(msg_t *msg)
 
 /**Set a message parent.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * Set a parent for a message. The parent message is not destroyed until all
  * its kids have been destroyed - each kid keeps a reference to its parent
@@ -134,7 +134,11 @@ void msg_set_parent(msg_t *kid, msg_t *dad)
 
 /** Destroy a reference to a message.
  *
- * @relates msg_s
+ * @relatesalso msg_s
+ *
+ * @param ref pointer to msg object
+ * 
+ * @deprecated Use msg_destroy() instead.
  */
 void msg_ref_destroy(msg_t *ref)
 {
@@ -143,7 +147,7 @@ void msg_ref_destroy(msg_t *ref)
 
 /**Deinitialize and free a message.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
  * @param msg  message to be destroyed
  */
@@ -169,7 +173,7 @@ void msg_destroy(msg_t *msg)
 
 /**Retrieve public message structure.
  *
- * This function returns a pointer to the public message structure.
+ * Get a pointer to the public message structure.
  * 
  * @param msg pointer to msg object
  * 
@@ -186,9 +190,9 @@ msg_pub_t *msg_object(msg_t const *msg)
 
 /**Retrieve public message structure of given type.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
- * This function returns a pointer to the public message structure of the
+ * Get a pointer to the public message structure of the
  * given protocol.
  * 
  * @param msg pointer to msg object
@@ -208,9 +212,9 @@ msg_pub_t *msg_public(msg_t const *msg, void *tag)
 
 /**Retrieve message class.
  *
- * @relates msg_s
+ * @relatesalso msg_s
  *
- * The function msg_mclass() returns a pointer to the message class object
+ * Get a pointer to the message class object
  * (factory object for the message).
  * 
  * @param msg pointer to msg object
@@ -228,7 +232,14 @@ msg_mclass_t const *msg_mclass(msg_t const *msg)
 
 /* Address management */
 
-/** Zero the message address */ 
+/** Zero the message address.
+ *
+ * @relatesalso msg_s
+ *
+ * Zero the address and addressinfo structures associated with the message.
+ *
+ * @sa msg_addrinfo(), msg_set_address(), msg_get_address(), msg_addr_copy().
+ */ 
 void msg_addr_zero(msg_t *msg)
 {
   memset(&msg->m_addr, 0, sizeof(&msg->m_addr));
@@ -238,16 +249,9 @@ void msg_addr_zero(msg_t *msg)
   msg->m_addrinfo.ai_addr = &msg->m_addr->su_sa;
 }
 
-/** Get pointer to address length.
- *
- * @deprecated Use msg_get_address() or msg_set_address() instead.
- */
-socklen_t *msg_addrlen(msg_t *msg)
-{
-  return &msg->m_addrinfo.ai_addrlen;
-}
-
 /** Get pointer to socket address structure. 
+ *
+ * @relatesalso msg_s
  *
  * @deprecated Use msg_get_address() or msg_set_address() instead.
  */
@@ -256,13 +260,26 @@ su_sockaddr_t *msg_addr(msg_t *msg)
   return msg ? msg->m_addr : 0;
 }
 
-/** Get message address. */
+/** Get message address.
+ *
+ * @relatesalso msg_s
+ *
+ * Copy the socket address associated with the message to the supplied
+ * socket address struture.
+ *
+ * @param msg pointer to msg object
+ * @param su pointer to socket address structure
+ * @param return_len return parameter value for length 
+ *                    of socket address structure
+ *
+ * @sa msg_addrinfo(), msg_set_address(), msg_addr_zero(), msg_addr_copy().
+ */
 int msg_get_address(msg_t *msg, su_sockaddr_t *su, socklen_t *return_len)
 {
   if (msg && return_len && *return_len >= msg->m_addrinfo.ai_addrlen) {
-    *return_len = msg->m_addrinfo.ai_addrlen;
+    *return_len = (socklen_t)msg->m_addrinfo.ai_addrlen;
     if (su)
-      memcpy(su, msg->m_addr, *return_len = msg->m_addrinfo.ai_addrlen);
+      memcpy(su, msg->m_addr, msg->m_addrinfo.ai_addrlen);
     return 0;
   }
   if (msg)
@@ -270,7 +287,19 @@ int msg_get_address(msg_t *msg, su_sockaddr_t *su, socklen_t *return_len)
   return -1;
 }
 
-/** Set message address. */
+/** Set message address. 
+ *
+ * @relatesalso msg_s
+ *
+ * Copy the supplied socket address to the socket address structure
+ * associated with the message.
+ * 
+ * @param msg pointer to msg object
+ * @param su pointer to socket address structure
+ * @param sulen length of socket address structure
+ *
+ * @sa msg_addrinfo(), msg_get_address(), msg_addr_zero(), msg_addr_copy().
+ */
 int msg_set_address(msg_t *msg, su_sockaddr_t const *su, socklen_t sulen)
 {
   if (sulen < (sizeof msg->m_addr) && msg && su) {
@@ -283,13 +312,35 @@ int msg_set_address(msg_t *msg, su_sockaddr_t const *su, socklen_t sulen)
   return -1;
 }
 
-/** Get addrinfo structure. */
+/** Get addrinfo structure.
+ *
+ * @relatesalso msg_s
+ *
+ * Get pointer to the addrinfo structure associated with the message.
+ *
+ * @param msg pointer to msg object
+ *
+ * @retval pointer to addrinfo structure
+ * @retval NULL if msg is NULL
+ *
+ * @sa msg_get_address(), msg_set_address(), msg_addr_zero(), msg_addr_copy().
+ */
 su_addrinfo_t *msg_addrinfo(msg_t *msg)
 {
   return msg ? &msg->m_addrinfo : 0;
 }
 
 /**Copy message address.
+ *
+ * @relatesalso msg_s
+ *
+ * Copy the addrinfo and socket address structures from @a src to the @a dst
+ * message object.
+ *
+ * @param dst pointer to destination message object 
+ * @param src pointer to source message object
+ *
+ * @sa msg_addrinfo(), msg_get_address(), msg_set_address(), msg_addr_zero().
  */
 void msg_addr_copy(msg_t *dst, msg_t const *src)
 {
@@ -304,20 +355,53 @@ void msg_addr_copy(msg_t *dst, msg_t const *src)
 }
 
 
-/** Get error classification flags */
+/** Get error classification flags.
+ *
+ * @relatesalso msg_s
+ *
+ * If the message parser fails to parse certain headers in the message, it
+ * sets the corresponding extract error flags. The flags corresponding to
+ * each header are stored in the message parser (msg_mclass_t) structure. 
+ * They are set when the header is added to the parser table. 
+ * 
+ * The SIP flags are defined in <sofia-sip/sip_headers.h>. For well-known
+ * SIP headers, the flags for each header are listed in a separate text file
+ * (sip_bad_mask) read by msg_parser.awk.
+ *
+ * The flags can be used directly by NTA (the mask triggering 400 response
+ * is set with NTATAG_BAD_REQ_MASK(), the mask triggering response messages
+ * to be dropped is set with NTATAG_BAD_RESP_MASK()). Alternatively the
+ * application can check them based on the method or required SIP features.
+ *
+ * @sa msg_mclass_insert_with_mask(), NTATAG_BAD_REQ_MASK(),
+ * NTATAG_BAD_RESP_MASK().
+ */
 unsigned msg_extract_errors(msg_t const *msg)
 {
   return msg ? msg->m_extract_err : (unsigned)-1;
 }
 
 
-/** Get error number associated with message */
+/** Get error number associated with message.
+ *
+ * @relatesalso msg_s
+ *
+ * @param msg pointer to msg object
+ *
+ */
 int msg_errno(msg_t const *msg)
 {
   return msg ? msg->m_errno : EINVAL;
 }
 
-/** Set error number associated with message */
+/** Set error number associated with message.
+ *
+ * @relatesalso msg_s
+ *
+ * @param msg pointer to msg object
+ * @param err error value (as defined in <sofia-sip/su_errno.h>).
+ *
+ */
 void msg_set_errno(msg_t *msg, int err)
 {
   if (msg)

@@ -184,6 +184,7 @@ static int outbound_contacts_from_via(outbound_t *ob,
 
 /* ---------------------------------------------------------------------- */
 
+/** Create a new outbound object */
 outbound_t *
 outbound_new(outbound_owner_t *owner,
 	     outbound_owner_vtable const *owner_methods,
@@ -266,7 +267,7 @@ int outbound_set_options(outbound_t *ob,
 #define MATCH(v) (len == sizeof(#v) - 1 && strncasecmp(#v, s, len) == 0)
 
   for (s = options; s && s[0]; ) {
-    int len = span_token(s);
+    size_t len = span_token(s);
     int value = 1;
 
     if (len > 3 && strncasecmp(s, "no-", 3) == 0)
@@ -293,7 +294,7 @@ int outbound_set_options(outbound_t *ob,
     else if (MATCH(use-upnp) || MATCH(use_upnp)) prefs->use_upnp = value;
     else if (MATCH(use-stun) || MATCH(use_stun)) prefs->use_stun = value;
     else
-      SU_DEBUG_1(("outbound_t: unknown option \"%.*s\"\n", len, s));
+      SU_DEBUG_1(("outbound_t: unknown option \"%.*s\"\n", (int)len, s));
 
     s += len;
     len = strspn(s, " \t\n\r,;");
@@ -334,7 +335,6 @@ int outbound_set_features(outbound_t *ob, char *features)
 
   ob->ob_features = new_features;
   su_free(ob->ob_home, old_features);
-
   return 0;
 }
 
@@ -576,7 +576,8 @@ int outbound_gruuize(outbound_t *ob, sip_t const *sip)
     return -1;
 
   if (!ob->ob_prefs.gruuize && ob->ob_instance) {
-    char const *my_instance, *my_reg_id;
+    char const *my_instance, *my_reg_id = NULL;
+    char const *instance, *reg_id;
 
     m = ob->ob_rcontact;
     my_instance = msg_header_find_param(m->m_common, "+sip.instance=");
@@ -585,11 +586,11 @@ int outbound_gruuize(outbound_t *ob, sip_t const *sip)
 
     for (m = sip->sip_contact; m; m = m->m_next) {
       if (my_instance) {
-	char const *instance = msg_header_find_param(m->m_common, "+sip.instance=");
+	instance = msg_header_find_param(m->m_common, "+sip.instance=");
 	if (!instance || strcmp(instance, my_instance))
 	  continue;
 	if (my_reg_id) {
-	  char const *reg_id = msg_header_find_param(m->m_common, "reg-id=");
+	  reg_id = msg_header_find_param(m->m_common, "reg-id=");
 	  if (!reg_id || strcmp(reg_id, my_reg_id))
 	    continue;
 	}
@@ -852,7 +853,8 @@ static int response_to_keepalive_options(outbound_t *ob,
   }
 
   if (binding_check <= 1 && ob->ob_registered && ob->ob_keepalive.validating) {
-    int failed = 0, loglevel = 3;
+    int failed = 0;
+    unsigned loglevel = 3;
 
     if (challenged > 0 && credentials > 0) {
       keepalive_options_with_registration_probe(ob);
@@ -1004,9 +1006,9 @@ int outbound_process_request(outbound_t *ob,
 int outbound_contacts_from_via(outbound_t *ob, sip_via_t const *via)
 {
   su_home_t *home = ob->ob_home;
-  char *uri;
   sip_contact_t *rcontact, *dcontact;
   int reg_id = 0;
+  char reg_id_param[20] = "";
   sip_contact_t *previous_previous, *previous_rcontact, *previous_dcontact;
   sip_via_t *v, v0[1], *previous_via;
   int contact_uri_changed;
@@ -1016,10 +1018,26 @@ int outbound_contacts_from_via(outbound_t *ob, sip_via_t const *via)
 
   v = v0; *v0 = *via; v0->v_next = NULL;
 
+  dcontact = ob->ob_oo->oo_contact(ob->ob_owner, home,
+				   NULL, v, v->v_protocol, NULL);
+
+  if (ob->ob_instance && ob->ob_reg_id != 0)
+    snprintf(reg_id_param, sizeof reg_id_param, ";reg-id=%u", ob->ob_reg_id);
+
+  rcontact = ob->ob_oo->oo_contact(ob->ob_owner, home,
+				   NULL, v, v->v_protocol, 
+				   ob->ob_features ? ob->ob_features : "",
+				   ob->ob_instance, reg_id_param, NULL);
+    
+#if 0
+  char *uri;
+
   /* uri contains < > */
   uri = sip_contact_string_from_via(NULL, via, NULL, v->v_protocol);
 
   dcontact = sip_contact_make(home, uri);
+
+
 
   if (ob->ob_instance) {
     char reg_id[20];
@@ -1039,9 +1057,10 @@ int outbound_contacts_from_via(outbound_t *ob, sip_via_t const *via)
   else
     rcontact = dcontact;
 
-  v = sip_via_dup(home, v);
-
   free(uri);
+#endif
+
+  v = sip_via_dup(home, v);
 
   if (!rcontact || !dcontact || !v) {
     msg_header_free(home, (void *)dcontact);
@@ -1105,7 +1124,7 @@ int outbound_contacts_from_via(outbound_t *ob, sip_via_t const *via)
  */
 int outbound_set_contact(outbound_t *ob,
 			 sip_contact_t const *application_contact,
-			 sip_contact_t const *stack_contact,
+			 sip_via_t const *v,
 			 int terminating)
 {
   su_home_t *home = ob->ob_home;
@@ -1128,33 +1147,30 @@ int outbound_set_contact(outbound_t *ob,
       previous = ob->ob_contacts ? ob->ob_rcontact : NULL;
     }
   }
-  else if (stack_contact) {
-    char reg_id[20];
+  else if (v) {
+    char const *tport = !v->v_next ? v->v_protocol : NULL; 
+    char reg_id_param[20];
 
-    if (!ob->ob_rcontact || 
-	url_cmp_all(ob->ob_rcontact->m_url, stack_contact->m_url)) {
-      contact_uri_changed = 1;
-      previous = ob->ob_contacts ? ob->ob_rcontact : NULL;
-    }
-
-    dcontact = sip_contact_copy(home, stack_contact);
+    dcontact = ob->ob_oo->oo_contact(ob->ob_owner, home,
+				     NULL, v, tport, NULL);
     if (!dcontact)
       return -1;
 
-    if (ob->ob_instance && ob->ob_reg_id)
-      snprintf(reg_id, sizeof reg_id, ";reg-id=%u", ob->ob_reg_id);
-    else
-      strcpy(reg_id, "");
+    if (ob->ob_instance && ob->ob_reg_id != 0)
+      snprintf(reg_id_param, sizeof reg_id_param, ";reg-id=%u", ob->ob_reg_id);
 
-    rcontact = sip_contact_format(home, "<" URL_PRINT_FORMAT ">%s%s%s%s%s",
-				  URL_PRINT_ARGS(dcontact->m_url),
-				  ob->ob_instance ? ";" : "",
-				  ob->ob_instance ? ob->ob_instance : "",
-				  reg_id,
-				  ob->ob_features ? ";" : "",
-				  ob->ob_dcontact ? ob->ob_features : "");
+    rcontact = ob->ob_oo->oo_contact(ob->ob_owner, home,
+				     NULL, v, v->v_protocol, 
+				     ob->ob_features ? ob->ob_features : "",
+				     ob->ob_instance, reg_id_param, NULL);
     if (!rcontact)
       return -1;
+
+    if (!ob->ob_rcontact || 
+	url_cmp_all(ob->ob_rcontact->m_url, rcontact->m_url)) {
+      contact_uri_changed = 1;
+      previous = ob->ob_contacts ? ob->ob_rcontact : NULL;
+    }
   }
 
   ob->ob_by_stack = application_contact == NULL;

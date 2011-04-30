@@ -110,7 +110,7 @@ static inline int tp_cmp(tport_t const *a, tport_t const *b)
     return 0;
   
   if (a->tp_addrlen != b->tp_addrlen)
-    return a->tp_addrlen - b->tp_addrlen;
+    return (int)(a->tp_addrlen - b->tp_addrlen);
 
   return memcmp(a->tp_addr, b->tp_addr, a->tp_addrlen);
 }
@@ -137,7 +137,7 @@ struct tport_pending_s {
   void               *p_client;
   tport_pending_error_f *p_callback;
   msg_t              *p_msg;
-  int                 p_reported;
+  unsigned            p_reported;
 };
 
 /** Return true if transport is master. */
@@ -335,14 +335,15 @@ static int
   tport_base_wakeup(tport_t *self, int events),
   tport_connected(su_root_magic_t *m, su_wait_t *w, tport_t *self),
   tport_resolve(tport_t *self, msg_t *msg, tp_name_t const *tpn),
-  tport_vsend(tport_t *self, msg_t *msg, tp_name_t const *tpn,
-	      msg_iovec_t iov[], int iovused,
-	      struct sigcomp_compartment *cc),
   tport_send_error(tport_t *, msg_t *, tp_name_t const *),
   tport_queue(tport_t *self, msg_t *msg),
-  tport_queue_rest(tport_t *self, msg_t *msg, msg_iovec_t iov[], int iovused),
+  tport_queue_rest(tport_t *self, msg_t *msg, msg_iovec_t iov[], size_t iovused),
   tport_pending_error(tport_t *self, su_sockaddr_t const *dst, int error),
   tport_pending_errmsg(tport_t *self, msg_t *msg, int error);
+
+static ssize_t tport_vsend(tport_t *self, msg_t *msg, tp_name_t const *tpn,
+			   msg_iovec_t iov[], size_t iovused,
+			   struct sigcomp_compartment *cc);
 
 tport_t *tport_by_addrinfo(tport_primary_t const *pri,
 			   su_addrinfo_t const *ai,
@@ -369,7 +370,7 @@ static tport_primary_t *tport_listen(tport_master_t *mr,
 				     tagi_t *tags);
 static void tport_zap_primary(tport_primary_t *);
 
-static char *localipname(int pf, char *buf, int bufsiz);
+static char *localipname(int pf, char *buf, size_t bufsiz);
 static int getprotohints(su_addrinfo_t *hints,
 			 char const *proto, int flags);
 static void tport_send_queue(tport_t *self);
@@ -392,7 +393,7 @@ void tport_destroy_error(tp_stack_t *stack, tport_t *tp,
 
 static
 msg_t *tport_destroy_alloc(tp_stack_t *stack, int flags, 
-			   char const data[], unsigned len,
+			   char const data[], usize_t len,
 			   tport_t const *tp,
 			   tp_client_t *tpc)
 {
@@ -482,6 +483,7 @@ void tport_destroy(tport_t *self)
 	/* tpac_recv */ tport_destroy_recv,
 	/* tpac_error */ tport_destroy_error,
 	/* tpac_alloc */ tport_destroy_alloc,
+	/* tpac_address */ NULL
       }};
 
   SU_DEBUG_7(("%s(%p)\n", __func__, self));
@@ -536,7 +538,7 @@ tport_primary_t *tport_alloc_primary(tport_master_t *mr,
 
     tp->tp_master = mr;
     tp->tp_pri = pri;
-    tp->tp_socket = SOCKET_ERROR;
+    tp->tp_socket = INVALID_SOCKET;
 
     tp->tp_magic = mr->mr_master->tp_magic;
 
@@ -640,8 +642,8 @@ tport_primary_t *tport_listen(tport_master_t *mr,
 	    err == ENOPROTOOPT ? 7 : 3) < SU_LOG_LEVEL ?	     \
 	     su_llog(tport_log, errlevel,			     \
 		     "%s(%p): %s(pf=%d %s/%s): %s\n",		     \
-		     __func__, pri ? pri : mr, what, ai->ai_family,  \
-		     protoname,					     \
+		     __func__, pri ? (void *)pri : (void *)mr, what, \
+		     ai->ai_family, protoname,			     \
 		     tport_hostport(buf, sizeof(buf), su, 2),	     \
 		     su_strerror(err)) : (void)0),		     \
 	    tport_zap_primary(pri),		                     \
@@ -653,7 +655,7 @@ tport_primary_t *tport_listen(tport_master_t *mr,
   if (pri == NULL)
     return TPORT_LISTEN_ERROR(errno, culprit);
 
-  if (pri->pri_primary->tp_socket != SOCKET_ERROR) {
+  if (pri->pri_primary->tp_socket != INVALID_SOCKET) {
     int index = 0;
     tport_t *tp = pri->pri_primary;
     su_wait_t wait[1] = { SU_WAIT_INIT };
@@ -685,9 +687,9 @@ int tport_bind_socket(int socket,
 		      char const **return_culprit)
 {
   su_sockaddr_t *su = (su_sockaddr_t *)ai->ai_addr;
-  socklen_t sulen = ai->ai_addrlen;
+  socklen_t sulen = (socklen_t)(ai->ai_addrlen);
 
-  if (bind(socket, ai->ai_addr, ai->ai_addrlen) == -1) {
+  if (bind(socket, ai->ai_addr, sulen) == -1) {
     return *return_culprit = "bind", -1;
   }
 
@@ -868,7 +870,8 @@ tport_t *tport_base_connect(tport_primary_t *pri,
   int index = 0;
   int events = SU_WAIT_IN | SU_WAIT_ERR;
 
-  int err, errlevel = 3;
+  int err;
+  unsigned errlevel = 3;
   char buf[TPORT_HOSTPORTSIZE];
   char const *what;
 
@@ -890,7 +893,7 @@ tport_t *tport_base_connect(tport_primary_t *pri,
      (void *)NULL)
 
   s = su_socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-  if (s == SOCKET_ERROR)
+  if (s == INVALID_SOCKET)
     TPORT_CONNECT_ERROR(su_errno(), "socket");
 
   what = "tport_alloc_secondary";
@@ -899,7 +902,7 @@ tport_t *tport_base_connect(tport_primary_t *pri,
 
   self->tp_conn_orient = 1;
 
-  if ((server_socket = pri->pri_primary->tp_socket) != SOCKET_ERROR) {
+  if ((server_socket = pri->pri_primary->tp_socket) != INVALID_SOCKET) {
     su_sockaddr_t susa;
     socklen_t susalen = sizeof(susa);
 
@@ -921,9 +924,9 @@ tport_t *tport_base_connect(tport_primary_t *pri,
   if (tport_setname(self, tpn->tpn_proto, real_ai, tpn->tpn_canon) == -1) 
     TPORT_CONNECT_ERROR(su_errno(), tport_setname);
 
-  if (connect(s, ai->ai_addr, ai->ai_addrlen) == SOCKET_ERROR) {
+  if (connect(s, ai->ai_addr, (socklen_t)(ai->ai_addrlen)) == SOCKET_ERROR) {
     err = su_errno();
-    if (err != EINPROGRESS && err != EAGAIN && err != EWOULDBLOCK)
+    if (!su_is_blocking(err))
       TPORT_CONNECT_ERROR(err, connect);
     events = SU_WAIT_CONNECT | SU_WAIT_ERR;
     wakeup = tport_connected;
@@ -1001,9 +1004,9 @@ void tport_zap_secondary(tport_t *self)
   if (self->tp_index)
     su_root_deregister(mr->mr_root, self->tp_index);
   self->tp_index = 0;
-  if (self->tp_socket != -1)
+  if (self->tp_socket != INVALID_SOCKET)
     su_close(self->tp_socket);
-  self->tp_socket = -1;
+  self->tp_socket = INVALID_SOCKET;
 
   su_home_zap(self->tp_home);
 }
@@ -1560,8 +1563,8 @@ int bind6only_check(tport_master_t *mr)
   if (mr->mr_boundserver)
     return 0;
 
-  s4 = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  s6 = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+  s4 = su_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  s6 = su_socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
   
   memset(su, 0, sizeof *su);
   su->su_len = sulen = (sizeof su->su_sin6);
@@ -1892,8 +1895,6 @@ int tport_addrinfo_copy(su_addrinfo_t *dst, void *addr, socklen_t addrlen,
  */
 void tport_close(tport_t *self)
 {
-  int i;
-
   SU_DEBUG_5(("%s(%p): " TPN_FORMAT "\n", "tport_close", self,
 	      TPN_ARGS(self->tp_name)));
 
@@ -1920,7 +1921,7 @@ void tport_close(tport_t *self)
 
   /* Zap the queued messages */
   if (self->tp_queue) {
-    int N = self->tp_params->tpp_qsize;
+    unsigned short i, N = self->tp_params->tpp_qsize;
     for (i = 0; i < N; i++) {
       if (self->tp_queue[i])
 	msg_ref_destroy(self->tp_queue[i]), self->tp_queue[i] = NULL;
@@ -1970,7 +1971,7 @@ int tport_shutdown(tport_t *self, int how)
     self->tp_send_close = 2;
     tport_set_events(self, 0, SU_WAIT_OUT);
     if (self->tp_queue && self->tp_queue[self->tp_qhead]) {
-      int i, N = self->tp_params->tpp_qsize;
+      unsigned short i, N = self->tp_params->tpp_qsize;
       for (i = 0; i < N; i++) {
 	if (self->tp_queue[i]) {
 	  tport_pending_errmsg(self, self->tp_queue[i], EPIPE);
@@ -1997,7 +1998,7 @@ void tport_tick(su_root_magic_t *magic, su_timer_t *t, tport_master_t *mr)
   tport_primary_t *dad;
   tport_t *tp, *tp_next;
   su_time_t now = su_now();
-  int ts = su_time_ms(now);
+  int ts = (int)su_time_ms(now);
 
   /* Go through all primary transports */
   for (dad = mr->mr_primaries; dad; dad = dad->pri_next) {
@@ -2022,8 +2023,8 @@ void tport_tick(su_root_magic_t *magic, su_timer_t *t, tport_master_t *mr)
       int closed;
 
       if (msg &&
-	  tp->tp_params->tpp_timeout != UINT_MAX && 
-	  tp->tp_params->tpp_timeout < ts - (int)tp->tp_time &&
+	  tp->tp_params->tpp_timeout < INT_MAX && 
+	  (int)tp->tp_params->tpp_timeout < ts - (int)tp->tp_time &&
 	  !msg_is_streaming(msg)) {
 	SU_DEBUG_5(("tport_tick(%p): incomplete message idle for %d ms\n",
 		    tp, ts - (int)tp->tp_time));
@@ -2042,7 +2043,7 @@ void tport_tick(su_root_magic_t *magic, su_timer_t *t, tport_master_t *mr)
 
       if (!closed &&
 	  !(tp->tp_params->tpp_idle > 0 
-	    && tp->tp_params->tpp_idle < ts - (int)tp->tp_time)) {
+	    && (int)tp->tp_params->tpp_idle < ts - (int)tp->tp_time)) {
 	continue;
       }
 
@@ -2102,7 +2103,7 @@ int tport_convert_addr(su_home_t *home,
   char const *host;
   char buf[TPORT_HOSTPORTSIZE];
   char port[8];
-  int canonlen = canon ? strlen(canon) : 0;
+  size_t canonlen = canon ? strlen(canon) : 0;
 
   if (su == NULL)
     host = "*";
@@ -2221,10 +2222,11 @@ int getprotohints(su_addrinfo_t *hints,
  * []-quoted).
  */
 static
-char *localipname(int pf, char *buf, int bufsiz)
+char *localipname(int pf, char *buf, size_t bufsiz)
 {
   su_localinfo_t *li = NULL, hints[1] = {{ LI_NUMERIC | LI_CANONNAME }};
-  int n, error;
+  size_t n;
+  int error;
 
   hints->li_family = pf;
 
@@ -2339,7 +2341,7 @@ int tport_accept(tport_primary_t *pri, int events)
   su_addrinfo_t ai[1];
   su_sockaddr_t su[1]; 
   socklen_t sulen = sizeof su;
-  su_socket_t s = SOCKET_ERROR, l = pri->pri_primary->tp_socket;
+  su_socket_t s = INVALID_SOCKET, l = pri->pri_primary->tp_socket;
   char const *reason = "accept";
 
   if (events & SU_WAIT_ERR)
@@ -2406,7 +2408,7 @@ int tport_accept(tport_primary_t *pri, int events)
 }
 
 /** Allocate a new message object */
-msg_t *tport_msg_alloc(tport_t const *self, unsigned size)
+msg_t *tport_msg_alloc(tport_t const *self, usize_t size)
 {
   if (self) {
     tport_master_t *mr = self->tp_master;
@@ -2616,7 +2618,7 @@ void tport_recv_event(tport_t *self)
     if (again < 0) {
       int error = su_errno();
 
-      if (error != EAGAIN && error != EWOULDBLOCK) {
+      if (!su_is_blocking(error)) {
 	tport_error_report(self, error, NULL);
 	/* Failure: shutdown socket */
 	if (tport_is_connected(self))
@@ -2719,7 +2721,7 @@ void tport_deliver(tport_t *self,
 
   if (tport_is_primary(self)) {
     char ipaddr[SU_ADDRSIZE + 2];
-    su_sockaddr_t *su = msg_addr(msg);
+    su_sockaddr_t const *su = msg_addr(msg);
 
 #if SU_HAVE_IN6
     if (su->su_family == AF_INET6) {
@@ -2749,13 +2751,14 @@ void tport_deliver(tport_t *self,
   }
   else if (self->tp_master->mr_log && msg != self->tp_rlogged) {
     char const *via = "recv";
-    tport_log_msg(self, msg, via, "from", "   ", now);
+    tport_log_msg(self, msg, via, "from", now);
     self->tp_rlogged = msg;
   }
 
-  SU_DEBUG_7(("%s(%p): %smsg %p (%u bytes)"
+  SU_DEBUG_7(("%s(%p): %smsg %p ("MOD_ZU" bytes)"
 	      " from " TPN_FORMAT " next=%p\n", 
-	      __func__, self, error ? "bad " : "", msg, msg_size(msg),
+	      __func__, self, error ? "bad " : "",
+	      msg, (size_t)msg_size(msg),
 	      TPN_ARGS(d->d_from), next));
 
   ref = tport_incref(self);
@@ -2821,13 +2824,15 @@ tport_delivered_with_comp(tport_t *tp, msg_t const *msg,
 /** Allocate message for N bytes,
  *  return message buffer as a iovec 
  */
-int tport_recv_iovec(tport_t const *self, 
-		     msg_t **in_out_msg,
-		     msg_iovec_t iovec[msg_n_fragments], int N, 
-		     int exact)
+ssize_t tport_recv_iovec(tport_t const *self, 
+			 msg_t **in_out_msg,
+			 msg_iovec_t iovec[msg_n_fragments],
+			 size_t N, 
+			 int exact)
 {
   msg_t *msg = *in_out_msg;
-  int veclen, fresh;
+  ssize_t i, veclen;
+  int fresh;
 
   if (N == 0)
     return 0;
@@ -2839,7 +2844,7 @@ int tport_recv_iovec(tport_t const *self,
    */
   if (!msg) {
     if (!(*in_out_msg = msg = tport_msg_alloc(self, N))) {
-      SU_DEBUG_7(("%s(%p): cannot allocate msg for %u bytes "
+      SU_DEBUG_7(("%s(%p): cannot allocate msg for "MOD_ZU" bytes "
 		  "from (%s/%s:%s)\n", 
 		  __func__, self, N, 
 		  self->tp_protoname, self->tp_host, self->tp_port));
@@ -2858,7 +2863,7 @@ int tport_recv_iovec(tport_t const *self,
   }
   if (veclen < 0) {
     int err = su_errno();
-    SU_DEBUG_7(("%s(%p): cannot get msg %p buffer for %u bytes "
+    SU_DEBUG_7(("%s(%p): cannot get msg %p buffer for "MOD_ZU" bytes "
 		"from (%s/%s:%s): %s\n", 
 		__func__, self, msg, N, 
 		self->tp_protoname, self->tp_host, self->tp_port,
@@ -2869,12 +2874,14 @@ int tport_recv_iovec(tport_t const *self,
 
   assert(veclen <= msg_n_fragments);
 
-  SU_DEBUG_7(("%s(%p) msg %p from (%s/%s:%s) has %u bytes, veclen = %d\n",
+  SU_DEBUG_7(("%s(%p) msg %p from (%s/%s:%s) has "MOD_ZU" bytes, "
+	      "veclen = "MOD_ZD"\n",
               __func__, self, 
 	      msg, self->tp_protoname, self->tp_host, self->tp_port, 
 	      N, veclen));
-  for (N = 0; veclen > 1 && N < veclen; N++) {
-    SU_DEBUG_7(("\tiovec[%u] = %lu bytes\n", N, (LU)iovec[N].mv_len));
+
+  for (i = 0; veclen > 1 && i < veclen; i++) {
+    SU_DEBUG_7(("\tiovec[%lu] = %lu bytes\n", (LU)i, (LU)iovec[i].mv_len));
   }
 
   return veclen;
@@ -2882,7 +2889,7 @@ int tport_recv_iovec(tport_t const *self,
 
 int tport_recv_error_report(tport_t *self)
 {
-  if (su_errno() == EAGAIN && su_errno() != EWOULDBLOCK)
+  if (su_is_blocking(su_errno()))
     return 1;
 
   /* Report error */
@@ -3115,7 +3122,10 @@ int tport_send_msg(tport_t *self, msg_t *msg,
 		   struct sigcomp_compartment *cc)
 {
   msg_iovec_t *iov, auto_iov[40];
-  int iovlen, iovused, n, i, total, sdwn_after, close_after;
+  size_t iovlen, iovused, i, total;
+  ssize_t n;
+  ssize_t nerror;
+  int sdwn_after, close_after;
   su_time_t now;
   su_addrinfo_t *ai;
 
@@ -3150,23 +3160,25 @@ int tport_send_msg(tport_t *self, msg_t *msg,
 
   self->tp_time = su_time_ms(now = su_now());
 
-  n = tport_vsend(self, msg, tpn, iov, iovused, cc);
-  SU_DEBUG_9(("tport_vsend returned %d\n", n));
+  nerror = tport_vsend(self, msg, tpn, iov, iovused, cc);
+  SU_DEBUG_9(("tport_vsend returned "MOD_ZD"\n", nerror));
 
-  if (n < 0)
-    return n;
+  if (nerror == -1)
+    return -1;
+
+  n = (size_t)nerror;
 
   self->tp_unsent = NULL, self->tp_unsentlen = 0;
   
   if (n > 0 && self->tp_master->mr_log && self->tp_slogged != msg) {
-    tport_log_msg(self, msg, "send", "to", "   ", now);
+    tport_log_msg(self, msg, "send", "to", now);
     self->tp_slogged = msg;
   }
 
   for (i = 0, total = 0; i < iovused; i++) {
-    if (total + iov[i].mv_len > n) {
+    if (total + (size_t)iov[i].mv_len > n) {
       if (tport_is_connection_oriented(self)) {
-	iov[i].mv_len -= n - total;
+	iov[i].mv_len -= (su_ioveclen_t)(n - total);
 	iov[i].mv_base = (char *)iov[i].mv_base + (n - total);
 	if (tport_queue_rest(self, msg, &iov[i], iovused - i) >= 0)
 	  return n;
@@ -3202,14 +3214,14 @@ int tport_send_msg(tport_t *self, msg_t *msg,
 }
 
 static 
-int tport_vsend(tport_t *self, 
-		msg_t *msg, 
-		tp_name_t const *tpn,
-		msg_iovec_t iov[], 
-		int iovused,
-		struct sigcomp_compartment *cc)
+ssize_t tport_vsend(tport_t *self, 
+		    msg_t *msg, 
+		    tp_name_t const *tpn,
+		    msg_iovec_t iov[], 
+		    size_t iovused,
+		    struct sigcomp_compartment *cc)
 { 
-  int n;
+  ssize_t n;
   su_addrinfo_t *ai = msg_addrinfo(msg);
 
   if (cc) {
@@ -3232,14 +3244,15 @@ int tport_vsend(tport_t *self,
     tport_dump_iovec(self, msg, n, iov, iovused, "sent", "to");
     
   if (tport_log->log_level >= 7) {
-    int i, m = 0;
+    size_t i, m = 0;
+
     for (i = 0; i < iovused; i++)
       m += iov[i].mv_len;
 
     if (tpn == NULL || tport_is_connection_oriented(self))
       tpn = self->tp_name;
 
-    SU_DEBUG_7(("tport_vsend(%p): %d bytes of %u to %s/%s:%s%s\n", 
+    SU_DEBUG_7(("tport_vsend(%p): "MOD_ZU" bytes of "MOD_ZU" to %s/%s:%s%s\n", 
 		self, n, m, tpn->tpn_proto, tpn->tpn_host, 
 		tpn->tpn_port, 
 		(ai->ai_flags & TP_AI_COMPRESSED) ? ";comp=sigcomp" : ""));
@@ -3260,9 +3273,9 @@ int tport_send_error(tport_t *self, msg_t *msg,
     /*Xyzzy*/
   }
 
-  if (error == EAGAIN || error == EWOULDBLOCK) {
+  if (su_is_blocking(error)) {
     SU_DEBUG_5(("tport_vsend(%p): %s with (s=%d %s/%s:%s%s)\n", 
-		self, "EAGAIN", self->tp_socket, 
+		self, "EAGAIN", (int)self->tp_socket, 
 		tpn->tpn_proto, tpn->tpn_host, tpn->tpn_port, comp));
     return 0;
   }
@@ -3271,24 +3284,24 @@ int tport_send_error(tport_t *self, msg_t *msg,
 
   if (self->tp_addrinfo->ai_family == AF_INET) {
     SU_DEBUG_3(("tport_vsend(%p): %s with (s=%d %s/%s:%s%s)\n", 
-		self, su_strerror(error), self->tp_socket, 
+		self, su_strerror(error), (int)self->tp_socket, 
 		tpn->tpn_proto, tpn->tpn_host, tpn->tpn_port, comp));
   }
 #if SU_HAVE_IN6
   else if (self->tp_addrinfo->ai_family == AF_INET6) {
     su_sockaddr_t const *su = (su_sockaddr_t const *)ai->ai_addr;
     SU_DEBUG_3(("tport_vsend(%p): %s with "
-		"(s=%d, IP6=%s/%s:%s%s (scope=%i) addrlen=%zd)\n", 
-		self, su_strerror(error), self->tp_socket, 
+		"(s=%d, IP6=%s/%s:%s%s (scope=%i) addrlen=%u)\n", 
+		self, su_strerror(error), (int)self->tp_socket, 
 		tpn->tpn_proto, tpn->tpn_host, tpn->tpn_port, comp,
-		su->su_scope_id, ai->ai_addrlen));
+		su->su_scope_id, (unsigned)ai->ai_addrlen));
   }
 #endif
   else {
     SU_DEBUG_3(("\ttport_vsend(%p): %s with "
-		"(s=%d, AF=%u addrlen=%zd)%s\n", 
+		"(s=%d, AF=%u addrlen=%u)%s\n", 
 		self, su_strerror(error), 
-		self->tp_socket, ai->ai_family, ai->ai_addrlen, comp));
+		(int)self->tp_socket, ai->ai_family, (unsigned)ai->ai_addrlen, comp));
   }
 
 #if 0
@@ -3312,9 +3325,9 @@ static
 int tport_queue_rest(tport_t *self, 
 		     msg_t *msg, 
 		     msg_iovec_t iov[], 
-		     int iovused)
+		     size_t iovused)
 {
-  int iovlen = self->tp_iovlen;
+  size_t iovlen = self->tp_iovlen;
 
   assert(tport_is_connection_oriented(self));
   assert(self->tp_queue == NULL || 
@@ -3397,13 +3410,12 @@ int tport_tqueue(tport_t *self, msg_t *msg,
 }
 
 /** Return number of queued messages. */
-int tport_queuelen(tport_t const *self)
+isize_t tport_queuelen(tport_t const *self)
 {
-  int retval = 0;
+  isize_t retval = 0;
 
   if (self && self->tp_queue) {
-    unsigned short i;
-    unsigned short N = self->tp_params->tpp_qsize;
+    unsigned short i, N = self->tp_params->tpp_qsize;
 
     for (i = self->tp_qhead; self->tp_queue[i]; i = (i + 1) % N)
       retval++;
@@ -3456,7 +3468,7 @@ int tport_queue(tport_t *self, msg_t *msg)
 int tport_tqsend(tport_t *self, msg_t *msg, msg_t *next,
 		 tag_type_t tag, tag_value_t value, ...)
 {
-  unsigned short qhead = self->tp_qhead;
+  unsigned short qhead;
   ta_list ta;
   int reuse, sdwn_after, close_after;
   unsigned short N;
@@ -3465,6 +3477,7 @@ int tport_tqsend(tport_t *self, msg_t *msg, msg_t *next,
   if (self == NULL)
     return -1;
 
+  qhead = self->tp_qhead;
   N = self->tp_params->tpp_qsize;
   reuse = self->tp_reusable;
   sdwn_after = 0;
@@ -3564,10 +3577,9 @@ void tport_send_event(tport_t *self)
 static
 void tport_send_queue(tport_t *self)
 {
-  int n, i, total;
   msg_t *msg;
   msg_iovec_t *iov;
-  int iovused;
+  size_t i, iovused, n, total;
   unsigned short qhead = self->tp_qhead, N = self->tp_params->tpp_qsize;
   su_time_t now;
 
@@ -3581,19 +3593,22 @@ void tport_send_queue(tport_t *self)
   iovused = self->tp_unsentlen, self->tp_unsentlen = 0;
 
   if (iov && iovused) {
-    n = tport_vsend(self, msg, self->tp_name, iov, iovused, NULL);
+    ssize_t e;
+    e = tport_vsend(self, msg, self->tp_name, iov, iovused, NULL);
 
-    if (n < 0)				/* XXX */
+    if (e == -1)				/* XXX */
       return;
 
+    n = (size_t)e;
+
     if (n > 0 && self->tp_master->mr_log && self->tp_slogged != msg) {
-      tport_log_msg(self, msg, "send", "to", "   ", now);
+      tport_log_msg(self, msg, "send", "to", now);
       self->tp_slogged = msg;
     }
     
     for (i = 0, total = 0; i < iovused; i++) {
-      if (total + iov[i].mv_len > n) {
-	iov[i].mv_len -= n - total;
+      if (total + (size_t)iov[i].mv_len > n) {
+	iov[i].mv_len -= (su_ioveclen_t)(n - total);
 	iov[i].mv_base = (char *)iov[i].mv_base + (n - total);
 
 	self->tp_unsent = iov + i;
@@ -3696,7 +3711,7 @@ static int
 msg_select_addrinfo(msg_t *msg, su_addrinfo_t *res)
 {
   su_addrinfo_t *ai, *mai = msg_addrinfo(msg);
-  su_sockaddr_t *su = msg_addr(msg);
+  su_sockaddr_t *su = (su_sockaddr_t *)mai->ai_addr;
 
   for (ai = res; ai; ai = ai->ai_next) {
 #if SU_HAVE_IN6
@@ -3831,7 +3846,7 @@ int tport_release(tport_t *self,
 {
   tport_pending_t *pending;
 
-  if (self == NULL || msg == NULL || pendd <= 0 || pendd > self->tp_plen)
+  if (self == NULL || msg == NULL || pendd <= 0 || pendd > (int)self->tp_plen)
     return su_seterrno(EINVAL), -1;
 
   pending = self->tp_pending + (pendd - 1);
@@ -3867,6 +3882,7 @@ tport_pending_error(tport_t *self, su_sockaddr_t const *dst, int error)
   unsigned i, reported, callbacks;
   tport_pending_t *pending;
   msg_t *msg;
+  su_addrinfo_t const *ai;
 
   assert(self); assert(dst);
 
@@ -3886,8 +3902,9 @@ tport_pending_error(tport_t *self, su_sockaddr_t const *dst, int error)
       continue;
 
     msg = pending->p_msg;
-    
-    if (su_cmp_sockaddr(dst, msg_addr(msg)) != 0)
+    ai = msg_addrinfo(msg);
+
+    if (su_cmp_sockaddr(dst, (su_sockaddr_t *)ai->ai_addr) != 0)
       continue;
 
     pending->p_reported = reported;
@@ -4097,6 +4114,9 @@ tport_t *tport_by_name(tport_t const *self, tp_name_t const *tpn)
 {
   tport_t const *sub, *next;
   char const *canon, *host, *port, *comp;
+#if SU_HAVE_IN6
+  char *end, ipaddr[TPORT_HOSTPORTSIZE];
+#endif
 
   assert(self); assert(tpn);
 
@@ -4112,7 +4132,8 @@ tport_t *tport_by_name(tport_t const *self, tp_name_t const *tpn)
   comp = tport_canonize_comp(tpn->tpn_comp);
 
   if (self && host && port) {
-    int resolved = 0, sulen, cmp;
+    int resolved = 0, cmp;
+    socklen_t sulen;
     su_sockaddr_t su[1];
 
     sub = self->tp_pri->pri_secondary;
@@ -4120,25 +4141,23 @@ tport_t *tport_by_name(tport_t const *self, tp_name_t const *tpn)
     memset(su, 0, sizeof su);
 
 #if SU_HAVE_IN6
-    if (strchr(host, ':')) {
-      char *end, ipaddr[TPORT_HOSTPORTSIZE];
-      
-      if (host[0] == '[') {
-	/* Remove [] around IPv6 address */
-	host = strncpy(ipaddr, host +  1, sizeof(ipaddr) - 1);
-	ipaddr[sizeof(ipaddr) - 1] = '\0';
-
-	if ((end = strchr(host, ']')))
-	  *end = 0;
-      }
-
-      su->su_len = sulen = sizeof (struct sockaddr_in6);
+    if (host_is_ip6_reference(host)) {
+      /* Remove [] around IPv6 address */
+      host = strncpy(ipaddr, host +  1, sizeof(ipaddr) - 1);
+      ipaddr[sizeof(ipaddr) - 1] = '\0';
+      if ((end = strchr(host, ']')))
+	*end = 0;
+      su->su_len = sulen = (socklen_t) sizeof (struct sockaddr_in6);
+      su->su_family = AF_INET6;
+    }
+    else if (host_is_ip_address(host)) {
+      su->su_len = sulen = (socklen_t) sizeof (struct sockaddr_in6);
       su->su_family = AF_INET6;
     }
     else
 #endif
     {
-      su->su_len = sulen = sizeof (struct sockaddr_in);
+      su->su_len = sulen = (socklen_t) sizeof (struct sockaddr_in);
       su->su_family = AF_INET;
     }
 
@@ -4150,7 +4169,8 @@ tport_t *tport_by_name(tport_t const *self, tp_name_t const *tpn)
 
       /* Depth-first search */
       while (sub) {
-	cmp = sub->tp_addrlen - sulen; 
+	cmp = (int)((size_t)sub->tp_addrlen - (size_t)sulen);
+
 	if (cmp == 0)
 	  cmp = memcmp(sub->tp_addr, su, sulen);
 
@@ -4195,7 +4215,7 @@ tport_t *tport_by_name(tport_t const *self, tp_name_t const *tpn)
 	continue;
 
       if (resolved) {
-	if (sub->tp_addrlen != sulen ||
+	if ((socklen_t)sub->tp_addrlen != sulen ||
 	    memcmp(sub->tp_addr, su, sulen)) {
 	  SU_DEBUG_7(("tport(%p): not found by name " TPN_FORMAT "\n",
 		      self, TPN_ARGS(tpn)));
@@ -4223,22 +4243,22 @@ tport_t *tport_by_addrinfo(tport_primary_t const *pri,
 {
   tport_t const *sub, *maybe;
   struct sockaddr const *sa;
-  int salen, cmp;
+  int cmp;
   char const *comp;
 
   assert(pri); assert(ai);
 
-  sa = ai->ai_addr, salen = ai->ai_addrlen;
+  sa = ai->ai_addr;
 
   sub = pri->pri_secondary, maybe = NULL;
 
   comp = tport_canonize_comp(tpn->tpn_comp);
 
-  /* Depth-first search */
+  /* Find leftmost (prevmost) matching tport */
   while (sub) {
-    cmp = sub->tp_addrlen - salen; 
+    cmp = (int)(sub->tp_addrlen - ai->ai_addrlen); 
     if (cmp == 0)
-      cmp = memcmp(sub->tp_addr, sa, salen);
+      cmp = memcmp(sub->tp_addr, sa, ai->ai_addrlen);
 
     if (cmp == 0) {
       if (sub->tp_left) {
@@ -4262,8 +4282,6 @@ tport_t *tport_by_addrinfo(tport_primary_t const *pri,
     }
   }
 
-  maybe = NULL;
-
   for (; sub; sub = tprb_succ(sub)) {
     if (!sub->tp_reusable)
       continue;
@@ -4275,16 +4293,13 @@ tport_t *tport_by_addrinfo(tport_primary_t const *pri,
     if (comp != sub->tp_name->tpn_comp)
       continue;
     
-    if (sub->tp_addrlen != salen || memcmp(sub->tp_addr, sa, salen)) {
+    if (sub->tp_addrlen != ai->ai_addrlen 
+	|| memcmp(sub->tp_addr, sa, ai->ai_addrlen)) {
       sub = NULL;
       break;
     }
-
     break;
   }
-
-  if (sub == NULL)
-    sub = maybe;
 
   if (sub)
     SU_DEBUG_7(("%s(%p): found %p by name " TPN_FORMAT "\n",
@@ -4302,7 +4317,7 @@ int tport_name_by_url(su_home_t *home,
 		      tp_name_t *tpn,
 		      url_string_t const *us)
 {
-  int n;
+  size_t n;
   url_t url[1];
   char *b;
 
@@ -4345,7 +4360,7 @@ int tport_name_by_url(su_home_t *home,
 /** Check if transport named is already resolved */
 int tport_name_is_resolved(tp_name_t const *tpn)
 {
-  int n;
+  size_t n;
 
   if (!tpn->tpn_host)
     return 0;
@@ -4384,7 +4399,7 @@ int tport_name_dup(su_home_t *home,
 		   tp_name_t *dst,
 		   tp_name_t const *src)
 {
-  int n_proto, n_host, n_port, n_canon, n_comp = 0;
+  size_t n_proto, n_host, n_port, n_canon, n_comp = 0;
   char *s;
 
   if (strcmp(src->tpn_proto, tpn_any)) 
@@ -4429,12 +4444,12 @@ int tport_name_dup(su_home_t *home,
 }
 
 /** Convert a sockaddr structure into printable form. */
-char *tport_hostport(char buf[], int bufsize, 
+char *tport_hostport(char buf[], isize_t bufsize, 
 		     su_sockaddr_t const *su,
 		     int with_port_and_brackets)
 {
   char *b = buf;
-  int n;
+  size_t n;
 
 #if SU_HAVE_IN6
   if (with_port_and_brackets > 1 || su->su_family == AF_INET6) {
@@ -4444,9 +4459,11 @@ char *tport_hostport(char buf[], int bufsize,
 
   if (inet_ntop(su->su_family, SU_ADDR(su), b, bufsize) == NULL)
     return NULL;
-  n = strlen(b); bufsize -= n; b += n;
-  if (bufsize < 2)
+  n = strlen(b); 
+  if (bufsize < n + 2)
     return NULL;
+
+  bufsize -= n; b += n;
 
 #if SU_HAVE_IN6
   if (with_port_and_brackets > 1 || su->su_family == AF_INET6) {

@@ -139,6 +139,8 @@ int nta_agent_add_tport(nta_agent_t *agent,
 			url_string_t const *url,
 			tag_type_t tag, tag_value_t value, ...);
 
+SOFIAPUBFUN int nta_agent_close_tports(nta_agent_t *agent);
+
 SOFIAPUBFUN sip_contact_t *nta_agent_contact(nta_agent_t const *a);
 SOFIAPUBFUN sip_via_t *nta_agent_via(nta_agent_t const *a);
 SOFIAPUBFUN sip_via_t *nta_agent_public_via(nta_agent_t const *a);
@@ -235,6 +237,14 @@ nta_leg_t *nta_leg_by_dialog(nta_agent_t const *agent,
 			     url_t const *from_url,
 			     char const *to_tag,
 			     url_t const *to_url);
+
+/** Generate Replaces header */
+SOFIAPUBFUN sip_replaces_t *nta_leg_make_replaces(nta_leg_t *leg,
+						  su_home_t *home,
+						  int early_only);
+/** Get dialog leg by Replaces header */
+SOFIAPUBFUN
+nta_leg_t *nta_leg_by_replaces(nta_agent_t *, sip_replaces_t const *);
 
 /* ----------------------------------------------------------------------
  * 6) Prototypes for incoming transactions 

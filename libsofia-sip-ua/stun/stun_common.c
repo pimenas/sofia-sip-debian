@@ -33,9 +33,7 @@
  * 
  */
 
-#if HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #ifdef USE_TURN
 #include "../turn/turn_common.h"
@@ -243,9 +241,10 @@ int stun_parse_attr_error_code(stun_attr_t *attr, const unsigned char *p, unsign
 
   error->code = (tmp & STUN_EC_CLASS)*100 + (tmp & STUN_EC_NUM);
 
-  error->phrase = (char *) malloc(len-4);
+  error->phrase = (char *) malloc(len-3);
 
   strncpy(error->phrase, (char*)p+4, len-4);
+  error->phrase[len - 4] = '\0';
 
   attr->pattr = error;
   stun_init_buffer(&attr->enc_buf);
@@ -383,28 +382,35 @@ int stun_encode_uint32(stun_attr_t *attr) {
 
 int stun_encode_error_code(stun_attr_t *attr) {
   short int class, num;
-  char *reason;
-  int len;
+  size_t phrase_len, padded;
   stun_attr_errorcode_t *error;
 
   error = (stun_attr_errorcode_t *) attr->pattr;
   class = error->code / 100;
   num = error->code % 100;
-  len = strlen(error->phrase);
-  attr->enc_buf.size = len + (len % 4 == 0? 0 : 4 - (len % 4));
-  reason = malloc(attr->enc_buf.size);
-  memset(reason, 0, attr->enc_buf.size);
-  memcpy(reason, error->phrase, len);
 
-  attr->enc_buf.size +=4;
-  assert(attr->enc_buf.size < 65536);
-  if (stun_encode_type_len(attr, (uint16_t)attr->enc_buf.size) < 0) {
+  phrase_len = strlen(error->phrase);
+  if (phrase_len + 8 > 65536)
+    phrase_len = 65536 - 8;
+
+  /* note: align the phrase len (see RFC3489:11.2.9) */
+  padded = phrase_len + (phrase_len % 4 == 0 ? 0 : 4 - (phrase_len % 4));
+
+  /* note: error-code has four octets of headers plus the 
+   *       reason field -> len+4 octets */
+  if (stun_encode_type_len(attr, (uint16_t)(padded + 4)) < 0) {
     return -1;
   }
-  memset(attr->enc_buf.data+4, 0, 2);
-  memcpy(attr->enc_buf.data+6, &class, 1);
-  memcpy(attr->enc_buf.data+7, &num, 1);
-  memcpy(attr->enc_buf.data+8, reason, attr->enc_buf.size - 4);
+  else {
+    assert(attr->enc_buf.size == padded + 8);
+    memset(attr->enc_buf.data+4, 0, 2);
+    attr->enc_buf.data[6] = class;
+    attr->enc_buf.data[7] = num;
+    /* note: 4 octets of TLV header and 4 octets of error-code header */
+    memcpy(attr->enc_buf.data+8, error->phrase, 
+	   phrase_len);
+    memset(attr->enc_buf.data + 8 + phrase_len, 0, padded - phrase_len);
+  }
 
   return attr->enc_buf.size;
 }
@@ -491,10 +497,12 @@ int stun_encode_type_len(stun_attr_t *attr, uint16_t len) {
 int stun_validate_message_integrity(stun_msg_t *msg, stun_buffer_t *pwd)
 {
 
+#if defined(HAVE_OPENSSL)
   int padded_len, len;
   unsigned int dig_len;
   unsigned char dig[20]; /* received sha1 digest */
   unsigned char *padded_text;
+#endif
 
   /* password NULL so shared-secret not established and 
      messege integrity checks can be skipped */
@@ -606,10 +614,11 @@ int stun_send_message(su_socket_t s, su_sockaddr_t *to_addr,
   char ipaddr[SU_ADDRSIZE + 2];
   stun_attr_t **a, *b;
 
+  socklen_t tolen = SU_ADDRLEN(to_addr);
+
   stun_encode_message(msg, pwd);
 
-  err = sendto(s, msg->enc_buf.data, msg->enc_buf.size, 
-	       0, (struct sockaddr *)to_addr, sizeof(struct sockaddr_in));
+  err = su_sendto(s, msg->enc_buf.data, msg->enc_buf.size, 0, to_addr, tolen);
 
   free(msg->enc_buf.data), msg->enc_buf.data = NULL;
   msg->enc_buf.size = 0;
@@ -697,7 +706,6 @@ int stun_encode_message(stun_msg_t *msg, stun_buffer_t *pwd) {
 	z = stun_encode_error_code(attr);
       default:
 	break;
-	z = 0;
       }
 
       if(z < 0) return z;
@@ -756,7 +764,8 @@ char *stun_determine_ip_address(int family)
 
   char *local_ip_address;
   su_localinfo_t *li = NULL, hints[1] = {{ LI_CANONNAME|LI_NUMERIC }};
-  int error, address_size;
+  int error;
+  size_t address_size;
   struct sockaddr_in *sa = NULL;
   su_sockaddr_t *temp;
 
@@ -773,7 +782,7 @@ char *stun_determine_ip_address(int family)
 
   address_size = strlen(inet_ntoa(sa->sin_addr));
   
-  local_ip_address = malloc(address_size);
+  local_ip_address = malloc(address_size + 1);
   strcpy(local_ip_address, (char *) inet_ntoa(sa->sin_addr)); /* otherwise? */
     
   su_freelocalinfo(li);

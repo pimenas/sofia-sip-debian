@@ -62,641 +62,641 @@ tag_typedef_t siptag_end = TAG_TYPEDEF(tag_end, end);
 
 
 /**@ingroup sip_request
- * Tag for request line object.
+ * Tag for @ref sip_request "request line" object.
  */
 tag_typedef_t siptag_request = SIPHDRTAG_TYPEDEF(request);
 /**@ingroup sip_request
- * Tag for string with request line value.
+ * Tag for string with @ref sip_request "request line" value.
  */
 tag_typedef_t siptag_request_str = SIPSTRTAG_TYPEDEF(request);
 
 /**@ingroup sip_status
- * Tag for status line object.
+ * Tag for @ref sip_status "status line" object.
  */
 tag_typedef_t siptag_status = SIPHDRTAG_TYPEDEF(status);
 /**@ingroup sip_status
- * Tag for string with status line value.
+ * Tag for string with @ref sip_status "status line" value.
  */
 tag_typedef_t siptag_status_str = SIPSTRTAG_TYPEDEF(status);
 
 /**@ingroup sip_via
- * Tag for Via header object.
+ * Tag for @ref sip_via "Via header" object.
  */
 tag_typedef_t siptag_via = SIPHDRTAG_TYPEDEF(via);
 /**@ingroup sip_via
- * Tag for string with Via header value.
+ * Tag for string with @ref sip_via "Via header" value.
  */
 tag_typedef_t siptag_via_str = SIPSTRTAG_TYPEDEF(via);
 
 /**@ingroup sip_route
- * Tag for Route header object.
+ * Tag for @ref sip_route "Route header" object.
  */
 tag_typedef_t siptag_route = SIPHDRTAG_TYPEDEF(route);
 /**@ingroup sip_route
- * Tag for string with Route header value.
+ * Tag for string with @ref sip_route "Route header" value.
  */
 tag_typedef_t siptag_route_str = SIPSTRTAG_TYPEDEF(route);
 
 /**@ingroup sip_record_route
- * Tag for Record-Route header object.
+ * Tag for @ref sip_record_route "Record-Route header" object.
  */
 tag_typedef_t siptag_record_route = SIPHDRTAG_TYPEDEF(record_route);
 /**@ingroup sip_record_route
- * Tag for string with Record-Route header value.
+ * Tag for string with @ref sip_record_route "Record-Route header" value.
  */
 tag_typedef_t siptag_record_route_str = SIPSTRTAG_TYPEDEF(record_route);
 
 /**@ingroup sip_max_forwards
- * Tag for Max-Forwards header object.
+ * Tag for @ref sip_max_forwards "Max-Forwards header" object.
  */
 tag_typedef_t siptag_max_forwards = SIPHDRTAG_TYPEDEF(max_forwards);
 /**@ingroup sip_max_forwards
- * Tag for string with Max-Forwards header value.
+ * Tag for string with @ref sip_max_forwards "Max-Forwards header" value.
  */
 tag_typedef_t siptag_max_forwards_str = SIPSTRTAG_TYPEDEF(max_forwards);
 
 /**@ingroup sip_proxy_require
- * Tag for Proxy-Require header object.
+ * Tag for @ref sip_proxy_require "Proxy-Require header" object.
  */
 tag_typedef_t siptag_proxy_require = SIPHDRTAG_TYPEDEF(proxy_require);
 /**@ingroup sip_proxy_require
- * Tag for string with Proxy-Require header value.
+ * Tag for string with @ref sip_proxy_require "Proxy-Require header" value.
  */
 tag_typedef_t siptag_proxy_require_str = SIPSTRTAG_TYPEDEF(proxy_require);
 
 /**@ingroup sip_from
- * Tag for From header object.
+ * Tag for @ref sip_from "From header" object.
  */
 tag_typedef_t siptag_from = SIPHDRTAG_TYPEDEF(from);
 /**@ingroup sip_from
- * Tag for string with From header value.
+ * Tag for string with @ref sip_from "From header" value.
  */
 tag_typedef_t siptag_from_str = SIPSTRTAG_TYPEDEF(from);
 
 /**@ingroup sip_to
- * Tag for To header object.
+ * Tag for @ref sip_to "To header" object.
  */
 tag_typedef_t siptag_to = SIPHDRTAG_TYPEDEF(to);
 /**@ingroup sip_to
- * Tag for string with To header value.
+ * Tag for string with @ref sip_to "To header" value.
  */
 tag_typedef_t siptag_to_str = SIPSTRTAG_TYPEDEF(to);
 
 /**@ingroup sip_call_id
- * Tag for Call-ID header object.
+ * Tag for @ref sip_call_id "Call-ID header" object.
  */
 tag_typedef_t siptag_call_id = SIPHDRTAG_TYPEDEF(call_id);
 /**@ingroup sip_call_id
- * Tag for string with Call-ID header value.
+ * Tag for string with @ref sip_call_id "Call-ID header" value.
  */
 tag_typedef_t siptag_call_id_str = SIPSTRTAG_TYPEDEF(call_id);
 
 /**@ingroup sip_cseq
- * Tag for CSeq header object.
+ * Tag for @ref sip_cseq "CSeq header" object.
  */
 tag_typedef_t siptag_cseq = SIPHDRTAG_TYPEDEF(cseq);
 /**@ingroup sip_cseq
- * Tag for string with CSeq header value.
+ * Tag for string with @ref sip_cseq "CSeq header" value.
  */
 tag_typedef_t siptag_cseq_str = SIPSTRTAG_TYPEDEF(cseq);
 
 /**@ingroup sip_contact
- * Tag for Contact header object.
+ * Tag for @ref sip_contact "Contact header" object.
  */
 tag_typedef_t siptag_contact = SIPHDRTAG_TYPEDEF(contact);
 /**@ingroup sip_contact
- * Tag for string with Contact header value.
+ * Tag for string with @ref sip_contact "Contact header" value.
  */
 tag_typedef_t siptag_contact_str = SIPSTRTAG_TYPEDEF(contact);
 
 /**@ingroup sip_rseq
- * Tag for RSeq header object.
+ * Tag for @ref sip_rseq "RSeq header" object.
  */
 tag_typedef_t siptag_rseq = SIPHDRTAG_TYPEDEF(rseq);
 /**@ingroup sip_rseq
- * Tag for string with RSeq header value.
+ * Tag for string with @ref sip_rseq "RSeq header" value.
  */
 tag_typedef_t siptag_rseq_str = SIPSTRTAG_TYPEDEF(rseq);
 
 /**@ingroup sip_rack
- * Tag for RAck header object.
+ * Tag for @ref sip_rack "RAck header" object.
  */
 tag_typedef_t siptag_rack = SIPHDRTAG_TYPEDEF(rack);
 /**@ingroup sip_rack
- * Tag for string with RAck header value.
+ * Tag for string with @ref sip_rack "RAck header" value.
  */
 tag_typedef_t siptag_rack_str = SIPSTRTAG_TYPEDEF(rack);
 
 /**@ingroup sip_request_disposition
- * Tag for Request-Disposition header object.
+ * Tag for @ref sip_request_disposition "Request-Disposition header" object.
  */
 tag_typedef_t siptag_request_disposition = SIPHDRTAG_TYPEDEF(request_disposition);
 /**@ingroup sip_request_disposition
- * Tag for string with Request-Disposition header value.
+ * Tag for string with @ref sip_request_disposition "Request-Disposition header" value.
  */
 tag_typedef_t siptag_request_disposition_str = SIPSTRTAG_TYPEDEF(request_disposition);
 
 /**@ingroup sip_accept_contact
- * Tag for Accept-Contact header object.
+ * Tag for @ref sip_accept_contact "Accept-Contact header" object.
  */
 tag_typedef_t siptag_accept_contact = SIPHDRTAG_TYPEDEF(accept_contact);
 /**@ingroup sip_accept_contact
- * Tag for string with Accept-Contact header value.
+ * Tag for string with @ref sip_accept_contact "Accept-Contact header" value.
  */
 tag_typedef_t siptag_accept_contact_str = SIPSTRTAG_TYPEDEF(accept_contact);
 
 /**@ingroup sip_reject_contact
- * Tag for Reject-Contact header object.
+ * Tag for @ref sip_reject_contact "Reject-Contact header" object.
  */
 tag_typedef_t siptag_reject_contact = SIPHDRTAG_TYPEDEF(reject_contact);
 /**@ingroup sip_reject_contact
- * Tag for string with Reject-Contact header value.
+ * Tag for string with @ref sip_reject_contact "Reject-Contact header" value.
  */
 tag_typedef_t siptag_reject_contact_str = SIPSTRTAG_TYPEDEF(reject_contact);
 
 /**@ingroup sip_expires
- * Tag for Expires header object.
+ * Tag for @ref sip_expires "Expires header" object.
  */
 tag_typedef_t siptag_expires = SIPHDRTAG_TYPEDEF(expires);
 /**@ingroup sip_expires
- * Tag for string with Expires header value.
+ * Tag for string with @ref sip_expires "Expires header" value.
  */
 tag_typedef_t siptag_expires_str = SIPSTRTAG_TYPEDEF(expires);
 
 /**@ingroup sip_date
- * Tag for Date header object.
+ * Tag for @ref sip_date "Date header" object.
  */
 tag_typedef_t siptag_date = SIPHDRTAG_TYPEDEF(date);
 /**@ingroup sip_date
- * Tag for string with Date header value.
+ * Tag for string with @ref sip_date "Date header" value.
  */
 tag_typedef_t siptag_date_str = SIPSTRTAG_TYPEDEF(date);
 
 /**@ingroup sip_retry_after
- * Tag for Retry-After header object.
+ * Tag for @ref sip_retry_after "Retry-After header" object.
  */
 tag_typedef_t siptag_retry_after = SIPHDRTAG_TYPEDEF(retry_after);
 /**@ingroup sip_retry_after
- * Tag for string with Retry-After header value.
+ * Tag for string with @ref sip_retry_after "Retry-After header" value.
  */
 tag_typedef_t siptag_retry_after_str = SIPSTRTAG_TYPEDEF(retry_after);
 
 /**@ingroup sip_timestamp
- * Tag for Timestamp header object.
+ * Tag for @ref sip_timestamp "Timestamp header" object.
  */
 tag_typedef_t siptag_timestamp = SIPHDRTAG_TYPEDEF(timestamp);
 /**@ingroup sip_timestamp
- * Tag for string with Timestamp header value.
+ * Tag for string with @ref sip_timestamp "Timestamp header" value.
  */
 tag_typedef_t siptag_timestamp_str = SIPSTRTAG_TYPEDEF(timestamp);
 
 /**@ingroup sip_min_expires
- * Tag for Min-Expires header object.
+ * Tag for @ref sip_min_expires "Min-Expires header" object.
  */
 tag_typedef_t siptag_min_expires = SIPHDRTAG_TYPEDEF(min_expires);
 /**@ingroup sip_min_expires
- * Tag for string with Min-Expires header value.
+ * Tag for string with @ref sip_min_expires "Min-Expires header" value.
  */
 tag_typedef_t siptag_min_expires_str = SIPSTRTAG_TYPEDEF(min_expires);
 
 /**@ingroup sip_subject
- * Tag for Subject header object.
+ * Tag for @ref sip_subject "Subject header" object.
  */
 tag_typedef_t siptag_subject = SIPHDRTAG_TYPEDEF(subject);
 /**@ingroup sip_subject
- * Tag for string with Subject header value.
+ * Tag for string with @ref sip_subject "Subject header" value.
  */
 tag_typedef_t siptag_subject_str = SIPSTRTAG_TYPEDEF(subject);
 
 /**@ingroup sip_priority
- * Tag for Priority header object.
+ * Tag for @ref sip_priority "Priority header" object.
  */
 tag_typedef_t siptag_priority = SIPHDRTAG_TYPEDEF(priority);
 /**@ingroup sip_priority
- * Tag for string with Priority header value.
+ * Tag for string with @ref sip_priority "Priority header" value.
  */
 tag_typedef_t siptag_priority_str = SIPSTRTAG_TYPEDEF(priority);
 
 /**@ingroup sip_call_info
- * Tag for Call-Info header object.
+ * Tag for @ref sip_call_info "Call-Info header" object.
  */
 tag_typedef_t siptag_call_info = SIPHDRTAG_TYPEDEF(call_info);
 /**@ingroup sip_call_info
- * Tag for string with Call-Info header value.
+ * Tag for string with @ref sip_call_info "Call-Info header" value.
  */
 tag_typedef_t siptag_call_info_str = SIPSTRTAG_TYPEDEF(call_info);
 
 /**@ingroup sip_organization
- * Tag for Organization header object.
+ * Tag for @ref sip_organization "Organization header" object.
  */
 tag_typedef_t siptag_organization = SIPHDRTAG_TYPEDEF(organization);
 /**@ingroup sip_organization
- * Tag for string with Organization header value.
+ * Tag for string with @ref sip_organization "Organization header" value.
  */
 tag_typedef_t siptag_organization_str = SIPSTRTAG_TYPEDEF(organization);
 
 /**@ingroup sip_server
- * Tag for Server header object.
+ * Tag for @ref sip_server "Server header" object.
  */
 tag_typedef_t siptag_server = SIPHDRTAG_TYPEDEF(server);
 /**@ingroup sip_server
- * Tag for string with Server header value.
+ * Tag for string with @ref sip_server "Server header" value.
  */
 tag_typedef_t siptag_server_str = SIPSTRTAG_TYPEDEF(server);
 
 /**@ingroup sip_user_agent
- * Tag for User-Agent header object.
+ * Tag for @ref sip_user_agent "User-Agent header" object.
  */
 tag_typedef_t siptag_user_agent = SIPHDRTAG_TYPEDEF(user_agent);
 /**@ingroup sip_user_agent
- * Tag for string with User-Agent header value.
+ * Tag for string with @ref sip_user_agent "User-Agent header" value.
  */
 tag_typedef_t siptag_user_agent_str = SIPSTRTAG_TYPEDEF(user_agent);
 
 /**@ingroup sip_in_reply_to
- * Tag for In-Reply-To header object.
+ * Tag for @ref sip_in_reply_to "In-Reply-To header" object.
  */
 tag_typedef_t siptag_in_reply_to = SIPHDRTAG_TYPEDEF(in_reply_to);
 /**@ingroup sip_in_reply_to
- * Tag for string with In-Reply-To header value.
+ * Tag for string with @ref sip_in_reply_to "In-Reply-To header" value.
  */
 tag_typedef_t siptag_in_reply_to_str = SIPSTRTAG_TYPEDEF(in_reply_to);
 
 /**@ingroup sip_accept
- * Tag for Accept header object.
+ * Tag for @ref sip_accept "Accept header" object.
  */
 tag_typedef_t siptag_accept = SIPHDRTAG_TYPEDEF(accept);
 /**@ingroup sip_accept
- * Tag for string with Accept header value.
+ * Tag for string with @ref sip_accept "Accept header" value.
  */
 tag_typedef_t siptag_accept_str = SIPSTRTAG_TYPEDEF(accept);
 
 /**@ingroup sip_accept_encoding
- * Tag for Accept-Encoding header object.
+ * Tag for @ref sip_accept_encoding "Accept-Encoding header" object.
  */
 tag_typedef_t siptag_accept_encoding = SIPHDRTAG_TYPEDEF(accept_encoding);
 /**@ingroup sip_accept_encoding
- * Tag for string with Accept-Encoding header value.
+ * Tag for string with @ref sip_accept_encoding "Accept-Encoding header" value.
  */
 tag_typedef_t siptag_accept_encoding_str = SIPSTRTAG_TYPEDEF(accept_encoding);
 
 /**@ingroup sip_accept_language
- * Tag for Accept-Language header object.
+ * Tag for @ref sip_accept_language "Accept-Language header" object.
  */
 tag_typedef_t siptag_accept_language = SIPHDRTAG_TYPEDEF(accept_language);
 /**@ingroup sip_accept_language
- * Tag for string with Accept-Language header value.
+ * Tag for string with @ref sip_accept_language "Accept-Language header" value.
  */
 tag_typedef_t siptag_accept_language_str = SIPSTRTAG_TYPEDEF(accept_language);
 
 /**@ingroup sip_allow
- * Tag for Allow header object.
+ * Tag for @ref sip_allow "Allow header" object.
  */
 tag_typedef_t siptag_allow = SIPHDRTAG_TYPEDEF(allow);
 /**@ingroup sip_allow
- * Tag for string with Allow header value.
+ * Tag for string with @ref sip_allow "Allow header" value.
  */
 tag_typedef_t siptag_allow_str = SIPSTRTAG_TYPEDEF(allow);
 
 /**@ingroup sip_require
- * Tag for Require header object.
+ * Tag for @ref sip_require "Require header" object.
  */
 tag_typedef_t siptag_require = SIPHDRTAG_TYPEDEF(require);
 /**@ingroup sip_require
- * Tag for string with Require header value.
+ * Tag for string with @ref sip_require "Require header" value.
  */
 tag_typedef_t siptag_require_str = SIPSTRTAG_TYPEDEF(require);
 
 /**@ingroup sip_supported
- * Tag for Supported header object.
+ * Tag for @ref sip_supported "Supported header" object.
  */
 tag_typedef_t siptag_supported = SIPHDRTAG_TYPEDEF(supported);
 /**@ingroup sip_supported
- * Tag for string with Supported header value.
+ * Tag for string with @ref sip_supported "Supported header" value.
  */
 tag_typedef_t siptag_supported_str = SIPSTRTAG_TYPEDEF(supported);
 
 /**@ingroup sip_unsupported
- * Tag for Unsupported header object.
+ * Tag for @ref sip_unsupported "Unsupported header" object.
  */
 tag_typedef_t siptag_unsupported = SIPHDRTAG_TYPEDEF(unsupported);
 /**@ingroup sip_unsupported
- * Tag for string with Unsupported header value.
+ * Tag for string with @ref sip_unsupported "Unsupported header" value.
  */
 tag_typedef_t siptag_unsupported_str = SIPSTRTAG_TYPEDEF(unsupported);
 
 /**@ingroup sip_event
- * Tag for Event header object.
+ * Tag for @ref sip_event "Event header" object.
  */
 tag_typedef_t siptag_event = SIPHDRTAG_TYPEDEF(event);
 /**@ingroup sip_event
- * Tag for string with Event header value.
+ * Tag for string with @ref sip_event "Event header" value.
  */
 tag_typedef_t siptag_event_str = SIPSTRTAG_TYPEDEF(event);
 
 /**@ingroup sip_allow_events
- * Tag for Allow-Events header object.
+ * Tag for @ref sip_allow_events "Allow-Events header" object.
  */
 tag_typedef_t siptag_allow_events = SIPHDRTAG_TYPEDEF(allow_events);
 /**@ingroup sip_allow_events
- * Tag for string with Allow-Events header value.
+ * Tag for string with @ref sip_allow_events "Allow-Events header" value.
  */
 tag_typedef_t siptag_allow_events_str = SIPSTRTAG_TYPEDEF(allow_events);
 
 /**@ingroup sip_subscription_state
- * Tag for Subscription-State header object.
+ * Tag for @ref sip_subscription_state "Subscription-State header" object.
  */
 tag_typedef_t siptag_subscription_state = SIPHDRTAG_TYPEDEF(subscription_state);
 /**@ingroup sip_subscription_state
- * Tag for string with Subscription-State header value.
+ * Tag for string with @ref sip_subscription_state "Subscription-State header" value.
  */
 tag_typedef_t siptag_subscription_state_str = SIPSTRTAG_TYPEDEF(subscription_state);
 
 /**@ingroup sip_proxy_authenticate
- * Tag for Proxy-Authenticate header object.
+ * Tag for @ref sip_proxy_authenticate "Proxy-Authenticate header" object.
  */
 tag_typedef_t siptag_proxy_authenticate = SIPHDRTAG_TYPEDEF(proxy_authenticate);
 /**@ingroup sip_proxy_authenticate
- * Tag for string with Proxy-Authenticate header value.
+ * Tag for string with @ref sip_proxy_authenticate "Proxy-Authenticate header" value.
  */
 tag_typedef_t siptag_proxy_authenticate_str = SIPSTRTAG_TYPEDEF(proxy_authenticate);
 
 /**@ingroup sip_proxy_authentication_info
- * Tag for Proxy-Authentication-Info header object.
+ * Tag for @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" object.
  */
 tag_typedef_t siptag_proxy_authentication_info = SIPHDRTAG_TYPEDEF(proxy_authentication_info);
 /**@ingroup sip_proxy_authentication_info
- * Tag for string with Proxy-Authentication-Info header value.
+ * Tag for string with @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" value.
  */
 tag_typedef_t siptag_proxy_authentication_info_str = SIPSTRTAG_TYPEDEF(proxy_authentication_info);
 
 /**@ingroup sip_proxy_authorization
- * Tag for Proxy-Authorization header object.
+ * Tag for @ref sip_proxy_authorization "Proxy-Authorization header" object.
  */
 tag_typedef_t siptag_proxy_authorization = SIPHDRTAG_TYPEDEF(proxy_authorization);
 /**@ingroup sip_proxy_authorization
- * Tag for string with Proxy-Authorization header value.
+ * Tag for string with @ref sip_proxy_authorization "Proxy-Authorization header" value.
  */
 tag_typedef_t siptag_proxy_authorization_str = SIPSTRTAG_TYPEDEF(proxy_authorization);
 
 /**@ingroup sip_authorization
- * Tag for Authorization header object.
+ * Tag for @ref sip_authorization "Authorization header" object.
  */
 tag_typedef_t siptag_authorization = SIPHDRTAG_TYPEDEF(authorization);
 /**@ingroup sip_authorization
- * Tag for string with Authorization header value.
+ * Tag for string with @ref sip_authorization "Authorization header" value.
  */
 tag_typedef_t siptag_authorization_str = SIPSTRTAG_TYPEDEF(authorization);
 
 /**@ingroup sip_www_authenticate
- * Tag for WWW-Authenticate header object.
+ * Tag for @ref sip_www_authenticate "WWW-Authenticate header" object.
  */
 tag_typedef_t siptag_www_authenticate = SIPHDRTAG_TYPEDEF(www_authenticate);
 /**@ingroup sip_www_authenticate
- * Tag for string with WWW-Authenticate header value.
+ * Tag for string with @ref sip_www_authenticate "WWW-Authenticate header" value.
  */
 tag_typedef_t siptag_www_authenticate_str = SIPSTRTAG_TYPEDEF(www_authenticate);
 
 /**@ingroup sip_authentication_info
- * Tag for Authentication-Info header object.
+ * Tag for @ref sip_authentication_info "Authentication-Info header" object.
  */
 tag_typedef_t siptag_authentication_info = SIPHDRTAG_TYPEDEF(authentication_info);
 /**@ingroup sip_authentication_info
- * Tag for string with Authentication-Info header value.
+ * Tag for string with @ref sip_authentication_info "Authentication-Info header" value.
  */
 tag_typedef_t siptag_authentication_info_str = SIPSTRTAG_TYPEDEF(authentication_info);
 
 /**@ingroup sip_error_info
- * Tag for Error-Info header object.
+ * Tag for @ref sip_error_info "Error-Info header" object.
  */
 tag_typedef_t siptag_error_info = SIPHDRTAG_TYPEDEF(error_info);
 /**@ingroup sip_error_info
- * Tag for string with Error-Info header value.
+ * Tag for string with @ref sip_error_info "Error-Info header" value.
  */
 tag_typedef_t siptag_error_info_str = SIPSTRTAG_TYPEDEF(error_info);
 
 /**@ingroup sip_warning
- * Tag for Warning header object.
+ * Tag for @ref sip_warning "Warning header" object.
  */
 tag_typedef_t siptag_warning = SIPHDRTAG_TYPEDEF(warning);
 /**@ingroup sip_warning
- * Tag for string with Warning header value.
+ * Tag for string with @ref sip_warning "Warning header" value.
  */
 tag_typedef_t siptag_warning_str = SIPSTRTAG_TYPEDEF(warning);
 
 /**@ingroup sip_refer_to
- * Tag for Refer-To header object.
+ * Tag for @ref sip_refer_to "Refer-To header" object.
  */
 tag_typedef_t siptag_refer_to = SIPHDRTAG_TYPEDEF(refer_to);
 /**@ingroup sip_refer_to
- * Tag for string with Refer-To header value.
+ * Tag for string with @ref sip_refer_to "Refer-To header" value.
  */
 tag_typedef_t siptag_refer_to_str = SIPSTRTAG_TYPEDEF(refer_to);
 
 /**@ingroup sip_referred_by
- * Tag for Referred-By header object.
+ * Tag for @ref sip_referred_by "Referred-By header" object.
  */
 tag_typedef_t siptag_referred_by = SIPHDRTAG_TYPEDEF(referred_by);
 /**@ingroup sip_referred_by
- * Tag for string with Referred-By header value.
+ * Tag for string with @ref sip_referred_by "Referred-By header" value.
  */
 tag_typedef_t siptag_referred_by_str = SIPSTRTAG_TYPEDEF(referred_by);
 
 /**@ingroup sip_replaces
- * Tag for Replaces header object.
+ * Tag for @ref sip_replaces "Replaces header" object.
  */
 tag_typedef_t siptag_replaces = SIPHDRTAG_TYPEDEF(replaces);
 /**@ingroup sip_replaces
- * Tag for string with Replaces header value.
+ * Tag for string with @ref sip_replaces "Replaces header" value.
  */
 tag_typedef_t siptag_replaces_str = SIPSTRTAG_TYPEDEF(replaces);
 
 /**@ingroup sip_session_expires
- * Tag for Session-Expires header object.
+ * Tag for @ref sip_session_expires "Session-Expires header" object.
  */
 tag_typedef_t siptag_session_expires = SIPHDRTAG_TYPEDEF(session_expires);
 /**@ingroup sip_session_expires
- * Tag for string with Session-Expires header value.
+ * Tag for string with @ref sip_session_expires "Session-Expires header" value.
  */
 tag_typedef_t siptag_session_expires_str = SIPSTRTAG_TYPEDEF(session_expires);
 
 /**@ingroup sip_min_se
- * Tag for Min-SE header object.
+ * Tag for @ref sip_min_se "Min-SE header" object.
  */
 tag_typedef_t siptag_min_se = SIPHDRTAG_TYPEDEF(min_se);
 /**@ingroup sip_min_se
- * Tag for string with Min-SE header value.
+ * Tag for string with @ref sip_min_se "Min-SE header" value.
  */
 tag_typedef_t siptag_min_se_str = SIPSTRTAG_TYPEDEF(min_se);
 
 /**@ingroup sip_path
- * Tag for Path header object.
+ * Tag for @ref sip_path "Path header" object.
  */
 tag_typedef_t siptag_path = SIPHDRTAG_TYPEDEF(path);
 /**@ingroup sip_path
- * Tag for string with Path header value.
+ * Tag for string with @ref sip_path "Path header" value.
  */
 tag_typedef_t siptag_path_str = SIPSTRTAG_TYPEDEF(path);
 
 /**@ingroup sip_service_route
- * Tag for Service-Route header object.
+ * Tag for @ref sip_service_route "Service-Route header" object.
  */
 tag_typedef_t siptag_service_route = SIPHDRTAG_TYPEDEF(service_route);
 /**@ingroup sip_service_route
- * Tag for string with Service-Route header value.
+ * Tag for string with @ref sip_service_route "Service-Route header" value.
  */
 tag_typedef_t siptag_service_route_str = SIPSTRTAG_TYPEDEF(service_route);
 
 /**@ingroup sip_reason
- * Tag for Reason header object.
+ * Tag for @ref sip_reason "Reason header" object.
  */
 tag_typedef_t siptag_reason = SIPHDRTAG_TYPEDEF(reason);
 /**@ingroup sip_reason
- * Tag for string with Reason header value.
+ * Tag for string with @ref sip_reason "Reason header" value.
  */
 tag_typedef_t siptag_reason_str = SIPSTRTAG_TYPEDEF(reason);
 
 /**@ingroup sip_security_client
- * Tag for Security-Client header object.
+ * Tag for @ref sip_security_client "Security-Client header" object.
  */
 tag_typedef_t siptag_security_client = SIPHDRTAG_TYPEDEF(security_client);
 /**@ingroup sip_security_client
- * Tag for string with Security-Client header value.
+ * Tag for string with @ref sip_security_client "Security-Client header" value.
  */
 tag_typedef_t siptag_security_client_str = SIPSTRTAG_TYPEDEF(security_client);
 
 /**@ingroup sip_security_server
- * Tag for Security-Server header object.
+ * Tag for @ref sip_security_server "Security-Server header" object.
  */
 tag_typedef_t siptag_security_server = SIPHDRTAG_TYPEDEF(security_server);
 /**@ingroup sip_security_server
- * Tag for string with Security-Server header value.
+ * Tag for string with @ref sip_security_server "Security-Server header" value.
  */
 tag_typedef_t siptag_security_server_str = SIPSTRTAG_TYPEDEF(security_server);
 
 /**@ingroup sip_security_verify
- * Tag for Security-Verify header object.
+ * Tag for @ref sip_security_verify "Security-Verify header" object.
  */
 tag_typedef_t siptag_security_verify = SIPHDRTAG_TYPEDEF(security_verify);
 /**@ingroup sip_security_verify
- * Tag for string with Security-Verify header value.
+ * Tag for string with @ref sip_security_verify "Security-Verify header" value.
  */
 tag_typedef_t siptag_security_verify_str = SIPSTRTAG_TYPEDEF(security_verify);
 
 /**@ingroup sip_privacy
- * Tag for Privacy header object.
+ * Tag for @ref sip_privacy "Privacy header" object.
  */
 tag_typedef_t siptag_privacy = SIPHDRTAG_TYPEDEF(privacy);
 /**@ingroup sip_privacy
- * Tag for string with Privacy header value.
+ * Tag for string with @ref sip_privacy "Privacy header" value.
  */
 tag_typedef_t siptag_privacy_str = SIPSTRTAG_TYPEDEF(privacy);
 
 /**@ingroup sip_etag
- * Tag for SIP-ETag header object.
+ * Tag for @ref sip_etag "SIP-ETag header" object.
  */
 tag_typedef_t siptag_etag = SIPHDRTAG_TYPEDEF(etag);
 /**@ingroup sip_etag
- * Tag for string with SIP-ETag header value.
+ * Tag for string with @ref sip_etag "SIP-ETag header" value.
  */
 tag_typedef_t siptag_etag_str = SIPSTRTAG_TYPEDEF(etag);
 
 /**@ingroup sip_if_match
- * Tag for SIP-If-Match header object.
+ * Tag for @ref sip_if_match "SIP-If-Match header" object.
  */
 tag_typedef_t siptag_if_match = SIPHDRTAG_TYPEDEF(if_match);
 /**@ingroup sip_if_match
- * Tag for string with SIP-If-Match header value.
+ * Tag for string with @ref sip_if_match "SIP-If-Match header" value.
  */
 tag_typedef_t siptag_if_match_str = SIPSTRTAG_TYPEDEF(if_match);
 
 /**@ingroup sip_mime_version
- * Tag for MIME-Version header object.
+ * Tag for @ref sip_mime_version "MIME-Version header" object.
  */
 tag_typedef_t siptag_mime_version = SIPHDRTAG_TYPEDEF(mime_version);
 /**@ingroup sip_mime_version
- * Tag for string with MIME-Version header value.
+ * Tag for string with @ref sip_mime_version "MIME-Version header" value.
  */
 tag_typedef_t siptag_mime_version_str = SIPSTRTAG_TYPEDEF(mime_version);
 
 /**@ingroup sip_content_type
- * Tag for Content-Type header object.
+ * Tag for @ref sip_content_type "Content-Type header" object.
  */
 tag_typedef_t siptag_content_type = SIPHDRTAG_TYPEDEF(content_type);
 /**@ingroup sip_content_type
- * Tag for string with Content-Type header value.
+ * Tag for string with @ref sip_content_type "Content-Type header" value.
  */
 tag_typedef_t siptag_content_type_str = SIPSTRTAG_TYPEDEF(content_type);
 
 /**@ingroup sip_content_encoding
- * Tag for Content-Encoding header object.
+ * Tag for @ref sip_content_encoding "Content-Encoding header" object.
  */
 tag_typedef_t siptag_content_encoding = SIPHDRTAG_TYPEDEF(content_encoding);
 /**@ingroup sip_content_encoding
- * Tag for string with Content-Encoding header value.
+ * Tag for string with @ref sip_content_encoding "Content-Encoding header" value.
  */
 tag_typedef_t siptag_content_encoding_str = SIPSTRTAG_TYPEDEF(content_encoding);
 
 /**@ingroup sip_content_language
- * Tag for Content-Language header object.
+ * Tag for @ref sip_content_language "Content-Language header" object.
  */
 tag_typedef_t siptag_content_language = SIPHDRTAG_TYPEDEF(content_language);
 /**@ingroup sip_content_language
- * Tag for string with Content-Language header value.
+ * Tag for string with @ref sip_content_language "Content-Language header" value.
  */
 tag_typedef_t siptag_content_language_str = SIPSTRTAG_TYPEDEF(content_language);
 
 /**@ingroup sip_content_disposition
- * Tag for Content-Disposition header object.
+ * Tag for @ref sip_content_disposition "Content-Disposition header" object.
  */
 tag_typedef_t siptag_content_disposition = SIPHDRTAG_TYPEDEF(content_disposition);
 /**@ingroup sip_content_disposition
- * Tag for string with Content-Disposition header value.
+ * Tag for string with @ref sip_content_disposition "Content-Disposition header" value.
  */
 tag_typedef_t siptag_content_disposition_str = SIPSTRTAG_TYPEDEF(content_disposition);
 
 /**@ingroup sip_content_length
- * Tag for Content-Length header object.
+ * Tag for @ref sip_content_length "Content-Length header" object.
  */
 tag_typedef_t siptag_content_length = SIPHDRTAG_TYPEDEF(content_length);
 /**@ingroup sip_content_length
- * Tag for string with Content-Length header value.
+ * Tag for string with @ref sip_content_length "Content-Length header" value.
  */
 tag_typedef_t siptag_content_length_str = SIPSTRTAG_TYPEDEF(content_length);
 
 /**@ingroup sip_unknown
- * Tag for unknown headers object.
+ * Tag for @ref sip_unknown "unknown headers" object.
  */
 tag_typedef_t siptag_unknown = SIPHDRTAG_TYPEDEF(unknown);
 /**@ingroup sip_unknown
- * Tag for string with unknown headers value.
+ * Tag for string with @ref sip_unknown "unknown headers" value.
  */
 tag_typedef_t siptag_unknown_str = SIPSTRTAG_TYPEDEF(unknown);
 
 /**@ingroup sip_error
- * Tag for erroneous headers object.
+ * Tag for @ref sip_error "erroneous headers" object.
  */
 tag_typedef_t siptag_error = SIPHDRTAG_TYPEDEF(error);
 /**@ingroup sip_error
- * Tag for string with erroneous headers value.
+ * Tag for string with @ref sip_error "erroneous headers" value.
  */
 tag_typedef_t siptag_error_str = SIPSTRTAG_TYPEDEF(error);
 
 /**@ingroup sip_separator
- * Tag for separator line between headers and payload object.
+ * Tag for @ref sip_separator "separator line between headers and payload" object.
  */
 tag_typedef_t siptag_separator = SIPHDRTAG_TYPEDEF(separator);
 /**@ingroup sip_separator
- * Tag for string with separator line between headers and payload value.
+ * Tag for string with @ref sip_separator "separator line between headers and payload" value.
  */
 tag_typedef_t siptag_separator_str = SIPSTRTAG_TYPEDEF(separator);
 
 /**@ingroup sip_payload
- * Tag for message payload object.
+ * Tag for @ref sip_payload "message payload" object.
  */
 tag_typedef_t siptag_payload = SIPHDRTAG_TYPEDEF(payload);
 /**@ingroup sip_payload
- * Tag for string with message payload value.
+ * Tag for string with @ref sip_payload "message payload" value.
  */
 tag_typedef_t siptag_payload_str = SIPSTRTAG_TYPEDEF(payload);
 
@@ -853,4 +853,3 @@ tag_type_t sip_tag_str_list[] =
   siptag_payload_str,
   NULL
 };
-

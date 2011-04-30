@@ -52,6 +52,11 @@
 #include <sofia-sip/su.h>
 #include <sofia-sip/su_localinfo.h>
 
+#if HAVE_WINSOCK2_H
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+
 #if defined(HAVE_OPENSSL)
 #include <openssl/opensslv.h>
 #endif
@@ -73,7 +78,18 @@ static char const __func__[] = "stun";
 #endif
 
 /** STUN log. */
-su_log_t stun_log[] = { SU_LOG_INIT("stun", "STUN_DEBUG", SU_DEBUG) }; 
+su_log_t stun_log[] = { SU_LOG_INIT("stun", "STUN_DEBUG", 3) }; 
+
+/**@var STUN_DEBUG
+ *
+ * Environment variable determining the debug log level for @b stun module.
+ *
+ * The STUN_DEBUG environment variable is used to determine the debug logging
+ * level for @b stun module. The default level is 3.
+ * 
+ * @sa <sofia-sip/su_debug.h>, stun_log, SOFIA_DEBUG
+ */
+extern char const STUN__DEBUG[];
 
 enum {
   STUN_SENDTO_TIMEOUT = 1000,
@@ -510,7 +526,7 @@ int stun_obtain_shared_secret(stun_handle_t *sh,
   int events = -1;
   int one, err = -1;
   su_wait_t wait[1] = { SU_WAIT_INIT };
-  su_socket_t s = SOCKET_ERROR;
+  su_socket_t s = INVALID_SOCKET;
   int family;
   su_addrinfo_t *ai = NULL;
   stun_discovery_t *sd;
@@ -547,7 +563,7 @@ int stun_obtain_shared_secret(stun_handle_t *sh,
   /* open tcp connection to server */
   s = su_socket(family = AF_INET, SOCK_STREAM, 0);
 
-  if (s == -1) {
+  if (s == INVALID_SOCKET) {
     STUN_ERROR(errno, socket);
     return -1;
   }
@@ -738,7 +754,8 @@ void stun_handle_destroy(stun_handle_t *sh)
 
 
 /** Create wait object and register it to the handle callback */
-int assign_socket(stun_discovery_t *sd, su_socket_t s, int reg_socket) 
+static
+int assign_socket(stun_discovery_t *sd, su_socket_t s, int register_socket) 
 {
   stun_handle_t *sh = sd->sd_handle;
   int events;
@@ -754,8 +771,8 @@ int assign_socket(stun_discovery_t *sd, su_socket_t s, int reg_socket)
 
   enter;
 
-  if (s == -1) {
-    SU_DEBUG_3(("%s: invalid socket.\n", __func__));
+  if (s == INVALID_SOCKET) {
+    SU_DEBUG_3(("%s: invalid socket\n", __func__));
     return errno = EINVAL, -1;
   }
 
@@ -769,7 +786,7 @@ int assign_socket(stun_discovery_t *sd, su_socket_t s, int reg_socket)
   }
   sd->sd_socket = s;
 
-  if (reg_socket != 1)
+  if (!register_socket)
     return 0;
 
   /* set socket asynchronous */
@@ -803,7 +820,7 @@ int assign_socket(stun_discovery_t *sd, su_socket_t s, int reg_socket)
   memset(sa, 0, bind_len);
   /* if bound check the error */
   err = getsockname(s, (struct sockaddr *) sa, &bind_len);
-  if (err < 0 && errno == SOCKET_ERROR) {
+  if (err < 0) {
     STUN_ERROR(errno, getsockname);
     return -1;
   }
@@ -1011,11 +1028,12 @@ static int priv_stun_bind_send(stun_handle_t *sh, stun_request_t *req, stun_disc
  * @param sh       pointer to valid stun handle
  * @param sdf      callback to signal process progress
  * @param magic    context pointer attached to 'sdf'
+ * @param tag, value, ... list of tagged parameters.
  *
  * @TAGS
- * @TAG STUNTAG_SOCKET Bind socket for STUN (socket handle).
- * @TAG STUNTAG_REGISTER_SOCKET Register socket for eventloop owned by STUN (boolean)
-
+ * @TAG STUNTAG_SOCKET() Bind socket handle to STUN (socket handle).
+ * @TAG STUNTAG_REGISTER_SOCKET() Register socket for eventloop owned by STUN (boolean)
+ *
  * @return
  * On success, zero is returned.  Upon error, -1 is returned, and @e errno is
  * set appropriately.
@@ -1037,7 +1055,7 @@ int stun_bind(stun_handle_t *sh,
 	      tag_type_t tag, tag_value_t value,
 	      ...)
 {
-  su_socket_t s = -1;
+  su_socket_t s = INVALID_SOCKET;
   stun_request_t *req = NULL;
   stun_discovery_t *sd = NULL;
   ta_list ta;
@@ -1098,7 +1116,7 @@ int stun_discovery_get_address(stun_discovery_t *sd,
 			       void *addr,
 			       socklen_t *return_addrlen)
 {
-  int siz;
+  socklen_t siz;
   
   enter;
 
@@ -1206,7 +1224,7 @@ int stun_test_nattype(stun_handle_t *sh,
   stun_request_t *req = NULL;
   stun_discovery_t *sd = NULL;
   su_sockaddr_t bind_addr;
-  su_socket_t s = -1;
+  su_socket_t s = INVALID_SOCKET;
   socklen_t bind_len;
   su_sockaddr_t *destination = NULL;
 
@@ -1496,7 +1514,7 @@ static int stun_tls_callback(su_root_magic_t *m, su_wait_t *w, su_wakeup_arg_t *
     /* closed TLS connection */
     SSL_shutdown(ssl);
 
-    su_close(sd->sd_socket);
+    su_close(sd->sd_socket), sd->sd_socket = INVALID_SOCKET;
 
     SSL_free(self->sh_ssl), ssl = NULL;
     SSL_CTX_free(self->sh_ctx), ctx = NULL;
@@ -1702,8 +1720,7 @@ static int stun_bind_callback(stun_magic_t *m, su_wait_t *w, su_wakeup_arg_t *ar
 
   /* receive response */
   recv_len = sizeof(recv);
-  dgram_len = recvfrom(s, dgram, sizeof(dgram), 0, (struct sockaddr *) &recv,
-		 &recv_len);
+  dgram_len = su_recvfrom(s, dgram, sizeof(dgram), 0, &recv, &recv_len);
   err = errno;
   if ((dgram_len < 0) && (err != EAGAIN)) {
     /* su_wait_destroy(w); */
@@ -2411,7 +2428,7 @@ static int stun_send_binding_request(stun_request_t *req,
 				     su_sockaddr_t  *srvr_addr)
 {
   su_timer_t *sendto_timer = NULL;
-  int s;
+  su_socket_t s;
   stun_handle_t *sh = req->sr_handle;
   stun_msg_t *msg =  req->sr_msg;
 
@@ -2597,19 +2614,27 @@ int stun_process_error_response(stun_msg_t *msg)
  */
 int stun_set_uname_pwd(stun_handle_t *sh,
 		       const char *uname,
-		       int len_uname,
+		       isize_t len_uname,
 		       const char *pwd,
-		       int len_pwd)
+		       isize_t len_pwd)
 {
   enter;
 
-  sh->sh_username.data = (unsigned char *) malloc(len_uname);
-  memcpy(sh->sh_username.data, uname, len_uname);
-  sh->sh_username.size = len_uname;
+  sh->sh_username.data = malloc(len_uname);
+  if (sh->sh_username.data) {
+    memcpy(sh->sh_username.data, uname, len_uname);
+    sh->sh_username.size = (unsigned)len_uname;
+  }
+  else
+    return -1;
   
-  sh->sh_passwd.data = (unsigned char *) malloc(len_pwd);
-  memcpy(sh->sh_passwd.data, pwd, len_pwd);
-  sh->sh_passwd.size = len_pwd;
+  sh->sh_passwd.data = malloc(len_pwd);
+  if (sh->sh_passwd.data) {
+    memcpy(sh->sh_passwd.data, pwd, len_pwd);
+    sh->sh_passwd.size = (unsigned)len_pwd;
+  }
+  else
+    return -1;
 
   sh->sh_use_msgint = 1; /* turn on message integrity ussage */
   
@@ -2645,7 +2670,7 @@ int stun_atoaddr(su_home_t *home,
     host = in;
   }
   else {
-    assert(port - in < strlen(in) + 1);
+    assert((size_t)(port - in) < strlen(in) + 1);
     memcpy(tmp, in, port - in);
     tmp[port - in] = 0;
     host = tmp;
@@ -2705,7 +2730,8 @@ int stun_test_lifetime(stun_handle_t *sh,
   stun_request_t *req = NULL;
   stun_discovery_t *sd = NULL;
   ta_list ta;
-  int s = -1, err, index = 0, s_reg = 0;
+  su_socket_t s = INVALID_SOCKET;
+  int err, index = 0, s_reg = 0;
   char ipaddr[SU_ADDRSIZE + 2] = { 0 };
   char const *server = NULL;
   su_socket_t sockfdy;
@@ -2760,7 +2786,7 @@ int stun_test_lifetime(stun_handle_t *sh,
   /* get_localinfo(ci); */
 
   /* initialize socket y */
-  sockfdy = socket(AF_INET, SOCK_DGRAM, 0);
+  sockfdy = su_socket(AF_INET, SOCK_DGRAM, 0);
 
   /* set socket asynchronous */
   if (su_setblocking(sockfdy, 0) < 0) {
@@ -2852,25 +2878,25 @@ int stun_msg_is_keepalive(uint16_t data)
 }
 
 /**
- * Determines length of STUN message (0 if not stun). 
+ * Determines length of STUN message (0 (-1?) if not stun). 
  */
-int stun_message_length(void *data, int len, int end_of_message)
+int stun_message_length(void *data, isize_t len, int end_of_message)
 {
   unsigned char *p;
-  uint16_t tmp16, msg_type;
+  uint16_t msg_type;
+
+  if (len < 4)
+    return -1;
+
   /* parse header first */
   p = data;
-  memcpy(&tmp16, p, 2);
-  msg_type = ntohs(tmp16);
+  msg_type = (p[0] << 8) | p[1];
 
   if (msg_type == BINDING_REQUEST ||
       msg_type == BINDING_RESPONSE ||
       msg_type == BINDING_ERROR_RESPONSE) {
-    p+=2;
-    memcpy(&tmp16, p, 2);
-
     /* return message length */
-    return ntohs(tmp16);
+    return (p[0] << 8) | p[1];
   }
   else
     return -1;
@@ -2879,16 +2905,19 @@ int stun_message_length(void *data, int len, int end_of_message)
 /** Process incoming message */
 int stun_process_message(stun_handle_t *sh, su_socket_t s, 
 			 su_sockaddr_t *sa, socklen_t salen,
-			 void *data, int len)
+			 void *data, isize_t len)
 {
   int retval = -1;
   stun_msg_t msg;
 
   enter;
 
+  if (len >= 65536)
+    len = 65536;
+
   /* Message received. */
   msg.enc_buf.data = data;
-  msg.enc_buf.size = len;
+  msg.enc_buf.size = (unsigned)len;
  
   debug_print(&msg.enc_buf);      
 
@@ -2935,7 +2964,7 @@ int stun_keepalive(stun_handle_t *sh,
 		   tag_type_t tag, tag_value_t value,
 		   ...)
 {
-  int s = -1;
+  su_socket_t s = INVALID_SOCKET;
   unsigned int timeout = 0;
   ta_list ta;
   stun_discovery_t *sd;
@@ -3057,7 +3086,7 @@ int stun_keepalive_destroy(stun_handle_t *sh, su_socket_t s)
 
 int stun_process_request(su_socket_t s, stun_msg_t *req,
 			 int sid, su_sockaddr_t *from_addr,
-			 int from_len)
+			 socklen_t from_len)
 {
   stun_msg_t resp;
   su_sockaddr_t mod_addr[1] = {{ 0 }}, src_addr[1] = {{ 0 }}, chg_addr[1] = {{ 0 }};

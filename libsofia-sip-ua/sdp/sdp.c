@@ -62,14 +62,15 @@ const unsigned sdp_struct_align_ = sizeof(void *) - STRUCT_ALIGN_;
 
 
 #define STRUCT_DUP(p, dst, src) \
- ASSERT_STRUCT_ALIGN(p); assert(*(int*)(src) >= sizeof(*src)); \
- ((*(int*)(src) >= sizeof(*src) ? (dst = memcpy((p), (src), sizeof(*src))) : \
-   (dst = memcpy((p), (src), *(int*)(src))), \
+  ASSERT_STRUCT_ALIGN(p); assert(*(int*)(src) >= (int)sizeof(*src));	\
+  ((*(int*)(src) >= (int)sizeof(*src)					\
+    ? (dst = memcpy((p), (src), sizeof(*src)))				\
+    : (dst = memcpy((p), (src), *(int*)(src))),				\
     memset((p)+*(int*)(src), 0, sizeof(*src) - *(int*)(src))), \
   ((p) += sizeof(*src)))
 
 #define STRUCT_DUP2(p, dst, src) \
- ASSERT_STRUCT_ALIGN(p); assert(*(int*)(src) >= sizeof(*src)); \
+  ASSERT_STRUCT_ALIGN(p); assert(*(int*)(src) >= (int)sizeof(*src));	\
   (dst = memcpy((p), (src), *(int*)(src)), ((p) += *(int*)(src)))
 
 #define STR_DUP(p, dst, src, m) \
@@ -92,51 +93,51 @@ const unsigned sdp_struct_align_ = sizeof(void *) - STRUCT_ALIGN_;
  ((dst->m) = (src->m)?((p += STRUCT_ALIGN(p)),\
                        media_dup_all(&(p), src->m, dst)) : 0)
 
-typedef int xtra_f(void const *);
+typedef size_t xtra_f(void const *);
 typedef void *dup_f(char **bb, void const *src);
 
-static int list_xtra_all(xtra_f *xtra, void const *v);
+static size_t list_xtra_all(xtra_f *xtra, void const *v);
 static void *list_dup_all(dup_f *dup, char **bb, void const *vsrc);
 
-static int session_xtra(sdp_session_t const *o); 
+static size_t session_xtra(sdp_session_t const *o); 
 static sdp_session_t *session_dup(char **pp, sdp_session_t const *o);
 
-static int origin_xtra(sdp_origin_t const *o); 
+static size_t origin_xtra(sdp_origin_t const *o); 
 static sdp_origin_t *origin_dup(char **pp, sdp_origin_t const *o);
 
-static int connection_xtra(sdp_connection_t const *o); 
+static size_t connection_xtra(sdp_connection_t const *o); 
 static sdp_connection_t *connection_dup(char **pp, sdp_connection_t const *o);
 
-static int bandwidth_xtra(sdp_bandwidth_t const *o); 
+static size_t bandwidth_xtra(sdp_bandwidth_t const *o); 
 static sdp_bandwidth_t *bandwidth_dup(char **pp, sdp_bandwidth_t const *o);
 
-static int time_xtra(sdp_time_t const *o); 
+static size_t time_xtra(sdp_time_t const *o); 
 static sdp_time_t *time_dup(char **pp, sdp_time_t const *o);
 
-static int repeat_xtra(sdp_repeat_t const *o); 
+static size_t repeat_xtra(sdp_repeat_t const *o); 
 static sdp_repeat_t *repeat_dup(char **pp, sdp_repeat_t const *o);
 
-static int zone_xtra(sdp_zone_t const *o); 
+static size_t zone_xtra(sdp_zone_t const *o); 
 static sdp_zone_t *zone_dup(char **pp, sdp_zone_t const *o);
 
-static int key_xtra(sdp_key_t const *o); 
+static size_t key_xtra(sdp_key_t const *o); 
 static sdp_key_t *key_dup(char **pp, sdp_key_t const *o);
 
-static int attribute_xtra(sdp_attribute_t const *o); 
+static size_t attribute_xtra(sdp_attribute_t const *o); 
 static sdp_attribute_t *attribute_dup(char **pp, sdp_attribute_t const *o);
 
-static int list_xtra(sdp_list_t const *o); 
+static size_t list_xtra(sdp_list_t const *o); 
 static sdp_list_t *list_dup(char **pp, sdp_list_t const *o);
 
-static int rtpmap_xtra(sdp_rtpmap_t const *o); 
+static size_t rtpmap_xtra(sdp_rtpmap_t const *o); 
 static sdp_rtpmap_t *rtpmap_dup(char **pp, sdp_rtpmap_t const *o);
 
-static int media_xtra(sdp_media_t const *o);
+static size_t media_xtra(sdp_media_t const *o);
 static sdp_media_t *media_dup(char **pp,
 			      sdp_media_t const *o,
 			      sdp_session_t *sdp);
 #ifdef nomore
-static int media_xtra_ex(sdp_media_t const *o,
+static size_t media_xtra_ex(sdp_media_t const *o,
 			  sdp_connection_t const *c);
 static sdp_media_t *media_dup_ex(char **pp,
 				  sdp_media_t const *o,
@@ -144,7 +145,7 @@ static sdp_media_t *media_dup_ex(char **pp,
 				  sdp_connection_t *dst_c,
 				  sdp_connection_t const *src_c);
 #endif
-static int media_xtra_all(sdp_media_t const *o);
+static size_t media_xtra_all(sdp_media_t const *o);
 static sdp_media_t *media_dup_all(char **pp,
 				  sdp_media_t const *o,
 				  sdp_session_t *sdp);
@@ -152,7 +153,7 @@ static sdp_media_t *media_dup_all(char **pp,
 
 /** Define a function body duplicating an SDP structure. */
 #define SDP_DUP(type, name) \
-  sdp_##type##_t *rv; int size; char *p, *end; \
+  sdp_##type##_t *rv; size_t size; char *p, *end; \
   if (!name) return NULL; \
   size = type##_xtra(name); \
   p = su_alloc(h, size); end = p + size; \
@@ -162,7 +163,7 @@ static sdp_media_t *media_dup_all(char **pp,
 
 /** Define a function body duplicating a list of SDP structures. */
 #define SDP_LIST_DUP(type, name) \
-  sdp_##type##_t *rv; int size; char *p, *end; \
+  sdp_##type##_t *rv; size_t size; char *p, *end; \
   if (!name) return NULL; \
   size = list_xtra_all((xtra_f*)type##_xtra, name); \
   rv = su_alloc(h, size); p = (char *)rv; end = p + size; \
@@ -357,7 +358,7 @@ sdp_rtpmap_t *sdp_rtpmap_dup(su_home_t *h, sdp_rtpmap_t const *rm)
 sdp_media_t *sdp_media_dup(su_home_t *h, sdp_media_t const *m, 
 			   sdp_session_t *sdp)
 {
-  sdp_media_t *rv; int size; char *p, *end;
+  sdp_media_t *rv; size_t size; char *p, *end;
   size = media_xtra(m);
   p = su_alloc(h, size); end = p + size;
   rv = media_dup(&p, m, sdp);
@@ -382,7 +383,7 @@ sdp_media_t *sdp_media_dup(su_home_t *h, sdp_media_t const *m,
 sdp_media_t *sdp_media_dup_all(su_home_t *h, sdp_media_t const *m, 
 			       sdp_session_t *sdp)
 {
-  sdp_media_t *rv; int size; char *p, *end;
+  sdp_media_t *rv; size_t size; char *p, *end;
   size = media_xtra_all(m);
   p = su_alloc(h, size); end = p + size;
   rv = media_dup_all(&p, m, sdp);
@@ -417,7 +418,7 @@ sdp_media_t *sdp_media_dup_ex(su_home_t *home,
 			      sdp_connection_t *dst_c,
 			      sdp_connection_t const *src_c)
 {
-  sdp_media_t *rv; int size; char *p, *end;
+  sdp_media_t *rv; size_t size; char *p, *end;
   size = media_xtra_all(src, src_c);
   p = su_alloc(home, size); end = p + size;
   rv = media_dup_all(&p, src, sdp, dst_c, src_c);
@@ -428,10 +429,9 @@ sdp_media_t *sdp_media_dup_ex(su_home_t *home,
 
 /* ---------------------------------------------------------------------- */
 
-static
-int origin_xtra(sdp_origin_t const *o)
+static size_t origin_xtra(sdp_origin_t const *o)
 {
-  int rv = sizeof(*o);
+  size_t rv = sizeof(*o);
   STR_XTRA(rv, o->o_username);
   PTR_XTRA(rv, o->o_address, connection_xtra);
   return rv;
@@ -448,15 +448,14 @@ sdp_origin_t *origin_dup(char **pp, sdp_origin_t const *src)
   STR_DUP(p, o, src, o_username);
   PTR_DUP(p, o, src, o_address, connection_dup);
 
-  assert(p - *pp == origin_xtra(src));
+  assert((size_t)(p - *pp) == origin_xtra(src));
   *pp = p;
   return o;
 }
 
-static
-int connection_xtra(sdp_connection_t const *c)
+static size_t connection_xtra(sdp_connection_t const *c)
 {
-  int rv = sizeof(*c);
+  size_t rv = sizeof(*c);
   STR_XTRA(rv, c->c_address);
   return rv;
 }
@@ -472,14 +471,14 @@ sdp_connection_t *connection_dup(char **pp, sdp_connection_t const *src)
   c->c_next = NULL;
   STR_DUP(p, c, src, c_address);
 
-  assert(p - *pp == connection_xtra(src));
+  assert((size_t)(p - *pp) == connection_xtra(src));
   *pp = p;
   return c;
 }
 
-int bandwidth_xtra(sdp_bandwidth_t const *b)
+static size_t bandwidth_xtra(sdp_bandwidth_t const *b)
 {
-  int rv = sizeof(*b);
+  size_t rv = sizeof(*b);
   STR_XTRA(rv, b->b_modifier_name);
   return rv;
 }
@@ -495,15 +494,15 @@ sdp_bandwidth_t *bandwidth_dup(char **pp, sdp_bandwidth_t const *src)
   b->b_next = NULL;
   STR_DUP(p, b, src, b_modifier_name);
 
-  assert(p - *pp == bandwidth_xtra(src));
+  assert((size_t)(p - *pp) == bandwidth_xtra(src));
   *pp = p;
   return b;
 }
 
 
-int time_xtra(sdp_time_t const *t)
+static size_t time_xtra(sdp_time_t const *t)
 {
-  int rv = sizeof(*t);
+  size_t rv = sizeof(*t);
   PTR_XTRA(rv, t->t_repeat, repeat_xtra);
   PTR_XTRA(rv, t->t_zone, zone_xtra);
   return rv;
@@ -521,15 +520,15 @@ sdp_time_t *time_dup(char **pp, sdp_time_t const *src)
   PTR_DUP(p, t, src, t_repeat, repeat_dup);
   PTR_DUP(p, t, src, t_zone, zone_dup);
 
-  assert(p - *pp == time_xtra(src));
+  assert((size_t)(p - *pp) == time_xtra(src));
   *pp = p;
   return t;
 }
 
 
-int repeat_xtra(sdp_repeat_t const *r)
+static size_t repeat_xtra(sdp_repeat_t const *r)
 {
-  return r->r_size;
+  return (size_t)r->r_size;
 }
 
 static
@@ -541,13 +540,13 @@ sdp_repeat_t *repeat_dup(char **pp, sdp_repeat_t const *src)
   p = *pp;
   STRUCT_DUP2(p, r, src);
 
-  assert(p - *pp == repeat_xtra(src));
+  assert((size_t)(p - *pp) == repeat_xtra(src));
   *pp = p;
   return r;
 }
 
 
-int zone_xtra(sdp_zone_t const *z)
+static size_t zone_xtra(sdp_zone_t const *z)
 {
   return z->z_size;
 }
@@ -561,15 +560,15 @@ sdp_zone_t *zone_dup(char **pp, sdp_zone_t const *src)
   p = *pp;
   STRUCT_DUP2(p, z, src);
 
-  assert(p - *pp == zone_xtra(src));
+  assert((size_t)(p - *pp) == zone_xtra(src));
   *pp = p;
   return z;
 }
 
 
-int key_xtra(sdp_key_t const *k)
+static size_t key_xtra(sdp_key_t const *k)
 {
-  int rv = sizeof(*k);
+  size_t rv = sizeof(*k);
   STR_XTRA(rv, k->k_method_name);
   STR_XTRA(rv, k->k_material);
   return rv;
@@ -586,15 +585,15 @@ sdp_key_t *key_dup(char **pp, sdp_key_t const *src)
   STR_DUP(p, k, src, k_method_name);
   STR_DUP(p, k, src, k_material);
 
-  assert(p - *pp == key_xtra(src));
+  assert((size_t)(p - *pp) == key_xtra(src));
   *pp = p;
   return k;
 }
 
 
-int attribute_xtra(sdp_attribute_t const *a)
+static size_t attribute_xtra(sdp_attribute_t const *a)
 {
-  int rv = sizeof(*a);
+  size_t rv = sizeof(*a);
   STR_XTRA(rv, a->a_name);
   STR_XTRA(rv, a->a_value);
   return rv;
@@ -612,15 +611,15 @@ sdp_attribute_t *attribute_dup(char **pp, sdp_attribute_t const *src)
   STR_DUP(p, a, src, a_name);
   STR_DUP(p, a, src, a_value);
 
-  assert(p - *pp == attribute_xtra(src));
+  assert((size_t)(p - *pp) == attribute_xtra(src));
   *pp = p;
   return a;
 }
 
 
-int media_xtra(sdp_media_t const *m)
+static size_t media_xtra(sdp_media_t const *m)
 {
-  int rv = sizeof(*m);
+  size_t rv = sizeof(*m);
 
   STR_XTRA(rv, m->m_type_name);
   STR_XTRA(rv, m->m_proto_name);
@@ -664,7 +663,7 @@ sdp_media_t *media_dup(char **pp,
   m->m_rejected = src->m_rejected; 
   m->m_mode = src->m_mode;
 
-  assert(p - *pp == media_xtra(src));
+  assert((size_t)(p - *pp) == media_xtra(src));
   *pp = p;
   return m;
 }
@@ -745,10 +744,9 @@ sdp_media_t *media_dup_ex(char **pp,
 }
 #endif
 
-static
-int media_xtra_all(sdp_media_t const *m)
+static size_t media_xtra_all(sdp_media_t const *m)
 {
-  int rv = 0;
+  size_t rv = 0;
 
   for (; m; m = m->m_next) {
     rv += STRUCT_ALIGN(rv);
@@ -780,9 +778,9 @@ sdp_media_t *media_dup_all(char **pp,
   return retval;
 }
 
-int list_xtra(sdp_list_t const *l)
+static size_t list_xtra(sdp_list_t const *l)
 {
-  int rv = sizeof(*l);
+  size_t rv = sizeof(*l);
   rv += strlen(l->l_text) + 1;
   return rv;
 }
@@ -798,14 +796,15 @@ sdp_list_t *list_dup(char **pp, sdp_list_t const *src)
   l->l_next = NULL;
   STR_DUP(p, l, src, l_text);
 
-  assert(p - *pp == list_xtra(src));
+  assert((size_t)(p - *pp) == list_xtra(src));
   *pp = p;
   return l;
 }
 
-int rtpmap_xtra(sdp_rtpmap_t const *rm)
+
+static size_t rtpmap_xtra(sdp_rtpmap_t const *rm)
 {
-  int rv = sizeof(*rm);
+  size_t rv = sizeof(*rm);
   STR_XTRA(rv, rm->rm_encoding);
   STR_XTRA(rv, rm->rm_params);
   STR_XTRA(rv, rm->rm_fmtp);
@@ -825,17 +824,15 @@ sdp_rtpmap_t *rtpmap_dup(char **pp, sdp_rtpmap_t const *src)
   STR_DUP(p, rm, src, rm_params);
   STR_DUP(p, rm, src, rm_fmtp);
 
-  assert(p - *pp == rtpmap_xtra(src));
+  assert((size_t)(p - *pp) == rtpmap_xtra(src));
   *pp = p;
   return rm;
 }
 
 /** Return total size of a list, including size of all nodes */
-static
-int list_xtra_all(xtra_f *xtra,
-		  void const *v)
+static size_t list_xtra_all(xtra_f *xtra, void const *v)
 {
-  int rv = 0;
+  size_t rv = 0;
   sdp_list_t const *l;
 
   for (l = v; l; l = l->l_next) {
@@ -868,9 +865,9 @@ void *list_dup_all(dup_f *dup, char **pp, void const *vsrc)
 }
 
 #if 0
-int XXX_xtra(sdp_XXX_t const *YYY)
+static size_t XXX_xtra(sdp_XXX_t const *YYY)
 {
-  int rv = sizeof(*YYY);
+  size_t rv = sizeof(*YYY);
   rv += strlen(YYY->YYY_encoding) + 1;
   if (YYY->YYY_params);
     rv += strlen(YYY->YYY_params) + 1;
@@ -894,10 +891,9 @@ sdp_XXX_t *XXX_dup(char **pp, sdp_XXX_t const *src)
 
 #endif
 
-static
-int session_xtra(sdp_session_t const *sdp)
+static size_t session_xtra(sdp_session_t const *sdp)
 {
-  int rv = sizeof(*sdp);
+  size_t rv = sizeof(*sdp);
 
   PTR_XTRA(rv, sdp->sdp_origin, origin_xtra);
   STR_XTRA(rv, sdp->sdp_subject);
@@ -940,7 +936,7 @@ sdp_session_t *session_dup(char **pp, sdp_session_t const *src)
   STR_DUP(p, sdp, src, sdp_charset);
   MED_DUP_ALL(p, sdp, src, sdp_media);
 
-  assert(p - *pp == session_xtra(src));
+  assert((size_t)(p - *pp) == session_xtra(src));
   *pp = p;
   return sdp;
 }
@@ -965,10 +961,9 @@ sdp_session_t *sdp_session_dup(su_home_t *h, sdp_session_t const *sdp)
 
 /* ---------------------------------------------------------------------- */
 
-static
-int session_without_media_xtra(sdp_session_t const *sdp)
+static size_t session_without_media_xtra(sdp_session_t const *sdp)
 {
-  int rv = sizeof(*sdp);
+  size_t rv = sizeof(*sdp);
 
   PTR_XTRA(rv, sdp->sdp_origin, origin_xtra);
   STR_XTRA(rv, sdp->sdp_subject);
@@ -1011,7 +1006,7 @@ sdp_session_t *session_without_media_dup(char **pp, sdp_session_t const *src)
 
   sdp->sdp_media = NULL;
   
-  assert(p - *pp == session_without_media_xtra(src));
+  assert((size_t)(p - *pp) == session_without_media_xtra(src));
   *pp = p;
   return sdp;
 }
@@ -1080,7 +1075,7 @@ int sdptag_session_snprintf(tagi_t const *t, char b[], size_t size)
 {
   sdp_session_t const *sdp;
   sdp_printer_t *print;
-  int retval;
+  size_t retval;
 
   assert(t);
 
@@ -1097,7 +1092,7 @@ int sdptag_session_snprintf(tagi_t const *t, char b[], size_t size)
   
   sdp_printer_free(print);
 
-  return retval;
+  return (int)retval;
 }
 
 /** Tag class for SDP tags. @HIDE */
@@ -1442,6 +1437,9 @@ int sdp_media_cmp(sdp_media_t const *a, sdp_media_t const *b)
     if ((rv = str0cmp(a->m_proto_name, b->m_proto_name)))
       return rv;
 
+  if ((rv = a->m_mode - b->m_mode))
+    return rv;
+
   for (arm = a->m_rtpmaps, brm = b->m_rtpmaps; 
        arm || brm; 
        arm = arm->rm_next, brm = brm->rm_next)
@@ -1540,7 +1538,7 @@ sdp_mode_t sdp_attribute_mode(sdp_attribute_t const *a, sdp_mode_t defmode)
   return defmode;
 }
 
-/** Get session mode from attribute list. */
+/** Convert session mode as #sdp_attribute_t structure. */
 sdp_attribute_t *sdp_attribute_by_mode(su_home_t *home, sdp_mode_t mode)
 {
   sdp_attribute_t *a;
@@ -1566,12 +1564,20 @@ sdp_attribute_t *sdp_attribute_by_mode(su_home_t *home, sdp_mode_t mode)
 
 /** Find a mapped attribute. 
  *
- * A mapped attribute has form 'a=<name>:<pt> <value>' where pt is a RTP payload type, 
- * integer in range 0..127.
+ * A mapped attribute has form 'a=<name>:<pt> <value>' where pt is a RTP
+ * payload type, integer in range 0..127. For example, "a=atmmap" [@RFC3108]
+ * is a mapped attribute. Note that common mapped attributes, "a=rtpmap" and
+ * "a=fmtp" are already parsed as list of #sdp_rtpmap_t in #sdp_media_t.
  *
- * @return Pointer to a matching attribute structure, or NULL. If a matching
- * attribute is found, @a return_result will point to part of the attribute
- * after the payload type and whitespace.
+ * @param a pointer to first attribute in the list
+ * @param name name of the attribute
+ * @param pt payload type number (must be 0..127)
+ * @param return_result return value parameter for mapped attribute value
+ *
+ * @return Pointer to a matching attribute structure, or NULL. 
+ *
+ * If a matching attribute is found, @a return_result will point to part of
+ * the attribute after the payload type and whitespace.
  */
 sdp_attribute_t *sdp_attribute_mapped_find(sdp_attribute_t const *a,
 					   char const *name,

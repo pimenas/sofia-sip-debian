@@ -22,7 +22,7 @@
  *
  */
 
-/**@CFILE tport_connect.c Transport using HTTP CONNECT.
+/**@CFILE tport_threadpool.c Multithreading transport
  *
  * See tport.docs for more detailed description of tport interface.
  *
@@ -376,7 +376,7 @@ static int thrp_udp_recv_deliver(threadpool_t *thrp,
     if (thrp_udp_recv(thrp, tpd) < 0) {
       tpd->tpd_errorcode = su_errno();
       assert(tpd->tpd_errorcode);
-      if (tpd->tpd_errorcode == EAGAIN || tpd->tpd_errorcode == EWOULDBLOCK)
+      if (su_is_blocking(tpd->tpd_errorcode))
 	return 0;
     } 
     else if (tpd->tpd_msg) {
@@ -443,7 +443,7 @@ int thrp_udp_recv(threadpool_t *thrp, thrp_udp_deliver_t *tpd)
   N = recv(s, sample, sizeof sample, MSG_PEEK | MSG_TRUNC);
 
   if (N < 0) {
-    if (su_errno() == EAGAIN || su_errno() == EWOULDBLOCK)
+    if (su_is_blocking(su_errno()))
       N = 0;
   }
   else if (N <= 1) {
@@ -527,9 +527,10 @@ int thrp_udvm_decompress(threadpool_t *thrp, thrp_udp_deliver_t *tpd)
   msg_iovec_t iovec[msg_n_fragments] = {{ 0 }};
   su_addrinfo_t *ai;
   tport_t *tp = thrp->thrp_tport->pri_primary;
-  unsigned n, m, i, eos, dlen;
+  size_t n, m, i, dlen;
+  int eos;
   void *data;
-  int veclen;
+  ssize_t veclen;
 
   output = sigcomp_udvm_output_buffer(udvm, -1);
   
@@ -802,7 +803,7 @@ void thrp_udp_send_report(su_root_magic_t *magic,
 	      thrp, tpd, 1000 * su_time_diff(su_now(), tpd->tpd_when)));
 
   if (tp->tp_master->mr_log)
-    tport_log_msg(tp, tpd->tpd_msg, "sent", "to", "   ", tpd->tpd_when);
+    tport_log_msg(tp, tpd->tpd_msg, "sent", "to", tpd->tpd_when);
 
   if (tpd->tpd_errorcode)
     tport_error_report(tp, tpd->tpd_errorcode, msg_addr(tpd->tpd_msg));

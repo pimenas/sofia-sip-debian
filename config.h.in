@@ -21,6 +21,9 @@
 /* Define to 1 if you have /dev/urandom. */
 #undef HAVE_DEV_URANDOM
 
+/* Define to 1 if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
@@ -328,6 +331,12 @@
 
 /* Define to format (%llx) for long long hex */
 #undef LLX
+
+/* Define printf() modifier for ssize_t */
+#undef MOD_ZD
+
+/* Define printf() modifier for size_t */
+#undef MOD_ZU
 
 /* Name of package */
 #undef PACKAGE

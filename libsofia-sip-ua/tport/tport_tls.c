@@ -32,6 +32,8 @@
  *
  */
 
+#include "config.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,12 +76,12 @@ struct tls_s {
   /* Receiving */
   int read_events;
   void *read_buffer;
-  int read_buffer_len;
+  size_t read_buffer_len;
 
   /* Sending */
   int   write_events;
   void *write_buffer;
-  int   write_buffer_len;
+  size_t write_buffer_len;
 
   /* Host names */
   char *hosts[TLS_MAX_HOSTS + 1];
@@ -438,10 +440,10 @@ tls_t *tls_init_client(tls_t *master, int sock)
 static char *tls_strdup(char const *s)
 {
   if (s) {
-    int len = strlen(s);
-    char *d = malloc(len + 1);
+    size_t len = strlen(s) + 1;
+    char *d = malloc(len);
     if (d)
-      memcpy(d, s, len + 1);
+      memcpy(d, s, len);
     return d;
   }
   return NULL;
@@ -599,9 +601,9 @@ int tls_error(tls_t *tls, int ret, char const *who, char const *operation,
   return -1;
 }
 
-int tls_read(tls_t *tls)
+ssize_t tls_read(tls_t *tls)
 {
-  int ret;
+  ssize_t ret;
 
   if (tls == NULL) {
     errno = EINVAL;
@@ -614,7 +616,7 @@ int tls_read(tls_t *tls)
 	    tls->read_events);
 
   if (tls->read_buffer_len)
-    return tls->read_buffer_len;
+    return (ssize_t)tls->read_buffer_len;
 
   tls->read_events = POLLIN;
 
@@ -635,10 +637,10 @@ int tls_read(tls_t *tls)
     }
   }
 
-  return tls->read_buffer_len = ret;
+  return (ssize_t)(tls->read_buffer_len = ret);
 }
 
-void *tls_read_buffer(tls_t *tls, int N)
+void *tls_read_buffer(tls_t *tls, size_t N)
 {
   assert(N == tls->read_buffer_len);
   tls->read_buffer_len = 0;
@@ -666,12 +668,13 @@ int tls_want_read(tls_t *tls, int events)
   return 0;
 }
 
-int tls_write(tls_t *tls, void *buf, int size)
+ssize_t tls_write(tls_t *tls, void *buf, size_t size)
 {
-  int ret;
+  ssize_t ret;
 
   if (0) 
-    fprintf(stderr, "tls_write(%p) called on %s\n", tls,
+    fprintf(stderr, "tls_write(%p, %p, "MOD_ZU") called on %s\n", 
+	    tls, buf, size,
 	    tls && tls->type == tls_slave ? "server" : "client");
 
   if (tls == NULL || buf == NULL) {
@@ -723,7 +726,7 @@ int tls_want_write(tls_t *tls, int events)
   if (tls && (events & tls->write_events)) {
     int ret;
     void *buf = tls->write_buffer;
-    int size = tls->write_buffer_len;
+    size_t size = tls->write_buffer_len;
 
     tls->write_events = 0;
 

@@ -35,7 +35,7 @@
  *
  */
 
-#include <sofia-sip/su_config.h>
+#include <sofia-sip/su_types.h>
 
 #include <string.h>
 
@@ -156,7 +156,7 @@ enum {
   bnf_param = bnf_token | bnf_param0 /**< SIP/HTTP parameter */
 };
 
-/** Table for determining class of a character */
+/** Table for determining class of a character. */
 SOFIAPUBVAR unsigned char const _bnf_table[256];
 
 /** Get number of characters before CRLF */
@@ -171,17 +171,23 @@ SOFIAPUBVAR unsigned char const _bnf_table[256];
 /** Get number of characters before linear whitespace */
 #define span_non_lws(s) strcspn(s, LWS)
 
-/** Calculate span of a linear whitespace characters. */
-static inline int span_lws(char const *s)
+/** Calculate span of a linear whitespace. 
+ * LWS = [*WSP CRLF] 1*WSP
+ */
+static inline isize_t span_lws(char const *s)
 {
-  char const *e = s; 
-  while (IS_LWS(*e))
-    e++; 
+  char const *e = s;
+  int i = 0;
+  e += strspn(s, WS);
+  if (e[i] == '\r') i++;
+  if (e[i] == '\n') i++;
+  if (IS_WS(e[i]))
+    e += i + strspn(e + i, WS);
   return e - s;
 }
 
 /** Calculate span of a token or linear whitespace characters.  */
-static inline int span_token_lws(char const *s)
+static inline isize_t span_token_lws(char const *s)
 {
   char const *e = s; 
   while (_bnf_table[(unsigned char)(*e)] & (bnf_token | bnf_lws))
@@ -190,7 +196,7 @@ static inline int span_token_lws(char const *s)
 }
 
 /** Calculate span of a token characters.  */
-static inline int span_token(char const *s)
+static inline isize_t span_token(char const *s)
 {
   char const *e = s; 
   while (_bnf_table[(unsigned char)(*e)] & bnf_token)
@@ -199,7 +205,7 @@ static inline int span_token(char const *s)
 }
 
 /** Calculate span of a alphabetic characters.  */
-static inline int span_alpha(char const *s)
+static inline isize_t span_alpha(char const *s)
 {
   char const *e = s; 
   while (_bnf_table[(unsigned char)(*e)] & bnf_alpha)
@@ -208,7 +214,7 @@ static inline int span_alpha(char const *s)
 }
 
 /** Calculate span of a digits.  */
-static inline int span_digit(char const *s)
+static inline isize_t span_digit(char const *s)
 {
   char const *e = s; 
   while (*e >= '0' && *e <= '9')
@@ -217,7 +223,7 @@ static inline int span_digit(char const *s)
 }
 
 /** Calculate span of a hex.  */
-static inline int span_hexdigit(char const *s)
+static inline isize_t span_hexdigit(char const *s)
 {
   char const *e = s; 
   while (IS_HEX(*e))
@@ -226,7 +232,7 @@ static inline int span_hexdigit(char const *s)
 }
 
 /** Calculate span of characters belonging to an RTSP token */
-static inline int span_alpha_digit_safe(char const *s)
+static inline isize_t span_alpha_digit_safe(char const *s)
 {
   char const *e = s; 
   while (_bnf_table[(unsigned char)(*e)] & (bnf_alpha | bnf_safe))
@@ -235,7 +241,7 @@ static inline int span_alpha_digit_safe(char const *s)
 }
 
 /** Calculate span of a characters valid in parameters.  */
-static inline int span_param(char const *s)
+static inline isize_t span_param(char const *s)
 {
   char const *e = s; 
   while (IS_PARAM(*e))
@@ -244,7 +250,7 @@ static inline int span_param(char const *s)
 }
 
 /** Calculate span of a SIP word.  */
-static inline int span_word(char const *s)
+static inline isize_t span_word(char const *s)
 {
   char const *e = s; 
   while (*e && (IS_TOKEN(*e) || strchr(SIP_WORD, *e)))
@@ -253,7 +259,7 @@ static inline int span_word(char const *s)
 }
 
 /** Calculate span of a unreserved characters.  */
-static inline int span_unreserved(char const *s)
+static inline isize_t span_unreserved(char const *s)
 {
   char const *e = s;
   while (IS_UNRESERVED(*e))
@@ -262,7 +268,7 @@ static inline int span_unreserved(char const *s)
 }
 
 /** Calculate span of a double quoted string (with escaped chars inside) */
-static inline int span_quoted(char const *s)
+static inline isize_t span_quoted(char const *s)
 {
   char const *b = s;
 
@@ -303,15 +309,15 @@ SOFIAPUBFUN int span_ip4_address(char const *host);
 SOFIAPUBFUN int span_ip6_address(char const *host);
 SOFIAPUBFUN int span_ip6_reference(char const *host);
 SOFIAPUBFUN int span_ip_address(char const *host);
-SOFIAPUBFUN int span_domain(char const *host);
-SOFIAPUBFUN int span_host(char const *host);
+SOFIAPUBFUN isize_t span_domain(char const *host);
+SOFIAPUBFUN isize_t span_host(char const *host);
 
 SOFIAPUBFUN int scan_ip4_address(char **inout_host);
 SOFIAPUBFUN int scan_ip6_address(char **inout_host);
 SOFIAPUBFUN int scan_ip6_reference(char **inout_host);
 SOFIAPUBFUN int scan_ip_address(char **inout_host);
-SOFIAPUBFUN int scan_domain(char **inout_host);
-SOFIAPUBFUN int scan_host(char **inout_host);
+SOFIAPUBFUN issize_t scan_domain(char **inout_host);
+SOFIAPUBFUN issize_t scan_host(char **inout_host);
 
 SOFIA_END_DECLS
 

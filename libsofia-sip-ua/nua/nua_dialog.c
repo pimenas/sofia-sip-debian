@@ -40,6 +40,7 @@
 #include <assert.h>
 
 #include <sofia-sip/string0.h>
+#include <sofia-sip/su_uniqueid.h>
 
 #include <sofia-sip/sip_protos.h>
 
@@ -181,6 +182,21 @@ void nua_dialog_store_peer_info(nua_owner_t *own,
   }
 }
 
+/** Remove dialog (if there is no other usages). */
+int nua_dialog_remove(nua_owner_t *own,
+		      nua_dialog_state_t *ds,
+		      nua_dialog_usage_t *usage)
+{
+  if (ds->ds_usage == usage && (usage == NULL || usage->du_next == NULL)) {
+    nua_dialog_store_peer_info(own, ds, NULL); /* zap peer info */
+    nta_leg_destroy(ds->ds_leg), ds->ds_leg = NULL;
+    su_free(own, (void *)ds->ds_remote_tag), ds->ds_remote_tag = NULL;
+    ds->ds_route = 0;
+  }
+  return 0;
+}
+
+
 /** @internal Get dialog usage slot. */
 nua_dialog_usage_t **
 nua_dialog_usage_at(nua_dialog_state_t const *ds, 
@@ -210,8 +226,10 @@ nua_dialog_usage_at(nua_dialog_state_t const *ds,
 	  continue;
 	if (strcmp(event->o_type, o->o_type))
 	  continue;
-	if (str0casecmp(event->o_id, o->o_id))
-	  continue;
+	if (str0casecmp(event->o_id, o->o_id)) {
+	  if (event->o_id || strcmp(event->o_type, "refer"))
+	    continue;
+	}
       }
 
       return (nua_dialog_usage_t **)prev;
@@ -359,7 +377,8 @@ void nua_dialog_log_usage(nua_owner_t *own, nua_dialog_state_t *ds)
 
   if (SU_LOG->log_level >= 3) {
     char buffer[160];
-    int l = 0, n, N = sizeof buffer;
+    size_t l = 0, N = sizeof buffer;
+    ssize_t n;
     
     buffer[0] = '\0';
 
@@ -372,7 +391,7 @@ void nua_dialog_log_usage(nua_owner_t *own, nua_dialog_state_t *ds)
       n = sip_event_e(buffer + l, N - l, h, 0);
       if (n == -1)
 	break;
-      l += n;
+      l += (size_t)n;
       if (du->du_next && l + 2 < sizeof(buffer)) {
 	strcpy(buffer + l, ", ");
 	l += 2;
@@ -386,7 +405,17 @@ void nua_dialog_log_usage(nua_owner_t *own, nua_dialog_state_t *ds)
   }
 }
 
-/** @internal Dialog has been terminated. */
+/** Deinitialize dialog and its usage. @internal */
+void nua_dialog_deinit(nua_owner_t *own,
+		       nua_dialog_state_t *ds)
+{
+  while (ds->ds_usage) {
+    nua_dialog_usage_remove_at(own, ds, &ds->ds_usage);
+  }
+}
+
+
+/** @internal Dialog has been terminated. Remove all usages. */
 void nua_dialog_terminated(nua_owner_t *own,
 			   struct nua_dialog_state *ds,
 			   int status,
@@ -408,6 +437,22 @@ void nua_dialog_terminated(nua_owner_t *own,
   }
 }
 
+/**@internal
+ * Set expiration time. 
+ */
+void nua_dialog_usage_set_expires(nua_dialog_usage_t *du,
+				  unsigned delta)
+{
+  if (delta) {
+    sip_time_t now = sip_now(), expires = now + delta;
+    if (expires < now)
+      expires = SIP_TIME_MAX;
+    du->du_expires = expires;
+    nua_dialog_usage_set_refresh(du, delta);
+  }
+  else
+    du->du_expires = 0, du->du_refresh = 0;
+}
 
 /**@internal
  * Set refresh value suitably. 
@@ -421,31 +466,59 @@ void nua_dialog_terminated(nua_owner_t *own,
  */
 void nua_dialog_usage_set_refresh(nua_dialog_usage_t *du, unsigned delta)
 {
-  sip_time_t target = sip_now();
-
-  if (delta > 90 && delta < 5 * 60)
+  if (delta == 0)
+    du->du_refresh = 0;
+  else if (delta > 90 && delta < 5 * 60)
     /* refresh 30..60 seconds before deadline */
-    delta -= su_randint(30, 60);
-  else if (delta > 1)
-    /* refresh around half time before deadline */
-    delta = (delta + 3) / 4 + su_randint(0, delta / 2);
+    nua_dialog_usage_refresh_range(du, delta - 60, delta - 30);
+  else {
+    /* By default, refresh around half time before deadline */
+    unsigned min = (delta + 2) / 4;
+    unsigned max = (delta + 2) / 4 + (delta + 1) / 2;
+    if (min == 0)
+      min = 1;
+    nua_dialog_usage_refresh_range(du, min, max);
+  }
+}
 
-  if (delta != 0 && target + delta >= target)
-    target = target + delta;
+/**@internal Set refresh in range min..max seconds in the future. */
+void nua_dialog_usage_refresh_range(nua_dialog_usage_t *du, 
+				    unsigned min, unsigned max)
+{
+  sip_time_t now = sip_now(), target;
+  unsigned delta;
+
+  if (max < min)
+    max = min;
+
+  if (min != max)
+    delta = su_randint(min, max);
+  else
+    delta = min;
+
+  if (now + delta >= now)
+    target = now + delta;
   else
     target = SIP_TIME_MAX;
+
+  SU_DEBUG_7(("nua(): refresh %s after %lu seconds (in [%u..%u])\n",
+	      nua_dialog_usage_name(du), target - now, min, max));
 
   du->du_refresh = target;
 }
 
-/** @internal Call the owner operation function. */
+/**@internal Do not refresh. */
+void nua_dialog_usage_no_refresh(nua_dialog_usage_t *du)
+{
+  du->du_refresh = 0;
+}
+
+/** @internal Refresh usage or shutdown usage if @a now is 0. */
 void nua_dialog_usage_refresh(nua_owner_t *owner,
 			      nua_dialog_usage_t *du, 
 			      sip_time_t now)
 {
   if (du) {
-    nh_pending_f *pending = du->du_pending;
-
     du->du_refresh = 0;
 
     if (now > 0) {
@@ -461,11 +534,6 @@ void nua_dialog_usage_refresh(nua_owner_t *owner,
 	return;
       }
     }
-
-    du->du_pending = NULL;
-
-    if (pending)
-      pending(owner, du, now);
   }
 }
 
