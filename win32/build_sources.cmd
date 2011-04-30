@@ -3,21 +3,22 @@
 ::
 
 @setlocal
-@if x%AWK%==x set AWK=gawk
+@if x%AWK%==x set AWK=mawk
 @set CHECK=@IF errorlevel 1 GOTO failed
 
 :: Check that we really have awk
 @%AWK% "{ exit(0); }" < NUL >NUL
 @if not errorlevel 9009 goto have_awk
-@echo *** install %AWK% (GNU awk) into your PATH ***
+@echo *** install %AWK% (mawk or GNU awk) into your PATH ***
+@echo *** see http://gnuwin32.sourceforge.net/packages/mawk.htm ***
 @goto failed
 :have_awk
 
-@set MSG_AWK=gawk -v BINMODE=rw -f ../libsofia-sip-ua/msg/msg_parser.awk
+@set MSG_AWK=%AWK% -v BINMODE=rw -f ../libsofia-sip-ua/msg/msg_parser.awk
 :: in Win32 exit 0; from gawk 3.1.3 gets converted to errorlevel 1
 :: If you have gawk 3.1.3 uncomment the following line
-:: @set MSG_AWK=gawk -v BINMODE=rw -f ../libsofia-sip-ua/msg/msg_parser.awk success=-1
-@set TAG_AWK=gawk -f ../libsofia-sip-ua/su/tag_dll.awk BINMODE=rw
+:: @set MSG_AWK=%AWK% -v BINMODE=rw -f ../libsofia-sip-ua/msg/msg_parser.awk success=-1
+@set TAG_AWK=%AWK% -f ../libsofia-sip-ua/su/tag_dll.awk BINMODE=rw
 
 @set IN=../libsofia-sip-ua/msg/test_class.h
 @set PR=../libsofia-sip-ua/msg/test_protos.h
@@ -48,6 +49,8 @@
 @set PR2=../libsofia-sip-ua/sip/sofia-sip/sip_hclasses.h
 @set PR3=../libsofia-sip-ua/sip/sofia-sip/sip_protos.h
 @set PR4=../libsofia-sip-ua/sip/sofia-sip/sip_tag.h
+@set PR5=../libsofia-sip-ua/sip/sofia-sip/sip_extra.h
+@set SIPEXTRA=../libsofia-sip-ua/sip/sip_extra_headers.txt
 @set PT=../libsofia-sip-ua/sip/sip_parser_table.c
 
 %MSG_AWK% module=sip PR=%PR% %IN%  < NUL
@@ -57,6 +60,8 @@
 %MSG_AWK% module=sip PR=%PR3% %IN% < NUL
 %CHECK%
 %MSG_AWK% module=sip PR=%PR4% %IN% < NUL
+%CHECK%
+%MSG_AWK% module=sip PR=%PR5% TEMPLATE1=%PR2%.in TEMPLATE2=%PR3%.in TEMPLATE=%PR5%.in NO_FIRST=1 NO_LAST=1 < NUL %SIPEXTRA%
 %CHECK%
 
 %MSG_AWK% module=sip MC_HASH_SIZE=127 MC_SHORT_SIZE=26 ^

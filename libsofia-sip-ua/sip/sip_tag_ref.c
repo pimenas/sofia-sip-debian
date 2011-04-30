@@ -436,6 +436,28 @@ EXPORT tag_typedef_t siptag_content_length_ref =
 extern tag_typedef_t siptag_content_length_str;
 EXPORT tag_typedef_t siptag_content_length_str_ref = 
   REFTAG_TYPEDEF(siptag_content_length_str);
+extern tag_typedef_t siptag_refer_sub;
+EXPORT tag_typedef_t siptag_refer_sub_ref = 
+  REFTAG_TYPEDEF(siptag_refer_sub);
+extern tag_typedef_t siptag_refer_sub_str;
+EXPORT tag_typedef_t siptag_refer_sub_str_ref = 
+  REFTAG_TYPEDEF(siptag_refer_sub_str);
+#if SU_HAVE_EXPERIMENTAL
+extern tag_typedef_t siptag_suppress_body_if_match;
+EXPORT tag_typedef_t siptag_suppress_body_if_match_ref = 
+  REFTAG_TYPEDEF(siptag_suppress_body_if_match);
+extern tag_typedef_t siptag_suppress_body_if_match_str;
+EXPORT tag_typedef_t siptag_suppress_body_if_match_str_ref = 
+  REFTAG_TYPEDEF(siptag_suppress_body_if_match_str);
+#endif /* SU_HAVE_EXPERIMENTAL */
+#if SU_HAVE_EXPERIMENTAL
+extern tag_typedef_t siptag_suppress_notify_if_match;
+EXPORT tag_typedef_t siptag_suppress_notify_if_match_ref = 
+  REFTAG_TYPEDEF(siptag_suppress_notify_if_match);
+extern tag_typedef_t siptag_suppress_notify_if_match_str;
+EXPORT tag_typedef_t siptag_suppress_notify_if_match_str_ref = 
+  REFTAG_TYPEDEF(siptag_suppress_notify_if_match_str);
+#endif /* SU_HAVE_EXPERIMENTAL */
 extern tag_typedef_t siptag_unknown;
 EXPORT tag_typedef_t siptag_unknown_ref = 
   REFTAG_TYPEDEF(siptag_unknown);
@@ -460,3 +482,7 @@ EXPORT tag_typedef_t siptag_payload_ref =
 extern tag_typedef_t siptag_payload_str;
 EXPORT tag_typedef_t siptag_payload_str_ref = 
   REFTAG_TYPEDEF(siptag_payload_str);
+#if SU_HAVE_EXPERIMENTAL
+#endif /* SU_HAVE_EXPERIMENTAL */
+#if SU_HAVE_EXPERIMENTAL
+#endif /* SU_HAVE_EXPERIMENTAL */

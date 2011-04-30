@@ -47,6 +47,7 @@ enum {
   /**@ingroup sip_request @internal 
    *
    * Hash of @ref sip_request "request line".
+   *
    */
   sip_request_hash = -1 
 };
@@ -59,6 +60,7 @@ enum {
  * manipulate the #sip_request_t header structure.
  *
  * @ingroup sip_request
+ *
  */
 SIP_DLL extern msg_hclass_t sip_request_class[];
 
@@ -68,6 +70,7 @@ enum {
   /**@ingroup sip_status @internal 
    *
    * Hash of @ref sip_status "status line".
+   *
    */
   sip_status_hash = -2 
 };
@@ -80,6 +83,7 @@ enum {
  * manipulate the #sip_status_t header structure.
  *
  * @ingroup sip_status
+ *
  */
 SIP_DLL extern msg_hclass_t sip_status_class[];
 
@@ -89,6 +93,7 @@ enum {
   /**@ingroup sip_via @internal 
    *
    * Hash of @ref sip_via "Via header".
+   *
    */
   sip_via_hash = 46244 
 };
@@ -101,6 +106,7 @@ enum {
  * manipulate the #sip_via_t header structure.
  *
  * @ingroup sip_via
+ *
  */
 SIP_DLL extern msg_hclass_t sip_via_class[];
 
@@ -110,6 +116,7 @@ enum {
   /**@ingroup sip_route @internal 
    *
    * Hash of @ref sip_route "Route header".
+   *
    */
   sip_route_hash = 28359 
 };
@@ -122,6 +129,7 @@ enum {
  * manipulate the #sip_route_t header structure.
  *
  * @ingroup sip_route
+ *
  */
 SIP_DLL extern msg_hclass_t sip_route_class[];
 
@@ -131,6 +139,7 @@ enum {
   /**@ingroup sip_record_route @internal 
    *
    * Hash of @ref sip_record_route "Record-Route header".
+   *
    */
   sip_record_route_hash = 33211 
 };
@@ -143,6 +152,7 @@ enum {
  * manipulate the #sip_record_route_t header structure.
  *
  * @ingroup sip_record_route
+ *
  */
 SIP_DLL extern msg_hclass_t sip_record_route_class[];
 
@@ -152,6 +162,7 @@ enum {
   /**@ingroup sip_max_forwards @internal 
    *
    * Hash of @ref sip_max_forwards "Max-Forwards header".
+   *
    */
   sip_max_forwards_hash = 27231 
 };
@@ -164,6 +175,7 @@ enum {
  * manipulate the #sip_max_forwards_t header structure.
  *
  * @ingroup sip_max_forwards
+ *
  */
 SIP_DLL extern msg_hclass_t sip_max_forwards_class[];
 
@@ -173,6 +185,7 @@ enum {
   /**@ingroup sip_proxy_require @internal 
    *
    * Hash of @ref sip_proxy_require "Proxy-Require header".
+   *
    */
   sip_proxy_require_hash = 11704 
 };
@@ -185,6 +198,7 @@ enum {
  * manipulate the #sip_proxy_require_t header structure.
  *
  * @ingroup sip_proxy_require
+ *
  */
 SIP_DLL extern msg_hclass_t sip_proxy_require_class[];
 
@@ -194,6 +208,7 @@ enum {
   /**@ingroup sip_from @internal 
    *
    * Hash of @ref sip_from "From header".
+   *
    */
   sip_from_hash = 15368 
 };
@@ -206,6 +221,7 @@ enum {
  * manipulate the #sip_from_t header structure.
  *
  * @ingroup sip_from
+ *
  */
 SIP_DLL extern msg_hclass_t sip_from_class[];
 
@@ -215,6 +231,7 @@ enum {
   /**@ingroup sip_to @internal 
    *
    * Hash of @ref sip_to "To header".
+   *
    */
   sip_to_hash = 62495 
 };
@@ -227,6 +244,7 @@ enum {
  * manipulate the #sip_to_t header structure.
  *
  * @ingroup sip_to
+ *
  */
 SIP_DLL extern msg_hclass_t sip_to_class[];
 
@@ -236,6 +254,7 @@ enum {
   /**@ingroup sip_call_id @internal 
    *
    * Hash of @ref sip_call_id "Call-ID header".
+   *
    */
   sip_call_id_hash = 38022 
 };
@@ -248,6 +267,7 @@ enum {
  * manipulate the #sip_call_id_t header structure.
  *
  * @ingroup sip_call_id
+ *
  */
 SIP_DLL extern msg_hclass_t sip_call_id_class[];
 
@@ -257,6 +277,7 @@ enum {
   /**@ingroup sip_cseq @internal 
    *
    * Hash of @ref sip_cseq "CSeq header".
+   *
    */
   sip_cseq_hash = 12268 
 };
@@ -269,6 +290,7 @@ enum {
  * manipulate the #sip_cseq_t header structure.
  *
  * @ingroup sip_cseq
+ *
  */
 SIP_DLL extern msg_hclass_t sip_cseq_class[];
 
@@ -278,6 +300,7 @@ enum {
   /**@ingroup sip_contact @internal 
    *
    * Hash of @ref sip_contact "Contact header".
+   *
    */
   sip_contact_hash = 25428 
 };
@@ -290,6 +313,7 @@ enum {
  * manipulate the #sip_contact_t header structure.
  *
  * @ingroup sip_contact
+ *
  */
 SIP_DLL extern msg_hclass_t sip_contact_class[];
 
@@ -299,6 +323,7 @@ enum {
   /**@ingroup sip_rseq @internal 
    *
    * Hash of @ref sip_rseq "RSeq header".
+   *
    */
   sip_rseq_hash = 16651 
 };
@@ -311,6 +336,7 @@ enum {
  * manipulate the #sip_rseq_t header structure.
  *
  * @ingroup sip_rseq
+ *
  */
 SIP_DLL extern msg_hclass_t sip_rseq_class[];
 
@@ -320,6 +346,7 @@ enum {
   /**@ingroup sip_rack @internal 
    *
    * Hash of @ref sip_rack "RAck header".
+   *
    */
   sip_rack_hash = 46065 
 };
@@ -332,6 +359,7 @@ enum {
  * manipulate the #sip_rack_t header structure.
  *
  * @ingroup sip_rack
+ *
  */
 SIP_DLL extern msg_hclass_t sip_rack_class[];
 
@@ -341,6 +369,7 @@ enum {
   /**@ingroup sip_request_disposition @internal 
    *
    * Hash of @ref sip_request_disposition "Request-Disposition header".
+   *
    */
   sip_request_disposition_hash = 61507 
 };
@@ -353,6 +382,7 @@ enum {
  * manipulate the #sip_request_disposition_t header structure.
  *
  * @ingroup sip_request_disposition
+ *
  */
 SIP_DLL extern msg_hclass_t sip_request_disposition_class[];
 
@@ -362,6 +392,7 @@ enum {
   /**@ingroup sip_accept_contact @internal 
    *
    * Hash of @ref sip_accept_contact "Accept-Contact header".
+   *
    */
   sip_accept_contact_hash = 30081 
 };
@@ -374,6 +405,7 @@ enum {
  * manipulate the #sip_accept_contact_t header structure.
  *
  * @ingroup sip_accept_contact
+ *
  */
 SIP_DLL extern msg_hclass_t sip_accept_contact_class[];
 
@@ -383,6 +415,7 @@ enum {
   /**@ingroup sip_reject_contact @internal 
    *
    * Hash of @ref sip_reject_contact "Reject-Contact header".
+   *
    */
   sip_reject_contact_hash = 34934 
 };
@@ -395,6 +428,7 @@ enum {
  * manipulate the #sip_reject_contact_t header structure.
  *
  * @ingroup sip_reject_contact
+ *
  */
 SIP_DLL extern msg_hclass_t sip_reject_contact_class[];
 
@@ -404,6 +438,7 @@ enum {
   /**@ingroup sip_expires @internal 
    *
    * Hash of @ref sip_expires "Expires header".
+   *
    */
   sip_expires_hash = 28680 
 };
@@ -416,6 +451,7 @@ enum {
  * manipulate the #sip_expires_t header structure.
  *
  * @ingroup sip_expires
+ *
  */
 SIP_DLL extern msg_hclass_t sip_expires_class[];
 
@@ -425,6 +461,7 @@ enum {
   /**@ingroup sip_date @internal 
    *
    * Hash of @ref sip_date "Date header".
+   *
    */
   sip_date_hash = 43982 
 };
@@ -437,6 +474,7 @@ enum {
  * manipulate the #sip_date_t header structure.
  *
  * @ingroup sip_date
+ *
  */
 SIP_DLL extern msg_hclass_t sip_date_class[];
 
@@ -446,6 +484,7 @@ enum {
   /**@ingroup sip_retry_after @internal 
    *
    * Hash of @ref sip_retry_after "Retry-After header".
+   *
    */
   sip_retry_after_hash = 30349 
 };
@@ -458,6 +497,7 @@ enum {
  * manipulate the #sip_retry_after_t header structure.
  *
  * @ingroup sip_retry_after
+ *
  */
 SIP_DLL extern msg_hclass_t sip_retry_after_class[];
 
@@ -467,6 +507,7 @@ enum {
   /**@ingroup sip_timestamp @internal 
    *
    * Hash of @ref sip_timestamp "Timestamp header".
+   *
    */
   sip_timestamp_hash = 12632 
 };
@@ -479,6 +520,7 @@ enum {
  * manipulate the #sip_timestamp_t header structure.
  *
  * @ingroup sip_timestamp
+ *
  */
 SIP_DLL extern msg_hclass_t sip_timestamp_class[];
 
@@ -488,6 +530,7 @@ enum {
   /**@ingroup sip_min_expires @internal 
    *
    * Hash of @ref sip_min_expires "Min-Expires header".
+   *
    */
   sip_min_expires_hash = 21461 
 };
@@ -500,6 +543,7 @@ enum {
  * manipulate the #sip_min_expires_t header structure.
  *
  * @ingroup sip_min_expires
+ *
  */
 SIP_DLL extern msg_hclass_t sip_min_expires_class[];
 
@@ -509,6 +553,7 @@ enum {
   /**@ingroup sip_subject @internal 
    *
    * Hash of @ref sip_subject "Subject header".
+   *
    */
   sip_subject_hash = 16360 
 };
@@ -521,6 +566,7 @@ enum {
  * manipulate the #sip_subject_t header structure.
  *
  * @ingroup sip_subject
+ *
  */
 SIP_DLL extern msg_hclass_t sip_subject_class[];
 
@@ -530,6 +576,7 @@ enum {
   /**@ingroup sip_priority @internal 
    *
    * Hash of @ref sip_priority "Priority header".
+   *
    */
   sip_priority_hash = 8846 
 };
@@ -542,6 +589,7 @@ enum {
  * manipulate the #sip_priority_t header structure.
  *
  * @ingroup sip_priority
+ *
  */
 SIP_DLL extern msg_hclass_t sip_priority_class[];
 
@@ -551,6 +599,7 @@ enum {
   /**@ingroup sip_call_info @internal 
    *
    * Hash of @ref sip_call_info "Call-Info header".
+   *
    */
   sip_call_info_hash = 57337 
 };
@@ -563,6 +612,7 @@ enum {
  * manipulate the #sip_call_info_t header structure.
  *
  * @ingroup sip_call_info
+ *
  */
 SIP_DLL extern msg_hclass_t sip_call_info_class[];
 
@@ -572,6 +622,7 @@ enum {
   /**@ingroup sip_organization @internal 
    *
    * Hash of @ref sip_organization "Organization header".
+   *
    */
   sip_organization_hash = 6389 
 };
@@ -584,6 +635,7 @@ enum {
  * manipulate the #sip_organization_t header structure.
  *
  * @ingroup sip_organization
+ *
  */
 SIP_DLL extern msg_hclass_t sip_organization_class[];
 
@@ -593,6 +645,7 @@ enum {
   /**@ingroup sip_server @internal 
    *
    * Hash of @ref sip_server "Server header".
+   *
    */
   sip_server_hash = 31323 
 };
@@ -605,6 +658,7 @@ enum {
  * manipulate the #sip_server_t header structure.
  *
  * @ingroup sip_server
+ *
  */
 SIP_DLL extern msg_hclass_t sip_server_class[];
 
@@ -614,6 +668,7 @@ enum {
   /**@ingroup sip_user_agent @internal 
    *
    * Hash of @ref sip_user_agent "User-Agent header".
+   *
    */
   sip_user_agent_hash = 40911 
 };
@@ -626,6 +681,7 @@ enum {
  * manipulate the #sip_user_agent_t header structure.
  *
  * @ingroup sip_user_agent
+ *
  */
 SIP_DLL extern msg_hclass_t sip_user_agent_class[];
 
@@ -635,6 +691,7 @@ enum {
   /**@ingroup sip_in_reply_to @internal 
    *
    * Hash of @ref sip_in_reply_to "In-Reply-To header".
+   *
    */
   sip_in_reply_to_hash = 19812 
 };
@@ -647,6 +704,7 @@ enum {
  * manipulate the #sip_in_reply_to_t header structure.
  *
  * @ingroup sip_in_reply_to
+ *
  */
 SIP_DLL extern msg_hclass_t sip_in_reply_to_class[];
 
@@ -656,6 +714,7 @@ enum {
   /**@ingroup sip_accept @internal 
    *
    * Hash of @ref sip_accept "Accept header".
+   *
    */
   sip_accept_hash = 29344 
 };
@@ -668,6 +727,7 @@ enum {
  * manipulate the #sip_accept_t header structure.
  *
  * @ingroup sip_accept
+ *
  */
 SIP_DLL extern msg_hclass_t sip_accept_class[];
 
@@ -677,6 +737,7 @@ enum {
   /**@ingroup sip_accept_encoding @internal 
    *
    * Hash of @ref sip_accept_encoding "Accept-Encoding header".
+   *
    */
   sip_accept_encoding_hash = 35932 
 };
@@ -689,6 +750,7 @@ enum {
  * manipulate the #sip_accept_encoding_t header structure.
  *
  * @ingroup sip_accept_encoding
+ *
  */
 SIP_DLL extern msg_hclass_t sip_accept_encoding_class[];
 
@@ -698,6 +760,7 @@ enum {
   /**@ingroup sip_accept_language @internal 
    *
    * Hash of @ref sip_accept_language "Accept-Language header".
+   *
    */
   sip_accept_language_hash = 23797 
 };
@@ -710,6 +773,7 @@ enum {
  * manipulate the #sip_accept_language_t header structure.
  *
  * @ingroup sip_accept_language
+ *
  */
 SIP_DLL extern msg_hclass_t sip_accept_language_class[];
 
@@ -719,6 +783,7 @@ enum {
   /**@ingroup sip_allow @internal 
    *
    * Hash of @ref sip_allow "Allow header".
+   *
    */
   sip_allow_hash = 44519 
 };
@@ -731,6 +796,7 @@ enum {
  * manipulate the #sip_allow_t header structure.
  *
  * @ingroup sip_allow
+ *
  */
 SIP_DLL extern msg_hclass_t sip_allow_class[];
 
@@ -740,6 +806,7 @@ enum {
   /**@ingroup sip_require @internal 
    *
    * Hash of @ref sip_require "Require header".
+   *
    */
   sip_require_hash = 32097 
 };
@@ -752,6 +819,7 @@ enum {
  * manipulate the #sip_require_t header structure.
  *
  * @ingroup sip_require
+ *
  */
 SIP_DLL extern msg_hclass_t sip_require_class[];
 
@@ -761,6 +829,7 @@ enum {
   /**@ingroup sip_supported @internal 
    *
    * Hash of @ref sip_supported "Supported header".
+   *
    */
   sip_supported_hash = 28310 
 };
@@ -773,6 +842,7 @@ enum {
  * manipulate the #sip_supported_t header structure.
  *
  * @ingroup sip_supported
+ *
  */
 SIP_DLL extern msg_hclass_t sip_supported_class[];
 
@@ -782,6 +852,7 @@ enum {
   /**@ingroup sip_unsupported @internal 
    *
    * Hash of @ref sip_unsupported "Unsupported header".
+   *
    */
   sip_unsupported_hash = 37557 
 };
@@ -794,6 +865,7 @@ enum {
  * manipulate the #sip_unsupported_t header structure.
  *
  * @ingroup sip_unsupported
+ *
  */
 SIP_DLL extern msg_hclass_t sip_unsupported_class[];
 
@@ -803,6 +875,7 @@ enum {
   /**@ingroup sip_event @internal 
    *
    * Hash of @ref sip_event "Event header".
+   *
    */
   sip_event_hash = 8274 
 };
@@ -815,6 +888,7 @@ enum {
  * manipulate the #sip_event_t header structure.
  *
  * @ingroup sip_event
+ *
  */
 SIP_DLL extern msg_hclass_t sip_event_class[];
 
@@ -824,6 +898,7 @@ enum {
   /**@ingroup sip_allow_events @internal 
    *
    * Hash of @ref sip_allow_events "Allow-Events header".
+   *
    */
   sip_allow_events_hash = 31165 
 };
@@ -836,6 +911,7 @@ enum {
  * manipulate the #sip_allow_events_t header structure.
  *
  * @ingroup sip_allow_events
+ *
  */
 SIP_DLL extern msg_hclass_t sip_allow_events_class[];
 
@@ -845,6 +921,7 @@ enum {
   /**@ingroup sip_subscription_state @internal 
    *
    * Hash of @ref sip_subscription_state "Subscription-State header".
+   *
    */
   sip_subscription_state_hash = 30595 
 };
@@ -857,6 +934,7 @@ enum {
  * manipulate the #sip_subscription_state_t header structure.
  *
  * @ingroup sip_subscription_state
+ *
  */
 SIP_DLL extern msg_hclass_t sip_subscription_state_class[];
 
@@ -866,6 +944,7 @@ enum {
   /**@ingroup sip_proxy_authenticate @internal 
    *
    * Hash of @ref sip_proxy_authenticate "Proxy-Authenticate header".
+   *
    */
   sip_proxy_authenticate_hash = 57658 
 };
@@ -878,6 +957,7 @@ enum {
  * manipulate the #sip_proxy_authenticate_t header structure.
  *
  * @ingroup sip_proxy_authenticate
+ *
  */
 SIP_DLL extern msg_hclass_t sip_proxy_authenticate_class[];
 
@@ -887,6 +967,7 @@ enum {
   /**@ingroup sip_proxy_authentication_info @internal 
    *
    * Hash of @ref sip_proxy_authentication_info "Proxy-Authentication-Info header".
+   *
    */
   sip_proxy_authentication_info_hash = 52344 
 };
@@ -899,6 +980,7 @@ enum {
  * manipulate the #sip_proxy_authentication_info_t header structure.
  *
  * @ingroup sip_proxy_authentication_info
+ *
  */
 SIP_DLL extern msg_hclass_t sip_proxy_authentication_info_class[];
 
@@ -908,6 +990,7 @@ enum {
   /**@ingroup sip_proxy_authorization @internal 
    *
    * Hash of @ref sip_proxy_authorization "Proxy-Authorization header".
+   *
    */
   sip_proxy_authorization_hash = 21244 
 };
@@ -920,6 +1003,7 @@ enum {
  * manipulate the #sip_proxy_authorization_t header structure.
  *
  * @ingroup sip_proxy_authorization
+ *
  */
 SIP_DLL extern msg_hclass_t sip_proxy_authorization_class[];
 
@@ -929,6 +1013,7 @@ enum {
   /**@ingroup sip_authorization @internal 
    *
    * Hash of @ref sip_authorization "Authorization header".
+   *
    */
   sip_authorization_hash = 36397 
 };
@@ -941,6 +1026,7 @@ enum {
  * manipulate the #sip_authorization_t header structure.
  *
  * @ingroup sip_authorization
+ *
  */
 SIP_DLL extern msg_hclass_t sip_authorization_class[];
 
@@ -950,6 +1036,7 @@ enum {
   /**@ingroup sip_www_authenticate @internal 
    *
    * Hash of @ref sip_www_authenticate "WWW-Authenticate header".
+   *
    */
   sip_www_authenticate_hash = 16217 
 };
@@ -962,6 +1049,7 @@ enum {
  * manipulate the #sip_www_authenticate_t header structure.
  *
  * @ingroup sip_www_authenticate
+ *
  */
 SIP_DLL extern msg_hclass_t sip_www_authenticate_class[];
 
@@ -971,6 +1059,7 @@ enum {
   /**@ingroup sip_authentication_info @internal 
    *
    * Hash of @ref sip_authentication_info "Authentication-Info header".
+   *
    */
   sip_authentication_info_hash = 20849 
 };
@@ -983,6 +1072,7 @@ enum {
  * manipulate the #sip_authentication_info_t header structure.
  *
  * @ingroup sip_authentication_info
+ *
  */
 SIP_DLL extern msg_hclass_t sip_authentication_info_class[];
 
@@ -992,6 +1082,7 @@ enum {
   /**@ingroup sip_error_info @internal 
    *
    * Hash of @ref sip_error_info "Error-Info header".
+   *
    */
   sip_error_info_hash = 5263 
 };
@@ -1004,6 +1095,7 @@ enum {
  * manipulate the #sip_error_info_t header structure.
  *
  * @ingroup sip_error_info
+ *
  */
 SIP_DLL extern msg_hclass_t sip_error_info_class[];
 
@@ -1013,6 +1105,7 @@ enum {
   /**@ingroup sip_warning @internal 
    *
    * Hash of @ref sip_warning "Warning header".
+   *
    */
   sip_warning_hash = 4130 
 };
@@ -1025,6 +1118,7 @@ enum {
  * manipulate the #sip_warning_t header structure.
  *
  * @ingroup sip_warning
+ *
  */
 SIP_DLL extern msg_hclass_t sip_warning_class[];
 
@@ -1034,6 +1128,7 @@ enum {
   /**@ingroup sip_refer_to @internal 
    *
    * Hash of @ref sip_refer_to "Refer-To header".
+   *
    */
   sip_refer_to_hash = 52604 
 };
@@ -1046,6 +1141,7 @@ enum {
  * manipulate the #sip_refer_to_t header structure.
  *
  * @ingroup sip_refer_to
+ *
  */
 SIP_DLL extern msg_hclass_t sip_refer_to_class[];
 
@@ -1055,6 +1151,7 @@ enum {
   /**@ingroup sip_referred_by @internal 
    *
    * Hash of @ref sip_referred_by "Referred-By header".
+   *
    */
   sip_referred_by_hash = 11403 
 };
@@ -1067,6 +1164,7 @@ enum {
  * manipulate the #sip_referred_by_t header structure.
  *
  * @ingroup sip_referred_by
+ *
  */
 SIP_DLL extern msg_hclass_t sip_referred_by_class[];
 
@@ -1076,6 +1174,7 @@ enum {
   /**@ingroup sip_replaces @internal 
    *
    * Hash of @ref sip_replaces "Replaces header".
+   *
    */
   sip_replaces_hash = 58083 
 };
@@ -1088,6 +1187,7 @@ enum {
  * manipulate the #sip_replaces_t header structure.
  *
  * @ingroup sip_replaces
+ *
  */
 SIP_DLL extern msg_hclass_t sip_replaces_class[];
 
@@ -1097,6 +1197,7 @@ enum {
   /**@ingroup sip_session_expires @internal 
    *
    * Hash of @ref sip_session_expires "Session-Expires header".
+   *
    */
   sip_session_expires_hash = 61197 
 };
@@ -1109,6 +1210,7 @@ enum {
  * manipulate the #sip_session_expires_t header structure.
  *
  * @ingroup sip_session_expires
+ *
  */
 SIP_DLL extern msg_hclass_t sip_session_expires_class[];
 
@@ -1118,6 +1220,7 @@ enum {
   /**@ingroup sip_min_se @internal 
    *
    * Hash of @ref sip_min_se "Min-SE header".
+   *
    */
   sip_min_se_hash = 11565 
 };
@@ -1130,6 +1233,7 @@ enum {
  * manipulate the #sip_min_se_t header structure.
  *
  * @ingroup sip_min_se
+ *
  */
 SIP_DLL extern msg_hclass_t sip_min_se_class[];
 
@@ -1139,6 +1243,7 @@ enum {
   /**@ingroup sip_path @internal 
    *
    * Hash of @ref sip_path "Path header".
+   *
    */
   sip_path_hash = 5705 
 };
@@ -1151,6 +1256,7 @@ enum {
  * manipulate the #sip_path_t header structure.
  *
  * @ingroup sip_path
+ *
  */
 SIP_DLL extern msg_hclass_t sip_path_class[];
 
@@ -1160,6 +1266,7 @@ enum {
   /**@ingroup sip_service_route @internal 
    *
    * Hash of @ref sip_service_route "Service-Route header".
+   *
    */
   sip_service_route_hash = 21825 
 };
@@ -1172,6 +1279,7 @@ enum {
  * manipulate the #sip_service_route_t header structure.
  *
  * @ingroup sip_service_route
+ *
  */
 SIP_DLL extern msg_hclass_t sip_service_route_class[];
 
@@ -1181,6 +1289,7 @@ enum {
   /**@ingroup sip_reason @internal 
    *
    * Hash of @ref sip_reason "Reason header".
+   *
    */
   sip_reason_hash = 13856 
 };
@@ -1193,6 +1302,7 @@ enum {
  * manipulate the #sip_reason_t header structure.
  *
  * @ingroup sip_reason
+ *
  */
 SIP_DLL extern msg_hclass_t sip_reason_class[];
 
@@ -1202,6 +1312,7 @@ enum {
   /**@ingroup sip_security_client @internal 
    *
    * Hash of @ref sip_security_client "Security-Client header".
+   *
    */
   sip_security_client_hash = 572 
 };
@@ -1214,6 +1325,7 @@ enum {
  * manipulate the #sip_security_client_t header structure.
  *
  * @ingroup sip_security_client
+ *
  */
 SIP_DLL extern msg_hclass_t sip_security_client_class[];
 
@@ -1223,6 +1335,7 @@ enum {
   /**@ingroup sip_security_server @internal 
    *
    * Hash of @ref sip_security_server "Security-Server header".
+   *
    */
   sip_security_server_hash = 20148 
 };
@@ -1235,6 +1348,7 @@ enum {
  * manipulate the #sip_security_server_t header structure.
  *
  * @ingroup sip_security_server
+ *
  */
 SIP_DLL extern msg_hclass_t sip_security_server_class[];
 
@@ -1244,6 +1358,7 @@ enum {
   /**@ingroup sip_security_verify @internal 
    *
    * Hash of @ref sip_security_verify "Security-Verify header".
+   *
    */
   sip_security_verify_hash = 29234 
 };
@@ -1256,6 +1371,7 @@ enum {
  * manipulate the #sip_security_verify_t header structure.
  *
  * @ingroup sip_security_verify
+ *
  */
 SIP_DLL extern msg_hclass_t sip_security_verify_class[];
 
@@ -1265,6 +1381,7 @@ enum {
   /**@ingroup sip_privacy @internal 
    *
    * Hash of @ref sip_privacy "Privacy header".
+   *
    */
   sip_privacy_hash = 13834 
 };
@@ -1277,6 +1394,7 @@ enum {
  * manipulate the #sip_privacy_t header structure.
  *
  * @ingroup sip_privacy
+ *
  */
 SIP_DLL extern msg_hclass_t sip_privacy_class[];
 
@@ -1286,6 +1404,7 @@ enum {
   /**@ingroup sip_etag @internal 
    *
    * Hash of @ref sip_etag "SIP-ETag header".
+   *
    */
   sip_etag_hash = 64478 
 };
@@ -1298,6 +1417,7 @@ enum {
  * manipulate the #sip_etag_t header structure.
  *
  * @ingroup sip_etag
+ *
  */
 SIP_DLL extern msg_hclass_t sip_etag_class[];
 
@@ -1307,6 +1427,7 @@ enum {
   /**@ingroup sip_if_match @internal 
    *
    * Hash of @ref sip_if_match "SIP-If-Match header".
+   *
    */
   sip_if_match_hash = 26974 
 };
@@ -1319,6 +1440,7 @@ enum {
  * manipulate the #sip_if_match_t header structure.
  *
  * @ingroup sip_if_match
+ *
  */
 SIP_DLL extern msg_hclass_t sip_if_match_class[];
 
@@ -1328,6 +1450,7 @@ enum {
   /**@ingroup sip_mime_version @internal 
    *
    * Hash of @ref sip_mime_version "MIME-Version header".
+   *
    */
   sip_mime_version_hash = 49047 
 };
@@ -1340,6 +1463,7 @@ enum {
  * manipulate the #sip_mime_version_t header structure.
  *
  * @ingroup sip_mime_version
+ *
  */
 SIP_DLL extern msg_hclass_t sip_mime_version_class[];
 
@@ -1349,6 +1473,7 @@ enum {
   /**@ingroup sip_content_type @internal 
    *
    * Hash of @ref sip_content_type "Content-Type header".
+   *
    */
   sip_content_type_hash = 51226 
 };
@@ -1361,6 +1486,7 @@ enum {
  * manipulate the #sip_content_type_t header structure.
  *
  * @ingroup sip_content_type
+ *
  */
 SIP_DLL extern msg_hclass_t sip_content_type_class[];
 
@@ -1370,6 +1496,7 @@ enum {
   /**@ingroup sip_content_encoding @internal 
    *
    * Hash of @ref sip_content_encoding "Content-Encoding header".
+   *
    */
   sip_content_encoding_hash = 8707 
 };
@@ -1382,6 +1509,7 @@ enum {
  * manipulate the #sip_content_encoding_t header structure.
  *
  * @ingroup sip_content_encoding
+ *
  */
 SIP_DLL extern msg_hclass_t sip_content_encoding_class[];
 
@@ -1391,6 +1519,7 @@ enum {
   /**@ingroup sip_content_language @internal 
    *
    * Hash of @ref sip_content_language "Content-Language header".
+   *
    */
   sip_content_language_hash = 62108 
 };
@@ -1403,6 +1532,7 @@ enum {
  * manipulate the #sip_content_language_t header structure.
  *
  * @ingroup sip_content_language
+ *
  */
 SIP_DLL extern msg_hclass_t sip_content_language_class[];
 
@@ -1412,6 +1542,7 @@ enum {
   /**@ingroup sip_content_disposition @internal 
    *
    * Hash of @ref sip_content_disposition "Content-Disposition header".
+   *
    */
   sip_content_disposition_hash = 16333 
 };
@@ -1424,6 +1555,7 @@ enum {
  * manipulate the #sip_content_disposition_t header structure.
  *
  * @ingroup sip_content_disposition
+ *
  */
 SIP_DLL extern msg_hclass_t sip_content_disposition_class[];
 
@@ -1433,6 +1565,7 @@ enum {
   /**@ingroup sip_content_length @internal 
    *
    * Hash of @ref sip_content_length "Content-Length header".
+   *
    */
   sip_content_length_hash = 8402 
 };
@@ -1445,6 +1578,7 @@ enum {
  * manipulate the #sip_content_length_t header structure.
  *
  * @ingroup sip_content_length
+ *
  */
 SIP_DLL extern msg_hclass_t sip_content_length_class[];
 
@@ -1454,6 +1588,7 @@ enum {
   /**@ingroup sip_unknown @internal 
    *
    * Hash of @ref sip_unknown "unknown headers".
+   *
    */
   sip_unknown_hash = -3 
 };
@@ -1466,6 +1601,7 @@ enum {
  * manipulate the #sip_unknown_t header structure.
  *
  * @ingroup sip_unknown
+ *
  */
 SIP_DLL extern msg_hclass_t sip_unknown_class[];
 
@@ -1475,6 +1611,7 @@ enum {
   /**@ingroup sip_error @internal 
    *
    * Hash of @ref sip_error "erroneous headers".
+   *
    */
   sip_error_hash = -4 
 };
@@ -1487,6 +1624,7 @@ enum {
  * manipulate the #sip_error_t header structure.
  *
  * @ingroup sip_error
+ *
  */
 SIP_DLL extern msg_hclass_t sip_error_class[];
 
@@ -1495,19 +1633,21 @@ SIP_DLL extern msg_hclass_t sip_error_class[];
 enum { 
   /**@ingroup sip_separator @internal 
    *
-   * Hash of @ref sip_separator "separator line between headers and payload".
+   * Hash of @ref sip_separator "separator line between headers and body".
+   *
    */
   sip_separator_hash = -5 
 };
 
-/**Header class for @ref sip_separator "separator line between headers and payload".
+/**Header class for @ref sip_separator "separator line between headers and body".
  * 
  * The header class sip_separator_class defines how a SIP
- * @ref sip_separator "separator line between headers and payload" is parsed and printed.
+ * @ref sip_separator "separator line between headers and body" is parsed and printed.
  * It also contains methods used by SIP parser and other functions to
  * manipulate the #sip_separator_t header structure.
  *
  * @ingroup sip_separator
+ *
  */
 SIP_DLL extern msg_hclass_t sip_separator_class[];
 
@@ -1517,6 +1657,7 @@ enum {
   /**@ingroup sip_payload @internal 
    *
    * Hash of @ref sip_payload "message payload".
+   *
    */
   sip_payload_hash = -6 
 };
@@ -1529,6 +1670,7 @@ enum {
  * manipulate the #sip_payload_t header structure.
  *
  * @ingroup sip_payload
+ *
  */
 SIP_DLL extern msg_hclass_t sip_payload_class[];
 

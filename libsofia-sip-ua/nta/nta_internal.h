@@ -70,21 +70,21 @@ enum nta_res_order_e
   nta_res_ip4_only
 };
 
-HTABLE_DECLARE(leg_htable, lht, nta_leg_t);
-HTABLE_DECLARE(outgoing_htable, oht, nta_outgoing_t);
-HTABLE_DECLARE(incoming_htable, iht, nta_incoming_t);
+HTABLE_DECLARE_WITH(leg_htable, lht, nta_leg_t, size_t, hash_value_t);
+HTABLE_DECLARE_WITH(outgoing_htable, oht, nta_outgoing_t, size_t, hash_value_t);
+HTABLE_DECLARE_WITH(incoming_htable, iht, nta_incoming_t, size_t, hash_value_t);
 
 typedef struct outgoing_queue_t {
   nta_outgoing_t **q_tail;
   nta_outgoing_t  *q_head;
-  unsigned         q_length;
+  size_t           q_length;
   unsigned         q_timeout;
 } outgoing_queue_t;
 
 typedef struct incoming_queue_t {
   nta_incoming_t **q_tail;
   nta_incoming_t  *q_head;
-  unsigned         q_length;
+  size_t           q_length;
   unsigned         q_timeout;
 } incoming_queue_t;
 
@@ -98,16 +98,17 @@ struct nta_agent_s
   nta_agent_magic_t    *sa_magic;
   nta_message_f        *sa_callback;     
 
-  uint32_t              sa_nw_updates; /* Shall we enable network detector? */
-
   nta_update_magic_t   *sa_update_magic;
   nta_update_tport_f   *sa_update_tport;
 
-  su_time_t             sa_now;	/**< Timestamp in microsecond resolution. */
+  su_duration_t         sa_next; /**< Timestamp for next agent_timer. */
+  su_time_t             sa_now;	 /**< Timestamp in microsecond resolution. */
   uint32_t              sa_millisec; /**< Timestamp in milliseconds resolution. */
 
+  uint32_t              sa_nw_updates; /* Shall we enable network detector? */
+
   uint32_t              sa_flags;	/**< Message flags */
-  msg_mclass_t         *sa_mclass;
+  msg_mclass_t const   *sa_mclass;
 
   sip_contact_t        *sa_contact;
   sip_via_t            *sa_vias;   /**< @Via headers for all transports */
@@ -136,15 +137,15 @@ struct nta_agent_s
 
 
   /** Request error mask */
-  unsigned short        sa_bad_req_mask;
+  unsigned              sa_bad_req_mask;
   /** Response error mask */
-  unsigned short        sa_bad_resp_mask;
+  unsigned              sa_bad_resp_mask;
 
   /** Maximum size of incoming messages */
-  unsigned              sa_maxsize;
+  size_t                sa_maxsize;
   
   /** Maximum size of outgoing UDP requests */
-  unsigned              sa_udp_mtu;
+  size_t                sa_udp_mtu;
 
   /** SIP T1 - initial interval of retransmissions (500 ms) */
   unsigned              sa_t1;
@@ -223,6 +224,9 @@ struct nta_agent_s
   /** If true, automatically create compartments */
   unsigned              sa_auto_comp:1;
 
+  /** Set when executing timer */
+  unsigned              sa_in_timer:1;
+
   unsigned              :0;
 
   /** Messages memory preload. */
@@ -289,45 +293,45 @@ struct nta_agent_s
 
   /* Queues (states) for outgoing client transactions */
   struct {
-    /** List for retrying client transactions */
-    nta_outgoing_t     *re_list;
-    nta_outgoing_t    **re_t1;
-    int                 re_length;
+    /** Queue for retrying client transactions */
+    nta_outgoing_t   *re_list;
+    nta_outgoing_t  **re_t1;	        /**< Special place for T1 timer */
+    size_t            re_length;	/**< Length of sa_out.re_list */
 
-    outgoing_queue_t    delayed[1]; 
-    outgoing_queue_t    resolving[1]; 
+    outgoing_queue_t  delayed[1]; 
+    outgoing_queue_t  resolving[1]; 
 
-    outgoing_queue_t    trying[1];		/* Timer F/E */
-    outgoing_queue_t    completed[1];	/* Timer K */
-    outgoing_queue_t    terminated[1];
+    outgoing_queue_t  trying[1];	/* Timer F/E */
+    outgoing_queue_t  completed[1];	/* Timer K */
+    outgoing_queue_t  terminated[1];
 
     /* Special queues (states) for outgoing INVITE transactions */
-    outgoing_queue_t    inv_calling[1];	/* Timer B/A */
-    outgoing_queue_t    inv_proceeding[1];
-    outgoing_queue_t    inv_completed[1];	/* Timer D */
+    outgoing_queue_t  inv_calling[1];	/* Timer B/A */
+    outgoing_queue_t  inv_proceeding[1];
+    outgoing_queue_t  inv_completed[1];	/* Timer D */
 
     /* Temporary queue for transactions waiting to be freed */
-    outgoing_queue_t    *free;
+    outgoing_queue_t *free;
   } sa_out;
 
   /* Queues (states) for incoming server transactions */
   struct {
-    /** Queue for retrying server transactions */
-    nta_incoming_t     *re_list;
-    nta_incoming_t    **re_t1;	        /**< Special place for T1 timer */
-    int                 re_length;
+    /** Queue for retransmitting response of server transactions */
+    nta_incoming_t   *re_list;
+    nta_incoming_t  **re_t1;	        /**< Special place for T1 timer */
+    size_t            re_length;
 
-    incoming_queue_t    proceeding[1];	/**< Request received */
-    incoming_queue_t    preliminary[1];    /**< 100rel sent  */
-    incoming_queue_t    completed[1];	/**< Final answer sent (non-invite). */
-    incoming_queue_t    inv_completed[1];	/**< Final answer sent (INVITE). */
-    incoming_queue_t    inv_confirmed[1];	/**< Final answer sent, ACK recvd. */
-    incoming_queue_t    terminated[1];	/**< Terminated, ready to free. */
-    incoming_queue_t    final_failed[1];   
+    incoming_queue_t  proceeding[1];	/**< Request received */
+    incoming_queue_t  preliminary[1];   /**< 100rel sent  */
+    incoming_queue_t  completed[1];	/**< Final answer sent (non-invite). */
+    incoming_queue_t  inv_completed[1];	/**< Final answer sent (INVITE). */
+    incoming_queue_t  inv_confirmed[1];	/**< Final answer sent, ACK recvd. */
+    incoming_queue_t  terminated[1];	/**< Terminated, ready to free. */
+    incoming_queue_t  final_failed[1];   
   } sa_in;
 
   /* Special task for freeing memory */
-  su_clone_r            sa_terminator;
+  su_clone_r          sa_terminator;
 };
 
 struct nta_leg_s
@@ -342,6 +346,11 @@ struct nta_leg_s
   unsigned          leg_loose_route : 1; /**< Topmost route in set is LR */
 #endif
   unsigned          leg_local_is_to : 1; /**< Backwards-compatibility. */
+  unsigned          leg_tagged : 1; /**< Tagged after creation.
+				     *
+				     * Request missing To tag matches it
+				     * even after tagging.
+				     */
   unsigned:0;
   nta_request_f    *leg_callback;
   nta_leg_magic_t  *leg_magic;
@@ -463,12 +472,17 @@ struct nta_outgoing_s
 
   sip_method_t        	orq_method;
   char const           *orq_method_name;
+  url_t const          *orq_url;        /**< Original RequestURI */
+
   sip_from_t const     *orq_from;
   sip_to_t const       *orq_to;
+  char const           *orq_tag;        /**< Tag from final response. */
+
   sip_cseq_t const     *orq_cseq;
   sip_call_id_t const  *orq_call_id;
 
-  char const           *orq_tag;        /**< Tag from final response. */
+  msg_t		       *orq_request;
+  msg_t                *orq_response;
 
   su_time_t             orq_sent;       /**< When request was sent? */
   unsigned              orq_delay;      /**< RTT estimate */
@@ -501,10 +515,8 @@ struct nta_outgoing_s
   unsigned orq_sigcomp_new:1;	/**< Create compartment if needed */
   unsigned orq_sigcomp_zap:1;	/**< Reset SigComp after completing */
   unsigned orq_must_100rel : 1;
-  unsigned orq_timestamp : 1;	/**< insert @Timestamp header. */
+  unsigned orq_timestamp : 1;	/**< Insert @Timestamp header. */
   unsigned : 0;	/* pad */
-
-  uint32_t              orq_rseq;       /**< Latest incoming rseq */
 
 #if HAVE_SOFIA_SRESOLV
   sipdns_resolver_t    *orq_resolver;
@@ -522,12 +534,10 @@ struct nta_outgoing_s
 
   char const           *orq_branch;	/**< Transaction branch */
   char const           *orq_via_branch;	/**< @Via branch */
-  url_t const          *orq_url;        /**< Original RequestURI */
-
-  msg_t		       *orq_request;
-  msg_t                *orq_response;
 
   nta_outgoing_t       *orq_cancel;     /**< CANCEL transaction */
+
+  uint32_t              orq_rseq;       /**< Latest incoming rseq */
 };
 
 /* Virtual function table for plugging in SigComp */

@@ -765,6 +765,65 @@ int test_digest_client()
 
     reinit_as(as); auth_mod_destroy(am); aucs = NULL;
 
+    /* Test nextnonce */
+    {
+      char const *nonce1, *nextnonce, *nonce2;
+
+      TEST_1(am = auth_mod_create(NULL, 
+				  AUTHTAG_METHOD("Digest"),
+				  AUTHTAG_REALM("ims3.so.noklab.net"),
+				  AUTHTAG_DB(testpasswd),
+				  AUTHTAG_ALGORITHM("MD5"),
+				  AUTHTAG_QOP("auth-int"),
+				  AUTHTAG_EXPIRES(90),
+				  /* Generate nextnonce
+				     if NEXT_EXPIRES in nonzero */
+				  AUTHTAG_NEXT_EXPIRES(900),
+				  TAG_END()));
+      
+      reinit_as(as);
+      auth_mod_check_client(am, as, NULL, ach); TEST(as->as_status, 401);
+      
+      TEST(auc_challenge(&aucs, home, (msg_auth_t *)as->as_response, 
+			 sip_authorization_class), 1);
+      TEST(auc_all_credentials(&aucs, "Digest", "\"ims3.so.noklab.net\"", 
+			       "user1", "secret"), 1);
+      msg_header_remove(m2, (void *)sip, (void *)sip->sip_authorization);
+      TEST(auc_authorization(&aucs, m2, (msg_pub_t*)sip, rq->rq_method_name, 
+			     (url_t *)"sip:surf3@ims3.so.noklab.net", 
+			     sip->sip_payload), 1);
+      TEST_1(sip->sip_authorization);
+      TEST_1(nonce1 = msg_header_find_param(sip->sip_authorization->au_common, "nonce"));
+      
+      reinit_as(as);
+      auth_mod_check_client(am, as, sip->sip_authorization, ach);
+      TEST(as->as_status, 0);
+      /* We got authentication-info */
+      TEST_1(as->as_info);
+      /* It contains nextnonce */
+      TEST_1(nextnonce = msg_header_find_param(as->as_info->sh_common, "nextnonce"));
+
+      /* Store it in authenticator */
+      TEST(auc_info(&aucs, (msg_auth_info_t const *)as->as_info, sip_authorization_class), 1);
+
+      msg_header_remove(m2, (void *)sip, (void *)sip->sip_authorization);
+      TEST(auc_authorization(&aucs, m2, (msg_pub_t*)sip, rq->rq_method_name, 
+			     (url_t *)"sip:surf3@ims3.so.noklab.net", 
+			     sip->sip_payload), 1);
+      TEST_1(sip->sip_authorization);
+      TEST_1(nonce2 = msg_header_find_param(sip->sip_authorization->au_common, "nonce"));
+
+      /*
+       * Make sure that server-side sends nextnonce in Authentication-info
+       * header, nextnonce differs from nonce sent in Challenge
+       */
+      TEST_1(strcmp(nonce1, nextnonce));
+      /* And client-side uses it */
+      TEST_S(nonce2, nextnonce);
+
+      auth_mod_destroy(am); aucs = NULL;
+    }
+
     TEST_1(am = auth_mod_create(NULL, 
 				AUTHTAG_METHOD("Digest"),
 				AUTHTAG_REALM("ims3.so.noklab.net"),

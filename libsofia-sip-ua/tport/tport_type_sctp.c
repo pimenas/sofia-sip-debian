@@ -37,8 +37,6 @@
 
 #include "config.h"
 
-#if HAVE_SCTP
-
 #include "tport_internal.h"
 
 #if HAVE_NETINET_SCTP_H
@@ -75,6 +73,8 @@ typedef struct tport_sctp_t
 } tport_sctp_t;
 
 #define TP_SCTP_MSG_MAX (65536)
+
+#if HAVE_SCTP
 
 static int tport_sctp_init_primary(tport_primary_t *, 
 				   tp_name_t tpn[1], 
@@ -172,7 +172,7 @@ static int tport_sctp_init_client(tport_primary_t *pri,
 static int tport_sctp_init_secondary(tport_t *self, int socket, int accepted,
 				     char const **return_reason)
 {
-  self->tp_connected = 1;
+  self->tp_has_connection = 1;
 
   if (su_setblocking(socket, 0) < 0)
     return *return_reason = "su_setblocking", -1;

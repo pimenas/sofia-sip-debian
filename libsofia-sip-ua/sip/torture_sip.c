@@ -60,6 +60,8 @@
 #include <sofia-sip/msg_mclass.h>
 #include <sofia-sip/msg_mclass_hash.h>
 
+#include <sofia-sip/sip_extra.h>
+
 int tstflags;
 
 #define TSTFLAGS tstflags
@@ -410,7 +412,12 @@ int test_basic(void)
     TEST_1(sip_from_tag(home, f, "tag=jxahudsf") == 0);
     su_free(home, f);
 
+    TEST_1(f = sip_from_create(home, (void *)"<sip:joe@bar;tag=bar> (joe)"));
+    TEST_1(sip_is_from((sip_header_t*)f));
+    su_free(home, f);
+
     TEST_1(t = sip_to_create(home, (void *)"<sip:joe@bar;tag=bar> (joe)"));
+    TEST_1(sip_is_to((sip_header_t*)f));
     TEST_1(sip_to_tag(home, t, "tag=jxahudsf") == 0);
     TEST_S(t->a_tag, "jxahudsf");
     TEST(msg_header_replace_param(home, t->a_common, "tag=bar"), 1);
@@ -827,6 +834,9 @@ static int test_encoding(void)
     "Min-SE: 123\r\n"
     "Session-Expires: 1200\r\n"
     "Content-Type: text/plain\r\n"
+    "Refer-Sub: true\r\n"
+    "Suppress-Body-If-Match: humppa\r\n"
+    "Suppress-Notify-If-Match: zumppa\r\n"
     "\r\n"
     "Heippa!");
   sip = sip_object(msg);
@@ -1079,7 +1089,7 @@ static int parser_tag_test(void)
   sip = sip_object(msg);
 
   TEST_1(home && msg && sip);
-  TEST_SIZE(sip->sip_size, sizeof *sip);
+  TEST_1(sip->sip_size >= sizeof *sip);
 
   TEST_1(sip_is_status((sip_header_t *)sip->sip_status));
   TEST_1(sip_is_via((sip_header_t *)sip->sip_via));
@@ -1624,6 +1634,9 @@ static int sip_header_test(void)
     "Max-Forwards: 12\r\n"
     "Min-Expires: 150\r\n"
     "Timestamp: 10.010 0.000100\r\n"
+    "Suppress-Body-If-Match: humppa \t\r\n"
+    "Suppress-Notify-If-Match: zumppa\r\n"
+    " \r\n"
     "Content-Type: application/sdp\r\n"
     "\r\n"
     "v=0\r\n"
@@ -1645,7 +1658,11 @@ static int sip_header_test(void)
   TEST(count(sip->sip_content_type->c_common), 1);
   TEST(count(sip->sip_route->r_common), 0);
   TEST(count(sip->sip_record_route->r_common), 4);
+#if SU_HAVE_EXPERIMENTAL
   TEST(count(sip->sip_unknown->un_common), 2);
+#else
+  TEST(count(sip->sip_unknown->un_common), 4);
+#endif
   TEST(count(sip->sip_error->er_common), 1);
   TEST(count(sip->sip_max_forwards->mf_common), 1);
   TEST(count(sip->sip_min_expires->me_common), 1);
@@ -1658,6 +1675,25 @@ static int sip_header_test(void)
 
   TEST(sip->sip_max_forwards->mf_count, 12);
   TEST(sip->sip_min_expires->me_delta, 150);
+
+#if SU_HAVE_EXPERIMENTAL
+  {
+    sip_suppress_body_if_match_t *sbim;
+    sip_suppress_notify_if_match_t *snim;
+
+    TEST_1(sbim = sip_suppress_body_if_match(sip));
+    TEST_S(sbim->sbim_tag, "humppa");
+
+    TEST_SIZE(offsetof(msg_generic_t, g_value),
+	      offsetof(sip_suppress_body_if_match_t, sbim_tag));
+
+    TEST_1(snim = sip_suppress_notify_if_match(sip));
+    TEST_S(snim->snim_tag, "zumppa");
+
+    TEST_SIZE(offsetof(msg_generic_t, g_value),
+	      offsetof(sip_suppress_notify_if_match_t, snim_tag));
+  }
+#endif
 
   TEST_1(sip->sip_from->a_display);
   TEST_S(sip->sip_from->a_display, "h");
@@ -1827,6 +1863,7 @@ static int test_sip_list_header(void)
     "Allow: BYE\r\n"
     "Allow: OPTIONS\r\n"
     "Allow: MESSAGE\r\n"
+    "Allow: KUIK\r\n"
     "Max-Forwards: 12\r\n"
     "Content-Type: text/plain\r\n"
     "\r\n"
@@ -1837,10 +1874,42 @@ static int test_sip_list_header(void)
   TEST_1(a->k_items);
   TEST_1(a->k_next == NULL);
 
-  msg_destroy(msg), msg = NULL;
+  TEST_1(sip_is_allowed(a, SIP_METHOD_INVITE));
+  TEST_1(!sip_is_allowed(a, SIP_METHOD_PUBLISH));
+  TEST_1(sip_is_allowed(a, SIP_METHOD(KUIK)));
+  TEST_1(!sip_is_allowed(a, SIP_METHOD(kuik)));
 
   TEST_1(a = sip_allow_make(home, ""));
   TEST_S(sip_header_as_string(home, (void *)a), "");
+
+  TEST_1(a = sip_allow_make(home, "INVITE, PUBLISH"));
+
+  TEST_1(sip_is_allowed(a, SIP_METHOD_INVITE));
+
+  /* Test with list header */
+  TEST_1(msg_header_add_dup(msg, NULL, (msg_header_t *)a) == 0);
+
+  TEST_1(a = sip_allow_make(home, "MESSAGE, SUBSCRIBE"));
+
+  TEST_1(msg_header_add_dup(msg, NULL, (msg_header_t *)a) == 0);
+
+  TEST_1(msg_header_add_make(msg, NULL, sip_allow_class, "kuik") == 0);
+
+  TEST_1(a = sip->sip_allow);
+  TEST_1(a->k_items);
+  TEST_S(a->k_items[0], "INVITE");
+  TEST_S(a->k_items[1], "ACK");
+  TEST_S(a->k_items[2], "CANCEL");
+  TEST_S(a->k_items[3], "BYE");
+  TEST_S(a->k_items[4], "OPTIONS");
+  TEST_S(a->k_items[5], "MESSAGE");
+  TEST_S(a->k_items[6], "KUIK");
+  TEST_S(a->k_items[7], "PUBLISH");
+  TEST_S(a->k_items[8], "SUBSCRIBE");
+  TEST_S(a->k_items[9], "kuik");
+  TEST_P(a->k_items[10], NULL);
+
+  msg_destroy(msg), msg = NULL;
 
   su_home_unref(home), home = NULL;
 
@@ -2067,6 +2136,7 @@ int test_refer(void)
     "Refer-To: <sip:2000@10.3.3.104?Replaces=7d84c014-321368da-efa90f41%40"
       "10.3.3.8%3Bto-tag%3DpaNKgBB9vQe3D%3Bfrom-tag%3D93AC8D50-7CF6DAAF>\r\n"
     "Referred-By: \"Anthony Minessale\" <sip:polycom500@10.3.3.104>\r\n"
+    "Refer-Sub: true\r\n"
     "Max-Forwards: 70\r\n"
     "Content-Length: 0\r\n"
     "\r\n";
@@ -2075,14 +2145,23 @@ int test_refer(void)
   msg_iovec_t *iovec;
   isize_t veclen, i, size;
   char *back;
+  sip_refer_sub_t *rs;
 
   TEST_1(home = su_home_create());
 
+  /* Check that Refer-Sub has already been added to our parser */
+  TEST_1(msg_mclass_insert_with_mask(test_mclass, sip_refer_sub_class, 
+				     0, 0) == -1);
+  
   msg = read_message(0, m); TEST_1(msg); TEST_1(sip = sip_object(msg));
   TEST_1(sip->sip_refer_to);
   TEST_S(sip->sip_refer_to->r_url->url_headers,
 	 "Replaces=7d84c014-321368da-efa90f41%40"
 	 "10.3.3.8%3Bto-tag%3DpaNKgBB9vQe3D%3Bfrom-tag%3D93AC8D50-7CF6DAAF");
+
+  TEST_1(rs = sip_refer_sub(sip));
+  TEST_S(rs->rs_value, "true");
+
   TEST_SIZE(msg_prepare(msg), strlen(m));
   TEST_1(veclen = msg_iovec(msg, NULL, ISIZE_MAX));
   TEST_1(iovec = su_zalloc(msg_home(home), veclen * (sizeof iovec[0])));

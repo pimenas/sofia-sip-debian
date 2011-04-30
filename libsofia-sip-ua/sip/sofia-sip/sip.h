@@ -139,9 +139,8 @@ typedef msg_payload_t               sip_payload_t;
 typedef struct sip_accept_s  	    sip_accept_t;
 typedef msg_accept_any_t      	    sip_accept_encoding_t;
 typedef msg_accept_any_t      	    sip_accept_language_t;
-typedef msg_list_t	      	    sip_allow_t;
-typedef struct sip_authentication_info_s
-                                    sip_authentication_info_t;
+typedef struct sip_allow_s	    sip_allow_t;
+typedef struct msg_auth_info_s      sip_authentication_info_t;
 typedef struct msg_auth_s 	    sip_authorization_t;
 typedef struct sip_call_id_s 	    sip_call_id_t;
 typedef struct sip_call_info_s      sip_call_info_t;
@@ -166,8 +165,7 @@ typedef struct sip_min_se_s         sip_min_se_t;
 typedef struct msg_generic_s        sip_organization_t;
 typedef struct msg_generic_s        sip_priority_t;
 typedef struct msg_auth_s 	    sip_proxy_authenticate_t;
-typedef struct sip_authentication_info_s
-                                    sip_proxy_authentication_info_t;
+typedef struct msg_auth_info_s      sip_proxy_authentication_info_t;
 typedef struct msg_auth_s     	    sip_proxy_authorization_t;
 typedef msg_list_t	     	    sip_proxy_require_t;
 typedef struct sip_rack_s           sip_rack_t;
@@ -223,10 +221,10 @@ typedef struct sip_route_s     	    sip_service_route_t;
 
 /**SIP message object.
  *
- * This structure contains a parsed SIP message The struct is usually
+ * This structure contains a parsed SIP message. The struct is usually
  * referred with typedef #sip_t. It is used to access the headers and
  * payload within the SIP message. The generic transport aspects of the
- * message, like network address, is accessed using a #msg_t object
+ * message, like network address, is accessed using the #msg_t object
  * directly.
  */
 struct sip_s {
@@ -408,8 +406,24 @@ struct sip_accept_s
   char const         *ac_q;	    /**< Value of q parameter */
 };
 
+/**@ingroup sip_allow
+ * @brief Structure for @Allow header field.
+ *
+ * @NEW_1_12_5 (before used struct msg_list_s with @Allow).
+ */
+struct sip_allow_s
+{
+  msg_common_t       k_common[1];   /**< Common fragment info */
+  msg_list_t        *k_next;	    /**< Link to next */
+  msg_param_t       *k_items;	    /**< List of allowed items */
+  uint32_t           k_bitmap;	    /**< Bitmap of allowed methods. 
+				       @NEW_1_12_5 */
+};
+
 /**@ingroup sip_authentication_info
  * @brief Structure for @AuthenticationInfo header.
+ *
+ * @deprecated Use struct msg_auth_info_s instead.
  */
 struct sip_authentication_info_s
 {

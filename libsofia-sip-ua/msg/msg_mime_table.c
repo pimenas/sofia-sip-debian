@@ -73,7 +73,7 @@ msg_mclass_t const msg_multipart_mclass[1] =
 #else
   0,
 #endif
-  sizeof(msg_multipart_t),
+  sizeof (msg_multipart_t),
   msg_multipart_extract_body,
   {{ msg_request_class, offsetof(msg_multipart_t, mp_request) }},
   {{ msg_status_class, offsetof(msg_multipart_t, mp_status) }},
@@ -83,7 +83,12 @@ msg_mclass_t const msg_multipart_mclass[1] =
   {{ msg_error_class, offsetof(msg_multipart_t, mp_error) }},
   {{ NULL, 0 }},
   NULL, 
-  127, 7, 
+  127, 
+#if SU_HAVE_EXPERIMENTAL
+  7,
+#else
+  7,
+#endif
   {
     { NULL, 0 },
     { NULL, 0 },

@@ -61,6 +61,8 @@ tag_typedef_t siptag_header_str = STRTAG_TYPEDEF(header_str);
 tag_typedef_t siptag_end = TAG_TYPEDEF(tag_end, end);
 
 
+extern msg_hclass_t sip_request_class[];
+
 /**@ingroup sip_request
  * Tag for @ref sip_request "request line" object.
  */
@@ -69,6 +71,8 @@ tag_typedef_t siptag_request = SIPHDRTAG_TYPEDEF(request);
  * Tag for string with @ref sip_request "request line" value.
  */
 tag_typedef_t siptag_request_str = SIPSTRTAG_TYPEDEF(request);
+
+extern msg_hclass_t sip_status_class[];
 
 /**@ingroup sip_status
  * Tag for @ref sip_status "status line" object.
@@ -79,6 +83,8 @@ tag_typedef_t siptag_status = SIPHDRTAG_TYPEDEF(status);
  */
 tag_typedef_t siptag_status_str = SIPSTRTAG_TYPEDEF(status);
 
+extern msg_hclass_t sip_via_class[];
+
 /**@ingroup sip_via
  * Tag for @ref sip_via "Via header" object.
  */
@@ -87,6 +93,8 @@ tag_typedef_t siptag_via = SIPHDRTAG_TYPEDEF(via);
  * Tag for string with @ref sip_via "Via header" value.
  */
 tag_typedef_t siptag_via_str = SIPSTRTAG_TYPEDEF(via);
+
+extern msg_hclass_t sip_route_class[];
 
 /**@ingroup sip_route
  * Tag for @ref sip_route "Route header" object.
@@ -97,6 +105,8 @@ tag_typedef_t siptag_route = SIPHDRTAG_TYPEDEF(route);
  */
 tag_typedef_t siptag_route_str = SIPSTRTAG_TYPEDEF(route);
 
+extern msg_hclass_t sip_record_route_class[];
+
 /**@ingroup sip_record_route
  * Tag for @ref sip_record_route "Record-Route header" object.
  */
@@ -105,6 +115,8 @@ tag_typedef_t siptag_record_route = SIPHDRTAG_TYPEDEF(record_route);
  * Tag for string with @ref sip_record_route "Record-Route header" value.
  */
 tag_typedef_t siptag_record_route_str = SIPSTRTAG_TYPEDEF(record_route);
+
+extern msg_hclass_t sip_max_forwards_class[];
 
 /**@ingroup sip_max_forwards
  * Tag for @ref sip_max_forwards "Max-Forwards header" object.
@@ -115,6 +127,8 @@ tag_typedef_t siptag_max_forwards = SIPHDRTAG_TYPEDEF(max_forwards);
  */
 tag_typedef_t siptag_max_forwards_str = SIPSTRTAG_TYPEDEF(max_forwards);
 
+extern msg_hclass_t sip_proxy_require_class[];
+
 /**@ingroup sip_proxy_require
  * Tag for @ref sip_proxy_require "Proxy-Require header" object.
  */
@@ -123,6 +137,8 @@ tag_typedef_t siptag_proxy_require = SIPHDRTAG_TYPEDEF(proxy_require);
  * Tag for string with @ref sip_proxy_require "Proxy-Require header" value.
  */
 tag_typedef_t siptag_proxy_require_str = SIPSTRTAG_TYPEDEF(proxy_require);
+
+extern msg_hclass_t sip_from_class[];
 
 /**@ingroup sip_from
  * Tag for @ref sip_from "From header" object.
@@ -133,6 +149,8 @@ tag_typedef_t siptag_from = SIPHDRTAG_TYPEDEF(from);
  */
 tag_typedef_t siptag_from_str = SIPSTRTAG_TYPEDEF(from);
 
+extern msg_hclass_t sip_to_class[];
+
 /**@ingroup sip_to
  * Tag for @ref sip_to "To header" object.
  */
@@ -141,6 +159,8 @@ tag_typedef_t siptag_to = SIPHDRTAG_TYPEDEF(to);
  * Tag for string with @ref sip_to "To header" value.
  */
 tag_typedef_t siptag_to_str = SIPSTRTAG_TYPEDEF(to);
+
+extern msg_hclass_t sip_call_id_class[];
 
 /**@ingroup sip_call_id
  * Tag for @ref sip_call_id "Call-ID header" object.
@@ -151,6 +171,8 @@ tag_typedef_t siptag_call_id = SIPHDRTAG_TYPEDEF(call_id);
  */
 tag_typedef_t siptag_call_id_str = SIPSTRTAG_TYPEDEF(call_id);
 
+extern msg_hclass_t sip_cseq_class[];
+
 /**@ingroup sip_cseq
  * Tag for @ref sip_cseq "CSeq header" object.
  */
@@ -159,6 +181,8 @@ tag_typedef_t siptag_cseq = SIPHDRTAG_TYPEDEF(cseq);
  * Tag for string with @ref sip_cseq "CSeq header" value.
  */
 tag_typedef_t siptag_cseq_str = SIPSTRTAG_TYPEDEF(cseq);
+
+extern msg_hclass_t sip_contact_class[];
 
 /**@ingroup sip_contact
  * Tag for @ref sip_contact "Contact header" object.
@@ -169,6 +193,8 @@ tag_typedef_t siptag_contact = SIPHDRTAG_TYPEDEF(contact);
  */
 tag_typedef_t siptag_contact_str = SIPSTRTAG_TYPEDEF(contact);
 
+extern msg_hclass_t sip_rseq_class[];
+
 /**@ingroup sip_rseq
  * Tag for @ref sip_rseq "RSeq header" object.
  */
@@ -177,6 +203,8 @@ tag_typedef_t siptag_rseq = SIPHDRTAG_TYPEDEF(rseq);
  * Tag for string with @ref sip_rseq "RSeq header" value.
  */
 tag_typedef_t siptag_rseq_str = SIPSTRTAG_TYPEDEF(rseq);
+
+extern msg_hclass_t sip_rack_class[];
 
 /**@ingroup sip_rack
  * Tag for @ref sip_rack "RAck header" object.
@@ -187,6 +215,8 @@ tag_typedef_t siptag_rack = SIPHDRTAG_TYPEDEF(rack);
  */
 tag_typedef_t siptag_rack_str = SIPSTRTAG_TYPEDEF(rack);
 
+extern msg_hclass_t sip_request_disposition_class[];
+
 /**@ingroup sip_request_disposition
  * Tag for @ref sip_request_disposition "Request-Disposition header" object.
  */
@@ -195,6 +225,8 @@ tag_typedef_t siptag_request_disposition = SIPHDRTAG_TYPEDEF(request_disposition
  * Tag for string with @ref sip_request_disposition "Request-Disposition header" value.
  */
 tag_typedef_t siptag_request_disposition_str = SIPSTRTAG_TYPEDEF(request_disposition);
+
+extern msg_hclass_t sip_accept_contact_class[];
 
 /**@ingroup sip_accept_contact
  * Tag for @ref sip_accept_contact "Accept-Contact header" object.
@@ -205,6 +237,8 @@ tag_typedef_t siptag_accept_contact = SIPHDRTAG_TYPEDEF(accept_contact);
  */
 tag_typedef_t siptag_accept_contact_str = SIPSTRTAG_TYPEDEF(accept_contact);
 
+extern msg_hclass_t sip_reject_contact_class[];
+
 /**@ingroup sip_reject_contact
  * Tag for @ref sip_reject_contact "Reject-Contact header" object.
  */
@@ -213,6 +247,8 @@ tag_typedef_t siptag_reject_contact = SIPHDRTAG_TYPEDEF(reject_contact);
  * Tag for string with @ref sip_reject_contact "Reject-Contact header" value.
  */
 tag_typedef_t siptag_reject_contact_str = SIPSTRTAG_TYPEDEF(reject_contact);
+
+extern msg_hclass_t sip_expires_class[];
 
 /**@ingroup sip_expires
  * Tag for @ref sip_expires "Expires header" object.
@@ -223,6 +259,8 @@ tag_typedef_t siptag_expires = SIPHDRTAG_TYPEDEF(expires);
  */
 tag_typedef_t siptag_expires_str = SIPSTRTAG_TYPEDEF(expires);
 
+extern msg_hclass_t sip_date_class[];
+
 /**@ingroup sip_date
  * Tag for @ref sip_date "Date header" object.
  */
@@ -231,6 +269,8 @@ tag_typedef_t siptag_date = SIPHDRTAG_TYPEDEF(date);
  * Tag for string with @ref sip_date "Date header" value.
  */
 tag_typedef_t siptag_date_str = SIPSTRTAG_TYPEDEF(date);
+
+extern msg_hclass_t sip_retry_after_class[];
 
 /**@ingroup sip_retry_after
  * Tag for @ref sip_retry_after "Retry-After header" object.
@@ -241,6 +281,8 @@ tag_typedef_t siptag_retry_after = SIPHDRTAG_TYPEDEF(retry_after);
  */
 tag_typedef_t siptag_retry_after_str = SIPSTRTAG_TYPEDEF(retry_after);
 
+extern msg_hclass_t sip_timestamp_class[];
+
 /**@ingroup sip_timestamp
  * Tag for @ref sip_timestamp "Timestamp header" object.
  */
@@ -249,6 +291,8 @@ tag_typedef_t siptag_timestamp = SIPHDRTAG_TYPEDEF(timestamp);
  * Tag for string with @ref sip_timestamp "Timestamp header" value.
  */
 tag_typedef_t siptag_timestamp_str = SIPSTRTAG_TYPEDEF(timestamp);
+
+extern msg_hclass_t sip_min_expires_class[];
 
 /**@ingroup sip_min_expires
  * Tag for @ref sip_min_expires "Min-Expires header" object.
@@ -259,6 +303,8 @@ tag_typedef_t siptag_min_expires = SIPHDRTAG_TYPEDEF(min_expires);
  */
 tag_typedef_t siptag_min_expires_str = SIPSTRTAG_TYPEDEF(min_expires);
 
+extern msg_hclass_t sip_subject_class[];
+
 /**@ingroup sip_subject
  * Tag for @ref sip_subject "Subject header" object.
  */
@@ -267,6 +313,8 @@ tag_typedef_t siptag_subject = SIPHDRTAG_TYPEDEF(subject);
  * Tag for string with @ref sip_subject "Subject header" value.
  */
 tag_typedef_t siptag_subject_str = SIPSTRTAG_TYPEDEF(subject);
+
+extern msg_hclass_t sip_priority_class[];
 
 /**@ingroup sip_priority
  * Tag for @ref sip_priority "Priority header" object.
@@ -277,6 +325,8 @@ tag_typedef_t siptag_priority = SIPHDRTAG_TYPEDEF(priority);
  */
 tag_typedef_t siptag_priority_str = SIPSTRTAG_TYPEDEF(priority);
 
+extern msg_hclass_t sip_call_info_class[];
+
 /**@ingroup sip_call_info
  * Tag for @ref sip_call_info "Call-Info header" object.
  */
@@ -285,6 +335,8 @@ tag_typedef_t siptag_call_info = SIPHDRTAG_TYPEDEF(call_info);
  * Tag for string with @ref sip_call_info "Call-Info header" value.
  */
 tag_typedef_t siptag_call_info_str = SIPSTRTAG_TYPEDEF(call_info);
+
+extern msg_hclass_t sip_organization_class[];
 
 /**@ingroup sip_organization
  * Tag for @ref sip_organization "Organization header" object.
@@ -295,6 +347,8 @@ tag_typedef_t siptag_organization = SIPHDRTAG_TYPEDEF(organization);
  */
 tag_typedef_t siptag_organization_str = SIPSTRTAG_TYPEDEF(organization);
 
+extern msg_hclass_t sip_server_class[];
+
 /**@ingroup sip_server
  * Tag for @ref sip_server "Server header" object.
  */
@@ -303,6 +357,8 @@ tag_typedef_t siptag_server = SIPHDRTAG_TYPEDEF(server);
  * Tag for string with @ref sip_server "Server header" value.
  */
 tag_typedef_t siptag_server_str = SIPSTRTAG_TYPEDEF(server);
+
+extern msg_hclass_t sip_user_agent_class[];
 
 /**@ingroup sip_user_agent
  * Tag for @ref sip_user_agent "User-Agent header" object.
@@ -313,6 +369,8 @@ tag_typedef_t siptag_user_agent = SIPHDRTAG_TYPEDEF(user_agent);
  */
 tag_typedef_t siptag_user_agent_str = SIPSTRTAG_TYPEDEF(user_agent);
 
+extern msg_hclass_t sip_in_reply_to_class[];
+
 /**@ingroup sip_in_reply_to
  * Tag for @ref sip_in_reply_to "In-Reply-To header" object.
  */
@@ -321,6 +379,8 @@ tag_typedef_t siptag_in_reply_to = SIPHDRTAG_TYPEDEF(in_reply_to);
  * Tag for string with @ref sip_in_reply_to "In-Reply-To header" value.
  */
 tag_typedef_t siptag_in_reply_to_str = SIPSTRTAG_TYPEDEF(in_reply_to);
+
+extern msg_hclass_t sip_accept_class[];
 
 /**@ingroup sip_accept
  * Tag for @ref sip_accept "Accept header" object.
@@ -331,6 +391,8 @@ tag_typedef_t siptag_accept = SIPHDRTAG_TYPEDEF(accept);
  */
 tag_typedef_t siptag_accept_str = SIPSTRTAG_TYPEDEF(accept);
 
+extern msg_hclass_t sip_accept_encoding_class[];
+
 /**@ingroup sip_accept_encoding
  * Tag for @ref sip_accept_encoding "Accept-Encoding header" object.
  */
@@ -339,6 +401,8 @@ tag_typedef_t siptag_accept_encoding = SIPHDRTAG_TYPEDEF(accept_encoding);
  * Tag for string with @ref sip_accept_encoding "Accept-Encoding header" value.
  */
 tag_typedef_t siptag_accept_encoding_str = SIPSTRTAG_TYPEDEF(accept_encoding);
+
+extern msg_hclass_t sip_accept_language_class[];
 
 /**@ingroup sip_accept_language
  * Tag for @ref sip_accept_language "Accept-Language header" object.
@@ -349,6 +413,8 @@ tag_typedef_t siptag_accept_language = SIPHDRTAG_TYPEDEF(accept_language);
  */
 tag_typedef_t siptag_accept_language_str = SIPSTRTAG_TYPEDEF(accept_language);
 
+extern msg_hclass_t sip_allow_class[];
+
 /**@ingroup sip_allow
  * Tag for @ref sip_allow "Allow header" object.
  */
@@ -357,6 +423,8 @@ tag_typedef_t siptag_allow = SIPHDRTAG_TYPEDEF(allow);
  * Tag for string with @ref sip_allow "Allow header" value.
  */
 tag_typedef_t siptag_allow_str = SIPSTRTAG_TYPEDEF(allow);
+
+extern msg_hclass_t sip_require_class[];
 
 /**@ingroup sip_require
  * Tag for @ref sip_require "Require header" object.
@@ -367,6 +435,8 @@ tag_typedef_t siptag_require = SIPHDRTAG_TYPEDEF(require);
  */
 tag_typedef_t siptag_require_str = SIPSTRTAG_TYPEDEF(require);
 
+extern msg_hclass_t sip_supported_class[];
+
 /**@ingroup sip_supported
  * Tag for @ref sip_supported "Supported header" object.
  */
@@ -375,6 +445,8 @@ tag_typedef_t siptag_supported = SIPHDRTAG_TYPEDEF(supported);
  * Tag for string with @ref sip_supported "Supported header" value.
  */
 tag_typedef_t siptag_supported_str = SIPSTRTAG_TYPEDEF(supported);
+
+extern msg_hclass_t sip_unsupported_class[];
 
 /**@ingroup sip_unsupported
  * Tag for @ref sip_unsupported "Unsupported header" object.
@@ -385,6 +457,8 @@ tag_typedef_t siptag_unsupported = SIPHDRTAG_TYPEDEF(unsupported);
  */
 tag_typedef_t siptag_unsupported_str = SIPSTRTAG_TYPEDEF(unsupported);
 
+extern msg_hclass_t sip_event_class[];
+
 /**@ingroup sip_event
  * Tag for @ref sip_event "Event header" object.
  */
@@ -393,6 +467,8 @@ tag_typedef_t siptag_event = SIPHDRTAG_TYPEDEF(event);
  * Tag for string with @ref sip_event "Event header" value.
  */
 tag_typedef_t siptag_event_str = SIPSTRTAG_TYPEDEF(event);
+
+extern msg_hclass_t sip_allow_events_class[];
 
 /**@ingroup sip_allow_events
  * Tag for @ref sip_allow_events "Allow-Events header" object.
@@ -403,6 +479,8 @@ tag_typedef_t siptag_allow_events = SIPHDRTAG_TYPEDEF(allow_events);
  */
 tag_typedef_t siptag_allow_events_str = SIPSTRTAG_TYPEDEF(allow_events);
 
+extern msg_hclass_t sip_subscription_state_class[];
+
 /**@ingroup sip_subscription_state
  * Tag for @ref sip_subscription_state "Subscription-State header" object.
  */
@@ -411,6 +489,8 @@ tag_typedef_t siptag_subscription_state = SIPHDRTAG_TYPEDEF(subscription_state);
  * Tag for string with @ref sip_subscription_state "Subscription-State header" value.
  */
 tag_typedef_t siptag_subscription_state_str = SIPSTRTAG_TYPEDEF(subscription_state);
+
+extern msg_hclass_t sip_proxy_authenticate_class[];
 
 /**@ingroup sip_proxy_authenticate
  * Tag for @ref sip_proxy_authenticate "Proxy-Authenticate header" object.
@@ -421,6 +501,8 @@ tag_typedef_t siptag_proxy_authenticate = SIPHDRTAG_TYPEDEF(proxy_authenticate);
  */
 tag_typedef_t siptag_proxy_authenticate_str = SIPSTRTAG_TYPEDEF(proxy_authenticate);
 
+extern msg_hclass_t sip_proxy_authentication_info_class[];
+
 /**@ingroup sip_proxy_authentication_info
  * Tag for @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" object.
  */
@@ -429,6 +511,8 @@ tag_typedef_t siptag_proxy_authentication_info = SIPHDRTAG_TYPEDEF(proxy_authent
  * Tag for string with @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" value.
  */
 tag_typedef_t siptag_proxy_authentication_info_str = SIPSTRTAG_TYPEDEF(proxy_authentication_info);
+
+extern msg_hclass_t sip_proxy_authorization_class[];
 
 /**@ingroup sip_proxy_authorization
  * Tag for @ref sip_proxy_authorization "Proxy-Authorization header" object.
@@ -439,6 +523,8 @@ tag_typedef_t siptag_proxy_authorization = SIPHDRTAG_TYPEDEF(proxy_authorization
  */
 tag_typedef_t siptag_proxy_authorization_str = SIPSTRTAG_TYPEDEF(proxy_authorization);
 
+extern msg_hclass_t sip_authorization_class[];
+
 /**@ingroup sip_authorization
  * Tag for @ref sip_authorization "Authorization header" object.
  */
@@ -447,6 +533,8 @@ tag_typedef_t siptag_authorization = SIPHDRTAG_TYPEDEF(authorization);
  * Tag for string with @ref sip_authorization "Authorization header" value.
  */
 tag_typedef_t siptag_authorization_str = SIPSTRTAG_TYPEDEF(authorization);
+
+extern msg_hclass_t sip_www_authenticate_class[];
 
 /**@ingroup sip_www_authenticate
  * Tag for @ref sip_www_authenticate "WWW-Authenticate header" object.
@@ -457,6 +545,8 @@ tag_typedef_t siptag_www_authenticate = SIPHDRTAG_TYPEDEF(www_authenticate);
  */
 tag_typedef_t siptag_www_authenticate_str = SIPSTRTAG_TYPEDEF(www_authenticate);
 
+extern msg_hclass_t sip_authentication_info_class[];
+
 /**@ingroup sip_authentication_info
  * Tag for @ref sip_authentication_info "Authentication-Info header" object.
  */
@@ -465,6 +555,8 @@ tag_typedef_t siptag_authentication_info = SIPHDRTAG_TYPEDEF(authentication_info
  * Tag for string with @ref sip_authentication_info "Authentication-Info header" value.
  */
 tag_typedef_t siptag_authentication_info_str = SIPSTRTAG_TYPEDEF(authentication_info);
+
+extern msg_hclass_t sip_error_info_class[];
 
 /**@ingroup sip_error_info
  * Tag for @ref sip_error_info "Error-Info header" object.
@@ -475,6 +567,8 @@ tag_typedef_t siptag_error_info = SIPHDRTAG_TYPEDEF(error_info);
  */
 tag_typedef_t siptag_error_info_str = SIPSTRTAG_TYPEDEF(error_info);
 
+extern msg_hclass_t sip_warning_class[];
+
 /**@ingroup sip_warning
  * Tag for @ref sip_warning "Warning header" object.
  */
@@ -483,6 +577,8 @@ tag_typedef_t siptag_warning = SIPHDRTAG_TYPEDEF(warning);
  * Tag for string with @ref sip_warning "Warning header" value.
  */
 tag_typedef_t siptag_warning_str = SIPSTRTAG_TYPEDEF(warning);
+
+extern msg_hclass_t sip_refer_to_class[];
 
 /**@ingroup sip_refer_to
  * Tag for @ref sip_refer_to "Refer-To header" object.
@@ -493,6 +589,8 @@ tag_typedef_t siptag_refer_to = SIPHDRTAG_TYPEDEF(refer_to);
  */
 tag_typedef_t siptag_refer_to_str = SIPSTRTAG_TYPEDEF(refer_to);
 
+extern msg_hclass_t sip_referred_by_class[];
+
 /**@ingroup sip_referred_by
  * Tag for @ref sip_referred_by "Referred-By header" object.
  */
@@ -501,6 +599,8 @@ tag_typedef_t siptag_referred_by = SIPHDRTAG_TYPEDEF(referred_by);
  * Tag for string with @ref sip_referred_by "Referred-By header" value.
  */
 tag_typedef_t siptag_referred_by_str = SIPSTRTAG_TYPEDEF(referred_by);
+
+extern msg_hclass_t sip_replaces_class[];
 
 /**@ingroup sip_replaces
  * Tag for @ref sip_replaces "Replaces header" object.
@@ -511,6 +611,8 @@ tag_typedef_t siptag_replaces = SIPHDRTAG_TYPEDEF(replaces);
  */
 tag_typedef_t siptag_replaces_str = SIPSTRTAG_TYPEDEF(replaces);
 
+extern msg_hclass_t sip_session_expires_class[];
+
 /**@ingroup sip_session_expires
  * Tag for @ref sip_session_expires "Session-Expires header" object.
  */
@@ -519,6 +621,8 @@ tag_typedef_t siptag_session_expires = SIPHDRTAG_TYPEDEF(session_expires);
  * Tag for string with @ref sip_session_expires "Session-Expires header" value.
  */
 tag_typedef_t siptag_session_expires_str = SIPSTRTAG_TYPEDEF(session_expires);
+
+extern msg_hclass_t sip_min_se_class[];
 
 /**@ingroup sip_min_se
  * Tag for @ref sip_min_se "Min-SE header" object.
@@ -529,6 +633,8 @@ tag_typedef_t siptag_min_se = SIPHDRTAG_TYPEDEF(min_se);
  */
 tag_typedef_t siptag_min_se_str = SIPSTRTAG_TYPEDEF(min_se);
 
+extern msg_hclass_t sip_path_class[];
+
 /**@ingroup sip_path
  * Tag for @ref sip_path "Path header" object.
  */
@@ -537,6 +643,8 @@ tag_typedef_t siptag_path = SIPHDRTAG_TYPEDEF(path);
  * Tag for string with @ref sip_path "Path header" value.
  */
 tag_typedef_t siptag_path_str = SIPSTRTAG_TYPEDEF(path);
+
+extern msg_hclass_t sip_service_route_class[];
 
 /**@ingroup sip_service_route
  * Tag for @ref sip_service_route "Service-Route header" object.
@@ -547,6 +655,8 @@ tag_typedef_t siptag_service_route = SIPHDRTAG_TYPEDEF(service_route);
  */
 tag_typedef_t siptag_service_route_str = SIPSTRTAG_TYPEDEF(service_route);
 
+extern msg_hclass_t sip_reason_class[];
+
 /**@ingroup sip_reason
  * Tag for @ref sip_reason "Reason header" object.
  */
@@ -555,6 +665,8 @@ tag_typedef_t siptag_reason = SIPHDRTAG_TYPEDEF(reason);
  * Tag for string with @ref sip_reason "Reason header" value.
  */
 tag_typedef_t siptag_reason_str = SIPSTRTAG_TYPEDEF(reason);
+
+extern msg_hclass_t sip_security_client_class[];
 
 /**@ingroup sip_security_client
  * Tag for @ref sip_security_client "Security-Client header" object.
@@ -565,6 +677,8 @@ tag_typedef_t siptag_security_client = SIPHDRTAG_TYPEDEF(security_client);
  */
 tag_typedef_t siptag_security_client_str = SIPSTRTAG_TYPEDEF(security_client);
 
+extern msg_hclass_t sip_security_server_class[];
+
 /**@ingroup sip_security_server
  * Tag for @ref sip_security_server "Security-Server header" object.
  */
@@ -573,6 +687,8 @@ tag_typedef_t siptag_security_server = SIPHDRTAG_TYPEDEF(security_server);
  * Tag for string with @ref sip_security_server "Security-Server header" value.
  */
 tag_typedef_t siptag_security_server_str = SIPSTRTAG_TYPEDEF(security_server);
+
+extern msg_hclass_t sip_security_verify_class[];
 
 /**@ingroup sip_security_verify
  * Tag for @ref sip_security_verify "Security-Verify header" object.
@@ -583,6 +699,8 @@ tag_typedef_t siptag_security_verify = SIPHDRTAG_TYPEDEF(security_verify);
  */
 tag_typedef_t siptag_security_verify_str = SIPSTRTAG_TYPEDEF(security_verify);
 
+extern msg_hclass_t sip_privacy_class[];
+
 /**@ingroup sip_privacy
  * Tag for @ref sip_privacy "Privacy header" object.
  */
@@ -591,6 +709,8 @@ tag_typedef_t siptag_privacy = SIPHDRTAG_TYPEDEF(privacy);
  * Tag for string with @ref sip_privacy "Privacy header" value.
  */
 tag_typedef_t siptag_privacy_str = SIPSTRTAG_TYPEDEF(privacy);
+
+extern msg_hclass_t sip_etag_class[];
 
 /**@ingroup sip_etag
  * Tag for @ref sip_etag "SIP-ETag header" object.
@@ -601,6 +721,8 @@ tag_typedef_t siptag_etag = SIPHDRTAG_TYPEDEF(etag);
  */
 tag_typedef_t siptag_etag_str = SIPSTRTAG_TYPEDEF(etag);
 
+extern msg_hclass_t sip_if_match_class[];
+
 /**@ingroup sip_if_match
  * Tag for @ref sip_if_match "SIP-If-Match header" object.
  */
@@ -609,6 +731,8 @@ tag_typedef_t siptag_if_match = SIPHDRTAG_TYPEDEF(if_match);
  * Tag for string with @ref sip_if_match "SIP-If-Match header" value.
  */
 tag_typedef_t siptag_if_match_str = SIPSTRTAG_TYPEDEF(if_match);
+
+extern msg_hclass_t sip_mime_version_class[];
 
 /**@ingroup sip_mime_version
  * Tag for @ref sip_mime_version "MIME-Version header" object.
@@ -619,6 +743,8 @@ tag_typedef_t siptag_mime_version = SIPHDRTAG_TYPEDEF(mime_version);
  */
 tag_typedef_t siptag_mime_version_str = SIPSTRTAG_TYPEDEF(mime_version);
 
+extern msg_hclass_t sip_content_type_class[];
+
 /**@ingroup sip_content_type
  * Tag for @ref sip_content_type "Content-Type header" object.
  */
@@ -627,6 +753,8 @@ tag_typedef_t siptag_content_type = SIPHDRTAG_TYPEDEF(content_type);
  * Tag for string with @ref sip_content_type "Content-Type header" value.
  */
 tag_typedef_t siptag_content_type_str = SIPSTRTAG_TYPEDEF(content_type);
+
+extern msg_hclass_t sip_content_encoding_class[];
 
 /**@ingroup sip_content_encoding
  * Tag for @ref sip_content_encoding "Content-Encoding header" object.
@@ -637,6 +765,8 @@ tag_typedef_t siptag_content_encoding = SIPHDRTAG_TYPEDEF(content_encoding);
  */
 tag_typedef_t siptag_content_encoding_str = SIPSTRTAG_TYPEDEF(content_encoding);
 
+extern msg_hclass_t sip_content_language_class[];
+
 /**@ingroup sip_content_language
  * Tag for @ref sip_content_language "Content-Language header" object.
  */
@@ -645,6 +775,8 @@ tag_typedef_t siptag_content_language = SIPHDRTAG_TYPEDEF(content_language);
  * Tag for string with @ref sip_content_language "Content-Language header" value.
  */
 tag_typedef_t siptag_content_language_str = SIPSTRTAG_TYPEDEF(content_language);
+
+extern msg_hclass_t sip_content_disposition_class[];
 
 /**@ingroup sip_content_disposition
  * Tag for @ref sip_content_disposition "Content-Disposition header" object.
@@ -655,6 +787,8 @@ tag_typedef_t siptag_content_disposition = SIPHDRTAG_TYPEDEF(content_disposition
  */
 tag_typedef_t siptag_content_disposition_str = SIPSTRTAG_TYPEDEF(content_disposition);
 
+extern msg_hclass_t sip_content_length_class[];
+
 /**@ingroup sip_content_length
  * Tag for @ref sip_content_length "Content-Length header" object.
  */
@@ -663,6 +797,45 @@ tag_typedef_t siptag_content_length = SIPHDRTAG_TYPEDEF(content_length);
  * Tag for string with @ref sip_content_length "Content-Length header" value.
  */
 tag_typedef_t siptag_content_length_str = SIPSTRTAG_TYPEDEF(content_length);
+
+extern msg_hclass_t sip_refer_sub_class[];
+
+/**@ingroup sip_refer_sub
+ * Tag for @ref sip_refer_sub "Refer-Sub header" object.
+ */
+tag_typedef_t siptag_refer_sub = SIPHDRTAG_TYPEDEF(refer_sub);
+/**@ingroup sip_refer_sub
+ * Tag for string with @ref sip_refer_sub "Refer-Sub header" value.
+ */
+tag_typedef_t siptag_refer_sub_str = SIPSTRTAG_TYPEDEF(refer_sub);
+
+#if SU_HAVE_EXPERIMENTAL
+extern msg_hclass_t sip_suppress_body_if_match_class[];
+
+/**@ingroup sip_suppress_body_if_match
+ * Tag for @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" object.
+ */
+tag_typedef_t siptag_suppress_body_if_match = SIPHDRTAG_TYPEDEF(suppress_body_if_match);
+/**@ingroup sip_suppress_body_if_match
+ * Tag for string with @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" value.
+ */
+tag_typedef_t siptag_suppress_body_if_match_str = SIPSTRTAG_TYPEDEF(suppress_body_if_match);
+
+#endif /* SU_HAVE_EXPERIMENTAL */
+#if SU_HAVE_EXPERIMENTAL
+extern msg_hclass_t sip_suppress_notify_if_match_class[];
+
+/**@ingroup sip_suppress_notify_if_match
+ * Tag for @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" object.
+ */
+tag_typedef_t siptag_suppress_notify_if_match = SIPHDRTAG_TYPEDEF(suppress_notify_if_match);
+/**@ingroup sip_suppress_notify_if_match
+ * Tag for string with @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" value.
+ */
+tag_typedef_t siptag_suppress_notify_if_match_str = SIPSTRTAG_TYPEDEF(suppress_notify_if_match);
+
+#endif /* SU_HAVE_EXPERIMENTAL */
+extern msg_hclass_t sip_unknown_class[];
 
 /**@ingroup sip_unknown
  * Tag for @ref sip_unknown "unknown headers" object.
@@ -673,6 +846,8 @@ tag_typedef_t siptag_unknown = SIPHDRTAG_TYPEDEF(unknown);
  */
 tag_typedef_t siptag_unknown_str = SIPSTRTAG_TYPEDEF(unknown);
 
+extern msg_hclass_t sip_error_class[];
+
 /**@ingroup sip_error
  * Tag for @ref sip_error "erroneous headers" object.
  */
@@ -682,14 +857,18 @@ tag_typedef_t siptag_error = SIPHDRTAG_TYPEDEF(error);
  */
 tag_typedef_t siptag_error_str = SIPSTRTAG_TYPEDEF(error);
 
+extern msg_hclass_t sip_separator_class[];
+
 /**@ingroup sip_separator
- * Tag for @ref sip_separator "separator line between headers and payload" object.
+ * Tag for @ref sip_separator "separator line between headers and body" object.
  */
 tag_typedef_t siptag_separator = SIPHDRTAG_TYPEDEF(separator);
 /**@ingroup sip_separator
- * Tag for string with @ref sip_separator "separator line between headers and payload" value.
+ * Tag for string with @ref sip_separator "separator line between headers and body" value.
  */
 tag_typedef_t siptag_separator_str = SIPSTRTAG_TYPEDEF(separator);
+
+extern msg_hclass_t sip_payload_class[];
 
 /**@ingroup sip_payload
  * Tag for @ref sip_payload "message payload" object.
@@ -770,6 +949,11 @@ tag_type_t sip_tag_list[] =
   siptag_content_language,
   siptag_content_disposition,
   siptag_content_length,
+  siptag_refer_sub,
+#if SU_HAVE_EXPERIMENTAL
+  siptag_suppress_body_if_match,
+  siptag_suppress_notify_if_match,
+#endif /* SU_HAVE_EXPERIMENTAL */
   siptag_unknown,
   siptag_error,
   siptag_separator,
@@ -847,9 +1031,15 @@ tag_type_t sip_tag_str_list[] =
   siptag_content_language_str,
   siptag_content_disposition_str,
   siptag_content_length_str,
+  siptag_refer_sub_str,
+#if SU_HAVE_EXPERIMENTAL
+  siptag_suppress_body_if_match_str,
+  siptag_suppress_notify_if_match_str,
+#endif /* SU_HAVE_EXPERIMENTAL */
   siptag_unknown_str,
   siptag_error_str,
   siptag_separator_str,
   siptag_payload_str,
   NULL
 };
+

@@ -186,6 +186,7 @@ SOFIAPUBVAR tag_typedef_t siptag_header_str_ref;
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REQUEST_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_REQUEST(x) siptag_request, siptag_request_v(x)
@@ -215,6 +216,7 @@ SOFIAPUBVAR tag_typedef_t siptag_request_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REQUEST_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -254,6 +256,7 @@ siptag_request_vr(sip_request_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_STATUS_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_STATUS(x) siptag_status, siptag_status_v(x)
@@ -283,6 +286,7 @@ SOFIAPUBVAR tag_typedef_t siptag_status_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_STATUS_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -322,6 +326,7 @@ siptag_status_vr(sip_status_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_VIA_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_VIA(x) siptag_via, siptag_via_v(x)
@@ -351,6 +356,7 @@ SOFIAPUBVAR tag_typedef_t siptag_via_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_VIA_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -390,6 +396,7 @@ siptag_via_vr(sip_via_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ROUTE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ROUTE(x) siptag_route, siptag_route_v(x)
@@ -419,6 +426,7 @@ SOFIAPUBVAR tag_typedef_t siptag_route_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ROUTE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -458,6 +466,7 @@ siptag_route_vr(sip_route_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_RECORD_ROUTE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_RECORD_ROUTE(x) siptag_record_route, siptag_record_route_v(x)
@@ -487,6 +496,7 @@ SOFIAPUBVAR tag_typedef_t siptag_record_route_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_RECORD_ROUTE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -526,6 +536,7 @@ siptag_record_route_vr(sip_record_route_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_MAX_FORWARDS_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_MAX_FORWARDS(x) siptag_max_forwards, siptag_max_forwards_v(x)
@@ -555,6 +566,7 @@ SOFIAPUBVAR tag_typedef_t siptag_max_forwards_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_MAX_FORWARDS_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -594,6 +606,7 @@ siptag_max_forwards_vr(sip_max_forwards_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PROXY_REQUIRE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_PROXY_REQUIRE(x) siptag_proxy_require, siptag_proxy_require_v(x)
@@ -623,6 +636,7 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_require_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PROXY_REQUIRE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -662,6 +676,7 @@ siptag_proxy_require_vr(sip_proxy_require_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_FROM_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_FROM(x) siptag_from, siptag_from_v(x)
@@ -691,6 +706,7 @@ SOFIAPUBVAR tag_typedef_t siptag_from_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_FROM_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -730,6 +746,7 @@ siptag_from_vr(sip_from_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_TO_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_TO(x) siptag_to, siptag_to_v(x)
@@ -759,6 +776,7 @@ SOFIAPUBVAR tag_typedef_t siptag_to_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_TO_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -798,6 +816,7 @@ siptag_to_vr(sip_to_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CALL_ID_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_CALL_ID(x) siptag_call_id, siptag_call_id_v(x)
@@ -827,6 +846,7 @@ SOFIAPUBVAR tag_typedef_t siptag_call_id_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CALL_ID_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -866,6 +886,7 @@ siptag_call_id_vr(sip_call_id_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CSEQ_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_CSEQ(x) siptag_cseq, siptag_cseq_v(x)
@@ -895,6 +916,7 @@ SOFIAPUBVAR tag_typedef_t siptag_cseq_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CSEQ_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -934,6 +956,7 @@ siptag_cseq_vr(sip_cseq_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTACT_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_CONTACT(x) siptag_contact, siptag_contact_v(x)
@@ -963,6 +986,7 @@ SOFIAPUBVAR tag_typedef_t siptag_contact_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTACT_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1002,6 +1026,7 @@ siptag_contact_vr(sip_contact_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_RSEQ_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_RSEQ(x) siptag_rseq, siptag_rseq_v(x)
@@ -1031,6 +1056,7 @@ SOFIAPUBVAR tag_typedef_t siptag_rseq_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_RSEQ_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1070,6 +1096,7 @@ siptag_rseq_vr(sip_rseq_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_RACK_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_RACK(x) siptag_rack, siptag_rack_v(x)
@@ -1099,6 +1126,7 @@ SOFIAPUBVAR tag_typedef_t siptag_rack_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_RACK_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1138,6 +1166,7 @@ siptag_rack_vr(sip_rack_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REQUEST_DISPOSITION_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_REQUEST_DISPOSITION(x) siptag_request_disposition, siptag_request_disposition_v(x)
@@ -1167,6 +1196,7 @@ SOFIAPUBVAR tag_typedef_t siptag_request_disposition_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REQUEST_DISPOSITION_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1206,6 +1236,7 @@ siptag_request_disposition_vr(sip_request_disposition_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ACCEPT_CONTACT_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ACCEPT_CONTACT(x) siptag_accept_contact, siptag_accept_contact_v(x)
@@ -1235,6 +1266,7 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_contact_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ACCEPT_CONTACT_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1274,6 +1306,7 @@ siptag_accept_contact_vr(sip_accept_contact_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REJECT_CONTACT_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_REJECT_CONTACT(x) siptag_reject_contact, siptag_reject_contact_v(x)
@@ -1303,6 +1336,7 @@ SOFIAPUBVAR tag_typedef_t siptag_reject_contact_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REJECT_CONTACT_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1342,6 +1376,7 @@ siptag_reject_contact_vr(sip_reject_contact_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_EXPIRES_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_EXPIRES(x) siptag_expires, siptag_expires_v(x)
@@ -1371,6 +1406,7 @@ SOFIAPUBVAR tag_typedef_t siptag_expires_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_EXPIRES_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1410,6 +1446,7 @@ siptag_expires_vr(sip_expires_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_DATE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_DATE(x) siptag_date, siptag_date_v(x)
@@ -1439,6 +1476,7 @@ SOFIAPUBVAR tag_typedef_t siptag_date_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_DATE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1478,6 +1516,7 @@ siptag_date_vr(sip_date_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_RETRY_AFTER_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_RETRY_AFTER(x) siptag_retry_after, siptag_retry_after_v(x)
@@ -1507,6 +1546,7 @@ SOFIAPUBVAR tag_typedef_t siptag_retry_after_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_RETRY_AFTER_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1546,6 +1586,7 @@ siptag_retry_after_vr(sip_retry_after_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_TIMESTAMP_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_TIMESTAMP(x) siptag_timestamp, siptag_timestamp_v(x)
@@ -1575,6 +1616,7 @@ SOFIAPUBVAR tag_typedef_t siptag_timestamp_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_TIMESTAMP_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1614,6 +1656,7 @@ siptag_timestamp_vr(sip_timestamp_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_MIN_EXPIRES_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_MIN_EXPIRES(x) siptag_min_expires, siptag_min_expires_v(x)
@@ -1643,6 +1686,7 @@ SOFIAPUBVAR tag_typedef_t siptag_min_expires_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_MIN_EXPIRES_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1682,6 +1726,7 @@ siptag_min_expires_vr(sip_min_expires_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SUBJECT_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SUBJECT(x) siptag_subject, siptag_subject_v(x)
@@ -1711,6 +1756,7 @@ SOFIAPUBVAR tag_typedef_t siptag_subject_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SUBJECT_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1750,6 +1796,7 @@ siptag_subject_vr(sip_subject_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PRIORITY_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_PRIORITY(x) siptag_priority, siptag_priority_v(x)
@@ -1779,6 +1826,7 @@ SOFIAPUBVAR tag_typedef_t siptag_priority_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PRIORITY_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1818,6 +1866,7 @@ siptag_priority_vr(sip_priority_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CALL_INFO_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_CALL_INFO(x) siptag_call_info, siptag_call_info_v(x)
@@ -1847,6 +1896,7 @@ SOFIAPUBVAR tag_typedef_t siptag_call_info_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CALL_INFO_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1886,6 +1936,7 @@ siptag_call_info_vr(sip_call_info_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ORGANIZATION_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ORGANIZATION(x) siptag_organization, siptag_organization_v(x)
@@ -1915,6 +1966,7 @@ SOFIAPUBVAR tag_typedef_t siptag_organization_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ORGANIZATION_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -1954,6 +2006,7 @@ siptag_organization_vr(sip_organization_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SERVER_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SERVER(x) siptag_server, siptag_server_v(x)
@@ -1983,6 +2036,7 @@ SOFIAPUBVAR tag_typedef_t siptag_server_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SERVER_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2022,6 +2076,7 @@ siptag_server_vr(sip_server_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_USER_AGENT_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_USER_AGENT(x) siptag_user_agent, siptag_user_agent_v(x)
@@ -2051,6 +2106,7 @@ SOFIAPUBVAR tag_typedef_t siptag_user_agent_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_USER_AGENT_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2090,6 +2146,7 @@ siptag_user_agent_vr(sip_user_agent_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_IN_REPLY_TO_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_IN_REPLY_TO(x) siptag_in_reply_to, siptag_in_reply_to_v(x)
@@ -2119,6 +2176,7 @@ SOFIAPUBVAR tag_typedef_t siptag_in_reply_to_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_IN_REPLY_TO_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2158,6 +2216,7 @@ siptag_in_reply_to_vr(sip_in_reply_to_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ACCEPT_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ACCEPT(x) siptag_accept, siptag_accept_v(x)
@@ -2187,6 +2246,7 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ACCEPT_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2226,6 +2286,7 @@ siptag_accept_vr(sip_accept_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ACCEPT_ENCODING_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ACCEPT_ENCODING(x) siptag_accept_encoding, siptag_accept_encoding_v(x)
@@ -2255,6 +2316,7 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_encoding_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ACCEPT_ENCODING_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2294,6 +2356,7 @@ siptag_accept_encoding_vr(sip_accept_encoding_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ACCEPT_LANGUAGE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ACCEPT_LANGUAGE(x) siptag_accept_language, siptag_accept_language_v(x)
@@ -2323,6 +2386,7 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_language_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ACCEPT_LANGUAGE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2362,6 +2426,7 @@ siptag_accept_language_vr(sip_accept_language_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ALLOW_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ALLOW(x) siptag_allow, siptag_allow_v(x)
@@ -2391,6 +2456,7 @@ SOFIAPUBVAR tag_typedef_t siptag_allow_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ALLOW_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2430,6 +2496,7 @@ siptag_allow_vr(sip_allow_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REQUIRE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_REQUIRE(x) siptag_require, siptag_require_v(x)
@@ -2459,6 +2526,7 @@ SOFIAPUBVAR tag_typedef_t siptag_require_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REQUIRE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2498,6 +2566,7 @@ siptag_require_vr(sip_require_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SUPPORTED_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SUPPORTED(x) siptag_supported, siptag_supported_v(x)
@@ -2527,6 +2596,7 @@ SOFIAPUBVAR tag_typedef_t siptag_supported_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SUPPORTED_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2566,6 +2636,7 @@ siptag_supported_vr(sip_supported_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_UNSUPPORTED_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_UNSUPPORTED(x) siptag_unsupported, siptag_unsupported_v(x)
@@ -2595,6 +2666,7 @@ SOFIAPUBVAR tag_typedef_t siptag_unsupported_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_UNSUPPORTED_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2634,6 +2706,7 @@ siptag_unsupported_vr(sip_unsupported_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_EVENT_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_EVENT(x) siptag_event, siptag_event_v(x)
@@ -2663,6 +2736,7 @@ SOFIAPUBVAR tag_typedef_t siptag_event_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_EVENT_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2702,6 +2776,7 @@ siptag_event_vr(sip_event_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ALLOW_EVENTS_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ALLOW_EVENTS(x) siptag_allow_events, siptag_allow_events_v(x)
@@ -2731,6 +2806,7 @@ SOFIAPUBVAR tag_typedef_t siptag_allow_events_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ALLOW_EVENTS_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2770,6 +2846,7 @@ siptag_allow_events_vr(sip_allow_events_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SUBSCRIPTION_STATE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SUBSCRIPTION_STATE(x) siptag_subscription_state, siptag_subscription_state_v(x)
@@ -2799,6 +2876,7 @@ SOFIAPUBVAR tag_typedef_t siptag_subscription_state_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SUBSCRIPTION_STATE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2838,6 +2916,7 @@ siptag_subscription_state_vr(sip_subscription_state_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PROXY_AUTHENTICATE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_PROXY_AUTHENTICATE(x) siptag_proxy_authenticate, siptag_proxy_authenticate_v(x)
@@ -2867,6 +2946,7 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_authenticate_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PROXY_AUTHENTICATE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2906,6 +2986,7 @@ siptag_proxy_authenticate_vr(sip_proxy_authenticate_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PROXY_AUTHENTICATION_INFO_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_PROXY_AUTHENTICATION_INFO(x) siptag_proxy_authentication_info, siptag_proxy_authentication_info_v(x)
@@ -2935,6 +3016,7 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_authentication_info_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PROXY_AUTHENTICATION_INFO_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -2974,6 +3056,7 @@ siptag_proxy_authentication_info_vr(sip_proxy_authentication_info_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PROXY_AUTHORIZATION_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_PROXY_AUTHORIZATION(x) siptag_proxy_authorization, siptag_proxy_authorization_v(x)
@@ -3003,6 +3086,7 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_authorization_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PROXY_AUTHORIZATION_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3042,6 +3126,7 @@ siptag_proxy_authorization_vr(sip_proxy_authorization_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_AUTHORIZATION_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_AUTHORIZATION(x) siptag_authorization, siptag_authorization_v(x)
@@ -3071,6 +3156,7 @@ SOFIAPUBVAR tag_typedef_t siptag_authorization_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_AUTHORIZATION_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3110,6 +3196,7 @@ siptag_authorization_vr(sip_authorization_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_WWW_AUTHENTICATE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_WWW_AUTHENTICATE(x) siptag_www_authenticate, siptag_www_authenticate_v(x)
@@ -3139,6 +3226,7 @@ SOFIAPUBVAR tag_typedef_t siptag_www_authenticate_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_WWW_AUTHENTICATE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3178,6 +3266,7 @@ siptag_www_authenticate_vr(sip_www_authenticate_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_AUTHENTICATION_INFO_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_AUTHENTICATION_INFO(x) siptag_authentication_info, siptag_authentication_info_v(x)
@@ -3207,6 +3296,7 @@ SOFIAPUBVAR tag_typedef_t siptag_authentication_info_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_AUTHENTICATION_INFO_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3246,6 +3336,7 @@ siptag_authentication_info_vr(sip_authentication_info_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ERROR_INFO_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ERROR_INFO(x) siptag_error_info, siptag_error_info_v(x)
@@ -3275,6 +3366,7 @@ SOFIAPUBVAR tag_typedef_t siptag_error_info_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ERROR_INFO_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3314,6 +3406,7 @@ siptag_error_info_vr(sip_error_info_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_WARNING_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_WARNING(x) siptag_warning, siptag_warning_v(x)
@@ -3343,6 +3436,7 @@ SOFIAPUBVAR tag_typedef_t siptag_warning_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_WARNING_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3382,6 +3476,7 @@ siptag_warning_vr(sip_warning_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REFER_TO_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_REFER_TO(x) siptag_refer_to, siptag_refer_to_v(x)
@@ -3411,6 +3506,7 @@ SOFIAPUBVAR tag_typedef_t siptag_refer_to_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REFER_TO_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3450,6 +3546,7 @@ siptag_refer_to_vr(sip_refer_to_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REFERRED_BY_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_REFERRED_BY(x) siptag_referred_by, siptag_referred_by_v(x)
@@ -3479,6 +3576,7 @@ SOFIAPUBVAR tag_typedef_t siptag_referred_by_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REFERRED_BY_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3518,6 +3616,7 @@ siptag_referred_by_vr(sip_referred_by_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REPLACES_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_REPLACES(x) siptag_replaces, siptag_replaces_v(x)
@@ -3547,6 +3646,7 @@ SOFIAPUBVAR tag_typedef_t siptag_replaces_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REPLACES_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3586,6 +3686,7 @@ siptag_replaces_vr(sip_replaces_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SESSION_EXPIRES_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SESSION_EXPIRES(x) siptag_session_expires, siptag_session_expires_v(x)
@@ -3615,6 +3716,7 @@ SOFIAPUBVAR tag_typedef_t siptag_session_expires_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SESSION_EXPIRES_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3654,6 +3756,7 @@ siptag_session_expires_vr(sip_session_expires_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_MIN_SE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_MIN_SE(x) siptag_min_se, siptag_min_se_v(x)
@@ -3683,6 +3786,7 @@ SOFIAPUBVAR tag_typedef_t siptag_min_se_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_MIN_SE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3722,6 +3826,7 @@ siptag_min_se_vr(sip_min_se_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PATH_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_PATH(x) siptag_path, siptag_path_v(x)
@@ -3751,6 +3856,7 @@ SOFIAPUBVAR tag_typedef_t siptag_path_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PATH_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3790,6 +3896,7 @@ siptag_path_vr(sip_path_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SERVICE_ROUTE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SERVICE_ROUTE(x) siptag_service_route, siptag_service_route_v(x)
@@ -3819,6 +3926,7 @@ SOFIAPUBVAR tag_typedef_t siptag_service_route_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SERVICE_ROUTE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3858,6 +3966,7 @@ siptag_service_route_vr(sip_service_route_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REASON_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_REASON(x) siptag_reason, siptag_reason_v(x)
@@ -3887,6 +3996,7 @@ SOFIAPUBVAR tag_typedef_t siptag_reason_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_REASON_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3926,6 +4036,7 @@ siptag_reason_vr(sip_reason_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SECURITY_CLIENT_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SECURITY_CLIENT(x) siptag_security_client, siptag_security_client_v(x)
@@ -3955,6 +4066,7 @@ SOFIAPUBVAR tag_typedef_t siptag_security_client_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SECURITY_CLIENT_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -3994,6 +4106,7 @@ siptag_security_client_vr(sip_security_client_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SECURITY_SERVER_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SECURITY_SERVER(x) siptag_security_server, siptag_security_server_v(x)
@@ -4023,6 +4136,7 @@ SOFIAPUBVAR tag_typedef_t siptag_security_server_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SECURITY_SERVER_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4062,6 +4176,7 @@ siptag_security_server_vr(sip_security_server_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SECURITY_VERIFY_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SECURITY_VERIFY(x) siptag_security_verify, siptag_security_verify_v(x)
@@ -4091,6 +4206,7 @@ SOFIAPUBVAR tag_typedef_t siptag_security_verify_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SECURITY_VERIFY_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4130,6 +4246,7 @@ siptag_security_verify_vr(sip_security_verify_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PRIVACY_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_PRIVACY(x) siptag_privacy, siptag_privacy_v(x)
@@ -4159,6 +4276,7 @@ SOFIAPUBVAR tag_typedef_t siptag_privacy_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PRIVACY_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4198,6 +4316,7 @@ siptag_privacy_vr(sip_privacy_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ETAG_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ETAG(x) siptag_etag, siptag_etag_v(x)
@@ -4227,6 +4346,7 @@ SOFIAPUBVAR tag_typedef_t siptag_etag_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ETAG_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4266,6 +4386,7 @@ siptag_etag_vr(sip_etag_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_IF_MATCH_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_IF_MATCH(x) siptag_if_match, siptag_if_match_v(x)
@@ -4295,6 +4416,7 @@ SOFIAPUBVAR tag_typedef_t siptag_if_match_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_IF_MATCH_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4334,6 +4456,7 @@ siptag_if_match_vr(sip_if_match_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_MIME_VERSION_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_MIME_VERSION(x) siptag_mime_version, siptag_mime_version_v(x)
@@ -4363,6 +4486,7 @@ SOFIAPUBVAR tag_typedef_t siptag_mime_version_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_MIME_VERSION_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4402,6 +4526,7 @@ siptag_mime_version_vr(sip_mime_version_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_TYPE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_CONTENT_TYPE(x) siptag_content_type, siptag_content_type_v(x)
@@ -4431,6 +4556,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_type_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_TYPE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4470,6 +4596,7 @@ siptag_content_type_vr(sip_content_type_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_ENCODING_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_CONTENT_ENCODING(x) siptag_content_encoding, siptag_content_encoding_v(x)
@@ -4499,6 +4626,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_encoding_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_ENCODING_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4538,6 +4666,7 @@ siptag_content_encoding_vr(sip_content_encoding_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_LANGUAGE_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_CONTENT_LANGUAGE(x) siptag_content_language, siptag_content_language_v(x)
@@ -4567,6 +4696,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_language_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_LANGUAGE_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4606,6 +4736,7 @@ siptag_content_language_vr(sip_content_language_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_DISPOSITION_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_CONTENT_DISPOSITION(x) siptag_content_disposition, siptag_content_disposition_v(x)
@@ -4635,6 +4766,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_disposition_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_DISPOSITION_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4674,6 +4806,7 @@ siptag_content_disposition_vr(sip_content_disposition_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_LENGTH_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_CONTENT_LENGTH(x) siptag_content_length, siptag_content_length_v(x)
@@ -4703,6 +4836,7 @@ SOFIAPUBVAR tag_typedef_t siptag_content_length_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_CONTENT_LENGTH_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4742,6 +4876,7 @@ siptag_content_length_vr(sip_content_length_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_UNKNOWN_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_UNKNOWN(x) siptag_unknown, siptag_unknown_v(x)
@@ -4771,6 +4906,7 @@ SOFIAPUBVAR tag_typedef_t siptag_unknown_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_UNKNOWN_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4810,6 +4946,7 @@ siptag_unknown_vr(sip_unknown_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ERROR_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ERROR(x) siptag_error, siptag_error_v(x)
@@ -4840,6 +4977,7 @@ SOFIAPUBVAR tag_typedef_t siptag_error_ref;
  * The corresponding tag taking reference parameter is 
  * SIPTAG_ERROR_STR_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_ERROR_STR(s) siptag_error_str, tag_str_v(s)
@@ -4867,7 +5005,7 @@ siptag_error_vr(sip_error_t const **vp)
 
 /**@ingroup sip_separator
  *
- * Tag list item for pointer to a @ref sip_separator "separator line between headers and payload"
+ * Tag list item for pointer to a @ref sip_separator "separator line between headers and body"
  * structure #sip_separator_t.
  *
  * The SIPTAG_SEPARATOR() macro is used to include a tag item with a
@@ -4878,6 +5016,7 @@ siptag_error_vr(sip_error_t const **vp)
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SEPARATOR_REF().
  *
+ *
  * @HIDE
  */
 #define SIPTAG_SEPARATOR(x) siptag_separator, siptag_separator_v(x)
@@ -4886,20 +5025,20 @@ SOFIAPUBVAR tag_typedef_t siptag_separator;
 
 /**@ingroup sip_separator
  * Tag list item for reference to a 
- * @ref sip_separator "separator line between headers and payload" pointer.
+ * @ref sip_separator "separator line between headers and body" pointer.
  */
 #define SIPTAG_SEPARATOR_REF(x) siptag_separator_ref, siptag_separator_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_separator_ref;
 
 /**@ingroup sip_separator
  *
- * Tag list item for string with @ref sip_separator "separator line between headers and payload" value.
+ * Tag list item for string with @ref sip_separator "separator line between headers and body" value.
  *
  * The SIPTAG_SEPARATOR_STR() macro is used to include a tag item with a 
  * string containing value of a #sip_separator_t header in a tag list.
  *
  * @param s pointer to a string containing 
- *    @ref sip_separator "separator line between headers and payload" value, or NULL.
+ *    @ref sip_separator "separator line between headers and body" value, or NULL.
  *
  * The string in SIPTAG_SEPARATOR_STR() can be converted to a
  * #sip_separator_t header structure by giving the string @a s has
@@ -4907,6 +5046,7 @@ SOFIAPUBVAR tag_typedef_t siptag_separator_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_SEPARATOR_STR_REF().
+ *
  *
  * @HIDE
  */
@@ -4916,7 +5056,7 @@ SOFIAPUBVAR tag_typedef_t siptag_separator_str;
 
 /**@ingroup sip_separator
  * Tag list item for reference to a
- * @ref sip_separator "separator line between headers and payload" string.
+ * @ref sip_separator "separator line between headers and body" string.
  */
 #define SIPTAG_SEPARATOR_STR_REF(x) siptag_separator_str_ref, tag_str_vr(&(x))
 SOFIAPUBVAR tag_typedef_t siptag_separator_str_ref;
@@ -4945,6 +5085,7 @@ siptag_separator_vr(sip_separator_t const **vp)
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PAYLOAD_REF().
+ *
  *
  * @HIDE
  */
@@ -4975,6 +5116,7 @@ SOFIAPUBVAR tag_typedef_t siptag_payload_ref;
  *
  * The corresponding tag taking reference parameter is 
  * SIPTAG_PAYLOAD_STR_REF().
+ *
  *
  * @HIDE
  */

@@ -54,7 +54,7 @@
 #elif HAVE_FUNCTION
 #define __func__ __FUNCTION__
 #else
-char const __func__[] = "tport_type_tcp";
+static char const __func__[] = "tport_type_tcp";
 #endif
 
 /* ---------------------------------------------------------------------- */
@@ -125,6 +125,9 @@ int tport_stream_init_primary(tport_primary_t *pri,
 {
   pri->pri_primary->tp_socket = socket;
 
+  /* Set IP TOS if set */
+  tport_set_tos(socket, ai, pri->pri_params->tpp_tos);
+
 #if defined(__linux__)
   /* Linux does not allow reusing TCP port while this one is open,
      so we can safely call su_setreuseaddr() before bind(). */
@@ -168,7 +171,7 @@ int tport_tcp_init_secondary(tport_t *self, int socket, int accepted,
 {
   int one = 1;
 
-  self->tp_connected = 1;
+  self->tp_has_connection = 1;
 
   if (setsockopt(socket, SOL_TCP, TCP_NODELAY, (void *)&one, sizeof one) == -1)
     return *return_reason = "TCP_NODELAY", -1;
@@ -227,7 +230,7 @@ int tport_recv_stream(tport_t *self)
   }
   if (N == -1) {
     err = su_errno();
-    SU_DEBUG_1(("%s(%p): su_getmsgsize(): %s (%d)\n", __func__, self,
+    SU_DEBUG_1(("%s(%p): su_getmsgsize(): %s (%d)\n", __func__, (void *)self,
 		su_strerror(err), err));
     return -1;
   }

@@ -1,14 +1,14 @@
-.TH "addrinfo" 1 "30 Nov 2006" "Version 1.12.4" "sofia-sip" \" -*- nroff -*-
+.TH "addrinfo" 1 "12 Feb 2007" "Version 1.12.5" "sofia-sip" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
 addrinfo \- Resolve network services
 .SH "Synopsis"
 .PP
-\fCaddrinfo [-pcn46] host service\fP
+\fCaddrinfo [-pcn46] service-name host\fP
 .SH "Description"
 .PP
-The \fIaddrinfo\fP utility will use su_getaddrinfo() to resolve the network services and print resolved names.
+The \fIaddrinfo\fP utility will use su_getaddrinfo() to resolve the network services and print resolved names. See sect 6.1 of RFC3493 and the getaddrinfo(3) manual page of POSIX 1003.1g, for more information.
 .SH "Options"
 .PP
 The \fIaddrinfo\fP utility accepts following ccommand line options: 
@@ -31,6 +31,6 @@ Report bugs to <sofia-sip-devel@lists.sourceforge.net>.
 Written by Pekka Pessi <pekka -dot pessi -at- nokia -dot- com>
 .SH "Copyright"
 .PP
-Copyright (C) 2005 Nokia Corporation.
+Copyright (C) 2005,2007 Nokia Corporation.
 .PP
 This program is free software; see the source for copying conditions. There is \fBNO\fP warranty; not even for \fBMERCHANTABILITY\fP or \fBFITNESS FOR A PARTICULAR PURPOSE\fP. 

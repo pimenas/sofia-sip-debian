@@ -62,7 +62,7 @@ msg_mclass_t const http_mclass[1] =
 #else
   0,
 #endif
-  sizeof(http_t),
+  sizeof (http_t),
   http_extract_body,
   {{ http_request_class, offsetof(http_t, http_request) }},
   {{ http_status_class, offsetof(http_t, http_status) }},
@@ -72,7 +72,12 @@ msg_mclass_t const http_mclass[1] =
   {{ http_error_class, offsetof(http_t, http_error) }},
   {{ NULL, 0 }},
   NULL, 
-  127, 52, 
+  127, 
+#if SU_HAVE_EXPERIMENTAL
+  52,
+#else
+  52,
+#endif
   {
     { http_proxy_authenticate_class, offsetof(http_t, http_proxy_authenticate) },
     { http_from_class, offsetof(http_t, http_from) },

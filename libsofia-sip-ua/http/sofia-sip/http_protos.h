@@ -14051,19 +14051,19 @@ http_error_t *http_error_make(su_home_t *home, char const *s)
 /** @} */
 
 
-/* Declare internal prototypes for separator line between headers and payload */
+/* Declare internal prototypes for separator line between headers and body */
 
 /**@addtogroup http_separator*/ /** @{ */
 
 enum { 
-  /** Hash of separator line between headers and payload. @internal*/
+  /** Hash of separator line between headers and body. @internal*/
   http_separator_hash = -5 
 };
 
-/**Header class for HTTP separator line between headers and payload.
+/**Header class for HTTP separator line between headers and body.
  * 
  * The header class http_separator_class defines how a HTTP
- * separator line between headers and payload is parsed and printed.  It also
+ * separator line between headers and body is parsed and printed.  It also
  * contains methods used by HTTP parser and other functions
  * to manipulate the http_separator_t header structure.
  * 
@@ -14072,10 +14072,10 @@ SOFIAPUBVAR msg_hclass_t http_separator_class[];
 
 #ifndef HTTP_HCLASSES_ONLY
 
-/** Decode (parse) a separator line between headers and payload. @internal */
+/** Decode (parse) a separator line between headers and body. @internal */
 SOFIAPUBFUN msg_parse_f http_separator_d;
 
-/** Encode (print) a separator line between headers and payload. @internal */
+/** Encode (print) a separator line between headers and body. @internal */
 SOFIAPUBFUN msg_print_f http_separator_e;
 
 /**Initializer for structure http_separator_t.
@@ -14117,7 +14117,7 @@ su_inline http_separator_t *http_separator_init(http_separator_t x[1])
 /**Test if header object is instance of http_separator_t.
  * 
  * The function http_is_separator() returns true (nonzero) if
- * the header class is an instance of separator line between headers and payload
+ * the header class is an instance of separator line between headers and body
  * object and false (zero) otherwise.
  * 
  * @param header pointer to the header structure to be tested
@@ -14231,10 +14231,10 @@ su_inline
 http_separator_t *http_separator_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
 
-/**Make a separator line between headers and payload from formatting result.
+/**Make a separator line between headers and body from formatting result.
  * 
  * The function http_separator_format() makes a new
- * separator line between headers and payload object using formatting result as its
+ * separator line between headers and body object using formatting result as its
  * value.  The function first prints the arguments according to
  * the format @a fmt specified.  Then it allocates a new header
  * structure, and uses the formatting result as the header

@@ -1,127 +1,139 @@
-=====================================
-Release notes for of Sofia-SIP 1.12.4
-=====================================
+==============================================
+Release notes for current version of Sofia-SIP
+==============================================
 
-Changes since release 1.12.3
-----------------------------
+Changes since last release
+--------------------------
 
-On Linux systems, the sockets are handled with epoll allowing large number
-of concurrent connections, like 100 000 or more.
-
-Headers in SIP URIs are now included in the request by nta and nua.
-
-The nua API now supports arbitratry SIP methods. It supports handling
-incoming REGISTER and PUBLISH, too. There is now also reactive mode of
-handing subscriptions in nua, using nua_i_subscribe()/nua_respond()/
-nua_notify()/nua_i_publish().
-
-Severe bug in STUN functionality was fixed.
+Support for request queuing has been added to the high-level user-agent 
+API. Various portability improvements have been made related to Linux, 
+Mac OS X, Windows and Solaris ports. SIP registrations have been 
+modified to utilize persistent transport connections. The GObject 
+interface to 'nua' (nua-glib) has been dropped from the package and is 
+now distributed separately. Severe bugs in 'su', 'nua', 'nta', 'stun' and 
+'su-glib' modules have been fixed.
 
 API/ABI changes and versioning
 ------------------------------
 
+New features in API are marked with Doxytag macro @NEW_1_12_5.
+Experimental features are marked with Doxytag macro @EXP_1_12_5.
+
+**template**: New features in API are marked with Doxytag macro @NEW_1_XX_X.
+
 libsofia-sip-ua:
-- Added sdp_media_red, sdp_proto_udptl.
-- Added auth_mod_name() to <sofia-sip/auth_module.c>
-- Added msg_make() and msg_as_string() to <sofia-sip/msg.h>
-- Added SU_TIME_EPOCH to <sofia-sip/su_time.h>
-- Added host_cmp() for comparing host names or IP addresses in numeric
-  format to <sofia-sip/hostdomain.h>
-- Added nua_method() and NUTAG_METHOD() to <sofia-sip/nua.h>
-- Added nth_request_auth(), NTHTAG_AUTH_MODULE(), nth_site_url(), and
-  nth_site_access_time() to <sofia-sip/nth.h>
-- Added NUTAG_ALLOW_EVENTS() and leave it to application to accept or 
-  reject SUBSCRIBE and PUBLISH requests
-- Added functions msg_header_find_item(), msg_header_replace_item(),
-  msg_header_remove_item()
-  (handling Allow and Allow-Events headers)
-- Added function msg_parse_next_field() for parsing headers with
-  multiple fields
-- Added functions for handling SIP headers encoded in SIP URL:
-  sip_headers_as_url_query(), sip_url_query_as_taglist(),
-  url_query_as_header_string(), url_unescape_to(),
-  msg_header_parse_str()
-- Added su_home_destructor(), deprecated su_home_desctructor(). See
-  documentation of su_home_desctructor() for more information.
-- Added NUTAG_INCLUDE_EXTRA_SDP()
-- Added nua_handle_by_replaces(), nua_handle_make_replaces(),
-  nua_handle_magic() and nua_magic() functions
-- Added nua_i_register event for incoming REGISTER requests (nua.h)
-- Added NUTAG_WITH(), nutag_with, NUTAG_WITH_THIS(),
-  nua_current_request(), NUTAG_WITH_SAVED(), nua_saved_event_request()
-  (nua_tag.h, nua.h)
-- Added <sofia-sip/su_osx_runloop.h>, su_root_osx_runloop_create() and
-  su_root_osx_prepare_run()
-- Added tport_is_closed() and tport_is_shutdown() to the public API.
-- This release is ABI/API compatible with applications linked against
+- **template**: Added foobar() function (sofia-sip/foobar.h).
+- Added nua tags NUTAG_APPL_METHOD() and NUTAG_NEWSUB()
+- Added nua_substate_make(), nua_substate_name()
+- Added nta_incoming_create_response() function
+- Added tport tags TPTAG_TOS(), TPTAG_DUMP(), TPTAG_LOG()
+- Added tport predicate function tport_is_connected()
+- Added authentication functions auc_info() and auc_has_authorization(),
+  added type msg_auth_info_t for Authentication-Info header
+- Added msg_header_join_items() function
+- Added sip_is_allowed() function and k_bitmap field to the 
+  sip_allow_t structure 
+- Added sl_header_log implementation, updated its prototype
+- Added experimental SIP headers Suppress-Notify-If-Match and
+  Suppress-Body-If-Match and functions related to them,
+  enabled with ./configure option --enable-experimental
+- Added SIP header Refer-Sub and related functions
+- Added <sofia-sip/sip_extra.h> include file
+- Added auc_info() function (sofia-sip/auth_client.h)
+- Added alternative implementations to event reactor object (su_port_t,
+  referenced by su_root_t) that can be changed at runtime using SU_PORT
+  environment variable, for instance
+  - Internal semantics of su_port_t reference counting have changed:
+    now su_port_create() has one reference, and su_root_create_with_port()
+    always consumes one reference
+- Changed return type of bm_memmem() and bm_memcasemem() to non-const
+- This release is ABI/API compatible with applications linked against 
   any 1.12.x release. However, applications built against this release won't 
   work against an older library. The ABI has been tested with the nua module 
   unit test (test_nua) built against original 1.12.0 release.
 
 libsofia-sip-ua-glib:
-- API updated with new "incoming-subscribe" signal. 
-- This release is backwards compatible with applications linked against 
-  previous 1.12.x releases.
-- Note, the nua-glib interface (sofia-sip/nua-glib.h) will be moved to 
-  a separate package in the next release, so the library ABI will change. 	
-  The rest of libsofia-sip-ua-glib interface is now considered stable.
+- The 'nua-glib' module has been removed from the library and moved
+  to a separate package 'sofia-nua-glib'. The remaining library (su-glib) 
+  is now considered stable and will be API/ABI compatible with later 
+  releases in the 1.12.x series.
+- ABI has been modified and applications built against 1.12.4 and earlier 
+  releases, need to be rebuilt.
+- Added su_glib_prefer_gsource() which makes glib-based su_port_t
+  implementation the default choice when su_root_create() is called
 
 Contributors to this release
 ----------------------------
 
-- Michael Jerris contributed nua_i_register code along with a large number
-  of fixes
-- Steve Underwood contributed code detecting RED and UDPTL used for T.38 in
-  SDP.
+- Petteri Puolakka (patch to stun)
+- Mikhail Zabaluev (patch to su-glib mainloop integration)
+- Michael Jerris (patch to url parsing # in sip/sips userpart)
+- Colin Whittaker (TPTAG_TOS())
+- Roman Filonenko (TPTAG_LOG(), TPTAG_DUMP(), 
+	           patch to query DNS-servers with IP-Helper on win32)
+- Remi Denis-Courmont (patch to network change API)
+- Martti Mela (poll() emulation with select(), IPv6 and OS X fixes)
+- Kai Vehmanen (persistent registrations, release management)
+- Pekka Pessi (all the rest)
 
 See the AUTHORS file in the distribution package.
 
 Notes on new features
 ---------------------
 
-Query part in SIP URIs is now handled by nta and nua. The SIP URI can
-contain a query part separated with the "?", which specifies SIP headers
-that are included in the request constructed from the URI. For example,
-using URI <sip:example.com?subject=test> would include Subject header
-with value "test" in the request.
+- The su_root_t reactor uses different implementation (epoll, poll or select
+  on Linux), depending on SU_PORT environment variable.
 
-There is now also reactive mode of handing subscriptions in nua, using
-nua_i_subscribe()/nua_respond()/nua_notify()/nua_i_publish().
+- nua now supports request queuing, for instance, an application can send
+  overlapping BYE and NOTIFY requests. The stack engine takes care of
+  sending the new request only after the previous one has been responded.
 
-The nua can be used as a registrar with nua_i_register/nua_respond().
+- RFC 4488 defines the Refer-Sub header. Its datatypes, related functions and
+  methods declared in <sofia-sip/sip_extra.h> include file. The Refer-Sub
+  header structure can be accessed from sip_t structure with sip_refer_sub()
+  method, e.g.,
 
-The nua allows handling of SIP extension methods using
-nua_method()/nua_r_method/nua_i_method and NUTAG_ALLOW().
+  if (sip_refer_sub(sip) && 
+      strcasecmp("false", sip_refer_sub(sip)->rs_value) == 0) {
+     /* Do not create implicit subscription */ 
+  }
+
+- Unsolicited NOTIFYs are now supported. The application can accept incoming
+  NOTIFYs and send NOTIFYs without existing subscription.
+
+- Transport connections used for client registrations are now maintained 
+  in a persistent fashion. For example a TCP connection used for
+  registration is not closed until client is unregisters, or the whole stack
+  is shut down.
+
+- New build time options have been added: ability to build without 
+  STUN and HTTP support. See 'docs/devel_platform_notes.txt' for some
+  additional notes to distributors.
 
 Bugs fixed in this release
 --------------------------
 
-- A memory leak with nua_handle_destroy() was plugged.
-  Thanks for Colin Whittaker for reporting the problem.
-- No Contact was used when creating dialog if there was an 
-  application-provided Contact. Thanks for Michael Jerris and Anthony
-  Minessale for reporting this bug.
-- Portability problems in stun code fixed
-  Thanks for Konstantin Belousov for reporting this bug.
-- Outbound now ignores Via rport parameter without value.
-  Thanks for Anthony Minessale for reporting this bug.
-- Subsite handling in nth was fixed.
-- Outbound was confused by IPv6 addresses in the Via header.
-  Thanks for Marc Blanchet from Viagenie for reporting the bug.
-- Session timers in nua did not work if UAS had to do refreshing with INVITEs
-  Thanks for Chung Pak Lai for reporting this bug.
-- sres_query() failed assert or crashed if there was no DNS servers configured.
-  Thanks for Roman Filonenko for reporting this bug.
-- nua_bye() did not terminate the call if re-INVITE going on at the same time.
-  Thanks for Anthony Minessale for reporting this bug.
-- sdp_connection_cmp() now considers the address, too.
-- SOA now updates c= line if it is changed in user SDP.
-  Thanks for Anthony Minessale for reporting this bug.
-- NUA call model does not require SDP answer before 200 OK anymore.
-  Thanks for Anthony Minessale for reporting this.
-- Fixed crash when CANCEL was received but PRACK was expected
-- #1574342: stunc tool broken in 1.12.3
-- With NUTAG_EARLY_ANSWER(), include answer in 200 OK, too.
-- Fixed tl_find_last().
-- Fixed bug parsing malformed Refer-To or Referred-By headers. Thanks for
-  Anthony Minessale for reporting this.
+- Fixed su_from_create() returning a sip_to_t instance. Problem reported by
+  Ludovico Cavedon.
+- Partially fixed problem #1633969 with too frequent timer
+- Fixed problem in dialog matching. Problem reported by Fabio Margarido.
+- Fixed #1624446 - su_wait_clone() (and nua_destroy()) blocking for ever if
+  the root object was created using su_glib
+- Fixed #1626330 - leak in nta.c which happened if INVITE never got a final
+  response nor timed out.
+- Fixed handle leak (pthread_*_init without pthread_*_destroy). Problem
+  reported by Maxim Zaikin.
+- Fixed crash when nua_bye() was called while a NOTIFY client transaction
+  was in progress. Problem reported by Anthony Minnessale.
+- Not using close() with sockets in sres.c. Problem reported by
+  Roman Filonenko.
+- Bug in zero-padding STUN messages with a message integrity 
+  attribute. Patch by Petteri Puolakka.
+- Fixed a severe problem with timer accuracy, when sofia-sip timers 
+  where used under glib's mainloop.
+- Improved glib mainloop integration to avoid warnings about already
+  active mainloop context, and potentially other issue. Patch by 
+  Mikhail Zabaluev. Closes sf.net item #1606786.
+- Ignore harmless syntax errors in incoming requests/responses by default
+- If a TCP connection cannot be made within SIP T4 (because of a
+  firewall, for instance) nta now tries to use UDP instead.

@@ -57,6 +57,11 @@ SOFIAPUBFUN
 int auc_credentials(auth_client_t **auc, su_home_t *home, char const *data);
 
 SOFIAPUBFUN
+int auc_info(auth_client_t **auc_list,
+	     msg_auth_info_t const *ai,
+	     msg_hclass_t *credential_class);
+
+SOFIAPUBFUN
 int auc_all_credentials(auth_client_t **auc_list, 
 			char const *scheme,
 			char const *realm, 
@@ -70,6 +75,9 @@ int auc_clear_credentials(auth_client_t **auc_list,
 
 SOFIAPUBFUN
 int auc_copy_credentials(auth_client_t **dst, auth_client_t const *src);
+
+SOFIAPUBFUN
+int auc_has_authorization(auth_client_t **auc_list);
 
 SOFIAPUBFUN
 int auc_authorization(auth_client_t **auc_list, msg_t *msg, msg_pub_t *pub,

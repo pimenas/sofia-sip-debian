@@ -94,3 +94,12 @@ EXPORT tag_typedef_t tptag_http_connect_ref =
 extern tag_typedef_t tptag_stun_server;
 EXPORT tag_typedef_t tptag_stun_server_ref = 
   REFTAG_TYPEDEF(tptag_stun_server);
+extern tag_typedef_t tptag_tos;
+EXPORT tag_typedef_t tptag_tos_ref = 
+  REFTAG_TYPEDEF(tptag_tos);
+extern tag_typedef_t tptag_log;
+EXPORT tag_typedef_t tptag_log_ref = 
+  REFTAG_TYPEDEF(tptag_log);
+extern tag_typedef_t tptag_dump;
+EXPORT tag_typedef_t tptag_dump_ref = 
+  REFTAG_TYPEDEF(tptag_dump);

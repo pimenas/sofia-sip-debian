@@ -70,6 +70,10 @@ typedef int socklen_t;
 #endif
 #endif
 
+#if HAVE_IPHLPAPI_H
+#include <iphlpapi.h>
+#endif
+
 #include <time.h>
 
 #include "sofia-resolv/sres.h"
@@ -131,6 +135,12 @@ ssize_t sres_recvfrom(sres_socket_t s, void *buffer, size_t length, int flags,
   return (ssize_t)retval;
 }
 
+static inline
+int sres_close(sres_socket_t s)
+{
+  return closesocket(s);
+}
+
 #if !defined(IPPROTO_IPV6)
 #if HAVE_SIN6
 #include <tpipv6.h>
@@ -148,6 +158,7 @@ struct sockaddr_storage {
 #define sres_send(s,b,len,flags) send((s),(b),(len),(flags))
 #define sres_recvfrom(s,b,len,flags,a,alen) \
   recvfrom((s),(b),(len),(flags),(a),(alen))
+#define sres_close(s) close((s))
 #define SOCKET_ERROR   (-1)
 #define INVALID_SOCKET ((sres_socket_t)-1)
 #endif
@@ -620,8 +631,8 @@ sres_resolver_t *sres_resolver_copy(sres_resolver_t *res)
  *
  * @par Environment Variables
  * - LOCALDOMAIN overrides @c domain or @c search directives
- * - RES_OPTIONS overrides values of @a options in resolv.conf
- * - SRES_OPTIONS overrides values of @a options in resolv.conf, RES_OPTIONS,
+ * - #RES_OPTIONS overrides values of @a options in resolv.conf
+ * - #SRES_OPTIONS overrides values of @a options in resolv.conf, #RES_OPTIONS,
  *   and @a options, ... list given as argument for this function
  *
  * @return A pointer to a newly created sres resolver object, or NULL upon
@@ -714,7 +725,7 @@ sres_resolver_new_internal(sres_cache_t *cache,
 #if HAVE_DEV_URANDOM
     int fd;
     if ((fd = open("/dev/urandom", O_RDONLY, 0)) != -1) {
-      read(fd, &res->res_id, (sizeof res->res_id));
+      size_t len = read(fd, &res->res_id, (sizeof res->res_id)); (void)len;
       close(fd);
     }
     else
@@ -916,8 +927,8 @@ sres_query(sres_resolver_t *res,
   size_t dlen;
   
   char b[8];
-  SU_DEBUG_9(("sres_query(%p, %p, %p, %s, \"%s\") called\n",
-	      res, callback, context, sres_record_type(type, b), domain));
+  SU_DEBUG_9(("sres_query(%p, %p, %s, \"%s\") called\n",
+			  (void *)res, (void *)context, sres_record_type(type, b), domain));
 
   if (res == NULL || domain == NULL)
     return su_seterrno(EFAULT), (void *)NULL;
@@ -983,8 +994,8 @@ sres_search(sres_resolver_t *res,
   unsigned dots; char const *dot;
   char b[8];
 
-  SU_DEBUG_9(("sres_search(%p, %p, %p, %s, \"%s\") called\n",
-	      res, callback, context, sres_record_type(type, b), domain));
+  SU_DEBUG_9(("sres_search(%p, %p, %s, \"%s\") called\n",
+			  (void *)res, (void *)context, sres_record_type(type, b), domain));
 
   if (res == NULL || domain == NULL)
     return su_seterrno(EFAULT), (void *)NULL;
@@ -1079,7 +1090,7 @@ sres_search(sres_resolver_t *res,
  * IPv4 (AF_INET) or IPv6 (AF_INET6) address.
  *
  * If the #SRES_OPTIONS environment variable, #RES_OPTIONS environment
- * variable or an "options" entry in resolv.conf file contains an option
+ * variable, or an "options" entry in resolv.conf file contains an option
  * "ip6-dotint", the IPv6 addresses are resolved using suffix ".ip6.int"
  * instead of the standard ".ip6.arpa" suffix.
  *
@@ -1228,7 +1239,7 @@ sres_search_cached_answers(sres_resolver_t *res,
   int i;
 
   SU_DEBUG_9(("sres_search_cached_answers(%p, %s, \"%s\") called\n",
-	      res, sres_record_type(type, rooted_domain), domain));
+	      (void *)res, sres_record_type(type, rooted_domain), domain));
 
   if (!res || !name)
     return su_seterrno(EFAULT), (void *)NULL;
@@ -1888,6 +1899,36 @@ int sres_update_config(sres_resolver_t *res, int always, time_t now)
 #define MAX_DATALEN           65535
 
 /**
+ * Uses IP Helper IP to get DNS servers list.
+ */
+static int sres_parse_win32_ip(sres_config_t *c)
+{
+  int ret = -1;
+
+#if HAVE_IPHLPAPI_H
+  DWORD dw;
+  su_home_t *home = c->c_home;
+  ULONG size = sizeof(FIXED_INFO);
+
+  do {
+    FIXED_INFO *info = (FIXED_INFO *)su_alloc(home, size);
+    dw = GetNetworkParams(info, &size);
+    if (dw == ERROR_SUCCESS) {
+      IP_ADDR_STRING* addr = &info->DnsServerList;
+      for (; addr; addr = addr->Next) {
+       SU_DEBUG_3(("Adding nameserver: %s\n", addr->IpAddress.String));
+       sres_parse_nameserver(c, addr->IpAddress.String);
+      }
+      ret = 0;
+    }
+    su_free(home, info);
+  } while (dw == ERROR_BUFFER_OVERFLOW);
+#endif
+
+  return ret;
+}
+
+/**
  * Parses name servers listed in registry key 'key+lpValueName'. The
  * key is expected to contain a whitespace separate list of
  * name server IP addresses.
@@ -2065,7 +2106,7 @@ sres_config_t *sres_parse_resolv_conf(sres_resolver_t *res,
 #if _WIN32    
     /* note: no 127.0.0.1 on win32 systems */
     /* on win32, query the registry for nameservers */
-    if (sres_parse_win32_reg(c) == 0) 
+    if (sres_parse_win32_ip(c) == 0 || sres_parse_win32_reg(c) == 0)
       /* success */;
     else
       /* now what? */;
@@ -2196,6 +2237,42 @@ int sres_parse_config(sres_config_t *c, FILE *f)
   return i;
 }
 
+/**Environment variable containing options for Sofia resolver. The options
+ * recognized by Sofia resolver are as follows:
+ * - debug           turn on debugging (no effect)
+ * - ndots:<i>n</i>  when searching, try first to query name as absolute
+ *                   domain if it contains at least <i>n</i> dots
+ * - timeout:<i>secs</i> timeout in seconds
+ * - attempts:<i>n</i> fail after <i>n</i> retries
+ * - rotate          use round robin selection of nameservers
+ * - no-check-names  do not check names for invalid characters
+ * - inet6           (no effect) 
+ * - ip6-dotint      IPv6 addresses are resolved using suffix ".ip6.int"
+ *                   instead of the standard ".ip6.arpa" suffix
+ * - ip6-bytestring  (no effect)
+ * The following option is a Sofia-specific extension:
+ * - no-edns0        do not try to use EDNS0 extension (@RFC2671)
+ *
+ * The same options can be listed in @b options directive in resolv.conf, or
+ * in #RES_OPTIONS environment variable. Note that options given in
+ * #SRES_OPTIONS override those specified in #RES_OPTIONS which in turn
+ * override options specified in the @b options directive of resolve.conf.
+ *
+ * The meaning of an option can be reversed with prefix "no-".
+ *
+ * @sa Manual page for resolv.conf, #RES_OPTIONS.
+ */
+extern char const SRES_OPTIONS[];
+
+/**Environment variable containing resolver options. This environment
+ * variable is also used by standard BIND resolver.
+ *
+ * @sa Manual page for resolv.conf, #SRES_OPTIONS.
+ */
+extern char const RES_OPTIONS[];
+
+
+/* Parse options line or #SRES_OPTIONS or #RES_OPTIONS environment variable. */
 static int 
 sres_parse_options(sres_config_t *c, char const *value)
 {
@@ -2397,7 +2474,7 @@ void sres_servers_close(sres_resolver_t *res,
     if (servers[i]->dns_socket != -1) {
       if (res->res_updcb)
 	res->res_updcb(res->res_async, INVALID_SOCKET, servers[i]->dns_socket);
-      close(servers[i]->dns_socket);
+      sres_close(servers[i]->dns_socket);
     }
   }
 }
@@ -2473,7 +2550,7 @@ sres_socket_t sres_server_socket(sres_resolver_t *res, sres_server_t *dns)
     SU_DEBUG_1(("%s: %s: %s: %s%s%s:%u\n", "sres_server_socket", "connect",
 		su_strerror(su_errno()), lb, ipaddr, rb,
 		ntohs(((struct sockaddr_in *)dns->dns_addr)->sin_port)));
-    close(s);
+    sres_close(s);
     dns->dns_error = time(NULL);
     return INVALID_SOCKET;
   }
@@ -2482,7 +2559,7 @@ sres_socket_t sres_server_socket(sres_resolver_t *res, sres_server_t *dns)
     if (res->res_updcb(res->res_async, s, INVALID_SOCKET) < 0) {
       SU_DEBUG_1(("%s: %s: %s\n", "sres_server_socket", "update callback",
 		  su_strerror(su_errno())));
-      close(s);
+      sres_close(s);
       dns->dns_error = time(NULL);
       return INVALID_SOCKET;
     }
@@ -2515,7 +2592,7 @@ sres_send_dns_query(sres_resolver_t *res,
 
   if (now == 0) time(&now);
 
-  SU_DEBUG_9(("sres_send_dns_query(%p, %p) called\n", res, q));
+  SU_DEBUG_9(("sres_send_dns_query(%p, %p) called\n", (void *)res, (void *)q));
 
   if (domain == NULL)
     return -1;
@@ -2602,7 +2679,7 @@ sres_send_dns_query(sres_resolver_t *res,
 
   SU_DEBUG_5(("%s(%p, %p) id=%u %s %s (to [%s]:%u)\n", 
 	      "sres_send_dns_query",
-	      res, q, id, sres_record_type(type, b), domain, 
+	      (void *)res, (void *)q, id, sres_record_type(type, b), domain, 
 	      dns->dns_name, 
 	      htons(((struct sockaddr_in *)dns->dns_addr)->sin_port)));
 
@@ -2720,7 +2797,7 @@ sres_query_report_error(sres_query_t *q,
     }
 
     SU_DEBUG_5(("sres(q=%p): reporting errors for %u %s\n",
-		q, q->q_type, q->q_name));
+		(void *)q, q->q_type, q->q_name));
  
     sres_remove_query(q->q_res, q, 1);
     (q->q_callback)(q->q_context, q, answers);
@@ -2787,7 +2864,7 @@ sres_resend_dns_query(sres_resolver_t *res, sres_query_t *q, int timeout)
   sres_server_t *dns;
 
   SU_DEBUG_9(("sres_resend_dns_query(%p, %p, %u) called\n",
-	      res, q, timeout));
+	      (void *)res, (void *)q, timeout));
   
   N = res->res_n_servers;
 
@@ -2955,7 +3032,8 @@ int sres_resolver_error(sres_resolver_t *res, int socket)
   int n;
   char info[128] = "";
 
-  SU_DEBUG_9(("%s(%p, %u) called\n", "sres_resolver_error", res, socket));
+  SU_DEBUG_9(("%s(%p, %u) called\n", "sres_resolver_error",
+	      (void *)res, socket));
 
   msg->msg_name = name, msg->msg_namelen = sizeof(name);
   msg->msg_iov = iov, msg->msg_iovlen = 1;
@@ -3068,7 +3146,8 @@ int sres_resolver_error(sres_resolver_t *res, int socket)
   int errcode = 0;
   socklen_t errorlen = sizeof(errcode);
 
-  SU_DEBUG_9(("%s(%p, %u) called\n", "sres_resolver_error", res, socket));
+  SU_DEBUG_9(("%s(%p, %u) called\n", "sres_resolver_error",
+	      (void *)res, socket));
 
   getsockopt(socket, SOL_SOCKET, SO_ERROR, (void *)&errcode, &errorlen);
 
@@ -3160,7 +3239,8 @@ sres_resolver_receive(sres_resolver_t *res, int socket)
   struct sockaddr_storage from[1];
   socklen_t fromlen = sizeof from;
 
-  SU_DEBUG_9(("%s(%p, %u) called\n", "sres_resolver_receive", res, socket));
+  SU_DEBUG_9(("%s(%p, %u) called\n", "sres_resolver_receive",
+	      (void *)res, socket));
 
   memset(m, 0, offsetof(sres_message_t, m_data)); 
   
@@ -3239,7 +3319,7 @@ void sres_log_response(sres_resolver_t const *res,
 #endif
 
     SU_DEBUG_5(("sres_resolver_receive(%p, %p) id=%u (from [%s]:%u)\n", 
-		res, query, m->m_id, 
+		(void *)res, (void *)query, m->m_id, 
 		host, ntohs(((struct sockaddr_in *)from)->sin_port)));
   }
 }

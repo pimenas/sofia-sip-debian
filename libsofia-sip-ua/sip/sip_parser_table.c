@@ -42,6 +42,7 @@
 #define MSG_HDR_T       union sip_header_u
 
 #include <sofia-sip/sip_parser.h>
+#include <sofia-sip/sip_extra.h>
 #include <sofia-sip/msg_mclass.h>
 
 
@@ -89,6 +90,14 @@ static msg_href_t const sip_short_forms[MC_SHORT_SIZE] =
   { NULL }
 };
 
+struct msg_pub_extra {
+  sip_t base;
+  msg_header_t *extra[1];
+#if SU_HAVE_EXPERIMENTAL
+  msg_header_t *experimental[2];
+#endif
+};
+
 msg_mclass_t const sip_mclass[1] = 
 {{
 # if defined (SIP_HCLASS)
@@ -103,7 +112,7 @@ msg_mclass_t const sip_mclass[1] =
 #else
   0,
 #endif
-  sizeof(sip_t),
+  sizeof (struct msg_pub_extra),
   sip_extract_body,
   {{ sip_request_class, offsetof(sip_t, sip_request) }},
   {{ sip_status_class, offsetof(sip_t, sip_status) }},
@@ -113,13 +122,19 @@ msg_mclass_t const sip_mclass[1] =
   {{ sip_error_class, offsetof(sip_t, sip_error) }},
   {{ NULL, 0 }},
   sip_short_forms, 
-  127, 65, 
+  127, 
+#if SU_HAVE_EXPERIMENTAL
+  68,
+#else
+  66,
+#endif
   {
     { sip_in_reply_to_class, offsetof(sip_t, sip_in_reply_to) },
     { sip_from_class, offsetof(sip_t, sip_from),
       sip_mask_request | sip_mask_response },
     { sip_proxy_authenticate_class, offsetof(sip_t, sip_proxy_authenticate) },
-    { NULL, 0 },
+    { sip_refer_sub_class,
+      offsetof(struct msg_pub_extra, extra[0]) },
     { NULL, 0 },
     { sip_content_language_class, offsetof(sip_t, sip_content_language) },
     { NULL, 0 },
@@ -158,7 +173,12 @@ msg_mclass_t const sip_mclass[1] =
     { NULL, 0 },
     { NULL, 0 },
     { NULL, 0 },
+#if SU_HAVE_EXPERIMENTAL
+    { sip_suppress_notify_if_match_class,
+      offsetof(struct msg_pub_extra, extra[2]) },
+#else
     { NULL, 0 },
+#endif
     { NULL, 0 },
     { sip_proxy_authorization_class, offsetof(sip_t, sip_proxy_authorization),
       sip_mask_proxy },
@@ -228,7 +248,12 @@ msg_mclass_t const sip_mclass[1] =
     { sip_www_authenticate_class, offsetof(sip_t, sip_www_authenticate) },
     { sip_etag_class, offsetof(sip_t, sip_etag),
       sip_mask_publish },
+#if SU_HAVE_EXPERIMENTAL
+    { sip_suppress_body_if_match_class,
+      offsetof(struct msg_pub_extra, extra[1]) },
+#else
     { NULL, 0 },
+#endif
     { sip_rack_class, offsetof(sip_t, sip_rack),
       sip_mask_100rel },
     { sip_unsupported_class, offsetof(sip_t, sip_unsupported) },
