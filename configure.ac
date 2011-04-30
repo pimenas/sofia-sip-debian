@@ -2,7 +2,7 @@ dnl Copyright (C) 2005-2006 Nokia Corporation
 dnl Contact: Pekka Pessi <pekka.pessi@nokia.com>
 dnl Licensed under LGPL. See file COPYING.
 
-dnl 
+dnl
 dnl ref: http://www.gnu.org/software/autoconf/manual/autoconf.info.gz
 dnl
 AC_PREREQ(2.57)
@@ -11,7 +11,7 @@ dnl information on the package
 dnl ---------------------------
 
 dnl update both the version for AC_INIT and the LIBSOFIA_SIP_UA_MAJOR_MINOR
-AC_INIT([sofia-sip], [1.12.9])
+AC_INIT([sofia-sip], [1.12.10])
 AC_CONFIG_SRCDIR([libsofia-sip-ua/sip/sofia-sip/sip.h])
 AC_SUBST(VER_LIBSOFIA_SIP_UA_MAJOR_MINOR, [1.12])
 dnl Includedir specific to this sofia version
@@ -24,7 +24,7 @@ AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_CUR, [3])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_REV, [0])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_AGE, [0])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_SOVER, [3]) # CUR-AGE
-					    
+
 # dnl calls AC_CANONICAL_ macros that are required by AM_INIT_AUTOMAKE
 SAC_CANONICAL_SYSTEM_CACHE_CHECK
 
@@ -55,7 +55,7 @@ AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
 
 AC_ARG_WITH(doxygen,
 [  --with-doxygen[[=CMD]]    use doxygen command CMD [[doxygen]]],[
-case $enable_doxygen in 
+case $enable_doxygen in
 yes ) doxygen=doxygen ;;
 no ) doxygen=echo ;;
 esac], doxygen=doxygen)
@@ -150,6 +150,15 @@ AM_CONDITIONAL([HAVE_NTLM], [test "x$enable_ntlm" = xyes])
 AC_DEFINE([HAVE_SRTP], 0, [Define to 1 if we use SRTP])
 AC_DEFINE([HAVE_UPNP], 0, [Define to 1 if we use UPnP])
 
+
+AC_ARG_ENABLE(memleak_log,
+[  --enable-memleak-log    enable logging of possible memory leaks [[disabled]]],
+ , enable_memleak_log=no)
+
+if test x$enable_memleak_log = xyes ; then
+  AC_DEFINE([HAVE_MEMLEAK_LOG], 1, [Define to 1 for memory-leak-related logging])
+fi
+
 ### checks for header files
 ### -----------------------
 AC_HEADER_STDC
@@ -239,12 +248,12 @@ AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],
 if test $ac_cv_c_z_format = yes; then
   AC_DEFINE([MOD_ZD], ["%ld"], [Define printf() modifier for ssize_t])dnl
   AC_DEFINE([MOD_ZU], ["%lu"], [Define printf() modifier for size_t])dnl
-else 
+else
   dnl Cross fingers
   AC_MSG_WARN("printf cannot handle size_t, using long instead")
   AC_DEFINE([MOD_ZD], ["%ld"], [Define printf() modifier for ssize_t])dnl
   AC_DEFINE([MOD_ZU], ["%lu"], [Define printf() modifier for size_t])dnl
-fi 
+fi
 
 fi
 
@@ -315,7 +324,7 @@ libsofia-sip-ua/sip/Makefile
 libsofia-sip-ua/soa/Doxyfile
 libsofia-sip-ua/soa/Makefile
 libsofia-sip-ua/sresolv/Doxyfile
-libsofia-sip-ua/sresolv/Makefile 
+libsofia-sip-ua/sresolv/Makefile
 libsofia-sip-ua/stun/Doxyfile
 libsofia-sip-ua/stun/Makefile
 libsofia-sip-ua/su/Doxyfile

@@ -26,7 +26,7 @@
 /** Defined when <nua_dialog.h> has been included. */
 #define NUA_DIALOG_H
 
-/**@IFILE nua_dialog.h 
+/**@IFILE nua_dialog.h
  * @brief Dialog and dialog usage handling
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
@@ -42,7 +42,7 @@
 #endif
 
 typedef struct {
-  sip_method_t sm_method; 
+  sip_method_t sm_method;
   char const *sm_method_name;
 
   int sm_event;
@@ -80,7 +80,7 @@ struct nua_server_request {
   nua_dialog_usage_t *sr_usage;	/**< Backpointer to usage */
 
   nta_incoming_t *sr_irq;	/**< Server transaction object */
-  
+
   struct {
     msg_t *msg;			/**< Request message */
     sip_t const *sip;		/**< Headers in request message */
@@ -116,6 +116,7 @@ struct nua_server_request {
 
   unsigned sr_offer_sent:2;	/**< We have offered SDP (reliably, if >1) */
   unsigned sr_answer_recv:1;	/**< We have received SDP answer */
+
   unsigned :0;
 
   char const *sr_sdp;		/**< SDP received from client */
@@ -133,7 +134,7 @@ struct nua_server_request {
 
 #define SR_HAS_SAVED_SIGNAL(sr) ((sr)->sr_signal[0] != NULL)
 
-su_inline 
+su_inline
 int sr_status(nua_server_request_t *sr, int status, char const *phrase)
 {
   return (void)(sr->sr_phrase = phrase), (sr->sr_status = status);
@@ -160,7 +161,7 @@ typedef struct {
 		      msg_t **return_msg,
 		      tagi_t const *tags);
 
-  /**@a crm_init is called when a client request is sent first time. 
+  /**@a crm_init is called when a client request is sent first time.
    *
    * @retval 1 when request has been responded
    * @retval 0 when request should be sent in normal fashion
@@ -276,9 +277,11 @@ struct nua_client_request
   unsigned short      cr_retry_count;   /**< Retry count for this request */
 
   uint32_t            cr_seq;
-  
+
+  unsigned            cr_refs;	 /**< References to client request */
+
   /* Flags used with offer-answer */
-  unsigned short      cr_answer_recv;   /**< Recv answer in response 
+  unsigned short      cr_answer_recv;   /**< Recv answer in response
 					 *  with this status.
 					 */
   unsigned cr_offer_sent:1;	/**< Sent offer in this request */
@@ -296,14 +299,14 @@ struct nua_client_request
   unsigned cr_dialog:1;		/**< Request can initiate dialog */
 
   /* Current state */
+  unsigned cr_acked:1;		/**< Final response to the request has been ACKed */
   unsigned cr_waiting:1;	/**< Request is waiting */
   unsigned cr_challenged:1;	/**< Request was challenged */
   unsigned cr_wait_for_cred:1;	/**< Request is pending authentication */
-  unsigned cr_wait_for_timer:1;	/**< Request is waiting for a timer to expire  */
   unsigned cr_restarting:1;	/**< Request is being restarted */
   unsigned cr_reporting:1;	/**< Reporting in progress */
   unsigned cr_terminating:1;	/**< Request terminates the usage */
-  signed int cr_terminated:2;	/**< Response terminated usage (1) or 
+  signed int cr_terminated:2;	/**< Response terminated usage (1) or
 				    whole dialog (-1) */
   unsigned cr_graceful:1;	/**< Graceful termination required */
 };
@@ -345,11 +348,11 @@ struct nua_dialog_state
   sip_to_t const *ds_remote;		/**< Remote address */
   nta_leg_t      *ds_leg;
   sip_contact_t  *ds_ltarget;	        /**< Local target */
-  char const     *ds_remote_tag;	/**< Remote tag (if any). 
-					 * Should be non-NULL 
+  char const     *ds_remote_tag;	/**< Remote tag (if any).
+					 * Should be non-NULL
 					 * if dialog is established.
 					 */
-  
+
   struct nua_dialog_peer_info {
     sip_allow_t      *nr_allow;
     sip_accept_t     *nr_accept;
@@ -362,10 +365,10 @@ struct nua_dialog_state
 /* Virtual function pointer table for dialog usage. */
 typedef struct {
   unsigned usage_size, usage_class_size;
-  int (*usage_add)(nua_owner_t *, 
+  int (*usage_add)(nua_owner_t *,
 		   nua_dialog_state_t *ds,
 		   nua_dialog_usage_t *du);
-  void (*usage_remove)(nua_owner_t *, 
+  void (*usage_remove)(nua_owner_t *,
 		       nua_dialog_state_t *ds,
 		       nua_dialog_usage_t *du,
 		       nua_client_request_t *cr,
@@ -380,7 +383,7 @@ typedef struct {
 			  sip_t const *sip);
   void (*usage_refresh)(nua_owner_t *, nua_dialog_state_t *ds,
 			nua_dialog_usage_t *, sip_time_t now);
-  int (*usage_shutdown)(nua_owner_t *, nua_dialog_state_t *ds, 
+  int (*usage_shutdown)(nua_owner_t *, nua_dialog_state_t *ds,
 			nua_dialog_usage_t *);
 } nua_usage_class;
 
@@ -426,16 +429,16 @@ su_inline int nua_dialog_is_reporting(nua_dialog_state_t const *ds)
 
 char const *nua_dialog_usage_name(nua_dialog_usage_t const *du);
 
-nua_dialog_usage_t *nua_dialog_usage_add(nua_owner_t *, 
+nua_dialog_usage_t *nua_dialog_usage_add(nua_owner_t *,
 					 struct nua_dialog_state *ds,
 					 nua_usage_class const *uclass,
 					 sip_event_t const *event);
 
-nua_dialog_usage_t *nua_dialog_usage_get(nua_dialog_state_t const *ds, 
+nua_dialog_usage_t *nua_dialog_usage_get(nua_dialog_state_t const *ds,
 					 nua_usage_class const *uclass,
 					 sip_event_t const *event);
 
-void nua_dialog_usage_remove(nua_owner_t *, 
+void nua_dialog_usage_remove(nua_owner_t *,
 			     nua_dialog_state_t *ds,
 			     nua_dialog_usage_t *du,
 			     nua_client_request_t *cr,
@@ -461,17 +464,17 @@ int nua_dialog_repeat_shutdown(nua_owner_t *owner,
 
 void nua_dialog_usage_set_refresh(nua_dialog_usage_t *du, unsigned delta);
 
-void nua_dialog_usage_set_refresh_range(nua_dialog_usage_t *du, 
+void nua_dialog_usage_set_refresh_range(nua_dialog_usage_t *du,
 					unsigned min, unsigned max);
 
-void nua_dialog_usage_set_refresh_at(nua_dialog_usage_t *du, 
+void nua_dialog_usage_set_refresh_at(nua_dialog_usage_t *du,
 				     sip_time_t target);
 
 void nua_dialog_usage_reset_refresh(nua_dialog_usage_t *du);
 
 void nua_dialog_usage_refresh(nua_owner_t *owner,
 			      nua_dialog_state_t *ds,
-			      nua_dialog_usage_t *du, 
+			      nua_dialog_usage_t *du,
 			      sip_time_t now);
 
 int nua_dialog_usage_shutdown(nua_owner_t *owner,
@@ -511,20 +514,34 @@ int nua_client_create(nua_owner_t *owner,
 		      nua_client_methods_t const *methods,
 		      tagi_t const *tags);
 
-int nua_client_tcreate(nua_owner_t *nh, 
+int nua_client_tcreate(nua_owner_t *nh,
 		       int event,
 		       nua_client_methods_t const *methods,
 		       tag_type_t tag, tag_value_t value, ...);
 
-su_inline 
+su_inline
 void *nua_private_client_request(nua_client_request_t const *cr)
 {
   return (void *)(cr + 1);
 }
 
-void nua_client_request_complete(nua_client_request_t *);
+nua_client_request_t *nua_client_request_ref(nua_client_request_t *);
+int nua_client_request_unref(nua_client_request_t *);
 
-void nua_client_request_destroy(nua_client_request_t *);
+#if HAVE_MEMLEAK_LOG
+
+#define nua_client_request_ref(cr) \
+  nua_client_request_ref_by((cr), __FILE__, __LINE__, __func__)
+#define nua_client_request_unref(cr) \
+  nua_client_request_unref_by((cr), __FILE__, __LINE__, __func__)
+
+nua_client_request_t *nua_client_request_ref_by(nua_client_request_t *,
+						char const *file, unsigned line,
+						char const *who);
+int nua_client_request_unref_by(nua_client_request_t *,
+				char const *file, unsigned line, char const *who);
+
+#endif
 
 int nua_client_request_queue(nua_client_request_t *cr);
 
@@ -533,8 +550,8 @@ su_inline int nua_client_is_queued(nua_client_request_t const *cr)
   return cr && cr->cr_prev;
 }
 
-nua_client_request_t *nua_client_request_remove(nua_client_request_t *cr);
-
+int nua_client_request_remove(nua_client_request_t *cr);
+int nua_client_request_clean(nua_client_request_t *cr);
 int nua_client_bind(nua_client_request_t *cr, nua_dialog_usage_t *du);
 
 su_inline int nua_client_is_bound(nua_client_request_t const *cr)
@@ -548,9 +565,9 @@ su_inline int nua_client_is_reporting(nua_client_request_t const *cr)
 }
 
 /** Mark client request as a terminating one */
-su_inline void nua_client_terminating(nua_client_request_t *cr)
+su_inline void nua_client_set_terminating(nua_client_request_t *cr, int value)
 {
-  cr->cr_terminating = 1;
+  cr->cr_terminating = value != 0;
 }
 
 int nua_client_init_request(nua_client_request_t *cr);
@@ -638,14 +655,14 @@ extern nua_server_methods_t const
   nua_refer_server_methods,	/**< REFER */
   nua_publish_server_methods;	/**< PUBLISH */
 
-/** Return true if we have not sent final response to request */ 
-su_inline 
+/** Return true if we have not sent final response to request */
+su_inline
 int nua_server_request_is_pending(nua_server_request_t const *sr)
 {
   return sr && sr->sr_response.msg;
 }
 
-su_inline 
+su_inline
 int nua_server_request_status(nua_server_request_t const *sr)
 {
   return sr ? nta_incoming_status(sr->sr_irq) : 500;
@@ -678,7 +695,7 @@ int nua_base_server_respond(nua_server_request_t *sr,
 
 int nua_server_report(nua_server_request_t *sr);
 
-int nua_base_server_treport(nua_server_request_t *sr, 
+int nua_base_server_treport(nua_server_request_t *sr,
 			    tag_type_t tag, tag_value_t value, ...);
 int nua_base_server_report(nua_server_request_t *sr, tagi_t const *tags);
 

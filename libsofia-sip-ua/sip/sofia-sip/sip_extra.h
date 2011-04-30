@@ -164,18 +164,18 @@ struct sip_remote_party_id_s
 #define SIP_HAVE_REFER_SUB 1
 
 
-enum { 
-  /**@ingroup sip_refer_sub @internal 
+enum {
+  /**@ingroup sip_refer_sub @internal
    *
    * Hash of @ref sip_refer_sub "Refer-Sub header".
    *
    * @since New in @NEW_1_12_5.
    */
-  sip_refer_sub_hash = 14607 
+  sip_refer_sub_hash = 14607
 };
 
 /**Header class for @ref sip_refer_sub "Refer-Sub header".
- * 
+ *
  * The header class sip_refer_sub_class defines how a SIP
  * @ref sip_refer_sub "Refer-Sub header" is parsed and printed.
  * It also contains methods used by SIP parser and other functions to
@@ -202,22 +202,22 @@ SOFIAPUBFUN issize_t sip_refer_sub_e(char b[], isize_t bsiz,
 
 /**Access a SIP @ref sip_refer_sub "Refer-Sub header"
  * structure #sip_refer_sub_t from #sip_t.
- * 
+ *
  * @since New in @NEW_1_12_5.
  */
 #define sip_refer_sub(sip) \
   ((sip_refer_sub_t *)msg_header_access((msg_pub_t*)(sip), sip_refer_sub_class))
 
 /**Initializer for structure #sip_refer_sub_t.
- * 
+ *
  * A static #sip_refer_sub_t structure for
  * @ref sip_refer_sub "Refer-Sub header" must be initialized with
- * the SIP_REFER_SUB_INIT() macro. 
+ * the SIP_REFER_SUB_INIT() macro.
  * For instance,
- * @code 
- * 
+ * @code
+ *
  *  sip_refer_sub_t sip_refer_sub = SIP_REFER_SUB_INIT;
- * 
+ *
  * @endcode
  * @HI
  *
@@ -226,16 +226,16 @@ SOFIAPUBFUN issize_t sip_refer_sub_e(char b[], isize_t bsiz,
 #define SIP_REFER_SUB_INIT() SIP_HDR_INIT(refer_sub)
 
 /**Initialize a structure #sip_refer_sub_t.
- * 
+ *
  * An #sip_refer_sub_t structure for
  * @ref sip_refer_sub "Refer-Sub header" can be initialized with the
  * sip_refer_sub_init() function/macro. For instance,
  * @code
- * 
+ *
  *  sip_refer_sub_t sip_refer_sub;
- * 
+ *
  *  sip_refer_sub_init(&sip_refer_sub);
- * 
+ *
  * @endcode
  * @HI
  *
@@ -252,14 +252,14 @@ su_inline sip_refer_sub_t *sip_refer_sub_init(sip_refer_sub_t x[1])
 #endif
 
 /**Test if header object is instance of #sip_refer_sub_t.
- * 
+ *
  * Check if the header class is an instance of
  * @ref sip_refer_sub "Refer-Sub header" object and return true (nonzero),
  * otherwise return false (zero).
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
- * @retval 1 (true) if the @a header is an instance of header refer_sub 
+ *
+ * @retval 1 (true) if the @a header is an instance of header refer_sub
  * @retval 0 (false) otherwise
  *
  * @since New in @NEW_1_12_5.
@@ -277,27 +277,27 @@ int sip_is_refer_sub(sip_header_t const *header);
 
 
 /**Duplicate a list of @ref sip_refer_sub "Refer-Sub header" header structures #sip_refer_sub_t.
- * 
+ *
  * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
- * 
+ *
  * @param home  memory home used to allocate new structure
  * @param hdr   header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant
  * strings attached to the header are copied, too.  The
  * function uses given memory @a home to allocate all the
  * memory areas used to copy the header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   refer_sub = sip_refer_sub_dup(home, sip->sip_refer_sub);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to the
  * newly duplicated #sip_refer_sub_t header structure, or NULL
@@ -308,42 +308,42 @@ int sip_is_refer_sub(sip_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_refer_sub_t *sip_refer_sub_dup(su_home_t *home, sip_refer_sub_t const *hdr) 
+sip_refer_sub_t *sip_refer_sub_dup(su_home_t *home, sip_refer_sub_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
 sip_refer_sub_t *sip_refer_sub_dup(su_home_t *home, sip_refer_sub_t const *hdr)
-{ 
+{
   return (sip_refer_sub_t *)
     msg_header_dup_as(home, sip_refer_sub_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Copy a list of @ref sip_refer_sub "Refer-Sub header" header structures #sip_refer_sub_t.
- * 
+ *
  * The function sip_refer_sub_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
  * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param hdr     pointer to the header structure to be copied
- * 
+ *
  * When copying, only the header structure and parameter lists attached to
  * it are duplicated. The new header structure retains all the references to
  * the strings within the old @a hdr header, including the encoding of the
  * old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   refer_sub = sip_refer_sub_copy(home, sip->sip_refer_sub);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
  *
@@ -352,28 +352,28 @@ sip_refer_sub_t *sip_refer_sub_dup(su_home_t *home, sip_refer_sub_t const *hdr)
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_refer_sub_t *sip_refer_sub_copy(su_home_t *home, sip_refer_sub_t const *hdr) 
+sip_refer_sub_t *sip_refer_sub_copy(su_home_t *home, sip_refer_sub_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-sip_refer_sub_t *sip_refer_sub_copy(su_home_t *home, sip_refer_sub_t const *hdr) 
-{ 
+sip_refer_sub_t *sip_refer_sub_copy(su_home_t *home, sip_refer_sub_t const *hdr)
+{
   return (sip_refer_sub_t *)
-    msg_header_copy_as(home, sip_refer_sub_class, (msg_header_t const *)hdr); 
+    msg_header_copy_as(home, sip_refer_sub_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Make a @ref sip_refer_sub "Refer-Sub header" structure #sip_refer_sub_t.
- * 
+ *
  * The function sip_refer_sub_make() makes a new
  * #sip_refer_sub_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @return
  * A pointer to newly maked #sip_refer_sub_t header structure, or NULL upon an
  * error.
@@ -381,7 +381,7 @@ sip_refer_sub_t *sip_refer_sub_copy(su_home_t *home, sip_refer_sub_t const *hdr)
  * @since New in @NEW_1_12_5.
  */
 #if SU_HAVE_INLINE
-su_inline 
+su_inline
 #endif
 sip_refer_sub_t *sip_refer_sub_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
@@ -394,20 +394,20 @@ su_inline sip_refer_sub_t *sip_refer_sub_make(su_home_t *home, char const *s)
 #endif
 
 /**Make a @ref sip_refer_sub "Refer-Sub header" from formatting result.
- * 
- * Make a new #sip_refer_sub_t object using formatting result as its value. 
+ *
+ * Make a new #sip_refer_sub_t object using formatting result as its value.
  * The function first prints the arguments according to the format @a fmt
  * specified. Then it allocates a new header structure, and parses the
  * formatting result to the structure #sip_refer_sub_t.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @return
  * A pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  *
  * @since New in @NEW_1_12_5.
@@ -423,11 +423,11 @@ su_inline sip_refer_sub_t *sip_refer_sub_format(su_home_t *home, char const *fmt
 {
   sip_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = sip_header_vformat(home, sip_refer_sub_class, fmt, ap);
   va_end(ap);
- 
+
   return (sip_refer_sub_t *)h;
 }
 #endif
@@ -444,7 +444,7 @@ su_inline sip_refer_sub_t *sip_refer_sub_format(su_home_t *home, char const *fmt
  *
  * @param x pointer to a #sip_refer_sub_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REFER_SUB_REF().
  *
  * @since New in @NEW_1_12_5.
@@ -456,7 +456,7 @@ su_inline sip_refer_sub_t *sip_refer_sub_format(su_home_t *home, char const *fmt
 SOFIAPUBVAR tag_typedef_t siptag_refer_sub;
 
 /**@ingroup sip_refer_sub
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_refer_sub "Refer-Sub header" pointer.
  */
 #define SIPTAG_REFER_SUB_REF(x) siptag_refer_sub_ref, siptag_refer_sub_vr(&(x))
@@ -466,17 +466,17 @@ SOFIAPUBVAR tag_typedef_t siptag_refer_sub_ref;
  *
  * Tag list item for string with @ref sip_refer_sub "Refer-Sub header" value.
  *
- * The SIPTAG_REFER_SUB_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REFER_SUB_STR() macro is used to include a tag item with a
  * string containing value of a #sip_refer_sub_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_refer_sub "Refer-Sub header" value, or NULL.
  *
  * The string in SIPTAG_REFER_SUB_STR() can be converted to a
  * #sip_refer_sub_t header structure by giving the string @a s has
  * second argument to function sip_refer_sub_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REFER_SUB_STR_REF().
  *
  * @since New in @NEW_1_12_5.
@@ -510,18 +510,18 @@ siptag_refer_sub_vr(sip_refer_sub_t const **vp)
 #define SIP_HAVE_ALERT_INFO 1
 
 
-enum { 
-  /**@ingroup sip_alert_info @internal 
+enum {
+  /**@ingroup sip_alert_info @internal
    *
    * Hash of @ref sip_alert_info "Alert-Info header".
    *
    * @since New in @NEW_1_12_7.
    */
-  sip_alert_info_hash = 53913 
+  sip_alert_info_hash = 53913
 };
 
 /**Header class for @ref sip_alert_info "Alert-Info header".
- * 
+ *
  * The header class sip_alert_info_class defines how a SIP
  * @ref sip_alert_info "Alert-Info header" is parsed and printed.
  * It also contains methods used by SIP parser and other functions to
@@ -548,22 +548,22 @@ SOFIAPUBFUN issize_t sip_alert_info_e(char b[], isize_t bsiz,
 
 /**Access a SIP @ref sip_alert_info "Alert-Info header"
  * structure #sip_alert_info_t from #sip_t.
- * 
+ *
  * @since New in @NEW_1_12_7.
  */
 #define sip_alert_info(sip) \
   ((sip_alert_info_t *)msg_header_access((msg_pub_t*)(sip), sip_alert_info_class))
 
 /**Initializer for structure #sip_alert_info_t.
- * 
+ *
  * A static #sip_alert_info_t structure for
  * @ref sip_alert_info "Alert-Info header" must be initialized with
- * the SIP_ALERT_INFO_INIT() macro. 
+ * the SIP_ALERT_INFO_INIT() macro.
  * For instance,
- * @code 
- * 
+ * @code
+ *
  *  sip_alert_info_t sip_alert_info = SIP_ALERT_INFO_INIT;
- * 
+ *
  * @endcode
  * @HI
  *
@@ -572,16 +572,16 @@ SOFIAPUBFUN issize_t sip_alert_info_e(char b[], isize_t bsiz,
 #define SIP_ALERT_INFO_INIT() SIP_HDR_INIT(alert_info)
 
 /**Initialize a structure #sip_alert_info_t.
- * 
+ *
  * An #sip_alert_info_t structure for
  * @ref sip_alert_info "Alert-Info header" can be initialized with the
  * sip_alert_info_init() function/macro. For instance,
  * @code
- * 
+ *
  *  sip_alert_info_t sip_alert_info;
- * 
+ *
  *  sip_alert_info_init(&sip_alert_info);
- * 
+ *
  * @endcode
  * @HI
  *
@@ -598,14 +598,14 @@ su_inline sip_alert_info_t *sip_alert_info_init(sip_alert_info_t x[1])
 #endif
 
 /**Test if header object is instance of #sip_alert_info_t.
- * 
+ *
  * Check if the header class is an instance of
  * @ref sip_alert_info "Alert-Info header" object and return true (nonzero),
  * otherwise return false (zero).
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
- * @retval 1 (true) if the @a header is an instance of header alert_info 
+ *
+ * @retval 1 (true) if the @a header is an instance of header alert_info
  * @retval 0 (false) otherwise
  *
  * @since New in @NEW_1_12_7.
@@ -623,27 +623,27 @@ int sip_is_alert_info(sip_header_t const *header);
 
 
 /**Duplicate a list of @ref sip_alert_info "Alert-Info header" header structures #sip_alert_info_t.
- * 
+ *
  * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
- * 
+ *
  * @param home  memory home used to allocate new structure
  * @param hdr   header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant
  * strings attached to the header are copied, too.  The
  * function uses given memory @a home to allocate all the
  * memory areas used to copy the header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   alert_info = sip_alert_info_dup(home, sip->sip_alert_info);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to the
  * newly duplicated #sip_alert_info_t header structure, or NULL
@@ -654,42 +654,42 @@ int sip_is_alert_info(sip_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_alert_info_t *sip_alert_info_dup(su_home_t *home, sip_alert_info_t const *hdr) 
+sip_alert_info_t *sip_alert_info_dup(su_home_t *home, sip_alert_info_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
 sip_alert_info_t *sip_alert_info_dup(su_home_t *home, sip_alert_info_t const *hdr)
-{ 
+{
   return (sip_alert_info_t *)
     msg_header_dup_as(home, sip_alert_info_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Copy a list of @ref sip_alert_info "Alert-Info header" header structures #sip_alert_info_t.
- * 
+ *
  * The function sip_alert_info_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
  * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param hdr     pointer to the header structure to be copied
- * 
+ *
  * When copying, only the header structure and parameter lists attached to
  * it are duplicated. The new header structure retains all the references to
  * the strings within the old @a hdr header, including the encoding of the
  * old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   alert_info = sip_alert_info_copy(home, sip->sip_alert_info);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
  *
@@ -698,28 +698,28 @@ sip_alert_info_t *sip_alert_info_dup(su_home_t *home, sip_alert_info_t const *hd
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_alert_info_t *sip_alert_info_copy(su_home_t *home, sip_alert_info_t const *hdr) 
+sip_alert_info_t *sip_alert_info_copy(su_home_t *home, sip_alert_info_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-sip_alert_info_t *sip_alert_info_copy(su_home_t *home, sip_alert_info_t const *hdr) 
-{ 
+sip_alert_info_t *sip_alert_info_copy(su_home_t *home, sip_alert_info_t const *hdr)
+{
   return (sip_alert_info_t *)
-    msg_header_copy_as(home, sip_alert_info_class, (msg_header_t const *)hdr); 
+    msg_header_copy_as(home, sip_alert_info_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Make a @ref sip_alert_info "Alert-Info header" structure #sip_alert_info_t.
- * 
+ *
  * The function sip_alert_info_make() makes a new
  * #sip_alert_info_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @return
  * A pointer to newly maked #sip_alert_info_t header structure, or NULL upon an
  * error.
@@ -727,7 +727,7 @@ sip_alert_info_t *sip_alert_info_copy(su_home_t *home, sip_alert_info_t const *h
  * @since New in @NEW_1_12_7.
  */
 #if SU_HAVE_INLINE
-su_inline 
+su_inline
 #endif
 sip_alert_info_t *sip_alert_info_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
@@ -740,20 +740,20 @@ su_inline sip_alert_info_t *sip_alert_info_make(su_home_t *home, char const *s)
 #endif
 
 /**Make a @ref sip_alert_info "Alert-Info header" from formatting result.
- * 
- * Make a new #sip_alert_info_t object using formatting result as its value. 
+ *
+ * Make a new #sip_alert_info_t object using formatting result as its value.
  * The function first prints the arguments according to the format @a fmt
  * specified. Then it allocates a new header structure, and parses the
  * formatting result to the structure #sip_alert_info_t.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @return
  * A pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  *
  * @since New in @NEW_1_12_7.
@@ -769,11 +769,11 @@ su_inline sip_alert_info_t *sip_alert_info_format(su_home_t *home, char const *f
 {
   sip_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = sip_header_vformat(home, sip_alert_info_class, fmt, ap);
   va_end(ap);
- 
+
   return (sip_alert_info_t *)h;
 }
 #endif
@@ -790,7 +790,7 @@ su_inline sip_alert_info_t *sip_alert_info_format(su_home_t *home, char const *f
  *
  * @param x pointer to a #sip_alert_info_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ALERT_INFO_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -802,7 +802,7 @@ su_inline sip_alert_info_t *sip_alert_info_format(su_home_t *home, char const *f
 SOFIAPUBVAR tag_typedef_t siptag_alert_info;
 
 /**@ingroup sip_alert_info
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_alert_info "Alert-Info header" pointer.
  */
 #define SIPTAG_ALERT_INFO_REF(x) siptag_alert_info_ref, siptag_alert_info_vr(&(x))
@@ -812,17 +812,17 @@ SOFIAPUBVAR tag_typedef_t siptag_alert_info_ref;
  *
  * Tag list item for string with @ref sip_alert_info "Alert-Info header" value.
  *
- * The SIPTAG_ALERT_INFO_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ALERT_INFO_STR() macro is used to include a tag item with a
  * string containing value of a #sip_alert_info_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_alert_info "Alert-Info header" value, or NULL.
  *
  * The string in SIPTAG_ALERT_INFO_STR() can be converted to a
  * #sip_alert_info_t header structure by giving the string @a s has
  * second argument to function sip_alert_info_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ALERT_INFO_STR_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -856,18 +856,18 @@ siptag_alert_info_vr(sip_alert_info_t const **vp)
 #define SIP_HAVE_REPLY_TO 1
 
 
-enum { 
-  /**@ingroup sip_reply_to @internal 
+enum {
+  /**@ingroup sip_reply_to @internal
    *
    * Hash of @ref sip_reply_to "Reply-To header".
    *
    * @since New in @NEW_1_12_7.
    */
-  sip_reply_to_hash = 38016 
+  sip_reply_to_hash = 38016
 };
 
 /**Header class for @ref sip_reply_to "Reply-To header".
- * 
+ *
  * The header class sip_reply_to_class defines how a SIP
  * @ref sip_reply_to "Reply-To header" is parsed and printed.
  * It also contains methods used by SIP parser and other functions to
@@ -894,22 +894,22 @@ SOFIAPUBFUN issize_t sip_reply_to_e(char b[], isize_t bsiz,
 
 /**Access a SIP @ref sip_reply_to "Reply-To header"
  * structure #sip_reply_to_t from #sip_t.
- * 
+ *
  * @since New in @NEW_1_12_7.
  */
 #define sip_reply_to(sip) \
   ((sip_reply_to_t *)msg_header_access((msg_pub_t*)(sip), sip_reply_to_class))
 
 /**Initializer for structure #sip_reply_to_t.
- * 
+ *
  * A static #sip_reply_to_t structure for
  * @ref sip_reply_to "Reply-To header" must be initialized with
- * the SIP_REPLY_TO_INIT() macro. 
+ * the SIP_REPLY_TO_INIT() macro.
  * For instance,
- * @code 
- * 
+ * @code
+ *
  *  sip_reply_to_t sip_reply_to = SIP_REPLY_TO_INIT;
- * 
+ *
  * @endcode
  * @HI
  *
@@ -918,16 +918,16 @@ SOFIAPUBFUN issize_t sip_reply_to_e(char b[], isize_t bsiz,
 #define SIP_REPLY_TO_INIT() SIP_HDR_INIT(reply_to)
 
 /**Initialize a structure #sip_reply_to_t.
- * 
+ *
  * An #sip_reply_to_t structure for
  * @ref sip_reply_to "Reply-To header" can be initialized with the
  * sip_reply_to_init() function/macro. For instance,
  * @code
- * 
+ *
  *  sip_reply_to_t sip_reply_to;
- * 
+ *
  *  sip_reply_to_init(&sip_reply_to);
- * 
+ *
  * @endcode
  * @HI
  *
@@ -944,14 +944,14 @@ su_inline sip_reply_to_t *sip_reply_to_init(sip_reply_to_t x[1])
 #endif
 
 /**Test if header object is instance of #sip_reply_to_t.
- * 
+ *
  * Check if the header class is an instance of
  * @ref sip_reply_to "Reply-To header" object and return true (nonzero),
  * otherwise return false (zero).
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
- * @retval 1 (true) if the @a header is an instance of header reply_to 
+ *
+ * @retval 1 (true) if the @a header is an instance of header reply_to
  * @retval 0 (false) otherwise
  *
  * @since New in @NEW_1_12_7.
@@ -969,27 +969,27 @@ int sip_is_reply_to(sip_header_t const *header);
 
 
 /**Duplicate a list of @ref sip_reply_to "Reply-To header" header structures #sip_reply_to_t.
- * 
+ *
  * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
- * 
+ *
  * @param home  memory home used to allocate new structure
  * @param hdr   header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant
  * strings attached to the header are copied, too.  The
  * function uses given memory @a home to allocate all the
  * memory areas used to copy the header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   reply_to = sip_reply_to_dup(home, sip->sip_reply_to);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to the
  * newly duplicated #sip_reply_to_t header structure, or NULL
@@ -1000,42 +1000,42 @@ int sip_is_reply_to(sip_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_reply_to_t *sip_reply_to_dup(su_home_t *home, sip_reply_to_t const *hdr) 
+sip_reply_to_t *sip_reply_to_dup(su_home_t *home, sip_reply_to_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
 sip_reply_to_t *sip_reply_to_dup(su_home_t *home, sip_reply_to_t const *hdr)
-{ 
+{
   return (sip_reply_to_t *)
     msg_header_dup_as(home, sip_reply_to_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Copy a list of @ref sip_reply_to "Reply-To header" header structures #sip_reply_to_t.
- * 
+ *
  * The function sip_reply_to_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
  * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param hdr     pointer to the header structure to be copied
- * 
+ *
  * When copying, only the header structure and parameter lists attached to
  * it are duplicated. The new header structure retains all the references to
  * the strings within the old @a hdr header, including the encoding of the
  * old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   reply_to = sip_reply_to_copy(home, sip->sip_reply_to);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
  *
@@ -1044,28 +1044,28 @@ sip_reply_to_t *sip_reply_to_dup(su_home_t *home, sip_reply_to_t const *hdr)
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_reply_to_t *sip_reply_to_copy(su_home_t *home, sip_reply_to_t const *hdr) 
+sip_reply_to_t *sip_reply_to_copy(su_home_t *home, sip_reply_to_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-sip_reply_to_t *sip_reply_to_copy(su_home_t *home, sip_reply_to_t const *hdr) 
-{ 
+sip_reply_to_t *sip_reply_to_copy(su_home_t *home, sip_reply_to_t const *hdr)
+{
   return (sip_reply_to_t *)
-    msg_header_copy_as(home, sip_reply_to_class, (msg_header_t const *)hdr); 
+    msg_header_copy_as(home, sip_reply_to_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Make a @ref sip_reply_to "Reply-To header" structure #sip_reply_to_t.
- * 
+ *
  * The function sip_reply_to_make() makes a new
  * #sip_reply_to_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @return
  * A pointer to newly maked #sip_reply_to_t header structure, or NULL upon an
  * error.
@@ -1073,7 +1073,7 @@ sip_reply_to_t *sip_reply_to_copy(su_home_t *home, sip_reply_to_t const *hdr)
  * @since New in @NEW_1_12_7.
  */
 #if SU_HAVE_INLINE
-su_inline 
+su_inline
 #endif
 sip_reply_to_t *sip_reply_to_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
@@ -1086,20 +1086,20 @@ su_inline sip_reply_to_t *sip_reply_to_make(su_home_t *home, char const *s)
 #endif
 
 /**Make a @ref sip_reply_to "Reply-To header" from formatting result.
- * 
- * Make a new #sip_reply_to_t object using formatting result as its value. 
+ *
+ * Make a new #sip_reply_to_t object using formatting result as its value.
  * The function first prints the arguments according to the format @a fmt
  * specified. Then it allocates a new header structure, and parses the
  * formatting result to the structure #sip_reply_to_t.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @return
  * A pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  *
  * @since New in @NEW_1_12_7.
@@ -1115,11 +1115,11 @@ su_inline sip_reply_to_t *sip_reply_to_format(su_home_t *home, char const *fmt, 
 {
   sip_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = sip_header_vformat(home, sip_reply_to_class, fmt, ap);
   va_end(ap);
- 
+
   return (sip_reply_to_t *)h;
 }
 #endif
@@ -1136,7 +1136,7 @@ su_inline sip_reply_to_t *sip_reply_to_format(su_home_t *home, char const *fmt, 
  *
  * @param x pointer to a #sip_reply_to_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REPLY_TO_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -1148,7 +1148,7 @@ su_inline sip_reply_to_t *sip_reply_to_format(su_home_t *home, char const *fmt, 
 SOFIAPUBVAR tag_typedef_t siptag_reply_to;
 
 /**@ingroup sip_reply_to
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_reply_to "Reply-To header" pointer.
  */
 #define SIPTAG_REPLY_TO_REF(x) siptag_reply_to_ref, siptag_reply_to_vr(&(x))
@@ -1158,17 +1158,17 @@ SOFIAPUBVAR tag_typedef_t siptag_reply_to_ref;
  *
  * Tag list item for string with @ref sip_reply_to "Reply-To header" value.
  *
- * The SIPTAG_REPLY_TO_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REPLY_TO_STR() macro is used to include a tag item with a
  * string containing value of a #sip_reply_to_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_reply_to "Reply-To header" value, or NULL.
  *
  * The string in SIPTAG_REPLY_TO_STR() can be converted to a
  * #sip_reply_to_t header structure by giving the string @a s has
  * second argument to function sip_reply_to_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REPLY_TO_STR_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -1202,18 +1202,18 @@ siptag_reply_to_vr(sip_reply_to_t const **vp)
 #define SIP_HAVE_REMOTE_PARTY_ID 1
 
 
-enum { 
-  /**@ingroup sip_remote_party_id @internal 
+enum {
+  /**@ingroup sip_remote_party_id @internal
    *
    * Hash of @ref sip_remote_party_id "Remote-Party-ID header".
    *
    * @since New in @NEW_1_12_7.
    */
-  sip_remote_party_id_hash = 59907 
+  sip_remote_party_id_hash = 59907
 };
 
 /**Header class for @ref sip_remote_party_id "Remote-Party-ID header".
- * 
+ *
  * The header class sip_remote_party_id_class defines how a SIP
  * @ref sip_remote_party_id "Remote-Party-ID header" is parsed and printed.
  * It also contains methods used by SIP parser and other functions to
@@ -1240,22 +1240,22 @@ SOFIAPUBFUN issize_t sip_remote_party_id_e(char b[], isize_t bsiz,
 
 /**Access a SIP @ref sip_remote_party_id "Remote-Party-ID header"
  * structure #sip_remote_party_id_t from #sip_t.
- * 
+ *
  * @since New in @NEW_1_12_7.
  */
 #define sip_remote_party_id(sip) \
   ((sip_remote_party_id_t *)msg_header_access((msg_pub_t*)(sip), sip_remote_party_id_class))
 
 /**Initializer for structure #sip_remote_party_id_t.
- * 
+ *
  * A static #sip_remote_party_id_t structure for
  * @ref sip_remote_party_id "Remote-Party-ID header" must be initialized with
- * the SIP_REMOTE_PARTY_ID_INIT() macro. 
+ * the SIP_REMOTE_PARTY_ID_INIT() macro.
  * For instance,
- * @code 
- * 
+ * @code
+ *
  *  sip_remote_party_id_t sip_remote_party_id = SIP_REMOTE_PARTY_ID_INIT;
- * 
+ *
  * @endcode
  * @HI
  *
@@ -1264,16 +1264,16 @@ SOFIAPUBFUN issize_t sip_remote_party_id_e(char b[], isize_t bsiz,
 #define SIP_REMOTE_PARTY_ID_INIT() SIP_HDR_INIT(remote_party_id)
 
 /**Initialize a structure #sip_remote_party_id_t.
- * 
+ *
  * An #sip_remote_party_id_t structure for
  * @ref sip_remote_party_id "Remote-Party-ID header" can be initialized with the
  * sip_remote_party_id_init() function/macro. For instance,
  * @code
- * 
+ *
  *  sip_remote_party_id_t sip_remote_party_id;
- * 
+ *
  *  sip_remote_party_id_init(&sip_remote_party_id);
- * 
+ *
  * @endcode
  * @HI
  *
@@ -1290,14 +1290,14 @@ su_inline sip_remote_party_id_t *sip_remote_party_id_init(sip_remote_party_id_t 
 #endif
 
 /**Test if header object is instance of #sip_remote_party_id_t.
- * 
+ *
  * Check if the header class is an instance of
  * @ref sip_remote_party_id "Remote-Party-ID header" object and return true (nonzero),
  * otherwise return false (zero).
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
- * @retval 1 (true) if the @a header is an instance of header remote_party_id 
+ *
+ * @retval 1 (true) if the @a header is an instance of header remote_party_id
  * @retval 0 (false) otherwise
  *
  * @since New in @NEW_1_12_7.
@@ -1315,27 +1315,27 @@ int sip_is_remote_party_id(sip_header_t const *header);
 
 
 /**Duplicate a list of @ref sip_remote_party_id "Remote-Party-ID header" header structures #sip_remote_party_id_t.
- * 
+ *
  * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
- * 
+ *
  * @param home  memory home used to allocate new structure
  * @param hdr   header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant
  * strings attached to the header are copied, too.  The
  * function uses given memory @a home to allocate all the
  * memory areas used to copy the header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   remote_party_id = sip_remote_party_id_dup(home, sip->sip_remote_party_id);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to the
  * newly duplicated #sip_remote_party_id_t header structure, or NULL
@@ -1346,42 +1346,42 @@ int sip_is_remote_party_id(sip_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_remote_party_id_t *sip_remote_party_id_dup(su_home_t *home, sip_remote_party_id_t const *hdr) 
+sip_remote_party_id_t *sip_remote_party_id_dup(su_home_t *home, sip_remote_party_id_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
 sip_remote_party_id_t *sip_remote_party_id_dup(su_home_t *home, sip_remote_party_id_t const *hdr)
-{ 
+{
   return (sip_remote_party_id_t *)
     msg_header_dup_as(home, sip_remote_party_id_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Copy a list of @ref sip_remote_party_id "Remote-Party-ID header" header structures #sip_remote_party_id_t.
- * 
+ *
  * The function sip_remote_party_id_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
  * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param hdr     pointer to the header structure to be copied
- * 
+ *
  * When copying, only the header structure and parameter lists attached to
  * it are duplicated. The new header structure retains all the references to
  * the strings within the old @a hdr header, including the encoding of the
  * old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   remote_party_id = sip_remote_party_id_copy(home, sip->sip_remote_party_id);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
  *
@@ -1390,28 +1390,28 @@ sip_remote_party_id_t *sip_remote_party_id_dup(su_home_t *home, sip_remote_party
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_remote_party_id_t *sip_remote_party_id_copy(su_home_t *home, sip_remote_party_id_t const *hdr) 
+sip_remote_party_id_t *sip_remote_party_id_copy(su_home_t *home, sip_remote_party_id_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-sip_remote_party_id_t *sip_remote_party_id_copy(su_home_t *home, sip_remote_party_id_t const *hdr) 
-{ 
+sip_remote_party_id_t *sip_remote_party_id_copy(su_home_t *home, sip_remote_party_id_t const *hdr)
+{
   return (sip_remote_party_id_t *)
-    msg_header_copy_as(home, sip_remote_party_id_class, (msg_header_t const *)hdr); 
+    msg_header_copy_as(home, sip_remote_party_id_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Make a @ref sip_remote_party_id "Remote-Party-ID header" structure #sip_remote_party_id_t.
- * 
+ *
  * The function sip_remote_party_id_make() makes a new
  * #sip_remote_party_id_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @return
  * A pointer to newly maked #sip_remote_party_id_t header structure, or NULL upon an
  * error.
@@ -1419,7 +1419,7 @@ sip_remote_party_id_t *sip_remote_party_id_copy(su_home_t *home, sip_remote_part
  * @since New in @NEW_1_12_7.
  */
 #if SU_HAVE_INLINE
-su_inline 
+su_inline
 #endif
 sip_remote_party_id_t *sip_remote_party_id_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
@@ -1432,20 +1432,20 @@ su_inline sip_remote_party_id_t *sip_remote_party_id_make(su_home_t *home, char 
 #endif
 
 /**Make a @ref sip_remote_party_id "Remote-Party-ID header" from formatting result.
- * 
- * Make a new #sip_remote_party_id_t object using formatting result as its value. 
+ *
+ * Make a new #sip_remote_party_id_t object using formatting result as its value.
  * The function first prints the arguments according to the format @a fmt
  * specified. Then it allocates a new header structure, and parses the
  * formatting result to the structure #sip_remote_party_id_t.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @return
  * A pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  *
  * @since New in @NEW_1_12_7.
@@ -1461,11 +1461,11 @@ su_inline sip_remote_party_id_t *sip_remote_party_id_format(su_home_t *home, cha
 {
   sip_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = sip_header_vformat(home, sip_remote_party_id_class, fmt, ap);
   va_end(ap);
- 
+
   return (sip_remote_party_id_t *)h;
 }
 #endif
@@ -1482,7 +1482,7 @@ su_inline sip_remote_party_id_t *sip_remote_party_id_format(su_home_t *home, cha
  *
  * @param x pointer to a #sip_remote_party_id_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REMOTE_PARTY_ID_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -1494,7 +1494,7 @@ su_inline sip_remote_party_id_t *sip_remote_party_id_format(su_home_t *home, cha
 SOFIAPUBVAR tag_typedef_t siptag_remote_party_id;
 
 /**@ingroup sip_remote_party_id
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_remote_party_id "Remote-Party-ID header" pointer.
  */
 #define SIPTAG_REMOTE_PARTY_ID_REF(x) siptag_remote_party_id_ref, siptag_remote_party_id_vr(&(x))
@@ -1504,17 +1504,17 @@ SOFIAPUBVAR tag_typedef_t siptag_remote_party_id_ref;
  *
  * Tag list item for string with @ref sip_remote_party_id "Remote-Party-ID header" value.
  *
- * The SIPTAG_REMOTE_PARTY_ID_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REMOTE_PARTY_ID_STR() macro is used to include a tag item with a
  * string containing value of a #sip_remote_party_id_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_remote_party_id "Remote-Party-ID header" value, or NULL.
  *
  * The string in SIPTAG_REMOTE_PARTY_ID_STR() can be converted to a
  * #sip_remote_party_id_t header structure by giving the string @a s has
  * second argument to function sip_remote_party_id_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REMOTE_PARTY_ID_STR_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -1548,18 +1548,18 @@ siptag_remote_party_id_vr(sip_remote_party_id_t const **vp)
 #define SIP_HAVE_P_ASSERTED_IDENTITY 1
 
 
-enum { 
-  /**@ingroup sip_p_asserted_identity @internal 
+enum {
+  /**@ingroup sip_p_asserted_identity @internal
    *
    * Hash of @ref sip_p_asserted_identity "P-Asserted-Identity header".
    *
    * @since New in @NEW_1_12_7.
    */
-  sip_p_asserted_identity_hash = 16399 
+  sip_p_asserted_identity_hash = 16399
 };
 
 /**Header class for @ref sip_p_asserted_identity "P-Asserted-Identity header".
- * 
+ *
  * The header class sip_p_asserted_identity_class defines how a SIP
  * @ref sip_p_asserted_identity "P-Asserted-Identity header" is parsed and printed.
  * It also contains methods used by SIP parser and other functions to
@@ -1586,22 +1586,22 @@ SOFIAPUBFUN issize_t sip_p_asserted_identity_e(char b[], isize_t bsiz,
 
 /**Access a SIP @ref sip_p_asserted_identity "P-Asserted-Identity header"
  * structure #sip_p_asserted_identity_t from #sip_t.
- * 
+ *
  * @since New in @NEW_1_12_7.
  */
 #define sip_p_asserted_identity(sip) \
   ((sip_p_asserted_identity_t *)msg_header_access((msg_pub_t*)(sip), sip_p_asserted_identity_class))
 
 /**Initializer for structure #sip_p_asserted_identity_t.
- * 
+ *
  * A static #sip_p_asserted_identity_t structure for
  * @ref sip_p_asserted_identity "P-Asserted-Identity header" must be initialized with
- * the SIP_P_ASSERTED_IDENTITY_INIT() macro. 
+ * the SIP_P_ASSERTED_IDENTITY_INIT() macro.
  * For instance,
- * @code 
- * 
+ * @code
+ *
  *  sip_p_asserted_identity_t sip_p_asserted_identity = SIP_P_ASSERTED_IDENTITY_INIT;
- * 
+ *
  * @endcode
  * @HI
  *
@@ -1610,16 +1610,16 @@ SOFIAPUBFUN issize_t sip_p_asserted_identity_e(char b[], isize_t bsiz,
 #define SIP_P_ASSERTED_IDENTITY_INIT() SIP_HDR_INIT(p_asserted_identity)
 
 /**Initialize a structure #sip_p_asserted_identity_t.
- * 
+ *
  * An #sip_p_asserted_identity_t structure for
  * @ref sip_p_asserted_identity "P-Asserted-Identity header" can be initialized with the
  * sip_p_asserted_identity_init() function/macro. For instance,
  * @code
- * 
+ *
  *  sip_p_asserted_identity_t sip_p_asserted_identity;
- * 
+ *
  *  sip_p_asserted_identity_init(&sip_p_asserted_identity);
- * 
+ *
  * @endcode
  * @HI
  *
@@ -1636,14 +1636,14 @@ su_inline sip_p_asserted_identity_t *sip_p_asserted_identity_init(sip_p_asserted
 #endif
 
 /**Test if header object is instance of #sip_p_asserted_identity_t.
- * 
+ *
  * Check if the header class is an instance of
  * @ref sip_p_asserted_identity "P-Asserted-Identity header" object and return true (nonzero),
  * otherwise return false (zero).
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
- * @retval 1 (true) if the @a header is an instance of header p_asserted_identity 
+ *
+ * @retval 1 (true) if the @a header is an instance of header p_asserted_identity
  * @retval 0 (false) otherwise
  *
  * @since New in @NEW_1_12_7.
@@ -1661,27 +1661,27 @@ int sip_is_p_asserted_identity(sip_header_t const *header);
 
 
 /**Duplicate a list of @ref sip_p_asserted_identity "P-Asserted-Identity header" header structures #sip_p_asserted_identity_t.
- * 
+ *
  * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
- * 
+ *
  * @param home  memory home used to allocate new structure
  * @param hdr   header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant
  * strings attached to the header are copied, too.  The
  * function uses given memory @a home to allocate all the
  * memory areas used to copy the header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   p_asserted_identity = sip_p_asserted_identity_dup(home, sip->sip_p_asserted_identity);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to the
  * newly duplicated #sip_p_asserted_identity_t header structure, or NULL
@@ -1692,42 +1692,42 @@ int sip_is_p_asserted_identity(sip_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_p_asserted_identity_t *sip_p_asserted_identity_dup(su_home_t *home, sip_p_asserted_identity_t const *hdr) 
+sip_p_asserted_identity_t *sip_p_asserted_identity_dup(su_home_t *home, sip_p_asserted_identity_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
 sip_p_asserted_identity_t *sip_p_asserted_identity_dup(su_home_t *home, sip_p_asserted_identity_t const *hdr)
-{ 
+{
   return (sip_p_asserted_identity_t *)
     msg_header_dup_as(home, sip_p_asserted_identity_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Copy a list of @ref sip_p_asserted_identity "P-Asserted-Identity header" header structures #sip_p_asserted_identity_t.
- * 
+ *
  * The function sip_p_asserted_identity_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
  * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param hdr     pointer to the header structure to be copied
- * 
+ *
  * When copying, only the header structure and parameter lists attached to
  * it are duplicated. The new header structure retains all the references to
  * the strings within the old @a hdr header, including the encoding of the
  * old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   p_asserted_identity = sip_p_asserted_identity_copy(home, sip->sip_p_asserted_identity);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
  *
@@ -1736,28 +1736,28 @@ sip_p_asserted_identity_t *sip_p_asserted_identity_dup(su_home_t *home, sip_p_as
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_p_asserted_identity_t *sip_p_asserted_identity_copy(su_home_t *home, sip_p_asserted_identity_t const *hdr) 
+sip_p_asserted_identity_t *sip_p_asserted_identity_copy(su_home_t *home, sip_p_asserted_identity_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-sip_p_asserted_identity_t *sip_p_asserted_identity_copy(su_home_t *home, sip_p_asserted_identity_t const *hdr) 
-{ 
+sip_p_asserted_identity_t *sip_p_asserted_identity_copy(su_home_t *home, sip_p_asserted_identity_t const *hdr)
+{
   return (sip_p_asserted_identity_t *)
-    msg_header_copy_as(home, sip_p_asserted_identity_class, (msg_header_t const *)hdr); 
+    msg_header_copy_as(home, sip_p_asserted_identity_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Make a @ref sip_p_asserted_identity "P-Asserted-Identity header" structure #sip_p_asserted_identity_t.
- * 
+ *
  * The function sip_p_asserted_identity_make() makes a new
  * #sip_p_asserted_identity_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @return
  * A pointer to newly maked #sip_p_asserted_identity_t header structure, or NULL upon an
  * error.
@@ -1765,7 +1765,7 @@ sip_p_asserted_identity_t *sip_p_asserted_identity_copy(su_home_t *home, sip_p_a
  * @since New in @NEW_1_12_7.
  */
 #if SU_HAVE_INLINE
-su_inline 
+su_inline
 #endif
 sip_p_asserted_identity_t *sip_p_asserted_identity_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
@@ -1778,20 +1778,20 @@ su_inline sip_p_asserted_identity_t *sip_p_asserted_identity_make(su_home_t *hom
 #endif
 
 /**Make a @ref sip_p_asserted_identity "P-Asserted-Identity header" from formatting result.
- * 
- * Make a new #sip_p_asserted_identity_t object using formatting result as its value. 
+ *
+ * Make a new #sip_p_asserted_identity_t object using formatting result as its value.
  * The function first prints the arguments according to the format @a fmt
  * specified. Then it allocates a new header structure, and parses the
  * formatting result to the structure #sip_p_asserted_identity_t.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @return
  * A pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  *
  * @since New in @NEW_1_12_7.
@@ -1807,11 +1807,11 @@ su_inline sip_p_asserted_identity_t *sip_p_asserted_identity_format(su_home_t *h
 {
   sip_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = sip_header_vformat(home, sip_p_asserted_identity_class, fmt, ap);
   va_end(ap);
- 
+
   return (sip_p_asserted_identity_t *)h;
 }
 #endif
@@ -1828,7 +1828,7 @@ su_inline sip_p_asserted_identity_t *sip_p_asserted_identity_format(su_home_t *h
  *
  * @param x pointer to a #sip_p_asserted_identity_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_P_ASSERTED_IDENTITY_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -1840,7 +1840,7 @@ su_inline sip_p_asserted_identity_t *sip_p_asserted_identity_format(su_home_t *h
 SOFIAPUBVAR tag_typedef_t siptag_p_asserted_identity;
 
 /**@ingroup sip_p_asserted_identity
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_p_asserted_identity "P-Asserted-Identity header" pointer.
  */
 #define SIPTAG_P_ASSERTED_IDENTITY_REF(x) siptag_p_asserted_identity_ref, siptag_p_asserted_identity_vr(&(x))
@@ -1850,17 +1850,17 @@ SOFIAPUBVAR tag_typedef_t siptag_p_asserted_identity_ref;
  *
  * Tag list item for string with @ref sip_p_asserted_identity "P-Asserted-Identity header" value.
  *
- * The SIPTAG_P_ASSERTED_IDENTITY_STR() macro is used to include a tag item with a 
+ * The SIPTAG_P_ASSERTED_IDENTITY_STR() macro is used to include a tag item with a
  * string containing value of a #sip_p_asserted_identity_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_p_asserted_identity "P-Asserted-Identity header" value, or NULL.
  *
  * The string in SIPTAG_P_ASSERTED_IDENTITY_STR() can be converted to a
  * #sip_p_asserted_identity_t header structure by giving the string @a s has
  * second argument to function sip_p_asserted_identity_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_P_ASSERTED_IDENTITY_STR_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -1894,18 +1894,18 @@ siptag_p_asserted_identity_vr(sip_p_asserted_identity_t const **vp)
 #define SIP_HAVE_P_PREFERRED_IDENTITY 1
 
 
-enum { 
-  /**@ingroup sip_p_preferred_identity @internal 
+enum {
+  /**@ingroup sip_p_preferred_identity @internal
    *
    * Hash of @ref sip_p_preferred_identity "P-Preferred-Identity header".
    *
    * @since New in @NEW_1_12_7.
    */
-  sip_p_preferred_identity_hash = 44591 
+  sip_p_preferred_identity_hash = 44591
 };
 
 /**Header class for @ref sip_p_preferred_identity "P-Preferred-Identity header".
- * 
+ *
  * The header class sip_p_preferred_identity_class defines how a SIP
  * @ref sip_p_preferred_identity "P-Preferred-Identity header" is parsed and printed.
  * It also contains methods used by SIP parser and other functions to
@@ -1932,22 +1932,22 @@ SOFIAPUBFUN issize_t sip_p_preferred_identity_e(char b[], isize_t bsiz,
 
 /**Access a SIP @ref sip_p_preferred_identity "P-Preferred-Identity header"
  * structure #sip_p_preferred_identity_t from #sip_t.
- * 
+ *
  * @since New in @NEW_1_12_7.
  */
 #define sip_p_preferred_identity(sip) \
   ((sip_p_preferred_identity_t *)msg_header_access((msg_pub_t*)(sip), sip_p_preferred_identity_class))
 
 /**Initializer for structure #sip_p_preferred_identity_t.
- * 
+ *
  * A static #sip_p_preferred_identity_t structure for
  * @ref sip_p_preferred_identity "P-Preferred-Identity header" must be initialized with
- * the SIP_P_PREFERRED_IDENTITY_INIT() macro. 
+ * the SIP_P_PREFERRED_IDENTITY_INIT() macro.
  * For instance,
- * @code 
- * 
+ * @code
+ *
  *  sip_p_preferred_identity_t sip_p_preferred_identity = SIP_P_PREFERRED_IDENTITY_INIT;
- * 
+ *
  * @endcode
  * @HI
  *
@@ -1956,16 +1956,16 @@ SOFIAPUBFUN issize_t sip_p_preferred_identity_e(char b[], isize_t bsiz,
 #define SIP_P_PREFERRED_IDENTITY_INIT() SIP_HDR_INIT(p_preferred_identity)
 
 /**Initialize a structure #sip_p_preferred_identity_t.
- * 
+ *
  * An #sip_p_preferred_identity_t structure for
  * @ref sip_p_preferred_identity "P-Preferred-Identity header" can be initialized with the
  * sip_p_preferred_identity_init() function/macro. For instance,
  * @code
- * 
+ *
  *  sip_p_preferred_identity_t sip_p_preferred_identity;
- * 
+ *
  *  sip_p_preferred_identity_init(&sip_p_preferred_identity);
- * 
+ *
  * @endcode
  * @HI
  *
@@ -1982,14 +1982,14 @@ su_inline sip_p_preferred_identity_t *sip_p_preferred_identity_init(sip_p_prefer
 #endif
 
 /**Test if header object is instance of #sip_p_preferred_identity_t.
- * 
+ *
  * Check if the header class is an instance of
  * @ref sip_p_preferred_identity "P-Preferred-Identity header" object and return true (nonzero),
  * otherwise return false (zero).
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
- * @retval 1 (true) if the @a header is an instance of header p_preferred_identity 
+ *
+ * @retval 1 (true) if the @a header is an instance of header p_preferred_identity
  * @retval 0 (false) otherwise
  *
  * @since New in @NEW_1_12_7.
@@ -2007,27 +2007,27 @@ int sip_is_p_preferred_identity(sip_header_t const *header);
 
 
 /**Duplicate a list of @ref sip_p_preferred_identity "P-Preferred-Identity header" header structures #sip_p_preferred_identity_t.
- * 
+ *
  * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
- * 
+ *
  * @param home  memory home used to allocate new structure
  * @param hdr   header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant
  * strings attached to the header are copied, too.  The
  * function uses given memory @a home to allocate all the
  * memory areas used to copy the header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   p_preferred_identity = sip_p_preferred_identity_dup(home, sip->sip_p_preferred_identity);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to the
  * newly duplicated #sip_p_preferred_identity_t header structure, or NULL
@@ -2038,42 +2038,42 @@ int sip_is_p_preferred_identity(sip_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_p_preferred_identity_t *sip_p_preferred_identity_dup(su_home_t *home, sip_p_preferred_identity_t const *hdr) 
+sip_p_preferred_identity_t *sip_p_preferred_identity_dup(su_home_t *home, sip_p_preferred_identity_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
 sip_p_preferred_identity_t *sip_p_preferred_identity_dup(su_home_t *home, sip_p_preferred_identity_t const *hdr)
-{ 
+{
   return (sip_p_preferred_identity_t *)
     msg_header_dup_as(home, sip_p_preferred_identity_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Copy a list of @ref sip_p_preferred_identity "P-Preferred-Identity header" header structures #sip_p_preferred_identity_t.
- * 
+ *
  * The function sip_p_preferred_identity_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
  * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param hdr     pointer to the header structure to be copied
- * 
+ *
  * When copying, only the header structure and parameter lists attached to
  * it are duplicated. The new header structure retains all the references to
  * the strings within the old @a hdr header, including the encoding of the
  * old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   p_preferred_identity = sip_p_preferred_identity_copy(home, sip->sip_p_preferred_identity);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
  *
@@ -2082,28 +2082,28 @@ sip_p_preferred_identity_t *sip_p_preferred_identity_dup(su_home_t *home, sip_p_
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_p_preferred_identity_t *sip_p_preferred_identity_copy(su_home_t *home, sip_p_preferred_identity_t const *hdr) 
+sip_p_preferred_identity_t *sip_p_preferred_identity_copy(su_home_t *home, sip_p_preferred_identity_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-sip_p_preferred_identity_t *sip_p_preferred_identity_copy(su_home_t *home, sip_p_preferred_identity_t const *hdr) 
-{ 
+sip_p_preferred_identity_t *sip_p_preferred_identity_copy(su_home_t *home, sip_p_preferred_identity_t const *hdr)
+{
   return (sip_p_preferred_identity_t *)
-    msg_header_copy_as(home, sip_p_preferred_identity_class, (msg_header_t const *)hdr); 
+    msg_header_copy_as(home, sip_p_preferred_identity_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Make a @ref sip_p_preferred_identity "P-Preferred-Identity header" structure #sip_p_preferred_identity_t.
- * 
+ *
  * The function sip_p_preferred_identity_make() makes a new
  * #sip_p_preferred_identity_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @return
  * A pointer to newly maked #sip_p_preferred_identity_t header structure, or NULL upon an
  * error.
@@ -2111,7 +2111,7 @@ sip_p_preferred_identity_t *sip_p_preferred_identity_copy(su_home_t *home, sip_p
  * @since New in @NEW_1_12_7.
  */
 #if SU_HAVE_INLINE
-su_inline 
+su_inline
 #endif
 sip_p_preferred_identity_t *sip_p_preferred_identity_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
@@ -2124,20 +2124,20 @@ su_inline sip_p_preferred_identity_t *sip_p_preferred_identity_make(su_home_t *h
 #endif
 
 /**Make a @ref sip_p_preferred_identity "P-Preferred-Identity header" from formatting result.
- * 
- * Make a new #sip_p_preferred_identity_t object using formatting result as its value. 
+ *
+ * Make a new #sip_p_preferred_identity_t object using formatting result as its value.
  * The function first prints the arguments according to the format @a fmt
  * specified. Then it allocates a new header structure, and parses the
  * formatting result to the structure #sip_p_preferred_identity_t.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @return
  * A pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  *
  * @since New in @NEW_1_12_7.
@@ -2153,11 +2153,11 @@ su_inline sip_p_preferred_identity_t *sip_p_preferred_identity_format(su_home_t 
 {
   sip_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = sip_header_vformat(home, sip_p_preferred_identity_class, fmt, ap);
   va_end(ap);
- 
+
   return (sip_p_preferred_identity_t *)h;
 }
 #endif
@@ -2174,7 +2174,7 @@ su_inline sip_p_preferred_identity_t *sip_p_preferred_identity_format(su_home_t 
  *
  * @param x pointer to a #sip_p_preferred_identity_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_P_PREFERRED_IDENTITY_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -2186,7 +2186,7 @@ su_inline sip_p_preferred_identity_t *sip_p_preferred_identity_format(su_home_t 
 SOFIAPUBVAR tag_typedef_t siptag_p_preferred_identity;
 
 /**@ingroup sip_p_preferred_identity
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_p_preferred_identity "P-Preferred-Identity header" pointer.
  */
 #define SIPTAG_P_PREFERRED_IDENTITY_REF(x) siptag_p_preferred_identity_ref, siptag_p_preferred_identity_vr(&(x))
@@ -2196,17 +2196,17 @@ SOFIAPUBVAR tag_typedef_t siptag_p_preferred_identity_ref;
  *
  * Tag list item for string with @ref sip_p_preferred_identity "P-Preferred-Identity header" value.
  *
- * The SIPTAG_P_PREFERRED_IDENTITY_STR() macro is used to include a tag item with a 
+ * The SIPTAG_P_PREFERRED_IDENTITY_STR() macro is used to include a tag item with a
  * string containing value of a #sip_p_preferred_identity_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_p_preferred_identity "P-Preferred-Identity header" value, or NULL.
  *
  * The string in SIPTAG_P_PREFERRED_IDENTITY_STR() can be converted to a
  * #sip_p_preferred_identity_t header structure by giving the string @a s has
  * second argument to function sip_p_preferred_identity_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_P_PREFERRED_IDENTITY_STR_REF().
  *
  * @since New in @NEW_1_12_7.
@@ -2241,18 +2241,18 @@ siptag_p_preferred_identity_vr(sip_p_preferred_identity_t const **vp)
 #define SIP_HAVE_SUPPRESS_BODY_IF_MATCH 1
 
 
-enum { 
-  /**@ingroup sip_suppress_body_if_match @internal 
+enum {
+  /**@ingroup sip_suppress_body_if_match @internal
    *
    * Hash of @ref sip_suppress_body_if_match "Suppress-Body-If-Match header".
    *
    * @since New in @EXP_1_12_5.
    */
-  sip_suppress_body_if_match_hash = 49874 
+  sip_suppress_body_if_match_hash = 49874
 };
 
 /**Header class for @ref sip_suppress_body_if_match "Suppress-Body-If-Match header".
- * 
+ *
  * The header class sip_suppress_body_if_match_class defines how a SIP
  * @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" is parsed and printed.
  * It also contains methods used by SIP parser and other functions to
@@ -2279,22 +2279,22 @@ SOFIAPUBFUN issize_t sip_suppress_body_if_match_e(char b[], isize_t bsiz,
 
 /**Access a SIP @ref sip_suppress_body_if_match "Suppress-Body-If-Match header"
  * structure #sip_suppress_body_if_match_t from #sip_t.
- * 
+ *
  * @since New in @EXP_1_12_5.
  */
 #define sip_suppress_body_if_match(sip) \
   ((sip_suppress_body_if_match_t *)msg_header_access((msg_pub_t*)(sip), sip_suppress_body_if_match_class))
 
 /**Initializer for structure #sip_suppress_body_if_match_t.
- * 
+ *
  * A static #sip_suppress_body_if_match_t structure for
  * @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" must be initialized with
- * the SIP_SUPPRESS_BODY_IF_MATCH_INIT() macro. 
+ * the SIP_SUPPRESS_BODY_IF_MATCH_INIT() macro.
  * For instance,
- * @code 
- * 
+ * @code
+ *
  *  sip_suppress_body_if_match_t sip_suppress_body_if_match = SIP_SUPPRESS_BODY_IF_MATCH_INIT;
- * 
+ *
  * @endcode
  * @HI
  *
@@ -2303,16 +2303,16 @@ SOFIAPUBFUN issize_t sip_suppress_body_if_match_e(char b[], isize_t bsiz,
 #define SIP_SUPPRESS_BODY_IF_MATCH_INIT() SIP_HDR_INIT(suppress_body_if_match)
 
 /**Initialize a structure #sip_suppress_body_if_match_t.
- * 
+ *
  * An #sip_suppress_body_if_match_t structure for
  * @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" can be initialized with the
  * sip_suppress_body_if_match_init() function/macro. For instance,
  * @code
- * 
+ *
  *  sip_suppress_body_if_match_t sip_suppress_body_if_match;
- * 
+ *
  *  sip_suppress_body_if_match_init(&sip_suppress_body_if_match);
- * 
+ *
  * @endcode
  * @HI
  *
@@ -2329,14 +2329,14 @@ su_inline sip_suppress_body_if_match_t *sip_suppress_body_if_match_init(sip_supp
 #endif
 
 /**Test if header object is instance of #sip_suppress_body_if_match_t.
- * 
+ *
  * Check if the header class is an instance of
  * @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" object and return true (nonzero),
  * otherwise return false (zero).
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
- * @retval 1 (true) if the @a header is an instance of header suppress_body_if_match 
+ *
+ * @retval 1 (true) if the @a header is an instance of header suppress_body_if_match
  * @retval 0 (false) otherwise
  *
  * @since New in @EXP_1_12_5.
@@ -2354,27 +2354,27 @@ int sip_is_suppress_body_if_match(sip_header_t const *header);
 
 
 /**Duplicate a list of @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" header structures #sip_suppress_body_if_match_t.
- * 
+ *
  * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
- * 
+ *
  * @param home  memory home used to allocate new structure
  * @param hdr   header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant
  * strings attached to the header are copied, too.  The
  * function uses given memory @a home to allocate all the
  * memory areas used to copy the header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   suppress_body_if_match = sip_suppress_body_if_match_dup(home, sip->sip_suppress_body_if_match);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to the
  * newly duplicated #sip_suppress_body_if_match_t header structure, or NULL
@@ -2385,42 +2385,42 @@ int sip_is_suppress_body_if_match(sip_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_suppress_body_if_match_t *sip_suppress_body_if_match_dup(su_home_t *home, sip_suppress_body_if_match_t const *hdr) 
+sip_suppress_body_if_match_t *sip_suppress_body_if_match_dup(su_home_t *home, sip_suppress_body_if_match_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
 sip_suppress_body_if_match_t *sip_suppress_body_if_match_dup(su_home_t *home, sip_suppress_body_if_match_t const *hdr)
-{ 
+{
   return (sip_suppress_body_if_match_t *)
     msg_header_dup_as(home, sip_suppress_body_if_match_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Copy a list of @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" header structures #sip_suppress_body_if_match_t.
- * 
+ *
  * The function sip_suppress_body_if_match_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
  * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param hdr     pointer to the header structure to be copied
- * 
+ *
  * When copying, only the header structure and parameter lists attached to
  * it are duplicated. The new header structure retains all the references to
  * the strings within the old @a hdr header, including the encoding of the
  * old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   suppress_body_if_match = sip_suppress_body_if_match_copy(home, sip->sip_suppress_body_if_match);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
  *
@@ -2429,28 +2429,28 @@ sip_suppress_body_if_match_t *sip_suppress_body_if_match_dup(su_home_t *home, si
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_suppress_body_if_match_t *sip_suppress_body_if_match_copy(su_home_t *home, sip_suppress_body_if_match_t const *hdr) 
+sip_suppress_body_if_match_t *sip_suppress_body_if_match_copy(su_home_t *home, sip_suppress_body_if_match_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-sip_suppress_body_if_match_t *sip_suppress_body_if_match_copy(su_home_t *home, sip_suppress_body_if_match_t const *hdr) 
-{ 
+sip_suppress_body_if_match_t *sip_suppress_body_if_match_copy(su_home_t *home, sip_suppress_body_if_match_t const *hdr)
+{
   return (sip_suppress_body_if_match_t *)
-    msg_header_copy_as(home, sip_suppress_body_if_match_class, (msg_header_t const *)hdr); 
+    msg_header_copy_as(home, sip_suppress_body_if_match_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Make a @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" structure #sip_suppress_body_if_match_t.
- * 
+ *
  * The function sip_suppress_body_if_match_make() makes a new
  * #sip_suppress_body_if_match_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @return
  * A pointer to newly maked #sip_suppress_body_if_match_t header structure, or NULL upon an
  * error.
@@ -2458,7 +2458,7 @@ sip_suppress_body_if_match_t *sip_suppress_body_if_match_copy(su_home_t *home, s
  * @since New in @EXP_1_12_5.
  */
 #if SU_HAVE_INLINE
-su_inline 
+su_inline
 #endif
 sip_suppress_body_if_match_t *sip_suppress_body_if_match_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
@@ -2471,20 +2471,20 @@ su_inline sip_suppress_body_if_match_t *sip_suppress_body_if_match_make(su_home_
 #endif
 
 /**Make a @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" from formatting result.
- * 
- * Make a new #sip_suppress_body_if_match_t object using formatting result as its value. 
+ *
+ * Make a new #sip_suppress_body_if_match_t object using formatting result as its value.
  * The function first prints the arguments according to the format @a fmt
  * specified. Then it allocates a new header structure, and parses the
  * formatting result to the structure #sip_suppress_body_if_match_t.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @return
  * A pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  *
  * @since New in @EXP_1_12_5.
@@ -2500,11 +2500,11 @@ su_inline sip_suppress_body_if_match_t *sip_suppress_body_if_match_format(su_hom
 {
   sip_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = sip_header_vformat(home, sip_suppress_body_if_match_class, fmt, ap);
   va_end(ap);
- 
+
   return (sip_suppress_body_if_match_t *)h;
 }
 #endif
@@ -2521,7 +2521,7 @@ su_inline sip_suppress_body_if_match_t *sip_suppress_body_if_match_format(su_hom
  *
  * @param x pointer to a #sip_suppress_body_if_match_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUPPRESS_BODY_IF_MATCH_REF().
  *
  * @since New in @EXP_1_12_5.
@@ -2533,7 +2533,7 @@ su_inline sip_suppress_body_if_match_t *sip_suppress_body_if_match_format(su_hom
 SOFIAPUBVAR tag_typedef_t siptag_suppress_body_if_match;
 
 /**@ingroup sip_suppress_body_if_match
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" pointer.
  */
 #define SIPTAG_SUPPRESS_BODY_IF_MATCH_REF(x) siptag_suppress_body_if_match_ref, siptag_suppress_body_if_match_vr(&(x))
@@ -2543,17 +2543,17 @@ SOFIAPUBVAR tag_typedef_t siptag_suppress_body_if_match_ref;
  *
  * Tag list item for string with @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" value.
  *
- * The SIPTAG_SUPPRESS_BODY_IF_MATCH_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SUPPRESS_BODY_IF_MATCH_STR() macro is used to include a tag item with a
  * string containing value of a #sip_suppress_body_if_match_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_suppress_body_if_match "Suppress-Body-If-Match header" value, or NULL.
  *
  * The string in SIPTAG_SUPPRESS_BODY_IF_MATCH_STR() can be converted to a
  * #sip_suppress_body_if_match_t header structure by giving the string @a s has
  * second argument to function sip_suppress_body_if_match_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUPPRESS_BODY_IF_MATCH_STR_REF().
  *
  * @since New in @EXP_1_12_5.
@@ -2589,18 +2589,18 @@ siptag_suppress_body_if_match_vr(sip_suppress_body_if_match_t const **vp)
 #define SIP_HAVE_SUPPRESS_NOTIFY_IF_MATCH 1
 
 
-enum { 
-  /**@ingroup sip_suppress_notify_if_match @internal 
+enum {
+  /**@ingroup sip_suppress_notify_if_match @internal
    *
    * Hash of @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header".
    *
    * @since New in @EXP_1_12_5.
    */
-  sip_suppress_notify_if_match_hash = 51341 
+  sip_suppress_notify_if_match_hash = 51341
 };
 
 /**Header class for @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header".
- * 
+ *
  * The header class sip_suppress_notify_if_match_class defines how a SIP
  * @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" is parsed and printed.
  * It also contains methods used by SIP parser and other functions to
@@ -2627,22 +2627,22 @@ SOFIAPUBFUN issize_t sip_suppress_notify_if_match_e(char b[], isize_t bsiz,
 
 /**Access a SIP @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header"
  * structure #sip_suppress_notify_if_match_t from #sip_t.
- * 
+ *
  * @since New in @EXP_1_12_5.
  */
 #define sip_suppress_notify_if_match(sip) \
   ((sip_suppress_notify_if_match_t *)msg_header_access((msg_pub_t*)(sip), sip_suppress_notify_if_match_class))
 
 /**Initializer for structure #sip_suppress_notify_if_match_t.
- * 
+ *
  * A static #sip_suppress_notify_if_match_t structure for
  * @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" must be initialized with
- * the SIP_SUPPRESS_NOTIFY_IF_MATCH_INIT() macro. 
+ * the SIP_SUPPRESS_NOTIFY_IF_MATCH_INIT() macro.
  * For instance,
- * @code 
- * 
+ * @code
+ *
  *  sip_suppress_notify_if_match_t sip_suppress_notify_if_match = SIP_SUPPRESS_NOTIFY_IF_MATCH_INIT;
- * 
+ *
  * @endcode
  * @HI
  *
@@ -2651,16 +2651,16 @@ SOFIAPUBFUN issize_t sip_suppress_notify_if_match_e(char b[], isize_t bsiz,
 #define SIP_SUPPRESS_NOTIFY_IF_MATCH_INIT() SIP_HDR_INIT(suppress_notify_if_match)
 
 /**Initialize a structure #sip_suppress_notify_if_match_t.
- * 
+ *
  * An #sip_suppress_notify_if_match_t structure for
  * @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" can be initialized with the
  * sip_suppress_notify_if_match_init() function/macro. For instance,
  * @code
- * 
+ *
  *  sip_suppress_notify_if_match_t sip_suppress_notify_if_match;
- * 
+ *
  *  sip_suppress_notify_if_match_init(&sip_suppress_notify_if_match);
- * 
+ *
  * @endcode
  * @HI
  *
@@ -2677,14 +2677,14 @@ su_inline sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_init(sip_
 #endif
 
 /**Test if header object is instance of #sip_suppress_notify_if_match_t.
- * 
+ *
  * Check if the header class is an instance of
  * @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" object and return true (nonzero),
  * otherwise return false (zero).
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
- * @retval 1 (true) if the @a header is an instance of header suppress_notify_if_match 
+ *
+ * @retval 1 (true) if the @a header is an instance of header suppress_notify_if_match
  * @retval 0 (false) otherwise
  *
  * @since New in @EXP_1_12_5.
@@ -2702,27 +2702,27 @@ int sip_is_suppress_notify_if_match(sip_header_t const *header);
 
 
 /**Duplicate a list of @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" header structures #sip_suppress_notify_if_match_t.
- * 
+ *
  * Duplicate a header
  * structure @a hdr.  If the header structure @a hdr
  * contains a reference (@c hdr->x_next) to a list of
  * headers, all the headers in the list are duplicated, too.
- * 
+ *
  * @param home  memory home used to allocate new structure
  * @param hdr   header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant
  * strings attached to the header are copied, too.  The
  * function uses given memory @a home to allocate all the
  * memory areas used to copy the header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   suppress_notify_if_match = sip_suppress_notify_if_match_dup(home, sip->sip_suppress_notify_if_match);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to the
  * newly duplicated #sip_suppress_notify_if_match_t header structure, or NULL
@@ -2733,42 +2733,42 @@ int sip_is_suppress_notify_if_match(sip_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_dup(su_home_t *home, sip_suppress_notify_if_match_t const *hdr) 
+sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_dup(su_home_t *home, sip_suppress_notify_if_match_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
 sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_dup(su_home_t *home, sip_suppress_notify_if_match_t const *hdr)
-{ 
+{
   return (sip_suppress_notify_if_match_t *)
     msg_header_dup_as(home, sip_suppress_notify_if_match_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Copy a list of @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" header structures #sip_suppress_notify_if_match_t.
- * 
+ *
  * The function sip_suppress_notify_if_match_copy() copies a header structure @a
  * hdr.  If the header structure @a hdr contains a reference (@c
  * hdr->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home
  * to allocate all the memory areas used to copy the list of header
  * structure @a hdr.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param hdr     pointer to the header structure to be copied
- * 
+ *
  * When copying, only the header structure and parameter lists attached to
  * it are duplicated. The new header structure retains all the references to
  * the strings within the old @a hdr header, including the encoding of the
  * old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   suppress_notify_if_match = sip_suppress_notify_if_match_copy(home, sip->sip_suppress_notify_if_match);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * A pointer to newly copied header structure, or NULL upon an error.
  *
@@ -2777,28 +2777,28 @@ sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_dup(su_home_t *home
 #if SU_HAVE_INLINE
 su_inline
 #endif
-sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_copy(su_home_t *home, sip_suppress_notify_if_match_t const *hdr) 
+sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_copy(su_home_t *home, sip_suppress_notify_if_match_t const *hdr)
      __attribute__((__malloc__));
 
 #if SU_HAVE_INLINE
 su_inline
-sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_copy(su_home_t *home, sip_suppress_notify_if_match_t const *hdr) 
-{ 
+sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_copy(su_home_t *home, sip_suppress_notify_if_match_t const *hdr)
+{
   return (sip_suppress_notify_if_match_t *)
-    msg_header_copy_as(home, sip_suppress_notify_if_match_class, (msg_header_t const *)hdr); 
+    msg_header_copy_as(home, sip_suppress_notify_if_match_class, (msg_header_t const *)hdr);
 }
 #endif
 
 /**Make a @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" structure #sip_suppress_notify_if_match_t.
- * 
+ *
  * The function sip_suppress_notify_if_match_make() makes a new
  * #sip_suppress_notify_if_match_t header structure.  It allocates a new
  * header structure, and decodes the string @a s as the
  * value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @return
  * A pointer to newly maked #sip_suppress_notify_if_match_t header structure, or NULL upon an
  * error.
@@ -2806,7 +2806,7 @@ sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_copy(su_home_t *hom
  * @since New in @EXP_1_12_5.
  */
 #if SU_HAVE_INLINE
-su_inline 
+su_inline
 #endif
 sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_make(su_home_t *home, char const *s)
      __attribute__((__malloc__));
@@ -2819,20 +2819,20 @@ su_inline sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_make(su_h
 #endif
 
 /**Make a @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" from formatting result.
- * 
- * Make a new #sip_suppress_notify_if_match_t object using formatting result as its value. 
+ *
+ * Make a new #sip_suppress_notify_if_match_t object using formatting result as its value.
  * The function first prints the arguments according to the format @a fmt
  * specified. Then it allocates a new header structure, and parses the
  * formatting result to the structure #sip_suppress_notify_if_match_t.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @return
  * A pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  *
  * @since New in @EXP_1_12_5.
@@ -2848,11 +2848,11 @@ su_inline sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_format(su
 {
   sip_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = sip_header_vformat(home, sip_suppress_notify_if_match_class, fmt, ap);
   va_end(ap);
- 
+
   return (sip_suppress_notify_if_match_t *)h;
 }
 #endif
@@ -2869,7 +2869,7 @@ su_inline sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_format(su
  *
  * @param x pointer to a #sip_suppress_notify_if_match_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUPPRESS_NOTIFY_IF_MATCH_REF().
  *
  * @since New in @EXP_1_12_5.
@@ -2881,7 +2881,7 @@ su_inline sip_suppress_notify_if_match_t *sip_suppress_notify_if_match_format(su
 SOFIAPUBVAR tag_typedef_t siptag_suppress_notify_if_match;
 
 /**@ingroup sip_suppress_notify_if_match
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" pointer.
  */
 #define SIPTAG_SUPPRESS_NOTIFY_IF_MATCH_REF(x) siptag_suppress_notify_if_match_ref, siptag_suppress_notify_if_match_vr(&(x))
@@ -2891,17 +2891,17 @@ SOFIAPUBVAR tag_typedef_t siptag_suppress_notify_if_match_ref;
  *
  * Tag list item for string with @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" value.
  *
- * The SIPTAG_SUPPRESS_NOTIFY_IF_MATCH_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SUPPRESS_NOTIFY_IF_MATCH_STR() macro is used to include a tag item with a
  * string containing value of a #sip_suppress_notify_if_match_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_suppress_notify_if_match "Suppress-Notify-If-Match header" value, or NULL.
  *
  * The string in SIPTAG_SUPPRESS_NOTIFY_IF_MATCH_STR() can be converted to a
  * #sip_suppress_notify_if_match_t header structure by giving the string @a s has
  * second argument to function sip_suppress_notify_if_match_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUPPRESS_NOTIFY_IF_MATCH_STR_REF().
  *
  * @since New in @EXP_1_12_5.

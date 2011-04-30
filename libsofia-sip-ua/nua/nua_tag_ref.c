@@ -101,6 +101,9 @@ EXPORT tag_typedef_t nutag_session_refresher_ref =
 extern tag_typedef_t nutag_update_refresh;
 EXPORT tag_typedef_t nutag_update_refresh_ref = 
   REFTAG_TYPEDEF(nutag_update_refresh);
+extern tag_typedef_t nutag_refresh_without_sdp;
+EXPORT tag_typedef_t nutag_refresh_without_sdp_ref = 
+  REFTAG_TYPEDEF(nutag_refresh_without_sdp);
 extern tag_typedef_t nutag_refer_expires;
 EXPORT tag_typedef_t nutag_refer_expires_ref = 
   REFTAG_TYPEDEF(nutag_refer_expires);
@@ -364,6 +367,7 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_callstate,
   nutag_autoack,
   nutag_offer_sent,
+  nutag_refresh_without_sdp,
   nutag_sub_expires,
   nutag_autoalert,
   NULL

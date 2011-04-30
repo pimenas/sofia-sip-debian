@@ -21,7 +21,7 @@
 # Contact: Pekka Pessi <pekka.pessi@nokia.com>
 # Licensed under LGPL. See file COPYING.
 
-# 
+#
 # Generate lcov output
 #
 
@@ -848,7 +848,7 @@ built-sources clean-built-sources valcheck doxygen:
 @HAVE_LCOV_TRUE@	rm -rf $$odir ; mkdir -p $$odir && \
 @HAVE_LCOV_TRUE@	${LCOV_REPORT} ${GENHTML_OPTIONS} \
 @HAVE_LCOV_TRUE@          --title "${PACKAGE_NAME}-${PACKAGE_VERSION}$$sub" \
-@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir 
+@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir
 
 # Rerun checks before generating report
 @HAVE_LCOV_TRUE@lcov-rerun: clean-lcov

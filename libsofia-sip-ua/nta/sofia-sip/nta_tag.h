@@ -26,7 +26,7 @@
 /** Defined when <sofia-sip/nta_tag.h> has been included. */
 #define NTA_TAG_H
 
-/**@file sofia-sip/nta_tag.h   
+/**@file sofia-sip/nta_tag.h
  * @brief NTA tags
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
@@ -142,7 +142,7 @@ NTA_DLL extern tag_typedef_t ntatag_smime;
 
 NTA_DLL extern tag_typedef_t ntatag_smime_ref;
 #define NTATAG_SMIME_REF(x) ntatag_smime_ref, tag_ptr_vr(&(x), (x))
- 
+
 NTA_DLL extern tag_typedef_t ntatag_maxsize;
 #define NTATAG_MAXSIZE(x) ntatag_maxsize, tag_usize_v((x))
 
@@ -341,13 +341,13 @@ NTA_DLL extern tag_typedef_t ntatag_rel100;
 
 NTA_DLL extern tag_typedef_t ntatag_rel100_ref;
 #define NTATAG_REL100_REF(x) ntatag_rel100_ref, tag_bool_vr(&(x))
- 
+
 NTA_DLL extern tag_typedef_t ntatag_sipflags;
 #define NTATAG_SIPFLAGS(x)     ntatag_sipflags, tag_uint_v((x))
 
 NTA_DLL extern tag_typedef_t ntatag_sipflags_ref;
 #define NTATAG_SIPFLAGS_REF(x) ntatag_sipflags_ref, tag_uint_vr(&(x))
- 
+
 NTA_DLL extern tag_typedef_t ntatag_client_rport;
 #define NTATAG_CLIENT_RPORT(x) ntatag_client_rport, tag_bool_v((x))
 
@@ -358,16 +358,22 @@ NTA_DLL extern tag_typedef_t ntatag_client_rport_ref;
 #define NTATAG_RPORT_REF(x) ntatag_client_rport_ref, tag_bool_vr(&(x))
 
 NTA_DLL extern tag_typedef_t ntatag_server_rport;
-#define NTATAG_SERVER_RPORT(x) ntatag_server_rport, tag_uint_v((x))
+#define NTATAG_SERVER_RPORT(x) ntatag_server_rport, tag_int_v((x))
 
 NTA_DLL extern tag_typedef_t ntatag_server_rport_ref;
-#define NTATAG_SERVER_RPORT_REF(x) ntatag_server_rport_ref, tag_uint_vr(&(x))
+#define NTATAG_SERVER_RPORT_REF(x) ntatag_server_rport_ref, tag_int_vr(&(x))
 
 NTA_DLL extern tag_typedef_t ntatag_tcp_rport;
 #define NTATAG_TCP_RPORT(x) ntatag_tcp_rport, tag_bool_v((x))
 
 NTA_DLL extern tag_typedef_t ntatag_tcp_rport_ref;
 #define NTATAG_TCP_RPORT_REF(x) ntatag_tcp_rport_ref, tag_bool_vr(&(x))
+
+NTA_DLL extern tag_typedef_t ntatag_tls_rport;
+#define NTATAG_TLS_RPORT(x) ntatag_tls_rport, tag_bool_v((x))
+
+NTA_DLL extern tag_typedef_t ntatag_tls_rport_ref;
+#define NTATAG_TLS_RPORT_REF(x) ntatag_tls_rport_ref, tag_bool_vr(&(x))
 
 NTA_DLL extern tag_typedef_t ntatag_preload;
 #define NTATAG_PRELOAD(x) ntatag_preload, tag_uint_v((x))

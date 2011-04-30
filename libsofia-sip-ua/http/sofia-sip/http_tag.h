@@ -98,7 +98,7 @@ SOFIAPUBVAR tag_typedef_t httptag_http_ref;
 #if SU_INLINE_TAG_CAST
 su_inline
 tag_value_t httptag_http_v(http_t const *v) { return (tag_value_t)v; }
-su_inline 
+su_inline
 tag_value_t httptag_http_vr(http_t const **vp) { return (tag_value_t)vp; }
 #else
 #define httptag_http_v(v)   (tag_value_t)(v)
@@ -124,8 +124,8 @@ extern tag_typedef_t httptag_version_ref;
 /**Tag list item for header string.
  *
  * The HTTPTAG_HEADER() macro is used to include a tag item containing an
- * unknown HTTP header in the tag list, e.g., 
- * @code 
+ * unknown HTTP header in the tag list, e.g.,
+ * @code
  * http_header_t *hdr;
  *
  * HTTPTAG_HEADER(hdr).
@@ -192,7 +192,7 @@ SOFIAPUBVAR tag_typedef_t httptag_request;
  *
  * Tag list item for string with request line value.
  *
- * The HTTPTAG_REQUEST_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_REQUEST_STR() macro is used to include a tag item with a
  * string containing value of a http_request_t header in a tag list.
  *
  * @param s pointer to a string containing http_request_t value, or NULL.
@@ -244,7 +244,7 @@ SOFIAPUBVAR tag_typedef_t httptag_status;
  *
  * Tag list item for string with status line value.
  *
- * The HTTPTAG_STATUS_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_STATUS_STR() macro is used to include a tag item with a
  * string containing value of a http_status_t header in a tag list.
  *
  * @param s pointer to a string containing http_status_t value, or NULL.
@@ -296,7 +296,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept;
  *
  * Tag list item for string with Accept header value.
  *
- * The HTTPTAG_ACCEPT_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_ACCEPT_STR() macro is used to include a tag item with a
  * string containing value of a http_accept_t header in a tag list.
  *
  * @param s pointer to a string containing http_accept_t value, or NULL.
@@ -348,7 +348,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept_charset;
  *
  * Tag list item for string with Accept-Charset header value.
  *
- * The HTTPTAG_ACCEPT_CHARSET_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_ACCEPT_CHARSET_STR() macro is used to include a tag item with a
  * string containing value of a http_accept_charset_t header in a tag list.
  *
  * @param s pointer to a string containing http_accept_charset_t value, or NULL.
@@ -400,7 +400,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept_encoding;
  *
  * Tag list item for string with Accept-Encoding header value.
  *
- * The HTTPTAG_ACCEPT_ENCODING_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_ACCEPT_ENCODING_STR() macro is used to include a tag item with a
  * string containing value of a http_accept_encoding_t header in a tag list.
  *
  * @param s pointer to a string containing http_accept_encoding_t value, or NULL.
@@ -452,7 +452,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept_language;
  *
  * Tag list item for string with Accept-Language header value.
  *
- * The HTTPTAG_ACCEPT_LANGUAGE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_ACCEPT_LANGUAGE_STR() macro is used to include a tag item with a
  * string containing value of a http_accept_language_t header in a tag list.
  *
  * @param s pointer to a string containing http_accept_language_t value, or NULL.
@@ -504,7 +504,7 @@ SOFIAPUBVAR tag_typedef_t httptag_accept_ranges;
  *
  * Tag list item for string with Accept-Ranges header value.
  *
- * The HTTPTAG_ACCEPT_RANGES_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_ACCEPT_RANGES_STR() macro is used to include a tag item with a
  * string containing value of a http_accept_ranges_t header in a tag list.
  *
  * @param s pointer to a string containing http_accept_ranges_t value, or NULL.
@@ -556,7 +556,7 @@ SOFIAPUBVAR tag_typedef_t httptag_allow;
  *
  * Tag list item for string with Allow header value.
  *
- * The HTTPTAG_ALLOW_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_ALLOW_STR() macro is used to include a tag item with a
  * string containing value of a http_allow_t header in a tag list.
  *
  * @param s pointer to a string containing http_allow_t value, or NULL.
@@ -608,7 +608,7 @@ SOFIAPUBVAR tag_typedef_t httptag_authentication_info;
  *
  * Tag list item for string with Authentication-Info header value.
  *
- * The HTTPTAG_AUTHENTICATION_INFO_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_AUTHENTICATION_INFO_STR() macro is used to include a tag item with a
  * string containing value of a http_authentication_info_t header in a tag list.
  *
  * @param s pointer to a string containing http_authentication_info_t value, or NULL.
@@ -660,7 +660,7 @@ SOFIAPUBVAR tag_typedef_t httptag_authorization;
  *
  * Tag list item for string with Authorization header value.
  *
- * The HTTPTAG_AUTHORIZATION_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_AUTHORIZATION_STR() macro is used to include a tag item with a
  * string containing value of a http_authorization_t header in a tag list.
  *
  * @param s pointer to a string containing http_authorization_t value, or NULL.
@@ -712,7 +712,7 @@ SOFIAPUBVAR tag_typedef_t httptag_age;
  *
  * Tag list item for string with Age header value.
  *
- * The HTTPTAG_AGE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_AGE_STR() macro is used to include a tag item with a
  * string containing value of a http_age_t header in a tag list.
  *
  * @param s pointer to a string containing http_age_t value, or NULL.
@@ -764,7 +764,7 @@ SOFIAPUBVAR tag_typedef_t httptag_cache_control;
  *
  * Tag list item for string with Cache-Control header value.
  *
- * The HTTPTAG_CACHE_CONTROL_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_CACHE_CONTROL_STR() macro is used to include a tag item with a
  * string containing value of a http_cache_control_t header in a tag list.
  *
  * @param s pointer to a string containing http_cache_control_t value, or NULL.
@@ -816,7 +816,7 @@ SOFIAPUBVAR tag_typedef_t httptag_connection;
  *
  * Tag list item for string with Connection header value.
  *
- * The HTTPTAG_CONNECTION_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_CONNECTION_STR() macro is used to include a tag item with a
  * string containing value of a http_connection_t header in a tag list.
  *
  * @param s pointer to a string containing http_connection_t value, or NULL.
@@ -868,7 +868,7 @@ SOFIAPUBVAR tag_typedef_t httptag_date;
  *
  * Tag list item for string with Date header value.
  *
- * The HTTPTAG_DATE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_DATE_STR() macro is used to include a tag item with a
  * string containing value of a http_date_t header in a tag list.
  *
  * @param s pointer to a string containing http_date_t value, or NULL.
@@ -920,7 +920,7 @@ SOFIAPUBVAR tag_typedef_t httptag_etag;
  *
  * Tag list item for string with ETag header value.
  *
- * The HTTPTAG_ETAG_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_ETAG_STR() macro is used to include a tag item with a
  * string containing value of a http_etag_t header in a tag list.
  *
  * @param s pointer to a string containing http_etag_t value, or NULL.
@@ -972,7 +972,7 @@ SOFIAPUBVAR tag_typedef_t httptag_expect;
  *
  * Tag list item for string with Expect header value.
  *
- * The HTTPTAG_EXPECT_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_EXPECT_STR() macro is used to include a tag item with a
  * string containing value of a http_expect_t header in a tag list.
  *
  * @param s pointer to a string containing http_expect_t value, or NULL.
@@ -1024,7 +1024,7 @@ SOFIAPUBVAR tag_typedef_t httptag_expires;
  *
  * Tag list item for string with Expires header value.
  *
- * The HTTPTAG_EXPIRES_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_EXPIRES_STR() macro is used to include a tag item with a
  * string containing value of a http_expires_t header in a tag list.
  *
  * @param s pointer to a string containing http_expires_t value, or NULL.
@@ -1076,7 +1076,7 @@ SOFIAPUBVAR tag_typedef_t httptag_from;
  *
  * Tag list item for string with From header value.
  *
- * The HTTPTAG_FROM_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_FROM_STR() macro is used to include a tag item with a
  * string containing value of a http_from_t header in a tag list.
  *
  * @param s pointer to a string containing http_from_t value, or NULL.
@@ -1128,7 +1128,7 @@ SOFIAPUBVAR tag_typedef_t httptag_host;
  *
  * Tag list item for string with Host header value.
  *
- * The HTTPTAG_HOST_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_HOST_STR() macro is used to include a tag item with a
  * string containing value of a http_host_t header in a tag list.
  *
  * @param s pointer to a string containing http_host_t value, or NULL.
@@ -1180,7 +1180,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_match;
  *
  * Tag list item for string with If-Match header value.
  *
- * The HTTPTAG_IF_MATCH_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_IF_MATCH_STR() macro is used to include a tag item with a
  * string containing value of a http_if_match_t header in a tag list.
  *
  * @param s pointer to a string containing http_if_match_t value, or NULL.
@@ -1232,7 +1232,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_modified_since;
  *
  * Tag list item for string with If-Modified-Since header value.
  *
- * The HTTPTAG_IF_MODIFIED_SINCE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_IF_MODIFIED_SINCE_STR() macro is used to include a tag item with a
  * string containing value of a http_if_modified_since_t header in a tag list.
  *
  * @param s pointer to a string containing http_if_modified_since_t value, or NULL.
@@ -1284,7 +1284,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_none_match;
  *
  * Tag list item for string with If-None-Match header value.
  *
- * The HTTPTAG_IF_NONE_MATCH_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_IF_NONE_MATCH_STR() macro is used to include a tag item with a
  * string containing value of a http_if_none_match_t header in a tag list.
  *
  * @param s pointer to a string containing http_if_none_match_t value, or NULL.
@@ -1336,7 +1336,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_range;
  *
  * Tag list item for string with If-Range header value.
  *
- * The HTTPTAG_IF_RANGE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_IF_RANGE_STR() macro is used to include a tag item with a
  * string containing value of a http_if_range_t header in a tag list.
  *
  * @param s pointer to a string containing http_if_range_t value, or NULL.
@@ -1388,7 +1388,7 @@ SOFIAPUBVAR tag_typedef_t httptag_if_unmodified_since;
  *
  * Tag list item for string with If-Unmodified-Since header value.
  *
- * The HTTPTAG_IF_UNMODIFIED_SINCE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_IF_UNMODIFIED_SINCE_STR() macro is used to include a tag item with a
  * string containing value of a http_if_unmodified_since_t header in a tag list.
  *
  * @param s pointer to a string containing http_if_unmodified_since_t value, or NULL.
@@ -1440,7 +1440,7 @@ SOFIAPUBVAR tag_typedef_t httptag_last_modified;
  *
  * Tag list item for string with Last-Modified header value.
  *
- * The HTTPTAG_LAST_MODIFIED_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_LAST_MODIFIED_STR() macro is used to include a tag item with a
  * string containing value of a http_last_modified_t header in a tag list.
  *
  * @param s pointer to a string containing http_last_modified_t value, or NULL.
@@ -1492,7 +1492,7 @@ SOFIAPUBVAR tag_typedef_t httptag_location;
  *
  * Tag list item for string with Location header value.
  *
- * The HTTPTAG_LOCATION_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_LOCATION_STR() macro is used to include a tag item with a
  * string containing value of a http_location_t header in a tag list.
  *
  * @param s pointer to a string containing http_location_t value, or NULL.
@@ -1544,7 +1544,7 @@ SOFIAPUBVAR tag_typedef_t httptag_max_forwards;
  *
  * Tag list item for string with Max-Forwards header value.
  *
- * The HTTPTAG_MAX_FORWARDS_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_MAX_FORWARDS_STR() macro is used to include a tag item with a
  * string containing value of a http_max_forwards_t header in a tag list.
  *
  * @param s pointer to a string containing http_max_forwards_t value, or NULL.
@@ -1596,7 +1596,7 @@ SOFIAPUBVAR tag_typedef_t httptag_pragma;
  *
  * Tag list item for string with Pragma header value.
  *
- * The HTTPTAG_PRAGMA_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_PRAGMA_STR() macro is used to include a tag item with a
  * string containing value of a http_pragma_t header in a tag list.
  *
  * @param s pointer to a string containing http_pragma_t value, or NULL.
@@ -1648,7 +1648,7 @@ SOFIAPUBVAR tag_typedef_t httptag_proxy_authenticate;
  *
  * Tag list item for string with Proxy-Authenticate header value.
  *
- * The HTTPTAG_PROXY_AUTHENTICATE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_PROXY_AUTHENTICATE_STR() macro is used to include a tag item with a
  * string containing value of a http_proxy_authenticate_t header in a tag list.
  *
  * @param s pointer to a string containing http_proxy_authenticate_t value, or NULL.
@@ -1700,7 +1700,7 @@ SOFIAPUBVAR tag_typedef_t httptag_proxy_authorization;
  *
  * Tag list item for string with Proxy-Authorization header value.
  *
- * The HTTPTAG_PROXY_AUTHORIZATION_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_PROXY_AUTHORIZATION_STR() macro is used to include a tag item with a
  * string containing value of a http_proxy_authorization_t header in a tag list.
  *
  * @param s pointer to a string containing http_proxy_authorization_t value, or NULL.
@@ -1752,7 +1752,7 @@ SOFIAPUBVAR tag_typedef_t httptag_range;
  *
  * Tag list item for string with Range header value.
  *
- * The HTTPTAG_RANGE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_RANGE_STR() macro is used to include a tag item with a
  * string containing value of a http_range_t header in a tag list.
  *
  * @param s pointer to a string containing http_range_t value, or NULL.
@@ -1804,7 +1804,7 @@ SOFIAPUBVAR tag_typedef_t httptag_referer;
  *
  * Tag list item for string with Referer header value.
  *
- * The HTTPTAG_REFERER_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_REFERER_STR() macro is used to include a tag item with a
  * string containing value of a http_referer_t header in a tag list.
  *
  * @param s pointer to a string containing http_referer_t value, or NULL.
@@ -1856,7 +1856,7 @@ SOFIAPUBVAR tag_typedef_t httptag_retry_after;
  *
  * Tag list item for string with Retry-After header value.
  *
- * The HTTPTAG_RETRY_AFTER_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_RETRY_AFTER_STR() macro is used to include a tag item with a
  * string containing value of a http_retry_after_t header in a tag list.
  *
  * @param s pointer to a string containing http_retry_after_t value, or NULL.
@@ -1908,7 +1908,7 @@ SOFIAPUBVAR tag_typedef_t httptag_server;
  *
  * Tag list item for string with Server header value.
  *
- * The HTTPTAG_SERVER_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_SERVER_STR() macro is used to include a tag item with a
  * string containing value of a http_server_t header in a tag list.
  *
  * @param s pointer to a string containing http_server_t value, or NULL.
@@ -1960,7 +1960,7 @@ SOFIAPUBVAR tag_typedef_t httptag_te;
  *
  * Tag list item for string with TE header value.
  *
- * The HTTPTAG_TE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_TE_STR() macro is used to include a tag item with a
  * string containing value of a http_te_t header in a tag list.
  *
  * @param s pointer to a string containing http_te_t value, or NULL.
@@ -2012,7 +2012,7 @@ SOFIAPUBVAR tag_typedef_t httptag_trailer;
  *
  * Tag list item for string with Trailer header value.
  *
- * The HTTPTAG_TRAILER_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_TRAILER_STR() macro is used to include a tag item with a
  * string containing value of a http_trailer_t header in a tag list.
  *
  * @param s pointer to a string containing http_trailer_t value, or NULL.
@@ -2064,7 +2064,7 @@ SOFIAPUBVAR tag_typedef_t httptag_transfer_encoding;
  *
  * Tag list item for string with Transfer-Encoding header value.
  *
- * The HTTPTAG_TRANSFER_ENCODING_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_TRANSFER_ENCODING_STR() macro is used to include a tag item with a
  * string containing value of a http_transfer_encoding_t header in a tag list.
  *
  * @param s pointer to a string containing http_transfer_encoding_t value, or NULL.
@@ -2116,7 +2116,7 @@ SOFIAPUBVAR tag_typedef_t httptag_upgrade;
  *
  * Tag list item for string with Upgrade header value.
  *
- * The HTTPTAG_UPGRADE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_UPGRADE_STR() macro is used to include a tag item with a
  * string containing value of a http_upgrade_t header in a tag list.
  *
  * @param s pointer to a string containing http_upgrade_t value, or NULL.
@@ -2168,7 +2168,7 @@ SOFIAPUBVAR tag_typedef_t httptag_user_agent;
  *
  * Tag list item for string with User-Agent header value.
  *
- * The HTTPTAG_USER_AGENT_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_USER_AGENT_STR() macro is used to include a tag item with a
  * string containing value of a http_user_agent_t header in a tag list.
  *
  * @param s pointer to a string containing http_user_agent_t value, or NULL.
@@ -2220,7 +2220,7 @@ SOFIAPUBVAR tag_typedef_t httptag_vary;
  *
  * Tag list item for string with Vary header value.
  *
- * The HTTPTAG_VARY_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_VARY_STR() macro is used to include a tag item with a
  * string containing value of a http_vary_t header in a tag list.
  *
  * @param s pointer to a string containing http_vary_t value, or NULL.
@@ -2272,7 +2272,7 @@ SOFIAPUBVAR tag_typedef_t httptag_via;
  *
  * Tag list item for string with Via header value.
  *
- * The HTTPTAG_VIA_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_VIA_STR() macro is used to include a tag item with a
  * string containing value of a http_via_t header in a tag list.
  *
  * @param s pointer to a string containing http_via_t value, or NULL.
@@ -2324,7 +2324,7 @@ SOFIAPUBVAR tag_typedef_t httptag_warning;
  *
  * Tag list item for string with Warning header value.
  *
- * The HTTPTAG_WARNING_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_WARNING_STR() macro is used to include a tag item with a
  * string containing value of a http_warning_t header in a tag list.
  *
  * @param s pointer to a string containing http_warning_t value, or NULL.
@@ -2376,7 +2376,7 @@ SOFIAPUBVAR tag_typedef_t httptag_www_authenticate;
  *
  * Tag list item for string with WWW-Authenticate header value.
  *
- * The HTTPTAG_WWW_AUTHENTICATE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_WWW_AUTHENTICATE_STR() macro is used to include a tag item with a
  * string containing value of a http_www_authenticate_t header in a tag list.
  *
  * @param s pointer to a string containing http_www_authenticate_t value, or NULL.
@@ -2428,7 +2428,7 @@ SOFIAPUBVAR tag_typedef_t httptag_proxy_connection;
  *
  * Tag list item for string with Proxy-Connection header value.
  *
- * The HTTPTAG_PROXY_CONNECTION_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_PROXY_CONNECTION_STR() macro is used to include a tag item with a
  * string containing value of a http_proxy_connection_t header in a tag list.
  *
  * @param s pointer to a string containing http_proxy_connection_t value, or NULL.
@@ -2480,7 +2480,7 @@ SOFIAPUBVAR tag_typedef_t httptag_set_cookie;
  *
  * Tag list item for string with Set-Cookie header value.
  *
- * The HTTPTAG_SET_COOKIE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_SET_COOKIE_STR() macro is used to include a tag item with a
  * string containing value of a http_set_cookie_t header in a tag list.
  *
  * @param s pointer to a string containing http_set_cookie_t value, or NULL.
@@ -2532,7 +2532,7 @@ SOFIAPUBVAR tag_typedef_t httptag_cookie;
  *
  * Tag list item for string with Cookie header value.
  *
- * The HTTPTAG_COOKIE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_COOKIE_STR() macro is used to include a tag item with a
  * string containing value of a http_cookie_t header in a tag list.
  *
  * @param s pointer to a string containing http_cookie_t value, or NULL.
@@ -2584,7 +2584,7 @@ SOFIAPUBVAR tag_typedef_t httptag_mime_version;
  *
  * Tag list item for string with MIME-Version header value.
  *
- * The HTTPTAG_MIME_VERSION_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_MIME_VERSION_STR() macro is used to include a tag item with a
  * string containing value of a http_mime_version_t header in a tag list.
  *
  * @param s pointer to a string containing http_mime_version_t value, or NULL.
@@ -2636,7 +2636,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_encoding;
  *
  * Tag list item for string with Content-Encoding header value.
  *
- * The HTTPTAG_CONTENT_ENCODING_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_CONTENT_ENCODING_STR() macro is used to include a tag item with a
  * string containing value of a http_content_encoding_t header in a tag list.
  *
  * @param s pointer to a string containing http_content_encoding_t value, or NULL.
@@ -2688,7 +2688,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_language;
  *
  * Tag list item for string with Content-Language header value.
  *
- * The HTTPTAG_CONTENT_LANGUAGE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_CONTENT_LANGUAGE_STR() macro is used to include a tag item with a
  * string containing value of a http_content_language_t header in a tag list.
  *
  * @param s pointer to a string containing http_content_language_t value, or NULL.
@@ -2740,7 +2740,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_length;
  *
  * Tag list item for string with Content-Length header value.
  *
- * The HTTPTAG_CONTENT_LENGTH_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_CONTENT_LENGTH_STR() macro is used to include a tag item with a
  * string containing value of a http_content_length_t header in a tag list.
  *
  * @param s pointer to a string containing http_content_length_t value, or NULL.
@@ -2792,7 +2792,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_location;
  *
  * Tag list item for string with Content-Location header value.
  *
- * The HTTPTAG_CONTENT_LOCATION_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_CONTENT_LOCATION_STR() macro is used to include a tag item with a
  * string containing value of a http_content_location_t header in a tag list.
  *
  * @param s pointer to a string containing http_content_location_t value, or NULL.
@@ -2844,7 +2844,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_md5;
  *
  * Tag list item for string with Content-MD5 header value.
  *
- * The HTTPTAG_CONTENT_MD5_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_CONTENT_MD5_STR() macro is used to include a tag item with a
  * string containing value of a http_content_md5_t header in a tag list.
  *
  * @param s pointer to a string containing http_content_md5_t value, or NULL.
@@ -2896,7 +2896,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_range;
  *
  * Tag list item for string with Content-Range header value.
  *
- * The HTTPTAG_CONTENT_RANGE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_CONTENT_RANGE_STR() macro is used to include a tag item with a
  * string containing value of a http_content_range_t header in a tag list.
  *
  * @param s pointer to a string containing http_content_range_t value, or NULL.
@@ -2948,7 +2948,7 @@ SOFIAPUBVAR tag_typedef_t httptag_content_type;
  *
  * Tag list item for string with Content-Type header value.
  *
- * The HTTPTAG_CONTENT_TYPE_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_CONTENT_TYPE_STR() macro is used to include a tag item with a
  * string containing value of a http_content_type_t header in a tag list.
  *
  * @param s pointer to a string containing http_content_type_t value, or NULL.
@@ -3000,7 +3000,7 @@ SOFIAPUBVAR tag_typedef_t httptag_unknown;
  *
  * Tag list item for string with unknown headers value.
  *
- * The HTTPTAG_UNKNOWN_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_UNKNOWN_STR() macro is used to include a tag item with a
  * string containing value of a http_unknown_t header in a tag list.
  *
  * @param s pointer to a string containing http_unknown_t value, or NULL.
@@ -3052,7 +3052,7 @@ SOFIAPUBVAR tag_typedef_t httptag_error;
  *
  * Tag list item for string with erroneous headers value.
  *
- * The HTTPTAG_ERROR_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_ERROR_STR() macro is used to include a tag item with a
  * string containing value of a http_error_t header in a tag list.
  *
  * @param s pointer to a string containing http_error_t value, or NULL.
@@ -3104,7 +3104,7 @@ SOFIAPUBVAR tag_typedef_t httptag_separator;
  *
  * Tag list item for string with separator line between headers and body value.
  *
- * The HTTPTAG_SEPARATOR_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_SEPARATOR_STR() macro is used to include a tag item with a
  * string containing value of a http_separator_t header in a tag list.
  *
  * @param s pointer to a string containing http_separator_t value, or NULL.
@@ -3156,7 +3156,7 @@ SOFIAPUBVAR tag_typedef_t httptag_payload;
  *
  * Tag list item for string with message payload value.
  *
- * The HTTPTAG_PAYLOAD_STR() macro is used to include a tag item with a 
+ * The HTTPTAG_PAYLOAD_STR() macro is used to include a tag item with a
  * string containing value of a http_payload_t header in a tag list.
  *
  * @param s pointer to a string containing http_payload_t value, or NULL.

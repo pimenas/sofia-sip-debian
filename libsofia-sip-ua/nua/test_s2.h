@@ -22,7 +22,7 @@
  */
 
 #ifndef S2TESTER_H
-#define S2TESTER_H 
+#define S2TESTER_H
 
 #define TP_STACK_T struct tester
 #define SU_ROOT_MAGIC_T struct tester
@@ -114,6 +114,8 @@ extern char const s2_auth2_credentials[];
 
 extern char const s2_auth3_digest_str[];
 extern char const s2_auth3_credentials[];
+
+extern int s2_nua_thread;
 
 void s2_fast_forward(unsigned long seconds);
 

@@ -26,7 +26,7 @@
 # Recursive Makefile targets
 # --------------------------
 
-# 
+#
 # Generate lcov output
 #
 
@@ -59,11 +59,11 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@HAVE_STUN_TRUE@am__append_1 = stun/libstun.la 
+@HAVE_STUN_TRUE@am__append_1 = stun/libstun.la
 @HAVE_STUN_TRUE@am__append_2 = stun
-@HAVE_NTH_TRUE@am__append_3 = http/libhttp.la nth/libnth.la 
+@HAVE_NTH_TRUE@am__append_3 = http/libhttp.la nth/libnth.la
 @HAVE_NTH_TRUE@am__append_4 = http
-@HAVE_NTH_TRUE@am__append_5 = nth 
+@HAVE_NTH_TRUE@am__append_5 = nth
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/recursive.am \
 	ChangeLog
@@ -715,7 +715,7 @@ uninstall-info: uninstall-info-recursive
 
 
 all-recursive: built-sources-recursive
-built-sources: built-sources-recursive 
+built-sources: built-sources-recursive
 clean-built-sources: clean-built-sources-recursive
 valcheck: valcheck-recursive
 
@@ -767,29 +767,27 @@ doxygen: built-sources
           fi ; \
 	done
 	for d in $(DIST_SUBDIRS); do \
-	  test -r $$d/Doxyfile \
-	  && pushd $$d > /dev/null \
-	  && echo running ${DOXYGEN} first time in $$d \
-          && ${DOXYGEN} 2>&1 \
-	  | egrep -v -i -e 'Warning: (unsupported (xml/)?html tag|unable to resolve reference|explicit link.*could not be resolved)' \
-          ; popd > /dev/null ; \
-	  test -r docs/$$d.doxytags && \
+	  ( test -r $$d/Doxyfile && \
+	  cd $$d > /dev/null && \
+	  echo running ${DOXYGEN} first time in $$d && \
+          ${DOXYGEN} 2>&1 ) | \
+	  egrep -v -i -e 'Warning: (unsupported (xml/)?html tag|unable to resolve reference|explicit link.*could not be resolved)' ; \
+          test -r docs/$$d.doxytags && \
 	  sed '2,10s!<name>index</name>!<name>'$$d'_index</name>!' \
 	    docs/$$d.doxytags > docs/$$d.doxytags.tmp && \
 	  mv -f docs/$$d.doxytags.tmp docs/$$d.doxytags ; \
-	done 
+	done
 	for d in $(DIST_SUBDIRS); do \
-	  test -r $$d/Doxyfile \
-	  && pushd $$d > /dev/null \
-	  && echo running ${DOXYGEN} second time in $$d \
-          && ${DOXYGEN} 2>&1 \
-	   | egrep -v -i -e 'Warning: Unsupported (xml/)?html tag' \
-          ; popd > /dev/null ; \
+	  ( test -r $$d/Doxyfile && \
+	    cd $$d > /dev/null \
+	    echo running ${DOXYGEN} second time in $$d && \
+            ${DOXYGEN} 2>&1 ) | \
+	    egrep -v -i -e 'Warning: Unsupported (xml/)?html tag' ; \
 	  test -r docs/$$d.doxytags && \
 	  sed '2,10s!<name>index</name>!<name>'$$d'_index</name>!' \
 	    docs/$$d.doxytags > docs/$$d.doxytags.tmp && \
 	  mv -f docs/$$d.doxytags.tmp docs/$$d.doxytags ; \
-	done 
+	done
 	${top_srcdir}/scripts/hide_emails.sh docs/html
 
 #
@@ -805,7 +803,7 @@ doxygen: built-sources
 @HAVE_LCOV_TRUE@	rm -rf $$odir ; mkdir -p $$odir && \
 @HAVE_LCOV_TRUE@	${LCOV_REPORT} ${GENHTML_OPTIONS} \
 @HAVE_LCOV_TRUE@          --title "${PACKAGE_NAME}-${PACKAGE_VERSION}$$sub" \
-@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir 
+@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir
 
 # Rerun checks before generating report
 @HAVE_LCOV_TRUE@lcov-rerun: clean-lcov

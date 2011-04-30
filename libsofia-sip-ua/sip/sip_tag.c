@@ -1022,7 +1022,7 @@ tag_type_t sip_tag_list[] =
 };
 
 /** List of all string tags for SIP headers  */
-tag_type_t sip_tag_str_list[] = 
+tag_type_t sip_tag_str_list[] =
 {
   siptag_request_str,
   siptag_status_str,

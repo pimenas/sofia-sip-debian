@@ -100,7 +100,7 @@ SOFIAPUBVAR tag_typedef_t siptag_sip_ref;
 #if SU_INLINE_TAG_CAST
 su_inline
 tag_value_t siptag_sip_v(sip_t const *v) { return (tag_value_t)v; }
-su_inline 
+su_inline
 tag_value_t siptag_sip_vr(sip_t const **vp) { return (tag_value_t)vp; }
 #else
 #define siptag_sip_v(v)   (tag_value_t)(v)
@@ -110,8 +110,8 @@ tag_value_t siptag_sip_vr(sip_t const **vp) { return (tag_value_t)vp; }
 /**Tag list item for header string.
  *
  * The SIPTAG_HEADER() macro is used to include a tag item containing an
- * unknown SIP header in the tag list, e.g., 
- * @code 
+ * unknown SIP header in the tag list, e.g.,
+ * @code
  * sip_header_t *hdr;
  *
  * SIPTAG_HEADER(hdr).
@@ -183,7 +183,7 @@ SOFIAPUBVAR tag_typedef_t siptag_header_str_ref;
  *
  * @param x pointer to a #sip_request_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REQUEST_REF().
  *
  *
@@ -194,7 +194,7 @@ SOFIAPUBVAR tag_typedef_t siptag_header_str_ref;
 SOFIAPUBVAR tag_typedef_t siptag_request;
 
 /**@ingroup sip_request
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_request "request line" pointer.
  */
 #define SIPTAG_REQUEST_REF(x) siptag_request_ref, siptag_request_vr(&(x))
@@ -204,17 +204,17 @@ SOFIAPUBVAR tag_typedef_t siptag_request_ref;
  *
  * Tag list item for string with @ref sip_request "request line" value.
  *
- * The SIPTAG_REQUEST_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REQUEST_STR() macro is used to include a tag item with a
  * string containing value of a #sip_request_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_request "request line" value, or NULL.
  *
  * The string in SIPTAG_REQUEST_STR() can be converted to a
  * #sip_request_t header structure by giving the string @a s has
  * second argument to function sip_request_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REQUEST_STR_REF().
  *
  *
@@ -253,7 +253,7 @@ siptag_request_vr(sip_request_t const **vp)
  *
  * @param x pointer to a #sip_status_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_STATUS_REF().
  *
  *
@@ -264,7 +264,7 @@ siptag_request_vr(sip_request_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_status;
 
 /**@ingroup sip_status
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_status "status line" pointer.
  */
 #define SIPTAG_STATUS_REF(x) siptag_status_ref, siptag_status_vr(&(x))
@@ -274,17 +274,17 @@ SOFIAPUBVAR tag_typedef_t siptag_status_ref;
  *
  * Tag list item for string with @ref sip_status "status line" value.
  *
- * The SIPTAG_STATUS_STR() macro is used to include a tag item with a 
+ * The SIPTAG_STATUS_STR() macro is used to include a tag item with a
  * string containing value of a #sip_status_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_status "status line" value, or NULL.
  *
  * The string in SIPTAG_STATUS_STR() can be converted to a
  * #sip_status_t header structure by giving the string @a s has
  * second argument to function sip_status_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_STATUS_STR_REF().
  *
  *
@@ -323,7 +323,7 @@ siptag_status_vr(sip_status_t const **vp)
  *
  * @param x pointer to a #sip_via_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_VIA_REF().
  *
  *
@@ -334,7 +334,7 @@ siptag_status_vr(sip_status_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_via;
 
 /**@ingroup sip_via
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_via "Via header" pointer.
  */
 #define SIPTAG_VIA_REF(x) siptag_via_ref, siptag_via_vr(&(x))
@@ -344,17 +344,17 @@ SOFIAPUBVAR tag_typedef_t siptag_via_ref;
  *
  * Tag list item for string with @ref sip_via "Via header" value.
  *
- * The SIPTAG_VIA_STR() macro is used to include a tag item with a 
+ * The SIPTAG_VIA_STR() macro is used to include a tag item with a
  * string containing value of a #sip_via_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_via "Via header" value, or NULL.
  *
  * The string in SIPTAG_VIA_STR() can be converted to a
  * #sip_via_t header structure by giving the string @a s has
  * second argument to function sip_via_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_VIA_STR_REF().
  *
  *
@@ -393,7 +393,7 @@ siptag_via_vr(sip_via_t const **vp)
  *
  * @param x pointer to a #sip_route_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ROUTE_REF().
  *
  *
@@ -404,7 +404,7 @@ siptag_via_vr(sip_via_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_route;
 
 /**@ingroup sip_route
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_route "Route header" pointer.
  */
 #define SIPTAG_ROUTE_REF(x) siptag_route_ref, siptag_route_vr(&(x))
@@ -414,17 +414,17 @@ SOFIAPUBVAR tag_typedef_t siptag_route_ref;
  *
  * Tag list item for string with @ref sip_route "Route header" value.
  *
- * The SIPTAG_ROUTE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ROUTE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_route_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_route "Route header" value, or NULL.
  *
  * The string in SIPTAG_ROUTE_STR() can be converted to a
  * #sip_route_t header structure by giving the string @a s has
  * second argument to function sip_route_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ROUTE_STR_REF().
  *
  *
@@ -463,7 +463,7 @@ siptag_route_vr(sip_route_t const **vp)
  *
  * @param x pointer to a #sip_record_route_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_RECORD_ROUTE_REF().
  *
  *
@@ -474,7 +474,7 @@ siptag_route_vr(sip_route_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_record_route;
 
 /**@ingroup sip_record_route
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_record_route "Record-Route header" pointer.
  */
 #define SIPTAG_RECORD_ROUTE_REF(x) siptag_record_route_ref, siptag_record_route_vr(&(x))
@@ -484,17 +484,17 @@ SOFIAPUBVAR tag_typedef_t siptag_record_route_ref;
  *
  * Tag list item for string with @ref sip_record_route "Record-Route header" value.
  *
- * The SIPTAG_RECORD_ROUTE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_RECORD_ROUTE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_record_route_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_record_route "Record-Route header" value, or NULL.
  *
  * The string in SIPTAG_RECORD_ROUTE_STR() can be converted to a
  * #sip_record_route_t header structure by giving the string @a s has
  * second argument to function sip_record_route_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_RECORD_ROUTE_STR_REF().
  *
  *
@@ -533,7 +533,7 @@ siptag_record_route_vr(sip_record_route_t const **vp)
  *
  * @param x pointer to a #sip_max_forwards_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_MAX_FORWARDS_REF().
  *
  *
@@ -544,7 +544,7 @@ siptag_record_route_vr(sip_record_route_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_max_forwards;
 
 /**@ingroup sip_max_forwards
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_max_forwards "Max-Forwards header" pointer.
  */
 #define SIPTAG_MAX_FORWARDS_REF(x) siptag_max_forwards_ref, siptag_max_forwards_vr(&(x))
@@ -554,17 +554,17 @@ SOFIAPUBVAR tag_typedef_t siptag_max_forwards_ref;
  *
  * Tag list item for string with @ref sip_max_forwards "Max-Forwards header" value.
  *
- * The SIPTAG_MAX_FORWARDS_STR() macro is used to include a tag item with a 
+ * The SIPTAG_MAX_FORWARDS_STR() macro is used to include a tag item with a
  * string containing value of a #sip_max_forwards_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_max_forwards "Max-Forwards header" value, or NULL.
  *
  * The string in SIPTAG_MAX_FORWARDS_STR() can be converted to a
  * #sip_max_forwards_t header structure by giving the string @a s has
  * second argument to function sip_max_forwards_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_MAX_FORWARDS_STR_REF().
  *
  *
@@ -603,7 +603,7 @@ siptag_max_forwards_vr(sip_max_forwards_t const **vp)
  *
  * @param x pointer to a #sip_proxy_require_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PROXY_REQUIRE_REF().
  *
  *
@@ -614,7 +614,7 @@ siptag_max_forwards_vr(sip_max_forwards_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_proxy_require;
 
 /**@ingroup sip_proxy_require
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_proxy_require "Proxy-Require header" pointer.
  */
 #define SIPTAG_PROXY_REQUIRE_REF(x) siptag_proxy_require_ref, siptag_proxy_require_vr(&(x))
@@ -624,17 +624,17 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_require_ref;
  *
  * Tag list item for string with @ref sip_proxy_require "Proxy-Require header" value.
  *
- * The SIPTAG_PROXY_REQUIRE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_PROXY_REQUIRE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_proxy_require_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_proxy_require "Proxy-Require header" value, or NULL.
  *
  * The string in SIPTAG_PROXY_REQUIRE_STR() can be converted to a
  * #sip_proxy_require_t header structure by giving the string @a s has
  * second argument to function sip_proxy_require_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PROXY_REQUIRE_STR_REF().
  *
  *
@@ -673,7 +673,7 @@ siptag_proxy_require_vr(sip_proxy_require_t const **vp)
  *
  * @param x pointer to a #sip_from_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_FROM_REF().
  *
  *
@@ -684,7 +684,7 @@ siptag_proxy_require_vr(sip_proxy_require_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_from;
 
 /**@ingroup sip_from
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_from "From header" pointer.
  */
 #define SIPTAG_FROM_REF(x) siptag_from_ref, siptag_from_vr(&(x))
@@ -694,17 +694,17 @@ SOFIAPUBVAR tag_typedef_t siptag_from_ref;
  *
  * Tag list item for string with @ref sip_from "From header" value.
  *
- * The SIPTAG_FROM_STR() macro is used to include a tag item with a 
+ * The SIPTAG_FROM_STR() macro is used to include a tag item with a
  * string containing value of a #sip_from_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_from "From header" value, or NULL.
  *
  * The string in SIPTAG_FROM_STR() can be converted to a
  * #sip_from_t header structure by giving the string @a s has
  * second argument to function sip_from_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_FROM_STR_REF().
  *
  *
@@ -743,7 +743,7 @@ siptag_from_vr(sip_from_t const **vp)
  *
  * @param x pointer to a #sip_to_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_TO_REF().
  *
  *
@@ -754,7 +754,7 @@ siptag_from_vr(sip_from_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_to;
 
 /**@ingroup sip_to
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_to "To header" pointer.
  */
 #define SIPTAG_TO_REF(x) siptag_to_ref, siptag_to_vr(&(x))
@@ -764,17 +764,17 @@ SOFIAPUBVAR tag_typedef_t siptag_to_ref;
  *
  * Tag list item for string with @ref sip_to "To header" value.
  *
- * The SIPTAG_TO_STR() macro is used to include a tag item with a 
+ * The SIPTAG_TO_STR() macro is used to include a tag item with a
  * string containing value of a #sip_to_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_to "To header" value, or NULL.
  *
  * The string in SIPTAG_TO_STR() can be converted to a
  * #sip_to_t header structure by giving the string @a s has
  * second argument to function sip_to_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_TO_STR_REF().
  *
  *
@@ -813,7 +813,7 @@ siptag_to_vr(sip_to_t const **vp)
  *
  * @param x pointer to a #sip_call_id_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CALL_ID_REF().
  *
  *
@@ -824,7 +824,7 @@ siptag_to_vr(sip_to_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_call_id;
 
 /**@ingroup sip_call_id
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_call_id "Call-ID header" pointer.
  */
 #define SIPTAG_CALL_ID_REF(x) siptag_call_id_ref, siptag_call_id_vr(&(x))
@@ -834,17 +834,17 @@ SOFIAPUBVAR tag_typedef_t siptag_call_id_ref;
  *
  * Tag list item for string with @ref sip_call_id "Call-ID header" value.
  *
- * The SIPTAG_CALL_ID_STR() macro is used to include a tag item with a 
+ * The SIPTAG_CALL_ID_STR() macro is used to include a tag item with a
  * string containing value of a #sip_call_id_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_call_id "Call-ID header" value, or NULL.
  *
  * The string in SIPTAG_CALL_ID_STR() can be converted to a
  * #sip_call_id_t header structure by giving the string @a s has
  * second argument to function sip_call_id_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CALL_ID_STR_REF().
  *
  *
@@ -883,7 +883,7 @@ siptag_call_id_vr(sip_call_id_t const **vp)
  *
  * @param x pointer to a #sip_cseq_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CSEQ_REF().
  *
  *
@@ -894,7 +894,7 @@ siptag_call_id_vr(sip_call_id_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_cseq;
 
 /**@ingroup sip_cseq
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_cseq "CSeq header" pointer.
  */
 #define SIPTAG_CSEQ_REF(x) siptag_cseq_ref, siptag_cseq_vr(&(x))
@@ -904,17 +904,17 @@ SOFIAPUBVAR tag_typedef_t siptag_cseq_ref;
  *
  * Tag list item for string with @ref sip_cseq "CSeq header" value.
  *
- * The SIPTAG_CSEQ_STR() macro is used to include a tag item with a 
+ * The SIPTAG_CSEQ_STR() macro is used to include a tag item with a
  * string containing value of a #sip_cseq_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_cseq "CSeq header" value, or NULL.
  *
  * The string in SIPTAG_CSEQ_STR() can be converted to a
  * #sip_cseq_t header structure by giving the string @a s has
  * second argument to function sip_cseq_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CSEQ_STR_REF().
  *
  *
@@ -953,7 +953,7 @@ siptag_cseq_vr(sip_cseq_t const **vp)
  *
  * @param x pointer to a #sip_contact_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTACT_REF().
  *
  *
@@ -964,7 +964,7 @@ siptag_cseq_vr(sip_cseq_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_contact;
 
 /**@ingroup sip_contact
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_contact "Contact header" pointer.
  */
 #define SIPTAG_CONTACT_REF(x) siptag_contact_ref, siptag_contact_vr(&(x))
@@ -974,17 +974,17 @@ SOFIAPUBVAR tag_typedef_t siptag_contact_ref;
  *
  * Tag list item for string with @ref sip_contact "Contact header" value.
  *
- * The SIPTAG_CONTACT_STR() macro is used to include a tag item with a 
+ * The SIPTAG_CONTACT_STR() macro is used to include a tag item with a
  * string containing value of a #sip_contact_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_contact "Contact header" value, or NULL.
  *
  * The string in SIPTAG_CONTACT_STR() can be converted to a
  * #sip_contact_t header structure by giving the string @a s has
  * second argument to function sip_contact_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTACT_STR_REF().
  *
  *
@@ -1023,7 +1023,7 @@ siptag_contact_vr(sip_contact_t const **vp)
  *
  * @param x pointer to a #sip_rseq_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_RSEQ_REF().
  *
  *
@@ -1034,7 +1034,7 @@ siptag_contact_vr(sip_contact_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_rseq;
 
 /**@ingroup sip_rseq
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_rseq "RSeq header" pointer.
  */
 #define SIPTAG_RSEQ_REF(x) siptag_rseq_ref, siptag_rseq_vr(&(x))
@@ -1044,17 +1044,17 @@ SOFIAPUBVAR tag_typedef_t siptag_rseq_ref;
  *
  * Tag list item for string with @ref sip_rseq "RSeq header" value.
  *
- * The SIPTAG_RSEQ_STR() macro is used to include a tag item with a 
+ * The SIPTAG_RSEQ_STR() macro is used to include a tag item with a
  * string containing value of a #sip_rseq_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_rseq "RSeq header" value, or NULL.
  *
  * The string in SIPTAG_RSEQ_STR() can be converted to a
  * #sip_rseq_t header structure by giving the string @a s has
  * second argument to function sip_rseq_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_RSEQ_STR_REF().
  *
  *
@@ -1093,7 +1093,7 @@ siptag_rseq_vr(sip_rseq_t const **vp)
  *
  * @param x pointer to a #sip_rack_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_RACK_REF().
  *
  *
@@ -1104,7 +1104,7 @@ siptag_rseq_vr(sip_rseq_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_rack;
 
 /**@ingroup sip_rack
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_rack "RAck header" pointer.
  */
 #define SIPTAG_RACK_REF(x) siptag_rack_ref, siptag_rack_vr(&(x))
@@ -1114,17 +1114,17 @@ SOFIAPUBVAR tag_typedef_t siptag_rack_ref;
  *
  * Tag list item for string with @ref sip_rack "RAck header" value.
  *
- * The SIPTAG_RACK_STR() macro is used to include a tag item with a 
+ * The SIPTAG_RACK_STR() macro is used to include a tag item with a
  * string containing value of a #sip_rack_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_rack "RAck header" value, or NULL.
  *
  * The string in SIPTAG_RACK_STR() can be converted to a
  * #sip_rack_t header structure by giving the string @a s has
  * second argument to function sip_rack_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_RACK_STR_REF().
  *
  *
@@ -1163,7 +1163,7 @@ siptag_rack_vr(sip_rack_t const **vp)
  *
  * @param x pointer to a #sip_request_disposition_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REQUEST_DISPOSITION_REF().
  *
  *
@@ -1174,7 +1174,7 @@ siptag_rack_vr(sip_rack_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_request_disposition;
 
 /**@ingroup sip_request_disposition
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_request_disposition "Request-Disposition header" pointer.
  */
 #define SIPTAG_REQUEST_DISPOSITION_REF(x) siptag_request_disposition_ref, siptag_request_disposition_vr(&(x))
@@ -1184,17 +1184,17 @@ SOFIAPUBVAR tag_typedef_t siptag_request_disposition_ref;
  *
  * Tag list item for string with @ref sip_request_disposition "Request-Disposition header" value.
  *
- * The SIPTAG_REQUEST_DISPOSITION_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REQUEST_DISPOSITION_STR() macro is used to include a tag item with a
  * string containing value of a #sip_request_disposition_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_request_disposition "Request-Disposition header" value, or NULL.
  *
  * The string in SIPTAG_REQUEST_DISPOSITION_STR() can be converted to a
  * #sip_request_disposition_t header structure by giving the string @a s has
  * second argument to function sip_request_disposition_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REQUEST_DISPOSITION_STR_REF().
  *
  *
@@ -1233,7 +1233,7 @@ siptag_request_disposition_vr(sip_request_disposition_t const **vp)
  *
  * @param x pointer to a #sip_accept_contact_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ACCEPT_CONTACT_REF().
  *
  *
@@ -1244,7 +1244,7 @@ siptag_request_disposition_vr(sip_request_disposition_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_accept_contact;
 
 /**@ingroup sip_accept_contact
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_accept_contact "Accept-Contact header" pointer.
  */
 #define SIPTAG_ACCEPT_CONTACT_REF(x) siptag_accept_contact_ref, siptag_accept_contact_vr(&(x))
@@ -1254,17 +1254,17 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_contact_ref;
  *
  * Tag list item for string with @ref sip_accept_contact "Accept-Contact header" value.
  *
- * The SIPTAG_ACCEPT_CONTACT_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ACCEPT_CONTACT_STR() macro is used to include a tag item with a
  * string containing value of a #sip_accept_contact_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_accept_contact "Accept-Contact header" value, or NULL.
  *
  * The string in SIPTAG_ACCEPT_CONTACT_STR() can be converted to a
  * #sip_accept_contact_t header structure by giving the string @a s has
  * second argument to function sip_accept_contact_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ACCEPT_CONTACT_STR_REF().
  *
  *
@@ -1303,7 +1303,7 @@ siptag_accept_contact_vr(sip_accept_contact_t const **vp)
  *
  * @param x pointer to a #sip_reject_contact_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REJECT_CONTACT_REF().
  *
  *
@@ -1314,7 +1314,7 @@ siptag_accept_contact_vr(sip_accept_contact_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_reject_contact;
 
 /**@ingroup sip_reject_contact
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_reject_contact "Reject-Contact header" pointer.
  */
 #define SIPTAG_REJECT_CONTACT_REF(x) siptag_reject_contact_ref, siptag_reject_contact_vr(&(x))
@@ -1324,17 +1324,17 @@ SOFIAPUBVAR tag_typedef_t siptag_reject_contact_ref;
  *
  * Tag list item for string with @ref sip_reject_contact "Reject-Contact header" value.
  *
- * The SIPTAG_REJECT_CONTACT_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REJECT_CONTACT_STR() macro is used to include a tag item with a
  * string containing value of a #sip_reject_contact_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_reject_contact "Reject-Contact header" value, or NULL.
  *
  * The string in SIPTAG_REJECT_CONTACT_STR() can be converted to a
  * #sip_reject_contact_t header structure by giving the string @a s has
  * second argument to function sip_reject_contact_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REJECT_CONTACT_STR_REF().
  *
  *
@@ -1373,7 +1373,7 @@ siptag_reject_contact_vr(sip_reject_contact_t const **vp)
  *
  * @param x pointer to a #sip_expires_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_EXPIRES_REF().
  *
  *
@@ -1384,7 +1384,7 @@ siptag_reject_contact_vr(sip_reject_contact_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_expires;
 
 /**@ingroup sip_expires
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_expires "Expires header" pointer.
  */
 #define SIPTAG_EXPIRES_REF(x) siptag_expires_ref, siptag_expires_vr(&(x))
@@ -1394,17 +1394,17 @@ SOFIAPUBVAR tag_typedef_t siptag_expires_ref;
  *
  * Tag list item for string with @ref sip_expires "Expires header" value.
  *
- * The SIPTAG_EXPIRES_STR() macro is used to include a tag item with a 
+ * The SIPTAG_EXPIRES_STR() macro is used to include a tag item with a
  * string containing value of a #sip_expires_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_expires "Expires header" value, or NULL.
  *
  * The string in SIPTAG_EXPIRES_STR() can be converted to a
  * #sip_expires_t header structure by giving the string @a s has
  * second argument to function sip_expires_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_EXPIRES_STR_REF().
  *
  *
@@ -1443,7 +1443,7 @@ siptag_expires_vr(sip_expires_t const **vp)
  *
  * @param x pointer to a #sip_date_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_DATE_REF().
  *
  *
@@ -1454,7 +1454,7 @@ siptag_expires_vr(sip_expires_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_date;
 
 /**@ingroup sip_date
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_date "Date header" pointer.
  */
 #define SIPTAG_DATE_REF(x) siptag_date_ref, siptag_date_vr(&(x))
@@ -1464,17 +1464,17 @@ SOFIAPUBVAR tag_typedef_t siptag_date_ref;
  *
  * Tag list item for string with @ref sip_date "Date header" value.
  *
- * The SIPTAG_DATE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_DATE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_date_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_date "Date header" value, or NULL.
  *
  * The string in SIPTAG_DATE_STR() can be converted to a
  * #sip_date_t header structure by giving the string @a s has
  * second argument to function sip_date_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_DATE_STR_REF().
  *
  *
@@ -1513,7 +1513,7 @@ siptag_date_vr(sip_date_t const **vp)
  *
  * @param x pointer to a #sip_retry_after_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_RETRY_AFTER_REF().
  *
  *
@@ -1524,7 +1524,7 @@ siptag_date_vr(sip_date_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_retry_after;
 
 /**@ingroup sip_retry_after
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_retry_after "Retry-After header" pointer.
  */
 #define SIPTAG_RETRY_AFTER_REF(x) siptag_retry_after_ref, siptag_retry_after_vr(&(x))
@@ -1534,17 +1534,17 @@ SOFIAPUBVAR tag_typedef_t siptag_retry_after_ref;
  *
  * Tag list item for string with @ref sip_retry_after "Retry-After header" value.
  *
- * The SIPTAG_RETRY_AFTER_STR() macro is used to include a tag item with a 
+ * The SIPTAG_RETRY_AFTER_STR() macro is used to include a tag item with a
  * string containing value of a #sip_retry_after_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_retry_after "Retry-After header" value, or NULL.
  *
  * The string in SIPTAG_RETRY_AFTER_STR() can be converted to a
  * #sip_retry_after_t header structure by giving the string @a s has
  * second argument to function sip_retry_after_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_RETRY_AFTER_STR_REF().
  *
  *
@@ -1583,7 +1583,7 @@ siptag_retry_after_vr(sip_retry_after_t const **vp)
  *
  * @param x pointer to a #sip_timestamp_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_TIMESTAMP_REF().
  *
  *
@@ -1594,7 +1594,7 @@ siptag_retry_after_vr(sip_retry_after_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_timestamp;
 
 /**@ingroup sip_timestamp
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_timestamp "Timestamp header" pointer.
  */
 #define SIPTAG_TIMESTAMP_REF(x) siptag_timestamp_ref, siptag_timestamp_vr(&(x))
@@ -1604,17 +1604,17 @@ SOFIAPUBVAR tag_typedef_t siptag_timestamp_ref;
  *
  * Tag list item for string with @ref sip_timestamp "Timestamp header" value.
  *
- * The SIPTAG_TIMESTAMP_STR() macro is used to include a tag item with a 
+ * The SIPTAG_TIMESTAMP_STR() macro is used to include a tag item with a
  * string containing value of a #sip_timestamp_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_timestamp "Timestamp header" value, or NULL.
  *
  * The string in SIPTAG_TIMESTAMP_STR() can be converted to a
  * #sip_timestamp_t header structure by giving the string @a s has
  * second argument to function sip_timestamp_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_TIMESTAMP_STR_REF().
  *
  *
@@ -1653,7 +1653,7 @@ siptag_timestamp_vr(sip_timestamp_t const **vp)
  *
  * @param x pointer to a #sip_min_expires_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_MIN_EXPIRES_REF().
  *
  *
@@ -1664,7 +1664,7 @@ siptag_timestamp_vr(sip_timestamp_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_min_expires;
 
 /**@ingroup sip_min_expires
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_min_expires "Min-Expires header" pointer.
  */
 #define SIPTAG_MIN_EXPIRES_REF(x) siptag_min_expires_ref, siptag_min_expires_vr(&(x))
@@ -1674,17 +1674,17 @@ SOFIAPUBVAR tag_typedef_t siptag_min_expires_ref;
  *
  * Tag list item for string with @ref sip_min_expires "Min-Expires header" value.
  *
- * The SIPTAG_MIN_EXPIRES_STR() macro is used to include a tag item with a 
+ * The SIPTAG_MIN_EXPIRES_STR() macro is used to include a tag item with a
  * string containing value of a #sip_min_expires_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_min_expires "Min-Expires header" value, or NULL.
  *
  * The string in SIPTAG_MIN_EXPIRES_STR() can be converted to a
  * #sip_min_expires_t header structure by giving the string @a s has
  * second argument to function sip_min_expires_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_MIN_EXPIRES_STR_REF().
  *
  *
@@ -1723,7 +1723,7 @@ siptag_min_expires_vr(sip_min_expires_t const **vp)
  *
  * @param x pointer to a #sip_subject_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUBJECT_REF().
  *
  *
@@ -1734,7 +1734,7 @@ siptag_min_expires_vr(sip_min_expires_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_subject;
 
 /**@ingroup sip_subject
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_subject "Subject header" pointer.
  */
 #define SIPTAG_SUBJECT_REF(x) siptag_subject_ref, siptag_subject_vr(&(x))
@@ -1744,17 +1744,17 @@ SOFIAPUBVAR tag_typedef_t siptag_subject_ref;
  *
  * Tag list item for string with @ref sip_subject "Subject header" value.
  *
- * The SIPTAG_SUBJECT_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SUBJECT_STR() macro is used to include a tag item with a
  * string containing value of a #sip_subject_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_subject "Subject header" value, or NULL.
  *
  * The string in SIPTAG_SUBJECT_STR() can be converted to a
  * #sip_subject_t header structure by giving the string @a s has
  * second argument to function sip_subject_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUBJECT_STR_REF().
  *
  *
@@ -1793,7 +1793,7 @@ siptag_subject_vr(sip_subject_t const **vp)
  *
  * @param x pointer to a #sip_priority_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PRIORITY_REF().
  *
  *
@@ -1804,7 +1804,7 @@ siptag_subject_vr(sip_subject_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_priority;
 
 /**@ingroup sip_priority
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_priority "Priority header" pointer.
  */
 #define SIPTAG_PRIORITY_REF(x) siptag_priority_ref, siptag_priority_vr(&(x))
@@ -1814,17 +1814,17 @@ SOFIAPUBVAR tag_typedef_t siptag_priority_ref;
  *
  * Tag list item for string with @ref sip_priority "Priority header" value.
  *
- * The SIPTAG_PRIORITY_STR() macro is used to include a tag item with a 
+ * The SIPTAG_PRIORITY_STR() macro is used to include a tag item with a
  * string containing value of a #sip_priority_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_priority "Priority header" value, or NULL.
  *
  * The string in SIPTAG_PRIORITY_STR() can be converted to a
  * #sip_priority_t header structure by giving the string @a s has
  * second argument to function sip_priority_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PRIORITY_STR_REF().
  *
  *
@@ -1863,7 +1863,7 @@ siptag_priority_vr(sip_priority_t const **vp)
  *
  * @param x pointer to a #sip_call_info_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CALL_INFO_REF().
  *
  *
@@ -1874,7 +1874,7 @@ siptag_priority_vr(sip_priority_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_call_info;
 
 /**@ingroup sip_call_info
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_call_info "Call-Info header" pointer.
  */
 #define SIPTAG_CALL_INFO_REF(x) siptag_call_info_ref, siptag_call_info_vr(&(x))
@@ -1884,17 +1884,17 @@ SOFIAPUBVAR tag_typedef_t siptag_call_info_ref;
  *
  * Tag list item for string with @ref sip_call_info "Call-Info header" value.
  *
- * The SIPTAG_CALL_INFO_STR() macro is used to include a tag item with a 
+ * The SIPTAG_CALL_INFO_STR() macro is used to include a tag item with a
  * string containing value of a #sip_call_info_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_call_info "Call-Info header" value, or NULL.
  *
  * The string in SIPTAG_CALL_INFO_STR() can be converted to a
  * #sip_call_info_t header structure by giving the string @a s has
  * second argument to function sip_call_info_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CALL_INFO_STR_REF().
  *
  *
@@ -1933,7 +1933,7 @@ siptag_call_info_vr(sip_call_info_t const **vp)
  *
  * @param x pointer to a #sip_organization_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ORGANIZATION_REF().
  *
  *
@@ -1944,7 +1944,7 @@ siptag_call_info_vr(sip_call_info_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_organization;
 
 /**@ingroup sip_organization
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_organization "Organization header" pointer.
  */
 #define SIPTAG_ORGANIZATION_REF(x) siptag_organization_ref, siptag_organization_vr(&(x))
@@ -1954,17 +1954,17 @@ SOFIAPUBVAR tag_typedef_t siptag_organization_ref;
  *
  * Tag list item for string with @ref sip_organization "Organization header" value.
  *
- * The SIPTAG_ORGANIZATION_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ORGANIZATION_STR() macro is used to include a tag item with a
  * string containing value of a #sip_organization_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_organization "Organization header" value, or NULL.
  *
  * The string in SIPTAG_ORGANIZATION_STR() can be converted to a
  * #sip_organization_t header structure by giving the string @a s has
  * second argument to function sip_organization_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ORGANIZATION_STR_REF().
  *
  *
@@ -2003,7 +2003,7 @@ siptag_organization_vr(sip_organization_t const **vp)
  *
  * @param x pointer to a #sip_server_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SERVER_REF().
  *
  *
@@ -2014,7 +2014,7 @@ siptag_organization_vr(sip_organization_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_server;
 
 /**@ingroup sip_server
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_server "Server header" pointer.
  */
 #define SIPTAG_SERVER_REF(x) siptag_server_ref, siptag_server_vr(&(x))
@@ -2024,17 +2024,17 @@ SOFIAPUBVAR tag_typedef_t siptag_server_ref;
  *
  * Tag list item for string with @ref sip_server "Server header" value.
  *
- * The SIPTAG_SERVER_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SERVER_STR() macro is used to include a tag item with a
  * string containing value of a #sip_server_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_server "Server header" value, or NULL.
  *
  * The string in SIPTAG_SERVER_STR() can be converted to a
  * #sip_server_t header structure by giving the string @a s has
  * second argument to function sip_server_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SERVER_STR_REF().
  *
  *
@@ -2073,7 +2073,7 @@ siptag_server_vr(sip_server_t const **vp)
  *
  * @param x pointer to a #sip_user_agent_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_USER_AGENT_REF().
  *
  *
@@ -2084,7 +2084,7 @@ siptag_server_vr(sip_server_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_user_agent;
 
 /**@ingroup sip_user_agent
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_user_agent "User-Agent header" pointer.
  */
 #define SIPTAG_USER_AGENT_REF(x) siptag_user_agent_ref, siptag_user_agent_vr(&(x))
@@ -2094,17 +2094,17 @@ SOFIAPUBVAR tag_typedef_t siptag_user_agent_ref;
  *
  * Tag list item for string with @ref sip_user_agent "User-Agent header" value.
  *
- * The SIPTAG_USER_AGENT_STR() macro is used to include a tag item with a 
+ * The SIPTAG_USER_AGENT_STR() macro is used to include a tag item with a
  * string containing value of a #sip_user_agent_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_user_agent "User-Agent header" value, or NULL.
  *
  * The string in SIPTAG_USER_AGENT_STR() can be converted to a
  * #sip_user_agent_t header structure by giving the string @a s has
  * second argument to function sip_user_agent_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_USER_AGENT_STR_REF().
  *
  *
@@ -2143,7 +2143,7 @@ siptag_user_agent_vr(sip_user_agent_t const **vp)
  *
  * @param x pointer to a #sip_in_reply_to_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_IN_REPLY_TO_REF().
  *
  *
@@ -2154,7 +2154,7 @@ siptag_user_agent_vr(sip_user_agent_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_in_reply_to;
 
 /**@ingroup sip_in_reply_to
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_in_reply_to "In-Reply-To header" pointer.
  */
 #define SIPTAG_IN_REPLY_TO_REF(x) siptag_in_reply_to_ref, siptag_in_reply_to_vr(&(x))
@@ -2164,17 +2164,17 @@ SOFIAPUBVAR tag_typedef_t siptag_in_reply_to_ref;
  *
  * Tag list item for string with @ref sip_in_reply_to "In-Reply-To header" value.
  *
- * The SIPTAG_IN_REPLY_TO_STR() macro is used to include a tag item with a 
+ * The SIPTAG_IN_REPLY_TO_STR() macro is used to include a tag item with a
  * string containing value of a #sip_in_reply_to_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_in_reply_to "In-Reply-To header" value, or NULL.
  *
  * The string in SIPTAG_IN_REPLY_TO_STR() can be converted to a
  * #sip_in_reply_to_t header structure by giving the string @a s has
  * second argument to function sip_in_reply_to_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_IN_REPLY_TO_STR_REF().
  *
  *
@@ -2213,7 +2213,7 @@ siptag_in_reply_to_vr(sip_in_reply_to_t const **vp)
  *
  * @param x pointer to a #sip_accept_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ACCEPT_REF().
  *
  *
@@ -2224,7 +2224,7 @@ siptag_in_reply_to_vr(sip_in_reply_to_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_accept;
 
 /**@ingroup sip_accept
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_accept "Accept header" pointer.
  */
 #define SIPTAG_ACCEPT_REF(x) siptag_accept_ref, siptag_accept_vr(&(x))
@@ -2234,17 +2234,17 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_ref;
  *
  * Tag list item for string with @ref sip_accept "Accept header" value.
  *
- * The SIPTAG_ACCEPT_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ACCEPT_STR() macro is used to include a tag item with a
  * string containing value of a #sip_accept_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_accept "Accept header" value, or NULL.
  *
  * The string in SIPTAG_ACCEPT_STR() can be converted to a
  * #sip_accept_t header structure by giving the string @a s has
  * second argument to function sip_accept_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ACCEPT_STR_REF().
  *
  *
@@ -2283,7 +2283,7 @@ siptag_accept_vr(sip_accept_t const **vp)
  *
  * @param x pointer to a #sip_accept_encoding_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ACCEPT_ENCODING_REF().
  *
  *
@@ -2294,7 +2294,7 @@ siptag_accept_vr(sip_accept_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_accept_encoding;
 
 /**@ingroup sip_accept_encoding
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_accept_encoding "Accept-Encoding header" pointer.
  */
 #define SIPTAG_ACCEPT_ENCODING_REF(x) siptag_accept_encoding_ref, siptag_accept_encoding_vr(&(x))
@@ -2304,17 +2304,17 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_encoding_ref;
  *
  * Tag list item for string with @ref sip_accept_encoding "Accept-Encoding header" value.
  *
- * The SIPTAG_ACCEPT_ENCODING_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ACCEPT_ENCODING_STR() macro is used to include a tag item with a
  * string containing value of a #sip_accept_encoding_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_accept_encoding "Accept-Encoding header" value, or NULL.
  *
  * The string in SIPTAG_ACCEPT_ENCODING_STR() can be converted to a
  * #sip_accept_encoding_t header structure by giving the string @a s has
  * second argument to function sip_accept_encoding_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ACCEPT_ENCODING_STR_REF().
  *
  *
@@ -2353,7 +2353,7 @@ siptag_accept_encoding_vr(sip_accept_encoding_t const **vp)
  *
  * @param x pointer to a #sip_accept_language_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ACCEPT_LANGUAGE_REF().
  *
  *
@@ -2364,7 +2364,7 @@ siptag_accept_encoding_vr(sip_accept_encoding_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_accept_language;
 
 /**@ingroup sip_accept_language
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_accept_language "Accept-Language header" pointer.
  */
 #define SIPTAG_ACCEPT_LANGUAGE_REF(x) siptag_accept_language_ref, siptag_accept_language_vr(&(x))
@@ -2374,17 +2374,17 @@ SOFIAPUBVAR tag_typedef_t siptag_accept_language_ref;
  *
  * Tag list item for string with @ref sip_accept_language "Accept-Language header" value.
  *
- * The SIPTAG_ACCEPT_LANGUAGE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ACCEPT_LANGUAGE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_accept_language_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_accept_language "Accept-Language header" value, or NULL.
  *
  * The string in SIPTAG_ACCEPT_LANGUAGE_STR() can be converted to a
  * #sip_accept_language_t header structure by giving the string @a s has
  * second argument to function sip_accept_language_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ACCEPT_LANGUAGE_STR_REF().
  *
  *
@@ -2423,7 +2423,7 @@ siptag_accept_language_vr(sip_accept_language_t const **vp)
  *
  * @param x pointer to a #sip_allow_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ALLOW_REF().
  *
  *
@@ -2434,7 +2434,7 @@ siptag_accept_language_vr(sip_accept_language_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_allow;
 
 /**@ingroup sip_allow
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_allow "Allow header" pointer.
  */
 #define SIPTAG_ALLOW_REF(x) siptag_allow_ref, siptag_allow_vr(&(x))
@@ -2444,17 +2444,17 @@ SOFIAPUBVAR tag_typedef_t siptag_allow_ref;
  *
  * Tag list item for string with @ref sip_allow "Allow header" value.
  *
- * The SIPTAG_ALLOW_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ALLOW_STR() macro is used to include a tag item with a
  * string containing value of a #sip_allow_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_allow "Allow header" value, or NULL.
  *
  * The string in SIPTAG_ALLOW_STR() can be converted to a
  * #sip_allow_t header structure by giving the string @a s has
  * second argument to function sip_allow_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ALLOW_STR_REF().
  *
  *
@@ -2493,7 +2493,7 @@ siptag_allow_vr(sip_allow_t const **vp)
  *
  * @param x pointer to a #sip_require_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REQUIRE_REF().
  *
  *
@@ -2504,7 +2504,7 @@ siptag_allow_vr(sip_allow_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_require;
 
 /**@ingroup sip_require
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_require "Require header" pointer.
  */
 #define SIPTAG_REQUIRE_REF(x) siptag_require_ref, siptag_require_vr(&(x))
@@ -2514,17 +2514,17 @@ SOFIAPUBVAR tag_typedef_t siptag_require_ref;
  *
  * Tag list item for string with @ref sip_require "Require header" value.
  *
- * The SIPTAG_REQUIRE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REQUIRE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_require_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_require "Require header" value, or NULL.
  *
  * The string in SIPTAG_REQUIRE_STR() can be converted to a
  * #sip_require_t header structure by giving the string @a s has
  * second argument to function sip_require_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REQUIRE_STR_REF().
  *
  *
@@ -2563,7 +2563,7 @@ siptag_require_vr(sip_require_t const **vp)
  *
  * @param x pointer to a #sip_supported_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUPPORTED_REF().
  *
  *
@@ -2574,7 +2574,7 @@ siptag_require_vr(sip_require_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_supported;
 
 /**@ingroup sip_supported
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_supported "Supported header" pointer.
  */
 #define SIPTAG_SUPPORTED_REF(x) siptag_supported_ref, siptag_supported_vr(&(x))
@@ -2584,17 +2584,17 @@ SOFIAPUBVAR tag_typedef_t siptag_supported_ref;
  *
  * Tag list item for string with @ref sip_supported "Supported header" value.
  *
- * The SIPTAG_SUPPORTED_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SUPPORTED_STR() macro is used to include a tag item with a
  * string containing value of a #sip_supported_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_supported "Supported header" value, or NULL.
  *
  * The string in SIPTAG_SUPPORTED_STR() can be converted to a
  * #sip_supported_t header structure by giving the string @a s has
  * second argument to function sip_supported_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUPPORTED_STR_REF().
  *
  *
@@ -2633,7 +2633,7 @@ siptag_supported_vr(sip_supported_t const **vp)
  *
  * @param x pointer to a #sip_unsupported_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_UNSUPPORTED_REF().
  *
  *
@@ -2644,7 +2644,7 @@ siptag_supported_vr(sip_supported_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_unsupported;
 
 /**@ingroup sip_unsupported
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_unsupported "Unsupported header" pointer.
  */
 #define SIPTAG_UNSUPPORTED_REF(x) siptag_unsupported_ref, siptag_unsupported_vr(&(x))
@@ -2654,17 +2654,17 @@ SOFIAPUBVAR tag_typedef_t siptag_unsupported_ref;
  *
  * Tag list item for string with @ref sip_unsupported "Unsupported header" value.
  *
- * The SIPTAG_UNSUPPORTED_STR() macro is used to include a tag item with a 
+ * The SIPTAG_UNSUPPORTED_STR() macro is used to include a tag item with a
  * string containing value of a #sip_unsupported_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_unsupported "Unsupported header" value, or NULL.
  *
  * The string in SIPTAG_UNSUPPORTED_STR() can be converted to a
  * #sip_unsupported_t header structure by giving the string @a s has
  * second argument to function sip_unsupported_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_UNSUPPORTED_STR_REF().
  *
  *
@@ -2703,7 +2703,7 @@ siptag_unsupported_vr(sip_unsupported_t const **vp)
  *
  * @param x pointer to a #sip_event_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_EVENT_REF().
  *
  *
@@ -2714,7 +2714,7 @@ siptag_unsupported_vr(sip_unsupported_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_event;
 
 /**@ingroup sip_event
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_event "Event header" pointer.
  */
 #define SIPTAG_EVENT_REF(x) siptag_event_ref, siptag_event_vr(&(x))
@@ -2724,17 +2724,17 @@ SOFIAPUBVAR tag_typedef_t siptag_event_ref;
  *
  * Tag list item for string with @ref sip_event "Event header" value.
  *
- * The SIPTAG_EVENT_STR() macro is used to include a tag item with a 
+ * The SIPTAG_EVENT_STR() macro is used to include a tag item with a
  * string containing value of a #sip_event_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_event "Event header" value, or NULL.
  *
  * The string in SIPTAG_EVENT_STR() can be converted to a
  * #sip_event_t header structure by giving the string @a s has
  * second argument to function sip_event_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_EVENT_STR_REF().
  *
  *
@@ -2773,7 +2773,7 @@ siptag_event_vr(sip_event_t const **vp)
  *
  * @param x pointer to a #sip_allow_events_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ALLOW_EVENTS_REF().
  *
  *
@@ -2784,7 +2784,7 @@ siptag_event_vr(sip_event_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_allow_events;
 
 /**@ingroup sip_allow_events
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_allow_events "Allow-Events header" pointer.
  */
 #define SIPTAG_ALLOW_EVENTS_REF(x) siptag_allow_events_ref, siptag_allow_events_vr(&(x))
@@ -2794,17 +2794,17 @@ SOFIAPUBVAR tag_typedef_t siptag_allow_events_ref;
  *
  * Tag list item for string with @ref sip_allow_events "Allow-Events header" value.
  *
- * The SIPTAG_ALLOW_EVENTS_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ALLOW_EVENTS_STR() macro is used to include a tag item with a
  * string containing value of a #sip_allow_events_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_allow_events "Allow-Events header" value, or NULL.
  *
  * The string in SIPTAG_ALLOW_EVENTS_STR() can be converted to a
  * #sip_allow_events_t header structure by giving the string @a s has
  * second argument to function sip_allow_events_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ALLOW_EVENTS_STR_REF().
  *
  *
@@ -2843,7 +2843,7 @@ siptag_allow_events_vr(sip_allow_events_t const **vp)
  *
  * @param x pointer to a #sip_subscription_state_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUBSCRIPTION_STATE_REF().
  *
  *
@@ -2854,7 +2854,7 @@ siptag_allow_events_vr(sip_allow_events_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_subscription_state;
 
 /**@ingroup sip_subscription_state
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_subscription_state "Subscription-State header" pointer.
  */
 #define SIPTAG_SUBSCRIPTION_STATE_REF(x) siptag_subscription_state_ref, siptag_subscription_state_vr(&(x))
@@ -2864,17 +2864,17 @@ SOFIAPUBVAR tag_typedef_t siptag_subscription_state_ref;
  *
  * Tag list item for string with @ref sip_subscription_state "Subscription-State header" value.
  *
- * The SIPTAG_SUBSCRIPTION_STATE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SUBSCRIPTION_STATE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_subscription_state_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_subscription_state "Subscription-State header" value, or NULL.
  *
  * The string in SIPTAG_SUBSCRIPTION_STATE_STR() can be converted to a
  * #sip_subscription_state_t header structure by giving the string @a s has
  * second argument to function sip_subscription_state_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SUBSCRIPTION_STATE_STR_REF().
  *
  *
@@ -2913,7 +2913,7 @@ siptag_subscription_state_vr(sip_subscription_state_t const **vp)
  *
  * @param x pointer to a #sip_proxy_authenticate_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PROXY_AUTHENTICATE_REF().
  *
  *
@@ -2924,7 +2924,7 @@ siptag_subscription_state_vr(sip_subscription_state_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_proxy_authenticate;
 
 /**@ingroup sip_proxy_authenticate
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_proxy_authenticate "Proxy-Authenticate header" pointer.
  */
 #define SIPTAG_PROXY_AUTHENTICATE_REF(x) siptag_proxy_authenticate_ref, siptag_proxy_authenticate_vr(&(x))
@@ -2934,17 +2934,17 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_authenticate_ref;
  *
  * Tag list item for string with @ref sip_proxy_authenticate "Proxy-Authenticate header" value.
  *
- * The SIPTAG_PROXY_AUTHENTICATE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_PROXY_AUTHENTICATE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_proxy_authenticate_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_proxy_authenticate "Proxy-Authenticate header" value, or NULL.
  *
  * The string in SIPTAG_PROXY_AUTHENTICATE_STR() can be converted to a
  * #sip_proxy_authenticate_t header structure by giving the string @a s has
  * second argument to function sip_proxy_authenticate_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PROXY_AUTHENTICATE_STR_REF().
  *
  *
@@ -2983,7 +2983,7 @@ siptag_proxy_authenticate_vr(sip_proxy_authenticate_t const **vp)
  *
  * @param x pointer to a #sip_proxy_authentication_info_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PROXY_AUTHENTICATION_INFO_REF().
  *
  *
@@ -2994,7 +2994,7 @@ siptag_proxy_authenticate_vr(sip_proxy_authenticate_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_proxy_authentication_info;
 
 /**@ingroup sip_proxy_authentication_info
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" pointer.
  */
 #define SIPTAG_PROXY_AUTHENTICATION_INFO_REF(x) siptag_proxy_authentication_info_ref, siptag_proxy_authentication_info_vr(&(x))
@@ -3004,17 +3004,17 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_authentication_info_ref;
  *
  * Tag list item for string with @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" value.
  *
- * The SIPTAG_PROXY_AUTHENTICATION_INFO_STR() macro is used to include a tag item with a 
+ * The SIPTAG_PROXY_AUTHENTICATION_INFO_STR() macro is used to include a tag item with a
  * string containing value of a #sip_proxy_authentication_info_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_proxy_authentication_info "Proxy-Authentication-Info header" value, or NULL.
  *
  * The string in SIPTAG_PROXY_AUTHENTICATION_INFO_STR() can be converted to a
  * #sip_proxy_authentication_info_t header structure by giving the string @a s has
  * second argument to function sip_proxy_authentication_info_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PROXY_AUTHENTICATION_INFO_STR_REF().
  *
  *
@@ -3053,7 +3053,7 @@ siptag_proxy_authentication_info_vr(sip_proxy_authentication_info_t const **vp)
  *
  * @param x pointer to a #sip_proxy_authorization_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PROXY_AUTHORIZATION_REF().
  *
  *
@@ -3064,7 +3064,7 @@ siptag_proxy_authentication_info_vr(sip_proxy_authentication_info_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_proxy_authorization;
 
 /**@ingroup sip_proxy_authorization
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_proxy_authorization "Proxy-Authorization header" pointer.
  */
 #define SIPTAG_PROXY_AUTHORIZATION_REF(x) siptag_proxy_authorization_ref, siptag_proxy_authorization_vr(&(x))
@@ -3074,17 +3074,17 @@ SOFIAPUBVAR tag_typedef_t siptag_proxy_authorization_ref;
  *
  * Tag list item for string with @ref sip_proxy_authorization "Proxy-Authorization header" value.
  *
- * The SIPTAG_PROXY_AUTHORIZATION_STR() macro is used to include a tag item with a 
+ * The SIPTAG_PROXY_AUTHORIZATION_STR() macro is used to include a tag item with a
  * string containing value of a #sip_proxy_authorization_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_proxy_authorization "Proxy-Authorization header" value, or NULL.
  *
  * The string in SIPTAG_PROXY_AUTHORIZATION_STR() can be converted to a
  * #sip_proxy_authorization_t header structure by giving the string @a s has
  * second argument to function sip_proxy_authorization_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PROXY_AUTHORIZATION_STR_REF().
  *
  *
@@ -3123,7 +3123,7 @@ siptag_proxy_authorization_vr(sip_proxy_authorization_t const **vp)
  *
  * @param x pointer to a #sip_authorization_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_AUTHORIZATION_REF().
  *
  *
@@ -3134,7 +3134,7 @@ siptag_proxy_authorization_vr(sip_proxy_authorization_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_authorization;
 
 /**@ingroup sip_authorization
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_authorization "Authorization header" pointer.
  */
 #define SIPTAG_AUTHORIZATION_REF(x) siptag_authorization_ref, siptag_authorization_vr(&(x))
@@ -3144,17 +3144,17 @@ SOFIAPUBVAR tag_typedef_t siptag_authorization_ref;
  *
  * Tag list item for string with @ref sip_authorization "Authorization header" value.
  *
- * The SIPTAG_AUTHORIZATION_STR() macro is used to include a tag item with a 
+ * The SIPTAG_AUTHORIZATION_STR() macro is used to include a tag item with a
  * string containing value of a #sip_authorization_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_authorization "Authorization header" value, or NULL.
  *
  * The string in SIPTAG_AUTHORIZATION_STR() can be converted to a
  * #sip_authorization_t header structure by giving the string @a s has
  * second argument to function sip_authorization_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_AUTHORIZATION_STR_REF().
  *
  *
@@ -3193,7 +3193,7 @@ siptag_authorization_vr(sip_authorization_t const **vp)
  *
  * @param x pointer to a #sip_www_authenticate_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_WWW_AUTHENTICATE_REF().
  *
  *
@@ -3204,7 +3204,7 @@ siptag_authorization_vr(sip_authorization_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_www_authenticate;
 
 /**@ingroup sip_www_authenticate
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_www_authenticate "WWW-Authenticate header" pointer.
  */
 #define SIPTAG_WWW_AUTHENTICATE_REF(x) siptag_www_authenticate_ref, siptag_www_authenticate_vr(&(x))
@@ -3214,17 +3214,17 @@ SOFIAPUBVAR tag_typedef_t siptag_www_authenticate_ref;
  *
  * Tag list item for string with @ref sip_www_authenticate "WWW-Authenticate header" value.
  *
- * The SIPTAG_WWW_AUTHENTICATE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_WWW_AUTHENTICATE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_www_authenticate_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_www_authenticate "WWW-Authenticate header" value, or NULL.
  *
  * The string in SIPTAG_WWW_AUTHENTICATE_STR() can be converted to a
  * #sip_www_authenticate_t header structure by giving the string @a s has
  * second argument to function sip_www_authenticate_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_WWW_AUTHENTICATE_STR_REF().
  *
  *
@@ -3263,7 +3263,7 @@ siptag_www_authenticate_vr(sip_www_authenticate_t const **vp)
  *
  * @param x pointer to a #sip_authentication_info_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_AUTHENTICATION_INFO_REF().
  *
  *
@@ -3274,7 +3274,7 @@ siptag_www_authenticate_vr(sip_www_authenticate_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_authentication_info;
 
 /**@ingroup sip_authentication_info
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_authentication_info "Authentication-Info header" pointer.
  */
 #define SIPTAG_AUTHENTICATION_INFO_REF(x) siptag_authentication_info_ref, siptag_authentication_info_vr(&(x))
@@ -3284,17 +3284,17 @@ SOFIAPUBVAR tag_typedef_t siptag_authentication_info_ref;
  *
  * Tag list item for string with @ref sip_authentication_info "Authentication-Info header" value.
  *
- * The SIPTAG_AUTHENTICATION_INFO_STR() macro is used to include a tag item with a 
+ * The SIPTAG_AUTHENTICATION_INFO_STR() macro is used to include a tag item with a
  * string containing value of a #sip_authentication_info_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_authentication_info "Authentication-Info header" value, or NULL.
  *
  * The string in SIPTAG_AUTHENTICATION_INFO_STR() can be converted to a
  * #sip_authentication_info_t header structure by giving the string @a s has
  * second argument to function sip_authentication_info_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_AUTHENTICATION_INFO_STR_REF().
  *
  *
@@ -3333,7 +3333,7 @@ siptag_authentication_info_vr(sip_authentication_info_t const **vp)
  *
  * @param x pointer to a #sip_error_info_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ERROR_INFO_REF().
  *
  *
@@ -3344,7 +3344,7 @@ siptag_authentication_info_vr(sip_authentication_info_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_error_info;
 
 /**@ingroup sip_error_info
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_error_info "Error-Info header" pointer.
  */
 #define SIPTAG_ERROR_INFO_REF(x) siptag_error_info_ref, siptag_error_info_vr(&(x))
@@ -3354,17 +3354,17 @@ SOFIAPUBVAR tag_typedef_t siptag_error_info_ref;
  *
  * Tag list item for string with @ref sip_error_info "Error-Info header" value.
  *
- * The SIPTAG_ERROR_INFO_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ERROR_INFO_STR() macro is used to include a tag item with a
  * string containing value of a #sip_error_info_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_error_info "Error-Info header" value, or NULL.
  *
  * The string in SIPTAG_ERROR_INFO_STR() can be converted to a
  * #sip_error_info_t header structure by giving the string @a s has
  * second argument to function sip_error_info_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ERROR_INFO_STR_REF().
  *
  *
@@ -3403,7 +3403,7 @@ siptag_error_info_vr(sip_error_info_t const **vp)
  *
  * @param x pointer to a #sip_warning_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_WARNING_REF().
  *
  *
@@ -3414,7 +3414,7 @@ siptag_error_info_vr(sip_error_info_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_warning;
 
 /**@ingroup sip_warning
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_warning "Warning header" pointer.
  */
 #define SIPTAG_WARNING_REF(x) siptag_warning_ref, siptag_warning_vr(&(x))
@@ -3424,17 +3424,17 @@ SOFIAPUBVAR tag_typedef_t siptag_warning_ref;
  *
  * Tag list item for string with @ref sip_warning "Warning header" value.
  *
- * The SIPTAG_WARNING_STR() macro is used to include a tag item with a 
+ * The SIPTAG_WARNING_STR() macro is used to include a tag item with a
  * string containing value of a #sip_warning_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_warning "Warning header" value, or NULL.
  *
  * The string in SIPTAG_WARNING_STR() can be converted to a
  * #sip_warning_t header structure by giving the string @a s has
  * second argument to function sip_warning_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_WARNING_STR_REF().
  *
  *
@@ -3473,7 +3473,7 @@ siptag_warning_vr(sip_warning_t const **vp)
  *
  * @param x pointer to a #sip_refer_to_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REFER_TO_REF().
  *
  *
@@ -3484,7 +3484,7 @@ siptag_warning_vr(sip_warning_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_refer_to;
 
 /**@ingroup sip_refer_to
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_refer_to "Refer-To header" pointer.
  */
 #define SIPTAG_REFER_TO_REF(x) siptag_refer_to_ref, siptag_refer_to_vr(&(x))
@@ -3494,17 +3494,17 @@ SOFIAPUBVAR tag_typedef_t siptag_refer_to_ref;
  *
  * Tag list item for string with @ref sip_refer_to "Refer-To header" value.
  *
- * The SIPTAG_REFER_TO_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REFER_TO_STR() macro is used to include a tag item with a
  * string containing value of a #sip_refer_to_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_refer_to "Refer-To header" value, or NULL.
  *
  * The string in SIPTAG_REFER_TO_STR() can be converted to a
  * #sip_refer_to_t header structure by giving the string @a s has
  * second argument to function sip_refer_to_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REFER_TO_STR_REF().
  *
  *
@@ -3543,7 +3543,7 @@ siptag_refer_to_vr(sip_refer_to_t const **vp)
  *
  * @param x pointer to a #sip_referred_by_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REFERRED_BY_REF().
  *
  *
@@ -3554,7 +3554,7 @@ siptag_refer_to_vr(sip_refer_to_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_referred_by;
 
 /**@ingroup sip_referred_by
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_referred_by "Referred-By header" pointer.
  */
 #define SIPTAG_REFERRED_BY_REF(x) siptag_referred_by_ref, siptag_referred_by_vr(&(x))
@@ -3564,17 +3564,17 @@ SOFIAPUBVAR tag_typedef_t siptag_referred_by_ref;
  *
  * Tag list item for string with @ref sip_referred_by "Referred-By header" value.
  *
- * The SIPTAG_REFERRED_BY_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REFERRED_BY_STR() macro is used to include a tag item with a
  * string containing value of a #sip_referred_by_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_referred_by "Referred-By header" value, or NULL.
  *
  * The string in SIPTAG_REFERRED_BY_STR() can be converted to a
  * #sip_referred_by_t header structure by giving the string @a s has
  * second argument to function sip_referred_by_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REFERRED_BY_STR_REF().
  *
  *
@@ -3613,7 +3613,7 @@ siptag_referred_by_vr(sip_referred_by_t const **vp)
  *
  * @param x pointer to a #sip_replaces_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REPLACES_REF().
  *
  *
@@ -3624,7 +3624,7 @@ siptag_referred_by_vr(sip_referred_by_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_replaces;
 
 /**@ingroup sip_replaces
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_replaces "Replaces header" pointer.
  */
 #define SIPTAG_REPLACES_REF(x) siptag_replaces_ref, siptag_replaces_vr(&(x))
@@ -3634,17 +3634,17 @@ SOFIAPUBVAR tag_typedef_t siptag_replaces_ref;
  *
  * Tag list item for string with @ref sip_replaces "Replaces header" value.
  *
- * The SIPTAG_REPLACES_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REPLACES_STR() macro is used to include a tag item with a
  * string containing value of a #sip_replaces_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_replaces "Replaces header" value, or NULL.
  *
  * The string in SIPTAG_REPLACES_STR() can be converted to a
  * #sip_replaces_t header structure by giving the string @a s has
  * second argument to function sip_replaces_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REPLACES_STR_REF().
  *
  *
@@ -3683,7 +3683,7 @@ siptag_replaces_vr(sip_replaces_t const **vp)
  *
  * @param x pointer to a #sip_session_expires_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SESSION_EXPIRES_REF().
  *
  *
@@ -3694,7 +3694,7 @@ siptag_replaces_vr(sip_replaces_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_session_expires;
 
 /**@ingroup sip_session_expires
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_session_expires "Session-Expires header" pointer.
  */
 #define SIPTAG_SESSION_EXPIRES_REF(x) siptag_session_expires_ref, siptag_session_expires_vr(&(x))
@@ -3704,17 +3704,17 @@ SOFIAPUBVAR tag_typedef_t siptag_session_expires_ref;
  *
  * Tag list item for string with @ref sip_session_expires "Session-Expires header" value.
  *
- * The SIPTAG_SESSION_EXPIRES_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SESSION_EXPIRES_STR() macro is used to include a tag item with a
  * string containing value of a #sip_session_expires_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_session_expires "Session-Expires header" value, or NULL.
  *
  * The string in SIPTAG_SESSION_EXPIRES_STR() can be converted to a
  * #sip_session_expires_t header structure by giving the string @a s has
  * second argument to function sip_session_expires_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SESSION_EXPIRES_STR_REF().
  *
  *
@@ -3753,7 +3753,7 @@ siptag_session_expires_vr(sip_session_expires_t const **vp)
  *
  * @param x pointer to a #sip_min_se_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_MIN_SE_REF().
  *
  *
@@ -3764,7 +3764,7 @@ siptag_session_expires_vr(sip_session_expires_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_min_se;
 
 /**@ingroup sip_min_se
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_min_se "Min-SE header" pointer.
  */
 #define SIPTAG_MIN_SE_REF(x) siptag_min_se_ref, siptag_min_se_vr(&(x))
@@ -3774,17 +3774,17 @@ SOFIAPUBVAR tag_typedef_t siptag_min_se_ref;
  *
  * Tag list item for string with @ref sip_min_se "Min-SE header" value.
  *
- * The SIPTAG_MIN_SE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_MIN_SE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_min_se_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_min_se "Min-SE header" value, or NULL.
  *
  * The string in SIPTAG_MIN_SE_STR() can be converted to a
  * #sip_min_se_t header structure by giving the string @a s has
  * second argument to function sip_min_se_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_MIN_SE_STR_REF().
  *
  *
@@ -3823,7 +3823,7 @@ siptag_min_se_vr(sip_min_se_t const **vp)
  *
  * @param x pointer to a #sip_path_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PATH_REF().
  *
  *
@@ -3834,7 +3834,7 @@ siptag_min_se_vr(sip_min_se_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_path;
 
 /**@ingroup sip_path
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_path "Path header" pointer.
  */
 #define SIPTAG_PATH_REF(x) siptag_path_ref, siptag_path_vr(&(x))
@@ -3844,17 +3844,17 @@ SOFIAPUBVAR tag_typedef_t siptag_path_ref;
  *
  * Tag list item for string with @ref sip_path "Path header" value.
  *
- * The SIPTAG_PATH_STR() macro is used to include a tag item with a 
+ * The SIPTAG_PATH_STR() macro is used to include a tag item with a
  * string containing value of a #sip_path_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_path "Path header" value, or NULL.
  *
  * The string in SIPTAG_PATH_STR() can be converted to a
  * #sip_path_t header structure by giving the string @a s has
  * second argument to function sip_path_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PATH_STR_REF().
  *
  *
@@ -3893,7 +3893,7 @@ siptag_path_vr(sip_path_t const **vp)
  *
  * @param x pointer to a #sip_service_route_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SERVICE_ROUTE_REF().
  *
  *
@@ -3904,7 +3904,7 @@ siptag_path_vr(sip_path_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_service_route;
 
 /**@ingroup sip_service_route
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_service_route "Service-Route header" pointer.
  */
 #define SIPTAG_SERVICE_ROUTE_REF(x) siptag_service_route_ref, siptag_service_route_vr(&(x))
@@ -3914,17 +3914,17 @@ SOFIAPUBVAR tag_typedef_t siptag_service_route_ref;
  *
  * Tag list item for string with @ref sip_service_route "Service-Route header" value.
  *
- * The SIPTAG_SERVICE_ROUTE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SERVICE_ROUTE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_service_route_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_service_route "Service-Route header" value, or NULL.
  *
  * The string in SIPTAG_SERVICE_ROUTE_STR() can be converted to a
  * #sip_service_route_t header structure by giving the string @a s has
  * second argument to function sip_service_route_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SERVICE_ROUTE_STR_REF().
  *
  *
@@ -3963,7 +3963,7 @@ siptag_service_route_vr(sip_service_route_t const **vp)
  *
  * @param x pointer to a #sip_reason_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REASON_REF().
  *
  *
@@ -3974,7 +3974,7 @@ siptag_service_route_vr(sip_service_route_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_reason;
 
 /**@ingroup sip_reason
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_reason "Reason header" pointer.
  */
 #define SIPTAG_REASON_REF(x) siptag_reason_ref, siptag_reason_vr(&(x))
@@ -3984,17 +3984,17 @@ SOFIAPUBVAR tag_typedef_t siptag_reason_ref;
  *
  * Tag list item for string with @ref sip_reason "Reason header" value.
  *
- * The SIPTAG_REASON_STR() macro is used to include a tag item with a 
+ * The SIPTAG_REASON_STR() macro is used to include a tag item with a
  * string containing value of a #sip_reason_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_reason "Reason header" value, or NULL.
  *
  * The string in SIPTAG_REASON_STR() can be converted to a
  * #sip_reason_t header structure by giving the string @a s has
  * second argument to function sip_reason_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_REASON_STR_REF().
  *
  *
@@ -4033,7 +4033,7 @@ siptag_reason_vr(sip_reason_t const **vp)
  *
  * @param x pointer to a #sip_security_client_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SECURITY_CLIENT_REF().
  *
  *
@@ -4044,7 +4044,7 @@ siptag_reason_vr(sip_reason_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_security_client;
 
 /**@ingroup sip_security_client
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_security_client "Security-Client header" pointer.
  */
 #define SIPTAG_SECURITY_CLIENT_REF(x) siptag_security_client_ref, siptag_security_client_vr(&(x))
@@ -4054,17 +4054,17 @@ SOFIAPUBVAR tag_typedef_t siptag_security_client_ref;
  *
  * Tag list item for string with @ref sip_security_client "Security-Client header" value.
  *
- * The SIPTAG_SECURITY_CLIENT_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SECURITY_CLIENT_STR() macro is used to include a tag item with a
  * string containing value of a #sip_security_client_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_security_client "Security-Client header" value, or NULL.
  *
  * The string in SIPTAG_SECURITY_CLIENT_STR() can be converted to a
  * #sip_security_client_t header structure by giving the string @a s has
  * second argument to function sip_security_client_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SECURITY_CLIENT_STR_REF().
  *
  *
@@ -4103,7 +4103,7 @@ siptag_security_client_vr(sip_security_client_t const **vp)
  *
  * @param x pointer to a #sip_security_server_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SECURITY_SERVER_REF().
  *
  *
@@ -4114,7 +4114,7 @@ siptag_security_client_vr(sip_security_client_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_security_server;
 
 /**@ingroup sip_security_server
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_security_server "Security-Server header" pointer.
  */
 #define SIPTAG_SECURITY_SERVER_REF(x) siptag_security_server_ref, siptag_security_server_vr(&(x))
@@ -4124,17 +4124,17 @@ SOFIAPUBVAR tag_typedef_t siptag_security_server_ref;
  *
  * Tag list item for string with @ref sip_security_server "Security-Server header" value.
  *
- * The SIPTAG_SECURITY_SERVER_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SECURITY_SERVER_STR() macro is used to include a tag item with a
  * string containing value of a #sip_security_server_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_security_server "Security-Server header" value, or NULL.
  *
  * The string in SIPTAG_SECURITY_SERVER_STR() can be converted to a
  * #sip_security_server_t header structure by giving the string @a s has
  * second argument to function sip_security_server_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SECURITY_SERVER_STR_REF().
  *
  *
@@ -4173,7 +4173,7 @@ siptag_security_server_vr(sip_security_server_t const **vp)
  *
  * @param x pointer to a #sip_security_verify_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SECURITY_VERIFY_REF().
  *
  *
@@ -4184,7 +4184,7 @@ siptag_security_server_vr(sip_security_server_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_security_verify;
 
 /**@ingroup sip_security_verify
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_security_verify "Security-Verify header" pointer.
  */
 #define SIPTAG_SECURITY_VERIFY_REF(x) siptag_security_verify_ref, siptag_security_verify_vr(&(x))
@@ -4194,17 +4194,17 @@ SOFIAPUBVAR tag_typedef_t siptag_security_verify_ref;
  *
  * Tag list item for string with @ref sip_security_verify "Security-Verify header" value.
  *
- * The SIPTAG_SECURITY_VERIFY_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SECURITY_VERIFY_STR() macro is used to include a tag item with a
  * string containing value of a #sip_security_verify_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_security_verify "Security-Verify header" value, or NULL.
  *
  * The string in SIPTAG_SECURITY_VERIFY_STR() can be converted to a
  * #sip_security_verify_t header structure by giving the string @a s has
  * second argument to function sip_security_verify_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SECURITY_VERIFY_STR_REF().
  *
  *
@@ -4243,7 +4243,7 @@ siptag_security_verify_vr(sip_security_verify_t const **vp)
  *
  * @param x pointer to a #sip_privacy_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PRIVACY_REF().
  *
  *
@@ -4254,7 +4254,7 @@ siptag_security_verify_vr(sip_security_verify_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_privacy;
 
 /**@ingroup sip_privacy
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_privacy "Privacy header" pointer.
  */
 #define SIPTAG_PRIVACY_REF(x) siptag_privacy_ref, siptag_privacy_vr(&(x))
@@ -4264,17 +4264,17 @@ SOFIAPUBVAR tag_typedef_t siptag_privacy_ref;
  *
  * Tag list item for string with @ref sip_privacy "Privacy header" value.
  *
- * The SIPTAG_PRIVACY_STR() macro is used to include a tag item with a 
+ * The SIPTAG_PRIVACY_STR() macro is used to include a tag item with a
  * string containing value of a #sip_privacy_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_privacy "Privacy header" value, or NULL.
  *
  * The string in SIPTAG_PRIVACY_STR() can be converted to a
  * #sip_privacy_t header structure by giving the string @a s has
  * second argument to function sip_privacy_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PRIVACY_STR_REF().
  *
  *
@@ -4313,7 +4313,7 @@ siptag_privacy_vr(sip_privacy_t const **vp)
  *
  * @param x pointer to a #sip_etag_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ETAG_REF().
  *
  *
@@ -4324,7 +4324,7 @@ siptag_privacy_vr(sip_privacy_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_etag;
 
 /**@ingroup sip_etag
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_etag "SIP-ETag header" pointer.
  */
 #define SIPTAG_ETAG_REF(x) siptag_etag_ref, siptag_etag_vr(&(x))
@@ -4334,17 +4334,17 @@ SOFIAPUBVAR tag_typedef_t siptag_etag_ref;
  *
  * Tag list item for string with @ref sip_etag "SIP-ETag header" value.
  *
- * The SIPTAG_ETAG_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ETAG_STR() macro is used to include a tag item with a
  * string containing value of a #sip_etag_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_etag "SIP-ETag header" value, or NULL.
  *
  * The string in SIPTAG_ETAG_STR() can be converted to a
  * #sip_etag_t header structure by giving the string @a s has
  * second argument to function sip_etag_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ETAG_STR_REF().
  *
  *
@@ -4383,7 +4383,7 @@ siptag_etag_vr(sip_etag_t const **vp)
  *
  * @param x pointer to a #sip_if_match_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_IF_MATCH_REF().
  *
  *
@@ -4394,7 +4394,7 @@ siptag_etag_vr(sip_etag_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_if_match;
 
 /**@ingroup sip_if_match
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_if_match "SIP-If-Match header" pointer.
  */
 #define SIPTAG_IF_MATCH_REF(x) siptag_if_match_ref, siptag_if_match_vr(&(x))
@@ -4404,17 +4404,17 @@ SOFIAPUBVAR tag_typedef_t siptag_if_match_ref;
  *
  * Tag list item for string with @ref sip_if_match "SIP-If-Match header" value.
  *
- * The SIPTAG_IF_MATCH_STR() macro is used to include a tag item with a 
+ * The SIPTAG_IF_MATCH_STR() macro is used to include a tag item with a
  * string containing value of a #sip_if_match_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_if_match "SIP-If-Match header" value, or NULL.
  *
  * The string in SIPTAG_IF_MATCH_STR() can be converted to a
  * #sip_if_match_t header structure by giving the string @a s has
  * second argument to function sip_if_match_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_IF_MATCH_STR_REF().
  *
  *
@@ -4453,7 +4453,7 @@ siptag_if_match_vr(sip_if_match_t const **vp)
  *
  * @param x pointer to a #sip_mime_version_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_MIME_VERSION_REF().
  *
  *
@@ -4464,7 +4464,7 @@ siptag_if_match_vr(sip_if_match_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_mime_version;
 
 /**@ingroup sip_mime_version
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_mime_version "MIME-Version header" pointer.
  */
 #define SIPTAG_MIME_VERSION_REF(x) siptag_mime_version_ref, siptag_mime_version_vr(&(x))
@@ -4474,17 +4474,17 @@ SOFIAPUBVAR tag_typedef_t siptag_mime_version_ref;
  *
  * Tag list item for string with @ref sip_mime_version "MIME-Version header" value.
  *
- * The SIPTAG_MIME_VERSION_STR() macro is used to include a tag item with a 
+ * The SIPTAG_MIME_VERSION_STR() macro is used to include a tag item with a
  * string containing value of a #sip_mime_version_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_mime_version "MIME-Version header" value, or NULL.
  *
  * The string in SIPTAG_MIME_VERSION_STR() can be converted to a
  * #sip_mime_version_t header structure by giving the string @a s has
  * second argument to function sip_mime_version_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_MIME_VERSION_STR_REF().
  *
  *
@@ -4523,7 +4523,7 @@ siptag_mime_version_vr(sip_mime_version_t const **vp)
  *
  * @param x pointer to a #sip_content_type_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_TYPE_REF().
  *
  *
@@ -4534,7 +4534,7 @@ siptag_mime_version_vr(sip_mime_version_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_content_type;
 
 /**@ingroup sip_content_type
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_content_type "Content-Type header" pointer.
  */
 #define SIPTAG_CONTENT_TYPE_REF(x) siptag_content_type_ref, siptag_content_type_vr(&(x))
@@ -4544,17 +4544,17 @@ SOFIAPUBVAR tag_typedef_t siptag_content_type_ref;
  *
  * Tag list item for string with @ref sip_content_type "Content-Type header" value.
  *
- * The SIPTAG_CONTENT_TYPE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_CONTENT_TYPE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_content_type_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_content_type "Content-Type header" value, or NULL.
  *
  * The string in SIPTAG_CONTENT_TYPE_STR() can be converted to a
  * #sip_content_type_t header structure by giving the string @a s has
  * second argument to function sip_content_type_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_TYPE_STR_REF().
  *
  *
@@ -4593,7 +4593,7 @@ siptag_content_type_vr(sip_content_type_t const **vp)
  *
  * @param x pointer to a #sip_content_encoding_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_ENCODING_REF().
  *
  *
@@ -4604,7 +4604,7 @@ siptag_content_type_vr(sip_content_type_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_content_encoding;
 
 /**@ingroup sip_content_encoding
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_content_encoding "Content-Encoding header" pointer.
  */
 #define SIPTAG_CONTENT_ENCODING_REF(x) siptag_content_encoding_ref, siptag_content_encoding_vr(&(x))
@@ -4614,17 +4614,17 @@ SOFIAPUBVAR tag_typedef_t siptag_content_encoding_ref;
  *
  * Tag list item for string with @ref sip_content_encoding "Content-Encoding header" value.
  *
- * The SIPTAG_CONTENT_ENCODING_STR() macro is used to include a tag item with a 
+ * The SIPTAG_CONTENT_ENCODING_STR() macro is used to include a tag item with a
  * string containing value of a #sip_content_encoding_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_content_encoding "Content-Encoding header" value, or NULL.
  *
  * The string in SIPTAG_CONTENT_ENCODING_STR() can be converted to a
  * #sip_content_encoding_t header structure by giving the string @a s has
  * second argument to function sip_content_encoding_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_ENCODING_STR_REF().
  *
  *
@@ -4663,7 +4663,7 @@ siptag_content_encoding_vr(sip_content_encoding_t const **vp)
  *
  * @param x pointer to a #sip_content_language_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_LANGUAGE_REF().
  *
  *
@@ -4674,7 +4674,7 @@ siptag_content_encoding_vr(sip_content_encoding_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_content_language;
 
 /**@ingroup sip_content_language
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_content_language "Content-Language header" pointer.
  */
 #define SIPTAG_CONTENT_LANGUAGE_REF(x) siptag_content_language_ref, siptag_content_language_vr(&(x))
@@ -4684,17 +4684,17 @@ SOFIAPUBVAR tag_typedef_t siptag_content_language_ref;
  *
  * Tag list item for string with @ref sip_content_language "Content-Language header" value.
  *
- * The SIPTAG_CONTENT_LANGUAGE_STR() macro is used to include a tag item with a 
+ * The SIPTAG_CONTENT_LANGUAGE_STR() macro is used to include a tag item with a
  * string containing value of a #sip_content_language_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_content_language "Content-Language header" value, or NULL.
  *
  * The string in SIPTAG_CONTENT_LANGUAGE_STR() can be converted to a
  * #sip_content_language_t header structure by giving the string @a s has
  * second argument to function sip_content_language_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_LANGUAGE_STR_REF().
  *
  *
@@ -4733,7 +4733,7 @@ siptag_content_language_vr(sip_content_language_t const **vp)
  *
  * @param x pointer to a #sip_content_disposition_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_DISPOSITION_REF().
  *
  *
@@ -4744,7 +4744,7 @@ siptag_content_language_vr(sip_content_language_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_content_disposition;
 
 /**@ingroup sip_content_disposition
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_content_disposition "Content-Disposition header" pointer.
  */
 #define SIPTAG_CONTENT_DISPOSITION_REF(x) siptag_content_disposition_ref, siptag_content_disposition_vr(&(x))
@@ -4754,17 +4754,17 @@ SOFIAPUBVAR tag_typedef_t siptag_content_disposition_ref;
  *
  * Tag list item for string with @ref sip_content_disposition "Content-Disposition header" value.
  *
- * The SIPTAG_CONTENT_DISPOSITION_STR() macro is used to include a tag item with a 
+ * The SIPTAG_CONTENT_DISPOSITION_STR() macro is used to include a tag item with a
  * string containing value of a #sip_content_disposition_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_content_disposition "Content-Disposition header" value, or NULL.
  *
  * The string in SIPTAG_CONTENT_DISPOSITION_STR() can be converted to a
  * #sip_content_disposition_t header structure by giving the string @a s has
  * second argument to function sip_content_disposition_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_DISPOSITION_STR_REF().
  *
  *
@@ -4803,7 +4803,7 @@ siptag_content_disposition_vr(sip_content_disposition_t const **vp)
  *
  * @param x pointer to a #sip_content_length_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_LENGTH_REF().
  *
  *
@@ -4814,7 +4814,7 @@ siptag_content_disposition_vr(sip_content_disposition_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_content_length;
 
 /**@ingroup sip_content_length
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_content_length "Content-Length header" pointer.
  */
 #define SIPTAG_CONTENT_LENGTH_REF(x) siptag_content_length_ref, siptag_content_length_vr(&(x))
@@ -4824,17 +4824,17 @@ SOFIAPUBVAR tag_typedef_t siptag_content_length_ref;
  *
  * Tag list item for string with @ref sip_content_length "Content-Length header" value.
  *
- * The SIPTAG_CONTENT_LENGTH_STR() macro is used to include a tag item with a 
+ * The SIPTAG_CONTENT_LENGTH_STR() macro is used to include a tag item with a
  * string containing value of a #sip_content_length_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_content_length "Content-Length header" value, or NULL.
  *
  * The string in SIPTAG_CONTENT_LENGTH_STR() can be converted to a
  * #sip_content_length_t header structure by giving the string @a s has
  * second argument to function sip_content_length_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_CONTENT_LENGTH_STR_REF().
  *
  *
@@ -4873,7 +4873,7 @@ siptag_content_length_vr(sip_content_length_t const **vp)
  *
  * @param x pointer to a #sip_unknown_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_UNKNOWN_REF().
  *
  *
@@ -4884,7 +4884,7 @@ siptag_content_length_vr(sip_content_length_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_unknown;
 
 /**@ingroup sip_unknown
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_unknown "unknown headers" pointer.
  */
 #define SIPTAG_UNKNOWN_REF(x) siptag_unknown_ref, siptag_unknown_vr(&(x))
@@ -4894,17 +4894,17 @@ SOFIAPUBVAR tag_typedef_t siptag_unknown_ref;
  *
  * Tag list item for string with @ref sip_unknown "unknown headers" value.
  *
- * The SIPTAG_UNKNOWN_STR() macro is used to include a tag item with a 
+ * The SIPTAG_UNKNOWN_STR() macro is used to include a tag item with a
  * string containing value of a #sip_unknown_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_unknown "unknown headers" value, or NULL.
  *
  * The string in SIPTAG_UNKNOWN_STR() can be converted to a
  * #sip_unknown_t header structure by giving the string @a s has
  * second argument to function sip_unknown_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_UNKNOWN_STR_REF().
  *
  *
@@ -4943,7 +4943,7 @@ siptag_unknown_vr(sip_unknown_t const **vp)
  *
  * @param x pointer to a #sip_error_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ERROR_REF().
  *
  *
@@ -4954,7 +4954,7 @@ siptag_unknown_vr(sip_unknown_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_error;
 
 /**@ingroup sip_error
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_error "erroneous headers" pointer.
  */
 #define SIPTAG_ERROR_REF(x) siptag_error_ref, siptag_error_vr(&(x))
@@ -4964,17 +4964,17 @@ SOFIAPUBVAR tag_typedef_t siptag_error_ref;
  *
  * Tag list item for string with @ref sip_error "erroneous headers" value.
  *
- * The SIPTAG_ERROR_STR() macro is used to include a tag item with a 
+ * The SIPTAG_ERROR_STR() macro is used to include a tag item with a
  * string containing value of a #sip_error_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_error "erroneous headers" value, or NULL.
  *
  * The string in SIPTAG_ERROR_STR() can be converted to a
  * #sip_error_t header structure by giving the string @a s has
  * second argument to function sip_error_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_ERROR_STR_REF().
  *
  *
@@ -5013,7 +5013,7 @@ siptag_error_vr(sip_error_t const **vp)
  *
  * @param x pointer to a #sip_separator_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SEPARATOR_REF().
  *
  *
@@ -5024,7 +5024,7 @@ siptag_error_vr(sip_error_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_separator;
 
 /**@ingroup sip_separator
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_separator "separator line between headers and body" pointer.
  */
 #define SIPTAG_SEPARATOR_REF(x) siptag_separator_ref, siptag_separator_vr(&(x))
@@ -5034,17 +5034,17 @@ SOFIAPUBVAR tag_typedef_t siptag_separator_ref;
  *
  * Tag list item for string with @ref sip_separator "separator line between headers and body" value.
  *
- * The SIPTAG_SEPARATOR_STR() macro is used to include a tag item with a 
+ * The SIPTAG_SEPARATOR_STR() macro is used to include a tag item with a
  * string containing value of a #sip_separator_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_separator "separator line between headers and body" value, or NULL.
  *
  * The string in SIPTAG_SEPARATOR_STR() can be converted to a
  * #sip_separator_t header structure by giving the string @a s has
  * second argument to function sip_separator_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_SEPARATOR_STR_REF().
  *
  *
@@ -5083,7 +5083,7 @@ siptag_separator_vr(sip_separator_t const **vp)
  *
  * @param x pointer to a #sip_payload_t structure, or NULL.
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PAYLOAD_REF().
  *
  *
@@ -5094,7 +5094,7 @@ siptag_separator_vr(sip_separator_t const **vp)
 SOFIAPUBVAR tag_typedef_t siptag_payload;
 
 /**@ingroup sip_payload
- * Tag list item for reference to a 
+ * Tag list item for reference to a
  * @ref sip_payload "message payload" pointer.
  */
 #define SIPTAG_PAYLOAD_REF(x) siptag_payload_ref, siptag_payload_vr(&(x))
@@ -5104,17 +5104,17 @@ SOFIAPUBVAR tag_typedef_t siptag_payload_ref;
  *
  * Tag list item for string with @ref sip_payload "message payload" value.
  *
- * The SIPTAG_PAYLOAD_STR() macro is used to include a tag item with a 
+ * The SIPTAG_PAYLOAD_STR() macro is used to include a tag item with a
  * string containing value of a #sip_payload_t header in a tag list.
  *
- * @param s pointer to a string containing 
+ * @param s pointer to a string containing
  *    @ref sip_payload "message payload" value, or NULL.
  *
  * The string in SIPTAG_PAYLOAD_STR() can be converted to a
  * #sip_payload_t header structure by giving the string @a s has
  * second argument to function sip_payload_make().
  *
- * The corresponding tag taking reference parameter is 
+ * The corresponding tag taking reference parameter is
  * SIPTAG_PAYLOAD_STR_REF().
  *
  *

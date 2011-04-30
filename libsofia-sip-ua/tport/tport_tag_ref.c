@@ -79,6 +79,9 @@ EXPORT tag_typedef_t tptag_compartment_ref =
 extern tag_typedef_t tptag_tls_version;
 EXPORT tag_typedef_t tptag_tls_version_ref = 
   REFTAG_TYPEDEF(tptag_tls_version);
+extern tag_typedef_t tptag_tls_verify_peer;
+EXPORT tag_typedef_t tptag_tls_verify_peer_ref = 
+  REFTAG_TYPEDEF(tptag_tls_verify_peer);
 extern tag_typedef_t tptag_queuesize;
 EXPORT tag_typedef_t tptag_queuesize_ref = 
   REFTAG_TYPEDEF(tptag_queuesize);

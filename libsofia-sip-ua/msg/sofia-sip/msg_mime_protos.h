@@ -24,7 +24,7 @@
 
 #ifndef MSG_MIME_PROTOS_H
 /** Defined when <sofia-sip/msg_mime_protos.h> has been included. */
-#define MSG_MIME_PROTOS_H 
+#define MSG_MIME_PROTOS_H
 
 /**@ingroup msg_mime
  * @file sofia-sip/msg_mime_protos.h
@@ -58,13 +58,13 @@ MSG_DLL extern msg_mclass_t const msg_multipart_mclass[1];
 
 /* Declare internal prototypes for Content-Type header */
 
-/**@addtogroup msg_content_type 
- * @{ 
+/**@addtogroup msg_content_type
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Content-Type header. @internal */
-  msg_content_type_hash = 51226 
+  msg_content_type_hash = 51226
 };
 
 /** Parse a Content-Type header. @internal */
@@ -77,43 +77,43 @@ MSG_DLL msg_xtra_f msg_content_type_dup_xtra;
 MSG_DLL msg_dup_f msg_content_type_dup_one;
 
 /**Header class for Content-Type header.
- * 
- * The header class msg_content_type_class defines how a 
+ *
+ * The header class msg_content_type_class defines how a
  * Content-Type header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_content_type_t header structure.
- * 
+ *
  */
 #ifndef msg_content_type_class
 MSG_DLL extern msg_hclass_t msg_content_type_class[];
 #endif
 
 /**Initializer for an #msg_content_type_t structure.
- * 
+ *
  * A static msg_content_type_t structure must be initialized
  * with the MSG_CONTENT_TYPE_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_content_type_t msg_content_type = MSG_CONTENT_TYPE_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_CONTENT_TYPE_INIT() MSG_HDR_INIT(content_type)
 
 /**Initialize an #msg_content_type_t structure.
- * 
+ *
  * An #msg_content_type_t structure can be initialized with the
  * msg_content_type_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_content_type_t msg_content_type;
- * 
+ *
  *  msg_content_type_init(&msg_content_type);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_content_type_t structure 
+ *
+ * @param x pointer to #msg_content_type_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_content_type_t *msg_content_type_init(msg_content_type_t x[1])
@@ -126,13 +126,13 @@ su_inline msg_content_type_t *msg_content_type_init(msg_content_type_t x[1])
 #endif
 
 /**Test if header object is an instance of #msg_content_type_t.
- * 
+ *
  * The function msg_is_content_type() returns true (nonzero) if
  * the header class is an instance of Content-Type header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_content_type() returns true (nonzero) if the
  * header object is an instance of header Content-Type header and false (zero)
  * otherwise.
@@ -149,27 +149,27 @@ int msg_is_content_type(msg_header_t const *header);
 #define msg_content_type_p(h) msg_is_content_type((h))
 
 /**Duplicate (deep copy) #msg_content_type_t.
- * 
+ *
  * The function msg_content_type_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_type = msg_content_type_dup(home, msg->msg_content_type);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_type_dup() returns a pointer to the
  * newly duplicated #msg_content_type_t header structure, or NULL
@@ -178,44 +178,44 @@ int msg_is_content_type(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_type_t *msg_content_type_dup(su_home_t *home, 
+msg_content_type_t *msg_content_type_dup(su_home_t *home,
 				 msg_content_type_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_type_t *msg_content_type_dup(su_home_t *home, 
+msg_content_type_t *msg_content_type_dup(su_home_t *home,
 				 msg_content_type_t const *header)
 {
   return (msg_content_type_t *)
-    msg_header_dup_as(home, msg_content_type_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_content_type_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_content_type_t header structure.
- * 
+ *
  * The function msg_content_type_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_type = msg_content_type_copy(home, msg->msg_content_type);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_type_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -223,32 +223,32 @@ msg_content_type_t *msg_content_type_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_type_t *msg_content_type_copy(su_home_t *home, 
+msg_content_type_t *msg_content_type_copy(su_home_t *home,
 				  msg_content_type_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_type_t *msg_content_type_copy(su_home_t *home, 
+msg_content_type_t *msg_content_type_copy(su_home_t *home,
 				  msg_content_type_t const *header)
 {
   return (msg_content_type_t *)
-    msg_header_copy_as(home, msg_content_type_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_content_type_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_content_type_t.
- * 
+ *
  * The function msg_content_type_make() makes a new #msg_content_type_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_content_type_make() returns a pointer to newly maked
  * #msg_content_type_t header structure, or NULL upon an error.
@@ -264,24 +264,24 @@ msg_content_type_t *msg_content_type_make(su_home_t *home, char const *s);
 
 
 /**Make a Content-Type header from formatting result.
- * 
+ *
  * The function msg_content_type_format() makes a new Content-Type header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_content_type_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -295,11 +295,11 @@ su_inline msg_content_type_t *msg_content_type_format(su_home_t *home, char cons
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_content_type_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_content_type_t*)h;
 }
 #endif
@@ -308,13 +308,13 @@ su_inline msg_content_type_t *msg_content_type_format(su_home_t *home, char cons
 
 /* Declare internal prototypes for Content-Disposition header */
 
-/**@addtogroup msg_content_disposition 
- * @{ 
+/**@addtogroup msg_content_disposition
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Content-Disposition header. @internal */
-  msg_content_disposition_hash = 16333 
+  msg_content_disposition_hash = 16333
 };
 
 /** Parse a Content-Disposition header. @internal */
@@ -327,43 +327,43 @@ MSG_DLL msg_xtra_f msg_content_disposition_dup_xtra;
 MSG_DLL msg_dup_f msg_content_disposition_dup_one;
 
 /**Header class for Content-Disposition header.
- * 
- * The header class msg_content_disposition_class defines how a 
+ *
+ * The header class msg_content_disposition_class defines how a
  * Content-Disposition header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_content_disposition_t header structure.
- * 
+ *
  */
 #ifndef msg_content_disposition_class
 MSG_DLL extern msg_hclass_t msg_content_disposition_class[];
 #endif
 
 /**Initializer for an #msg_content_disposition_t structure.
- * 
+ *
  * A static msg_content_disposition_t structure must be initialized
  * with the MSG_CONTENT_DISPOSITION_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_content_disposition_t msg_content_disposition = MSG_CONTENT_DISPOSITION_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_CONTENT_DISPOSITION_INIT() MSG_HDR_INIT(content_disposition)
 
 /**Initialize an #msg_content_disposition_t structure.
- * 
+ *
  * An #msg_content_disposition_t structure can be initialized with the
  * msg_content_disposition_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_content_disposition_t msg_content_disposition;
- * 
+ *
  *  msg_content_disposition_init(&msg_content_disposition);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_content_disposition_t structure 
+ *
+ * @param x pointer to #msg_content_disposition_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_content_disposition_t *msg_content_disposition_init(msg_content_disposition_t x[1])
@@ -376,13 +376,13 @@ su_inline msg_content_disposition_t *msg_content_disposition_init(msg_content_di
 #endif
 
 /**Test if header object is an instance of #msg_content_disposition_t.
- * 
+ *
  * The function msg_is_content_disposition() returns true (nonzero) if
  * the header class is an instance of Content-Disposition header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_content_disposition() returns true (nonzero) if the
  * header object is an instance of header Content-Disposition header and false (zero)
  * otherwise.
@@ -399,27 +399,27 @@ int msg_is_content_disposition(msg_header_t const *header);
 #define msg_content_disposition_p(h) msg_is_content_disposition((h))
 
 /**Duplicate (deep copy) #msg_content_disposition_t.
- * 
+ *
  * The function msg_content_disposition_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_disposition = msg_content_disposition_dup(home, msg->msg_content_disposition);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_disposition_dup() returns a pointer to the
  * newly duplicated #msg_content_disposition_t header structure, or NULL
@@ -428,44 +428,44 @@ int msg_is_content_disposition(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_disposition_t *msg_content_disposition_dup(su_home_t *home, 
+msg_content_disposition_t *msg_content_disposition_dup(su_home_t *home,
 				 msg_content_disposition_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_disposition_t *msg_content_disposition_dup(su_home_t *home, 
+msg_content_disposition_t *msg_content_disposition_dup(su_home_t *home,
 				 msg_content_disposition_t const *header)
 {
   return (msg_content_disposition_t *)
-    msg_header_dup_as(home, msg_content_disposition_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_content_disposition_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_content_disposition_t header structure.
- * 
+ *
  * The function msg_content_disposition_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_disposition = msg_content_disposition_copy(home, msg->msg_content_disposition);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_disposition_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -473,32 +473,32 @@ msg_content_disposition_t *msg_content_disposition_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_disposition_t *msg_content_disposition_copy(su_home_t *home, 
+msg_content_disposition_t *msg_content_disposition_copy(su_home_t *home,
 				  msg_content_disposition_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_disposition_t *msg_content_disposition_copy(su_home_t *home, 
+msg_content_disposition_t *msg_content_disposition_copy(su_home_t *home,
 				  msg_content_disposition_t const *header)
 {
   return (msg_content_disposition_t *)
-    msg_header_copy_as(home, msg_content_disposition_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_content_disposition_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_content_disposition_t.
- * 
+ *
  * The function msg_content_disposition_make() makes a new #msg_content_disposition_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_content_disposition_make() returns a pointer to newly maked
  * #msg_content_disposition_t header structure, or NULL upon an error.
@@ -514,24 +514,24 @@ msg_content_disposition_t *msg_content_disposition_make(su_home_t *home, char co
 
 
 /**Make a Content-Disposition header from formatting result.
- * 
+ *
  * The function msg_content_disposition_format() makes a new Content-Disposition header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_content_disposition_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -545,11 +545,11 @@ su_inline msg_content_disposition_t *msg_content_disposition_format(su_home_t *h
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_content_disposition_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_content_disposition_t*)h;
 }
 #endif
@@ -558,13 +558,13 @@ su_inline msg_content_disposition_t *msg_content_disposition_format(su_home_t *h
 
 /* Declare internal prototypes for Content-Location header */
 
-/**@addtogroup msg_content_location 
- * @{ 
+/**@addtogroup msg_content_location
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Content-Location header. @internal */
-  msg_content_location_hash = 3453 
+  msg_content_location_hash = 3453
 };
 
 /** Parse a Content-Location header. @internal */
@@ -577,43 +577,43 @@ MSG_DLL msg_xtra_f msg_content_location_dup_xtra;
 MSG_DLL msg_dup_f msg_content_location_dup_one;
 
 /**Header class for Content-Location header.
- * 
- * The header class msg_content_location_class defines how a 
+ *
+ * The header class msg_content_location_class defines how a
  * Content-Location header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_content_location_t header structure.
- * 
+ *
  */
 #ifndef msg_content_location_class
 MSG_DLL extern msg_hclass_t msg_content_location_class[];
 #endif
 
 /**Initializer for an #msg_content_location_t structure.
- * 
+ *
  * A static msg_content_location_t structure must be initialized
  * with the MSG_CONTENT_LOCATION_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_content_location_t msg_content_location = MSG_CONTENT_LOCATION_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_CONTENT_LOCATION_INIT() MSG_HDR_INIT(content_location)
 
 /**Initialize an #msg_content_location_t structure.
- * 
+ *
  * An #msg_content_location_t structure can be initialized with the
  * msg_content_location_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_content_location_t msg_content_location;
- * 
+ *
  *  msg_content_location_init(&msg_content_location);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_content_location_t structure 
+ *
+ * @param x pointer to #msg_content_location_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_content_location_t *msg_content_location_init(msg_content_location_t x[1])
@@ -626,13 +626,13 @@ su_inline msg_content_location_t *msg_content_location_init(msg_content_location
 #endif
 
 /**Test if header object is an instance of #msg_content_location_t.
- * 
+ *
  * The function msg_is_content_location() returns true (nonzero) if
  * the header class is an instance of Content-Location header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_content_location() returns true (nonzero) if the
  * header object is an instance of header Content-Location header and false (zero)
  * otherwise.
@@ -649,27 +649,27 @@ int msg_is_content_location(msg_header_t const *header);
 #define msg_content_location_p(h) msg_is_content_location((h))
 
 /**Duplicate (deep copy) #msg_content_location_t.
- * 
+ *
  * The function msg_content_location_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_location = msg_content_location_dup(home, msg->msg_content_location);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_location_dup() returns a pointer to the
  * newly duplicated #msg_content_location_t header structure, or NULL
@@ -678,44 +678,44 @@ int msg_is_content_location(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_location_t *msg_content_location_dup(su_home_t *home, 
+msg_content_location_t *msg_content_location_dup(su_home_t *home,
 				 msg_content_location_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_location_t *msg_content_location_dup(su_home_t *home, 
+msg_content_location_t *msg_content_location_dup(su_home_t *home,
 				 msg_content_location_t const *header)
 {
   return (msg_content_location_t *)
-    msg_header_dup_as(home, msg_content_location_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_content_location_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_content_location_t header structure.
- * 
+ *
  * The function msg_content_location_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_location = msg_content_location_copy(home, msg->msg_content_location);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_location_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -723,32 +723,32 @@ msg_content_location_t *msg_content_location_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_location_t *msg_content_location_copy(su_home_t *home, 
+msg_content_location_t *msg_content_location_copy(su_home_t *home,
 				  msg_content_location_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_location_t *msg_content_location_copy(su_home_t *home, 
+msg_content_location_t *msg_content_location_copy(su_home_t *home,
 				  msg_content_location_t const *header)
 {
   return (msg_content_location_t *)
-    msg_header_copy_as(home, msg_content_location_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_content_location_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_content_location_t.
- * 
+ *
  * The function msg_content_location_make() makes a new #msg_content_location_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_content_location_make() returns a pointer to newly maked
  * #msg_content_location_t header structure, or NULL upon an error.
@@ -764,24 +764,24 @@ msg_content_location_t *msg_content_location_make(su_home_t *home, char const *s
 
 
 /**Make a Content-Location header from formatting result.
- * 
+ *
  * The function msg_content_location_format() makes a new Content-Location header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_content_location_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -795,11 +795,11 @@ su_inline msg_content_location_t *msg_content_location_format(su_home_t *home, c
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_content_location_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_content_location_t*)h;
 }
 #endif
@@ -808,13 +808,13 @@ su_inline msg_content_location_t *msg_content_location_format(su_home_t *home, c
 
 /* Declare internal prototypes for Content-ID header */
 
-/**@addtogroup msg_content_id 
- * @{ 
+/**@addtogroup msg_content_id
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Content-ID header. @internal */
-  msg_content_id_hash = 42909 
+  msg_content_id_hash = 42909
 };
 
 /** Parse a Content-ID header. @internal */
@@ -827,43 +827,43 @@ MSG_DLL msg_xtra_f msg_content_id_dup_xtra;
 MSG_DLL msg_dup_f msg_content_id_dup_one;
 
 /**Header class for Content-ID header.
- * 
- * The header class msg_content_id_class defines how a 
+ *
+ * The header class msg_content_id_class defines how a
  * Content-ID header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_content_id_t header structure.
- * 
+ *
  */
 #ifndef msg_content_id_class
 MSG_DLL extern msg_hclass_t msg_content_id_class[];
 #endif
 
 /**Initializer for an #msg_content_id_t structure.
- * 
+ *
  * A static msg_content_id_t structure must be initialized
  * with the MSG_CONTENT_ID_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_content_id_t msg_content_id = MSG_CONTENT_ID_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_CONTENT_ID_INIT() MSG_HDR_INIT(content_id)
 
 /**Initialize an #msg_content_id_t structure.
- * 
+ *
  * An #msg_content_id_t structure can be initialized with the
  * msg_content_id_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_content_id_t msg_content_id;
- * 
+ *
  *  msg_content_id_init(&msg_content_id);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_content_id_t structure 
+ *
+ * @param x pointer to #msg_content_id_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_content_id_t *msg_content_id_init(msg_content_id_t x[1])
@@ -876,13 +876,13 @@ su_inline msg_content_id_t *msg_content_id_init(msg_content_id_t x[1])
 #endif
 
 /**Test if header object is an instance of #msg_content_id_t.
- * 
+ *
  * The function msg_is_content_id() returns true (nonzero) if
  * the header class is an instance of Content-ID header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_content_id() returns true (nonzero) if the
  * header object is an instance of header Content-ID header and false (zero)
  * otherwise.
@@ -899,27 +899,27 @@ int msg_is_content_id(msg_header_t const *header);
 #define msg_content_id_p(h) msg_is_content_id((h))
 
 /**Duplicate (deep copy) #msg_content_id_t.
- * 
+ *
  * The function msg_content_id_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_id = msg_content_id_dup(home, msg->msg_content_id);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_id_dup() returns a pointer to the
  * newly duplicated #msg_content_id_t header structure, or NULL
@@ -928,44 +928,44 @@ int msg_is_content_id(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_id_t *msg_content_id_dup(su_home_t *home, 
+msg_content_id_t *msg_content_id_dup(su_home_t *home,
 				 msg_content_id_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_id_t *msg_content_id_dup(su_home_t *home, 
+msg_content_id_t *msg_content_id_dup(su_home_t *home,
 				 msg_content_id_t const *header)
 {
   return (msg_content_id_t *)
-    msg_header_dup_as(home, msg_content_id_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_content_id_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_content_id_t header structure.
- * 
+ *
  * The function msg_content_id_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_id = msg_content_id_copy(home, msg->msg_content_id);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_id_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -973,32 +973,32 @@ msg_content_id_t *msg_content_id_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_id_t *msg_content_id_copy(su_home_t *home, 
+msg_content_id_t *msg_content_id_copy(su_home_t *home,
 				  msg_content_id_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_id_t *msg_content_id_copy(su_home_t *home, 
+msg_content_id_t *msg_content_id_copy(su_home_t *home,
 				  msg_content_id_t const *header)
 {
   return (msg_content_id_t *)
-    msg_header_copy_as(home, msg_content_id_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_content_id_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_content_id_t.
- * 
+ *
  * The function msg_content_id_make() makes a new #msg_content_id_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_content_id_make() returns a pointer to newly maked
  * #msg_content_id_t header structure, or NULL upon an error.
@@ -1014,24 +1014,24 @@ msg_content_id_t *msg_content_id_make(su_home_t *home, char const *s);
 
 
 /**Make a Content-ID header from formatting result.
- * 
+ *
  * The function msg_content_id_format() makes a new Content-ID header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_content_id_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -1045,11 +1045,11 @@ su_inline msg_content_id_t *msg_content_id_format(su_home_t *home, char const *f
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_content_id_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_content_id_t*)h;
 }
 #endif
@@ -1058,13 +1058,13 @@ su_inline msg_content_id_t *msg_content_id_format(su_home_t *home, char const *f
 
 /* Declare internal prototypes for Content-Language header */
 
-/**@addtogroup msg_content_language 
- * @{ 
+/**@addtogroup msg_content_language
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Content-Language header. @internal */
-  msg_content_language_hash = 62108 
+  msg_content_language_hash = 62108
 };
 
 /** Parse a Content-Language header. @internal */
@@ -1077,43 +1077,43 @@ MSG_DLL msg_xtra_f msg_content_language_dup_xtra;
 MSG_DLL msg_dup_f msg_content_language_dup_one;
 
 /**Header class for Content-Language header.
- * 
- * The header class msg_content_language_class defines how a 
+ *
+ * The header class msg_content_language_class defines how a
  * Content-Language header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_content_language_t header structure.
- * 
+ *
  */
 #ifndef msg_content_language_class
 MSG_DLL extern msg_hclass_t msg_content_language_class[];
 #endif
 
 /**Initializer for an #msg_content_language_t structure.
- * 
+ *
  * A static msg_content_language_t structure must be initialized
  * with the MSG_CONTENT_LANGUAGE_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_content_language_t msg_content_language = MSG_CONTENT_LANGUAGE_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_CONTENT_LANGUAGE_INIT() MSG_HDR_INIT(content_language)
 
 /**Initialize an #msg_content_language_t structure.
- * 
+ *
  * An #msg_content_language_t structure can be initialized with the
  * msg_content_language_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_content_language_t msg_content_language;
- * 
+ *
  *  msg_content_language_init(&msg_content_language);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_content_language_t structure 
+ *
+ * @param x pointer to #msg_content_language_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_content_language_t *msg_content_language_init(msg_content_language_t x[1])
@@ -1126,13 +1126,13 @@ su_inline msg_content_language_t *msg_content_language_init(msg_content_language
 #endif
 
 /**Test if header object is an instance of #msg_content_language_t.
- * 
+ *
  * The function msg_is_content_language() returns true (nonzero) if
  * the header class is an instance of Content-Language header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_content_language() returns true (nonzero) if the
  * header object is an instance of header Content-Language header and false (zero)
  * otherwise.
@@ -1149,27 +1149,27 @@ int msg_is_content_language(msg_header_t const *header);
 #define msg_content_language_p(h) msg_is_content_language((h))
 
 /**Duplicate (deep copy) #msg_content_language_t.
- * 
+ *
  * The function msg_content_language_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_language = msg_content_language_dup(home, msg->msg_content_language);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_language_dup() returns a pointer to the
  * newly duplicated #msg_content_language_t header structure, or NULL
@@ -1178,44 +1178,44 @@ int msg_is_content_language(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_language_t *msg_content_language_dup(su_home_t *home, 
+msg_content_language_t *msg_content_language_dup(su_home_t *home,
 				 msg_content_language_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_language_t *msg_content_language_dup(su_home_t *home, 
+msg_content_language_t *msg_content_language_dup(su_home_t *home,
 				 msg_content_language_t const *header)
 {
   return (msg_content_language_t *)
-    msg_header_dup_as(home, msg_content_language_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_content_language_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_content_language_t header structure.
- * 
+ *
  * The function msg_content_language_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_language = msg_content_language_copy(home, msg->msg_content_language);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_language_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -1223,32 +1223,32 @@ msg_content_language_t *msg_content_language_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_language_t *msg_content_language_copy(su_home_t *home, 
+msg_content_language_t *msg_content_language_copy(su_home_t *home,
 				  msg_content_language_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_language_t *msg_content_language_copy(su_home_t *home, 
+msg_content_language_t *msg_content_language_copy(su_home_t *home,
 				  msg_content_language_t const *header)
 {
   return (msg_content_language_t *)
-    msg_header_copy_as(home, msg_content_language_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_content_language_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_content_language_t.
- * 
+ *
  * The function msg_content_language_make() makes a new #msg_content_language_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_content_language_make() returns a pointer to newly maked
  * #msg_content_language_t header structure, or NULL upon an error.
@@ -1264,24 +1264,24 @@ msg_content_language_t *msg_content_language_make(su_home_t *home, char const *s
 
 
 /**Make a Content-Language header from formatting result.
- * 
+ *
  * The function msg_content_language_format() makes a new Content-Language header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_content_language_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -1295,11 +1295,11 @@ su_inline msg_content_language_t *msg_content_language_format(su_home_t *home, c
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_content_language_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_content_language_t*)h;
 }
 #endif
@@ -1308,13 +1308,13 @@ su_inline msg_content_language_t *msg_content_language_format(su_home_t *home, c
 
 /* Declare internal prototypes for Content-Encoding header */
 
-/**@addtogroup msg_content_encoding 
- * @{ 
+/**@addtogroup msg_content_encoding
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Content-Encoding header. @internal */
-  msg_content_encoding_hash = 8707 
+  msg_content_encoding_hash = 8707
 };
 
 /** Parse a Content-Encoding header. @internal */
@@ -1327,43 +1327,43 @@ MSG_DLL msg_xtra_f msg_content_encoding_dup_xtra;
 MSG_DLL msg_dup_f msg_content_encoding_dup_one;
 
 /**Header class for Content-Encoding header.
- * 
- * The header class msg_content_encoding_class defines how a 
+ *
+ * The header class msg_content_encoding_class defines how a
  * Content-Encoding header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_content_encoding_t header structure.
- * 
+ *
  */
 #ifndef msg_content_encoding_class
 MSG_DLL extern msg_hclass_t msg_content_encoding_class[];
 #endif
 
 /**Initializer for an #msg_content_encoding_t structure.
- * 
+ *
  * A static msg_content_encoding_t structure must be initialized
  * with the MSG_CONTENT_ENCODING_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_content_encoding_t msg_content_encoding = MSG_CONTENT_ENCODING_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_CONTENT_ENCODING_INIT() MSG_HDR_INIT(content_encoding)
 
 /**Initialize an #msg_content_encoding_t structure.
- * 
+ *
  * An #msg_content_encoding_t structure can be initialized with the
  * msg_content_encoding_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_content_encoding_t msg_content_encoding;
- * 
+ *
  *  msg_content_encoding_init(&msg_content_encoding);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_content_encoding_t structure 
+ *
+ * @param x pointer to #msg_content_encoding_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_content_encoding_t *msg_content_encoding_init(msg_content_encoding_t x[1])
@@ -1376,13 +1376,13 @@ su_inline msg_content_encoding_t *msg_content_encoding_init(msg_content_encoding
 #endif
 
 /**Test if header object is an instance of #msg_content_encoding_t.
- * 
+ *
  * The function msg_is_content_encoding() returns true (nonzero) if
  * the header class is an instance of Content-Encoding header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_content_encoding() returns true (nonzero) if the
  * header object is an instance of header Content-Encoding header and false (zero)
  * otherwise.
@@ -1399,27 +1399,27 @@ int msg_is_content_encoding(msg_header_t const *header);
 #define msg_content_encoding_p(h) msg_is_content_encoding((h))
 
 /**Duplicate (deep copy) #msg_content_encoding_t.
- * 
+ *
  * The function msg_content_encoding_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_encoding = msg_content_encoding_dup(home, msg->msg_content_encoding);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_encoding_dup() returns a pointer to the
  * newly duplicated #msg_content_encoding_t header structure, or NULL
@@ -1428,44 +1428,44 @@ int msg_is_content_encoding(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_encoding_t *msg_content_encoding_dup(su_home_t *home, 
+msg_content_encoding_t *msg_content_encoding_dup(su_home_t *home,
 				 msg_content_encoding_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_encoding_t *msg_content_encoding_dup(su_home_t *home, 
+msg_content_encoding_t *msg_content_encoding_dup(su_home_t *home,
 				 msg_content_encoding_t const *header)
 {
   return (msg_content_encoding_t *)
-    msg_header_dup_as(home, msg_content_encoding_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_content_encoding_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_content_encoding_t header structure.
- * 
+ *
  * The function msg_content_encoding_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_encoding = msg_content_encoding_copy(home, msg->msg_content_encoding);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_encoding_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -1473,32 +1473,32 @@ msg_content_encoding_t *msg_content_encoding_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_encoding_t *msg_content_encoding_copy(su_home_t *home, 
+msg_content_encoding_t *msg_content_encoding_copy(su_home_t *home,
 				  msg_content_encoding_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_encoding_t *msg_content_encoding_copy(su_home_t *home, 
+msg_content_encoding_t *msg_content_encoding_copy(su_home_t *home,
 				  msg_content_encoding_t const *header)
 {
   return (msg_content_encoding_t *)
-    msg_header_copy_as(home, msg_content_encoding_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_content_encoding_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_content_encoding_t.
- * 
+ *
  * The function msg_content_encoding_make() makes a new #msg_content_encoding_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_content_encoding_make() returns a pointer to newly maked
  * #msg_content_encoding_t header structure, or NULL upon an error.
@@ -1514,24 +1514,24 @@ msg_content_encoding_t *msg_content_encoding_make(su_home_t *home, char const *s
 
 
 /**Make a Content-Encoding header from formatting result.
- * 
+ *
  * The function msg_content_encoding_format() makes a new Content-Encoding header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_content_encoding_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -1545,11 +1545,11 @@ su_inline msg_content_encoding_t *msg_content_encoding_format(su_home_t *home, c
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_content_encoding_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_content_encoding_t*)h;
 }
 #endif
@@ -1558,13 +1558,13 @@ su_inline msg_content_encoding_t *msg_content_encoding_format(su_home_t *home, c
 
 /* Declare internal prototypes for Content-Transfer-Encoding header */
 
-/**@addtogroup msg_content_transfer_encoding 
- * @{ 
+/**@addtogroup msg_content_transfer_encoding
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Content-Transfer-Encoding header. @internal */
-  msg_content_transfer_encoding_hash = 7853 
+  msg_content_transfer_encoding_hash = 7853
 };
 
 /** Parse a Content-Transfer-Encoding header. @internal */
@@ -1577,43 +1577,43 @@ MSG_DLL msg_xtra_f msg_content_transfer_encoding_dup_xtra;
 MSG_DLL msg_dup_f msg_content_transfer_encoding_dup_one;
 
 /**Header class for Content-Transfer-Encoding header.
- * 
- * The header class msg_content_transfer_encoding_class defines how a 
+ *
+ * The header class msg_content_transfer_encoding_class defines how a
  * Content-Transfer-Encoding header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_content_transfer_encoding_t header structure.
- * 
+ *
  */
 #ifndef msg_content_transfer_encoding_class
 MSG_DLL extern msg_hclass_t msg_content_transfer_encoding_class[];
 #endif
 
 /**Initializer for an #msg_content_transfer_encoding_t structure.
- * 
+ *
  * A static msg_content_transfer_encoding_t structure must be initialized
  * with the MSG_CONTENT_TRANSFER_ENCODING_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_content_transfer_encoding_t msg_content_transfer_encoding = MSG_CONTENT_TRANSFER_ENCODING_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_CONTENT_TRANSFER_ENCODING_INIT() MSG_HDR_INIT(content_transfer_encoding)
 
 /**Initialize an #msg_content_transfer_encoding_t structure.
- * 
+ *
  * An #msg_content_transfer_encoding_t structure can be initialized with the
  * msg_content_transfer_encoding_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_content_transfer_encoding_t msg_content_transfer_encoding;
- * 
+ *
  *  msg_content_transfer_encoding_init(&msg_content_transfer_encoding);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_content_transfer_encoding_t structure 
+ *
+ * @param x pointer to #msg_content_transfer_encoding_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_content_transfer_encoding_t *msg_content_transfer_encoding_init(msg_content_transfer_encoding_t x[1])
@@ -1626,13 +1626,13 @@ su_inline msg_content_transfer_encoding_t *msg_content_transfer_encoding_init(ms
 #endif
 
 /**Test if header object is an instance of #msg_content_transfer_encoding_t.
- * 
+ *
  * The function msg_is_content_transfer_encoding() returns true (nonzero) if
  * the header class is an instance of Content-Transfer-Encoding header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_content_transfer_encoding() returns true (nonzero) if the
  * header object is an instance of header Content-Transfer-Encoding header and false (zero)
  * otherwise.
@@ -1649,27 +1649,27 @@ int msg_is_content_transfer_encoding(msg_header_t const *header);
 #define msg_content_transfer_encoding_p(h) msg_is_content_transfer_encoding((h))
 
 /**Duplicate (deep copy) #msg_content_transfer_encoding_t.
- * 
+ *
  * The function msg_content_transfer_encoding_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_transfer_encoding = msg_content_transfer_encoding_dup(home, msg->msg_content_transfer_encoding);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_transfer_encoding_dup() returns a pointer to the
  * newly duplicated #msg_content_transfer_encoding_t header structure, or NULL
@@ -1678,44 +1678,44 @@ int msg_is_content_transfer_encoding(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_transfer_encoding_t *msg_content_transfer_encoding_dup(su_home_t *home, 
+msg_content_transfer_encoding_t *msg_content_transfer_encoding_dup(su_home_t *home,
 				 msg_content_transfer_encoding_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_transfer_encoding_t *msg_content_transfer_encoding_dup(su_home_t *home, 
+msg_content_transfer_encoding_t *msg_content_transfer_encoding_dup(su_home_t *home,
 				 msg_content_transfer_encoding_t const *header)
 {
   return (msg_content_transfer_encoding_t *)
-    msg_header_dup_as(home, msg_content_transfer_encoding_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_content_transfer_encoding_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_content_transfer_encoding_t header structure.
- * 
+ *
  * The function msg_content_transfer_encoding_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_transfer_encoding = msg_content_transfer_encoding_copy(home, msg->msg_content_transfer_encoding);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_transfer_encoding_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -1723,32 +1723,32 @@ msg_content_transfer_encoding_t *msg_content_transfer_encoding_dup(su_home_t *ho
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_transfer_encoding_t *msg_content_transfer_encoding_copy(su_home_t *home, 
+msg_content_transfer_encoding_t *msg_content_transfer_encoding_copy(su_home_t *home,
 				  msg_content_transfer_encoding_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_transfer_encoding_t *msg_content_transfer_encoding_copy(su_home_t *home, 
+msg_content_transfer_encoding_t *msg_content_transfer_encoding_copy(su_home_t *home,
 				  msg_content_transfer_encoding_t const *header)
 {
   return (msg_content_transfer_encoding_t *)
-    msg_header_copy_as(home, msg_content_transfer_encoding_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_content_transfer_encoding_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_content_transfer_encoding_t.
- * 
+ *
  * The function msg_content_transfer_encoding_make() makes a new #msg_content_transfer_encoding_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_content_transfer_encoding_make() returns a pointer to newly maked
  * #msg_content_transfer_encoding_t header structure, or NULL upon an error.
@@ -1764,24 +1764,24 @@ msg_content_transfer_encoding_t *msg_content_transfer_encoding_make(su_home_t *h
 
 
 /**Make a Content-Transfer-Encoding header from formatting result.
- * 
+ *
  * The function msg_content_transfer_encoding_format() makes a new Content-Transfer-Encoding header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_content_transfer_encoding_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -1795,11 +1795,11 @@ su_inline msg_content_transfer_encoding_t *msg_content_transfer_encoding_format(
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_content_transfer_encoding_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_content_transfer_encoding_t*)h;
 }
 #endif
@@ -1808,13 +1808,13 @@ su_inline msg_content_transfer_encoding_t *msg_content_transfer_encoding_format(
 
 /* Declare internal prototypes for Accept header */
 
-/**@addtogroup msg_accept 
- * @{ 
+/**@addtogroup msg_accept
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Accept header. @internal */
-  msg_accept_hash = 29344 
+  msg_accept_hash = 29344
 };
 
 /** Parse a Accept header. @internal */
@@ -1827,43 +1827,43 @@ MSG_DLL msg_xtra_f msg_accept_dup_xtra;
 MSG_DLL msg_dup_f msg_accept_dup_one;
 
 /**Header class for Accept header.
- * 
- * The header class msg_accept_class defines how a 
+ *
+ * The header class msg_accept_class defines how a
  * Accept header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_accept_t header structure.
- * 
+ *
  */
 #ifndef msg_accept_class
 MSG_DLL extern msg_hclass_t msg_accept_class[];
 #endif
 
 /**Initializer for an #msg_accept_t structure.
- * 
+ *
  * A static msg_accept_t structure must be initialized
  * with the MSG_ACCEPT_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_accept_t msg_accept = MSG_ACCEPT_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_ACCEPT_INIT() MSG_HDR_INIT(accept)
 
 /**Initialize an #msg_accept_t structure.
- * 
+ *
  * An #msg_accept_t structure can be initialized with the
  * msg_accept_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_accept_t msg_accept;
- * 
+ *
  *  msg_accept_init(&msg_accept);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_accept_t structure 
+ *
+ * @param x pointer to #msg_accept_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_accept_t *msg_accept_init(msg_accept_t x[1])
@@ -1876,13 +1876,13 @@ su_inline msg_accept_t *msg_accept_init(msg_accept_t x[1])
 #endif
 
 /**Test if header object is an instance of #msg_accept_t.
- * 
+ *
  * The function msg_is_accept() returns true (nonzero) if
  * the header class is an instance of Accept header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_accept() returns true (nonzero) if the
  * header object is an instance of header Accept header and false (zero)
  * otherwise.
@@ -1899,27 +1899,27 @@ int msg_is_accept(msg_header_t const *header);
 #define msg_accept_p(h) msg_is_accept((h))
 
 /**Duplicate (deep copy) #msg_accept_t.
- * 
+ *
  * The function msg_accept_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   accept = msg_accept_dup(home, msg->msg_accept);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_accept_dup() returns a pointer to the
  * newly duplicated #msg_accept_t header structure, or NULL
@@ -1928,44 +1928,44 @@ int msg_is_accept(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_accept_t *msg_accept_dup(su_home_t *home, 
+msg_accept_t *msg_accept_dup(su_home_t *home,
 				 msg_accept_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_accept_t *msg_accept_dup(su_home_t *home, 
+msg_accept_t *msg_accept_dup(su_home_t *home,
 				 msg_accept_t const *header)
 {
   return (msg_accept_t *)
-    msg_header_dup_as(home, msg_accept_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_accept_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_accept_t header structure.
- * 
+ *
  * The function msg_accept_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   accept = msg_accept_copy(home, msg->msg_accept);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_accept_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -1973,32 +1973,32 @@ msg_accept_t *msg_accept_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_accept_t *msg_accept_copy(su_home_t *home, 
+msg_accept_t *msg_accept_copy(su_home_t *home,
 				  msg_accept_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_accept_t *msg_accept_copy(su_home_t *home, 
+msg_accept_t *msg_accept_copy(su_home_t *home,
 				  msg_accept_t const *header)
 {
   return (msg_accept_t *)
-    msg_header_copy_as(home, msg_accept_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_accept_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_accept_t.
- * 
+ *
  * The function msg_accept_make() makes a new #msg_accept_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_accept_make() returns a pointer to newly maked
  * #msg_accept_t header structure, or NULL upon an error.
@@ -2014,24 +2014,24 @@ msg_accept_t *msg_accept_make(su_home_t *home, char const *s);
 
 
 /**Make a Accept header from formatting result.
- * 
+ *
  * The function msg_accept_format() makes a new Accept header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_accept_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -2045,11 +2045,11 @@ su_inline msg_accept_t *msg_accept_format(su_home_t *home, char const *fmt, ...)
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_accept_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_accept_t*)h;
 }
 #endif
@@ -2058,13 +2058,13 @@ su_inline msg_accept_t *msg_accept_format(su_home_t *home, char const *fmt, ...)
 
 /* Declare internal prototypes for Accept-Charset header */
 
-/**@addtogroup msg_accept_charset 
- * @{ 
+/**@addtogroup msg_accept_charset
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Accept-Charset header. @internal */
-  msg_accept_charset_hash = 41803 
+  msg_accept_charset_hash = 41803
 };
 
 /** Parse a Accept-Charset header. @internal */
@@ -2077,43 +2077,43 @@ MSG_DLL msg_xtra_f msg_accept_charset_dup_xtra;
 MSG_DLL msg_dup_f msg_accept_charset_dup_one;
 
 /**Header class for Accept-Charset header.
- * 
- * The header class msg_accept_charset_class defines how a 
+ *
+ * The header class msg_accept_charset_class defines how a
  * Accept-Charset header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_accept_charset_t header structure.
- * 
+ *
  */
 #ifndef msg_accept_charset_class
 MSG_DLL extern msg_hclass_t msg_accept_charset_class[];
 #endif
 
 /**Initializer for an #msg_accept_charset_t structure.
- * 
+ *
  * A static msg_accept_charset_t structure must be initialized
  * with the MSG_ACCEPT_CHARSET_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_accept_charset_t msg_accept_charset = MSG_ACCEPT_CHARSET_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_ACCEPT_CHARSET_INIT() MSG_HDR_INIT(accept_charset)
 
 /**Initialize an #msg_accept_charset_t structure.
- * 
+ *
  * An #msg_accept_charset_t structure can be initialized with the
  * msg_accept_charset_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_accept_charset_t msg_accept_charset;
- * 
+ *
  *  msg_accept_charset_init(&msg_accept_charset);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_accept_charset_t structure 
+ *
+ * @param x pointer to #msg_accept_charset_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_accept_charset_t *msg_accept_charset_init(msg_accept_charset_t x[1])
@@ -2126,13 +2126,13 @@ su_inline msg_accept_charset_t *msg_accept_charset_init(msg_accept_charset_t x[1
 #endif
 
 /**Test if header object is an instance of #msg_accept_charset_t.
- * 
+ *
  * The function msg_is_accept_charset() returns true (nonzero) if
  * the header class is an instance of Accept-Charset header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_accept_charset() returns true (nonzero) if the
  * header object is an instance of header Accept-Charset header and false (zero)
  * otherwise.
@@ -2149,27 +2149,27 @@ int msg_is_accept_charset(msg_header_t const *header);
 #define msg_accept_charset_p(h) msg_is_accept_charset((h))
 
 /**Duplicate (deep copy) #msg_accept_charset_t.
- * 
+ *
  * The function msg_accept_charset_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   accept_charset = msg_accept_charset_dup(home, msg->msg_accept_charset);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_accept_charset_dup() returns a pointer to the
  * newly duplicated #msg_accept_charset_t header structure, or NULL
@@ -2178,44 +2178,44 @@ int msg_is_accept_charset(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_accept_charset_t *msg_accept_charset_dup(su_home_t *home, 
+msg_accept_charset_t *msg_accept_charset_dup(su_home_t *home,
 				 msg_accept_charset_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_accept_charset_t *msg_accept_charset_dup(su_home_t *home, 
+msg_accept_charset_t *msg_accept_charset_dup(su_home_t *home,
 				 msg_accept_charset_t const *header)
 {
   return (msg_accept_charset_t *)
-    msg_header_dup_as(home, msg_accept_charset_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_accept_charset_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_accept_charset_t header structure.
- * 
+ *
  * The function msg_accept_charset_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   accept_charset = msg_accept_charset_copy(home, msg->msg_accept_charset);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_accept_charset_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -2223,32 +2223,32 @@ msg_accept_charset_t *msg_accept_charset_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_accept_charset_t *msg_accept_charset_copy(su_home_t *home, 
+msg_accept_charset_t *msg_accept_charset_copy(su_home_t *home,
 				  msg_accept_charset_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_accept_charset_t *msg_accept_charset_copy(su_home_t *home, 
+msg_accept_charset_t *msg_accept_charset_copy(su_home_t *home,
 				  msg_accept_charset_t const *header)
 {
   return (msg_accept_charset_t *)
-    msg_header_copy_as(home, msg_accept_charset_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_accept_charset_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_accept_charset_t.
- * 
+ *
  * The function msg_accept_charset_make() makes a new #msg_accept_charset_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_accept_charset_make() returns a pointer to newly maked
  * #msg_accept_charset_t header structure, or NULL upon an error.
@@ -2264,24 +2264,24 @@ msg_accept_charset_t *msg_accept_charset_make(su_home_t *home, char const *s);
 
 
 /**Make a Accept-Charset header from formatting result.
- * 
+ *
  * The function msg_accept_charset_format() makes a new Accept-Charset header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_accept_charset_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -2295,11 +2295,11 @@ su_inline msg_accept_charset_t *msg_accept_charset_format(su_home_t *home, char 
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_accept_charset_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_accept_charset_t*)h;
 }
 #endif
@@ -2308,13 +2308,13 @@ su_inline msg_accept_charset_t *msg_accept_charset_format(su_home_t *home, char 
 
 /* Declare internal prototypes for Accept-Encoding header */
 
-/**@addtogroup msg_accept_encoding 
- * @{ 
+/**@addtogroup msg_accept_encoding
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Accept-Encoding header. @internal */
-  msg_accept_encoding_hash = 35932 
+  msg_accept_encoding_hash = 35932
 };
 
 /** Parse a Accept-Encoding header. @internal */
@@ -2327,43 +2327,43 @@ MSG_DLL msg_xtra_f msg_accept_encoding_dup_xtra;
 MSG_DLL msg_dup_f msg_accept_encoding_dup_one;
 
 /**Header class for Accept-Encoding header.
- * 
- * The header class msg_accept_encoding_class defines how a 
+ *
+ * The header class msg_accept_encoding_class defines how a
  * Accept-Encoding header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_accept_encoding_t header structure.
- * 
+ *
  */
 #ifndef msg_accept_encoding_class
 MSG_DLL extern msg_hclass_t msg_accept_encoding_class[];
 #endif
 
 /**Initializer for an #msg_accept_encoding_t structure.
- * 
+ *
  * A static msg_accept_encoding_t structure must be initialized
  * with the MSG_ACCEPT_ENCODING_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_accept_encoding_t msg_accept_encoding = MSG_ACCEPT_ENCODING_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_ACCEPT_ENCODING_INIT() MSG_HDR_INIT(accept_encoding)
 
 /**Initialize an #msg_accept_encoding_t structure.
- * 
+ *
  * An #msg_accept_encoding_t structure can be initialized with the
  * msg_accept_encoding_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_accept_encoding_t msg_accept_encoding;
- * 
+ *
  *  msg_accept_encoding_init(&msg_accept_encoding);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_accept_encoding_t structure 
+ *
+ * @param x pointer to #msg_accept_encoding_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_accept_encoding_t *msg_accept_encoding_init(msg_accept_encoding_t x[1])
@@ -2376,13 +2376,13 @@ su_inline msg_accept_encoding_t *msg_accept_encoding_init(msg_accept_encoding_t 
 #endif
 
 /**Test if header object is an instance of #msg_accept_encoding_t.
- * 
+ *
  * The function msg_is_accept_encoding() returns true (nonzero) if
  * the header class is an instance of Accept-Encoding header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_accept_encoding() returns true (nonzero) if the
  * header object is an instance of header Accept-Encoding header and false (zero)
  * otherwise.
@@ -2399,27 +2399,27 @@ int msg_is_accept_encoding(msg_header_t const *header);
 #define msg_accept_encoding_p(h) msg_is_accept_encoding((h))
 
 /**Duplicate (deep copy) #msg_accept_encoding_t.
- * 
+ *
  * The function msg_accept_encoding_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   accept_encoding = msg_accept_encoding_dup(home, msg->msg_accept_encoding);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_accept_encoding_dup() returns a pointer to the
  * newly duplicated #msg_accept_encoding_t header structure, or NULL
@@ -2428,44 +2428,44 @@ int msg_is_accept_encoding(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_accept_encoding_t *msg_accept_encoding_dup(su_home_t *home, 
+msg_accept_encoding_t *msg_accept_encoding_dup(su_home_t *home,
 				 msg_accept_encoding_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_accept_encoding_t *msg_accept_encoding_dup(su_home_t *home, 
+msg_accept_encoding_t *msg_accept_encoding_dup(su_home_t *home,
 				 msg_accept_encoding_t const *header)
 {
   return (msg_accept_encoding_t *)
-    msg_header_dup_as(home, msg_accept_encoding_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_accept_encoding_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_accept_encoding_t header structure.
- * 
+ *
  * The function msg_accept_encoding_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   accept_encoding = msg_accept_encoding_copy(home, msg->msg_accept_encoding);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_accept_encoding_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -2473,32 +2473,32 @@ msg_accept_encoding_t *msg_accept_encoding_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_accept_encoding_t *msg_accept_encoding_copy(su_home_t *home, 
+msg_accept_encoding_t *msg_accept_encoding_copy(su_home_t *home,
 				  msg_accept_encoding_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_accept_encoding_t *msg_accept_encoding_copy(su_home_t *home, 
+msg_accept_encoding_t *msg_accept_encoding_copy(su_home_t *home,
 				  msg_accept_encoding_t const *header)
 {
   return (msg_accept_encoding_t *)
-    msg_header_copy_as(home, msg_accept_encoding_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_accept_encoding_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_accept_encoding_t.
- * 
+ *
  * The function msg_accept_encoding_make() makes a new #msg_accept_encoding_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_accept_encoding_make() returns a pointer to newly maked
  * #msg_accept_encoding_t header structure, or NULL upon an error.
@@ -2514,24 +2514,24 @@ msg_accept_encoding_t *msg_accept_encoding_make(su_home_t *home, char const *s);
 
 
 /**Make a Accept-Encoding header from formatting result.
- * 
+ *
  * The function msg_accept_encoding_format() makes a new Accept-Encoding header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_accept_encoding_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -2545,11 +2545,11 @@ su_inline msg_accept_encoding_t *msg_accept_encoding_format(su_home_t *home, cha
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_accept_encoding_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_accept_encoding_t*)h;
 }
 #endif
@@ -2558,13 +2558,13 @@ su_inline msg_accept_encoding_t *msg_accept_encoding_format(su_home_t *home, cha
 
 /* Declare internal prototypes for Accept-Language header */
 
-/**@addtogroup msg_accept_language 
- * @{ 
+/**@addtogroup msg_accept_language
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Accept-Language header. @internal */
-  msg_accept_language_hash = 23797 
+  msg_accept_language_hash = 23797
 };
 
 /** Parse a Accept-Language header. @internal */
@@ -2577,43 +2577,43 @@ MSG_DLL msg_xtra_f msg_accept_language_dup_xtra;
 MSG_DLL msg_dup_f msg_accept_language_dup_one;
 
 /**Header class for Accept-Language header.
- * 
- * The header class msg_accept_language_class defines how a 
+ *
+ * The header class msg_accept_language_class defines how a
  * Accept-Language header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_accept_language_t header structure.
- * 
+ *
  */
 #ifndef msg_accept_language_class
 MSG_DLL extern msg_hclass_t msg_accept_language_class[];
 #endif
 
 /**Initializer for an #msg_accept_language_t structure.
- * 
+ *
  * A static msg_accept_language_t structure must be initialized
  * with the MSG_ACCEPT_LANGUAGE_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_accept_language_t msg_accept_language = MSG_ACCEPT_LANGUAGE_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_ACCEPT_LANGUAGE_INIT() MSG_HDR_INIT(accept_language)
 
 /**Initialize an #msg_accept_language_t structure.
- * 
+ *
  * An #msg_accept_language_t structure can be initialized with the
  * msg_accept_language_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_accept_language_t msg_accept_language;
- * 
+ *
  *  msg_accept_language_init(&msg_accept_language);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_accept_language_t structure 
+ *
+ * @param x pointer to #msg_accept_language_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_accept_language_t *msg_accept_language_init(msg_accept_language_t x[1])
@@ -2626,13 +2626,13 @@ su_inline msg_accept_language_t *msg_accept_language_init(msg_accept_language_t 
 #endif
 
 /**Test if header object is an instance of #msg_accept_language_t.
- * 
+ *
  * The function msg_is_accept_language() returns true (nonzero) if
  * the header class is an instance of Accept-Language header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_accept_language() returns true (nonzero) if the
  * header object is an instance of header Accept-Language header and false (zero)
  * otherwise.
@@ -2649,27 +2649,27 @@ int msg_is_accept_language(msg_header_t const *header);
 #define msg_accept_language_p(h) msg_is_accept_language((h))
 
 /**Duplicate (deep copy) #msg_accept_language_t.
- * 
+ *
  * The function msg_accept_language_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   accept_language = msg_accept_language_dup(home, msg->msg_accept_language);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_accept_language_dup() returns a pointer to the
  * newly duplicated #msg_accept_language_t header structure, or NULL
@@ -2678,44 +2678,44 @@ int msg_is_accept_language(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_accept_language_t *msg_accept_language_dup(su_home_t *home, 
+msg_accept_language_t *msg_accept_language_dup(su_home_t *home,
 				 msg_accept_language_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_accept_language_t *msg_accept_language_dup(su_home_t *home, 
+msg_accept_language_t *msg_accept_language_dup(su_home_t *home,
 				 msg_accept_language_t const *header)
 {
   return (msg_accept_language_t *)
-    msg_header_dup_as(home, msg_accept_language_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_accept_language_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_accept_language_t header structure.
- * 
+ *
  * The function msg_accept_language_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   accept_language = msg_accept_language_copy(home, msg->msg_accept_language);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_accept_language_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -2723,32 +2723,32 @@ msg_accept_language_t *msg_accept_language_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_accept_language_t *msg_accept_language_copy(su_home_t *home, 
+msg_accept_language_t *msg_accept_language_copy(su_home_t *home,
 				  msg_accept_language_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_accept_language_t *msg_accept_language_copy(su_home_t *home, 
+msg_accept_language_t *msg_accept_language_copy(su_home_t *home,
 				  msg_accept_language_t const *header)
 {
   return (msg_accept_language_t *)
-    msg_header_copy_as(home, msg_accept_language_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_accept_language_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_accept_language_t.
- * 
+ *
  * The function msg_accept_language_make() makes a new #msg_accept_language_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_accept_language_make() returns a pointer to newly maked
  * #msg_accept_language_t header structure, or NULL upon an error.
@@ -2764,24 +2764,24 @@ msg_accept_language_t *msg_accept_language_make(su_home_t *home, char const *s);
 
 
 /**Make a Accept-Language header from formatting result.
- * 
+ *
  * The function msg_accept_language_format() makes a new Accept-Language header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_accept_language_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -2795,11 +2795,11 @@ su_inline msg_accept_language_t *msg_accept_language_format(su_home_t *home, cha
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_accept_language_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_accept_language_t*)h;
 }
 #endif
@@ -2808,13 +2808,13 @@ su_inline msg_accept_language_t *msg_accept_language_format(su_home_t *home, cha
 
 /* Declare internal prototypes for MIME-Version header */
 
-/**@addtogroup msg_mime_version 
- * @{ 
+/**@addtogroup msg_mime_version
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of MIME-Version header. @internal */
-  msg_mime_version_hash = 49047 
+  msg_mime_version_hash = 49047
 };
 
 /** Parse a MIME-Version header. @internal */
@@ -2827,43 +2827,43 @@ MSG_DLL msg_xtra_f msg_mime_version_dup_xtra;
 MSG_DLL msg_dup_f msg_mime_version_dup_one;
 
 /**Header class for MIME-Version header.
- * 
- * The header class msg_mime_version_class defines how a 
+ *
+ * The header class msg_mime_version_class defines how a
  * MIME-Version header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_mime_version_t header structure.
- * 
+ *
  */
 #ifndef msg_mime_version_class
 MSG_DLL extern msg_hclass_t msg_mime_version_class[];
 #endif
 
 /**Initializer for an #msg_mime_version_t structure.
- * 
+ *
  * A static msg_mime_version_t structure must be initialized
  * with the MSG_MIME_VERSION_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_mime_version_t msg_mime_version = MSG_MIME_VERSION_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_MIME_VERSION_INIT() MSG_HDR_INIT(mime_version)
 
 /**Initialize an #msg_mime_version_t structure.
- * 
+ *
  * An #msg_mime_version_t structure can be initialized with the
  * msg_mime_version_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_mime_version_t msg_mime_version;
- * 
+ *
  *  msg_mime_version_init(&msg_mime_version);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_mime_version_t structure 
+ *
+ * @param x pointer to #msg_mime_version_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_mime_version_t *msg_mime_version_init(msg_mime_version_t x[1])
@@ -2876,13 +2876,13 @@ su_inline msg_mime_version_t *msg_mime_version_init(msg_mime_version_t x[1])
 #endif
 
 /**Test if header object is an instance of #msg_mime_version_t.
- * 
+ *
  * The function msg_is_mime_version() returns true (nonzero) if
  * the header class is an instance of MIME-Version header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_mime_version() returns true (nonzero) if the
  * header object is an instance of header MIME-Version header and false (zero)
  * otherwise.
@@ -2899,27 +2899,27 @@ int msg_is_mime_version(msg_header_t const *header);
 #define msg_mime_version_p(h) msg_is_mime_version((h))
 
 /**Duplicate (deep copy) #msg_mime_version_t.
- * 
+ *
  * The function msg_mime_version_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   mime_version = msg_mime_version_dup(home, msg->msg_mime_version);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_mime_version_dup() returns a pointer to the
  * newly duplicated #msg_mime_version_t header structure, or NULL
@@ -2928,44 +2928,44 @@ int msg_is_mime_version(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_mime_version_t *msg_mime_version_dup(su_home_t *home, 
+msg_mime_version_t *msg_mime_version_dup(su_home_t *home,
 				 msg_mime_version_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_mime_version_t *msg_mime_version_dup(su_home_t *home, 
+msg_mime_version_t *msg_mime_version_dup(su_home_t *home,
 				 msg_mime_version_t const *header)
 {
   return (msg_mime_version_t *)
-    msg_header_dup_as(home, msg_mime_version_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_mime_version_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_mime_version_t header structure.
- * 
+ *
  * The function msg_mime_version_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   mime_version = msg_mime_version_copy(home, msg->msg_mime_version);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_mime_version_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -2973,32 +2973,32 @@ msg_mime_version_t *msg_mime_version_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_mime_version_t *msg_mime_version_copy(su_home_t *home, 
+msg_mime_version_t *msg_mime_version_copy(su_home_t *home,
 				  msg_mime_version_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_mime_version_t *msg_mime_version_copy(su_home_t *home, 
+msg_mime_version_t *msg_mime_version_copy(su_home_t *home,
 				  msg_mime_version_t const *header)
 {
   return (msg_mime_version_t *)
-    msg_header_copy_as(home, msg_mime_version_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_mime_version_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_mime_version_t.
- * 
+ *
  * The function msg_mime_version_make() makes a new #msg_mime_version_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_mime_version_make() returns a pointer to newly maked
  * #msg_mime_version_t header structure, or NULL upon an error.
@@ -3014,24 +3014,24 @@ msg_mime_version_t *msg_mime_version_make(su_home_t *home, char const *s);
 
 
 /**Make a MIME-Version header from formatting result.
- * 
+ *
  * The function msg_mime_version_format() makes a new MIME-Version header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_mime_version_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -3045,11 +3045,11 @@ su_inline msg_mime_version_t *msg_mime_version_format(su_home_t *home, char cons
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_mime_version_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_mime_version_t*)h;
 }
 #endif
@@ -3058,13 +3058,13 @@ su_inline msg_mime_version_t *msg_mime_version_format(su_home_t *home, char cons
 
 /* Declare internal prototypes for Content-MD5 header */
 
-/**@addtogroup msg_content_md5 
- * @{ 
+/**@addtogroup msg_content_md5
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Content-MD5 header. @internal */
-  msg_content_md5_hash = 60494 
+  msg_content_md5_hash = 60494
 };
 
 /** Parse a Content-MD5 header. @internal */
@@ -3077,43 +3077,43 @@ MSG_DLL msg_xtra_f msg_content_md5_dup_xtra;
 MSG_DLL msg_dup_f msg_content_md5_dup_one;
 
 /**Header class for Content-MD5 header.
- * 
- * The header class msg_content_md5_class defines how a 
+ *
+ * The header class msg_content_md5_class defines how a
  * Content-MD5 header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_content_md5_t header structure.
- * 
+ *
  */
 #ifndef msg_content_md5_class
 MSG_DLL extern msg_hclass_t msg_content_md5_class[];
 #endif
 
 /**Initializer for an #msg_content_md5_t structure.
- * 
+ *
  * A static msg_content_md5_t structure must be initialized
  * with the MSG_CONTENT_MD5_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_content_md5_t msg_content_md5 = MSG_CONTENT_MD5_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_CONTENT_MD5_INIT() MSG_HDR_INIT(content_md5)
 
 /**Initialize an #msg_content_md5_t structure.
- * 
+ *
  * An #msg_content_md5_t structure can be initialized with the
  * msg_content_md5_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_content_md5_t msg_content_md5;
- * 
+ *
  *  msg_content_md5_init(&msg_content_md5);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_content_md5_t structure 
+ *
+ * @param x pointer to #msg_content_md5_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_content_md5_t *msg_content_md5_init(msg_content_md5_t x[1])
@@ -3126,13 +3126,13 @@ su_inline msg_content_md5_t *msg_content_md5_init(msg_content_md5_t x[1])
 #endif
 
 /**Test if header object is an instance of #msg_content_md5_t.
- * 
+ *
  * The function msg_is_content_md5() returns true (nonzero) if
  * the header class is an instance of Content-MD5 header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_content_md5() returns true (nonzero) if the
  * header object is an instance of header Content-MD5 header and false (zero)
  * otherwise.
@@ -3149,27 +3149,27 @@ int msg_is_content_md5(msg_header_t const *header);
 #define msg_content_md5_p(h) msg_is_content_md5((h))
 
 /**Duplicate (deep copy) #msg_content_md5_t.
- * 
+ *
  * The function msg_content_md5_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_md5 = msg_content_md5_dup(home, msg->msg_content_md5);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_md5_dup() returns a pointer to the
  * newly duplicated #msg_content_md5_t header structure, or NULL
@@ -3178,44 +3178,44 @@ int msg_is_content_md5(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_md5_t *msg_content_md5_dup(su_home_t *home, 
+msg_content_md5_t *msg_content_md5_dup(su_home_t *home,
 				 msg_content_md5_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_md5_t *msg_content_md5_dup(su_home_t *home, 
+msg_content_md5_t *msg_content_md5_dup(su_home_t *home,
 				 msg_content_md5_t const *header)
 {
   return (msg_content_md5_t *)
-    msg_header_dup_as(home, msg_content_md5_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_content_md5_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_content_md5_t header structure.
- * 
+ *
  * The function msg_content_md5_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_md5 = msg_content_md5_copy(home, msg->msg_content_md5);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_md5_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -3223,32 +3223,32 @@ msg_content_md5_t *msg_content_md5_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_md5_t *msg_content_md5_copy(su_home_t *home, 
+msg_content_md5_t *msg_content_md5_copy(su_home_t *home,
 				  msg_content_md5_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_md5_t *msg_content_md5_copy(su_home_t *home, 
+msg_content_md5_t *msg_content_md5_copy(su_home_t *home,
 				  msg_content_md5_t const *header)
 {
   return (msg_content_md5_t *)
-    msg_header_copy_as(home, msg_content_md5_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_content_md5_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_content_md5_t.
- * 
+ *
  * The function msg_content_md5_make() makes a new #msg_content_md5_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_content_md5_make() returns a pointer to newly maked
  * #msg_content_md5_t header structure, or NULL upon an error.
@@ -3264,24 +3264,24 @@ msg_content_md5_t *msg_content_md5_make(su_home_t *home, char const *s);
 
 
 /**Make a Content-MD5 header from formatting result.
- * 
+ *
  * The function msg_content_md5_format() makes a new Content-MD5 header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_content_md5_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -3295,11 +3295,11 @@ su_inline msg_content_md5_t *msg_content_md5_format(su_home_t *home, char const 
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_content_md5_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_content_md5_t*)h;
 }
 #endif
@@ -3308,13 +3308,13 @@ su_inline msg_content_md5_t *msg_content_md5_format(su_home_t *home, char const 
 
 /* Declare internal prototypes for Content-Length header */
 
-/**@addtogroup msg_content_length 
- * @{ 
+/**@addtogroup msg_content_length
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Content-Length header. @internal */
-  msg_content_length_hash = 8402 
+  msg_content_length_hash = 8402
 };
 
 /** Parse a Content-Length header. @internal */
@@ -3327,43 +3327,43 @@ MSG_DLL msg_xtra_f msg_content_length_dup_xtra;
 MSG_DLL msg_dup_f msg_content_length_dup_one;
 
 /**Header class for Content-Length header.
- * 
- * The header class msg_content_length_class defines how a 
+ *
+ * The header class msg_content_length_class defines how a
  * Content-Length header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_content_length_t header structure.
- * 
+ *
  */
 #ifndef msg_content_length_class
 MSG_DLL extern msg_hclass_t msg_content_length_class[];
 #endif
 
 /**Initializer for an #msg_content_length_t structure.
- * 
+ *
  * A static msg_content_length_t structure must be initialized
  * with the MSG_CONTENT_LENGTH_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_content_length_t msg_content_length = MSG_CONTENT_LENGTH_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_CONTENT_LENGTH_INIT() MSG_HDR_INIT(content_length)
 
 /**Initialize an #msg_content_length_t structure.
- * 
+ *
  * An #msg_content_length_t structure can be initialized with the
  * msg_content_length_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_content_length_t msg_content_length;
- * 
+ *
  *  msg_content_length_init(&msg_content_length);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_content_length_t structure 
+ *
+ * @param x pointer to #msg_content_length_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_content_length_t *msg_content_length_init(msg_content_length_t x[1])
@@ -3376,13 +3376,13 @@ su_inline msg_content_length_t *msg_content_length_init(msg_content_length_t x[1
 #endif
 
 /**Test if header object is an instance of #msg_content_length_t.
- * 
+ *
  * The function msg_is_content_length() returns true (nonzero) if
  * the header class is an instance of Content-Length header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_content_length() returns true (nonzero) if the
  * header object is an instance of header Content-Length header and false (zero)
  * otherwise.
@@ -3399,27 +3399,27 @@ int msg_is_content_length(msg_header_t const *header);
 #define msg_content_length_p(h) msg_is_content_length((h))
 
 /**Duplicate (deep copy) #msg_content_length_t.
- * 
+ *
  * The function msg_content_length_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_length = msg_content_length_dup(home, msg->msg_content_length);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_length_dup() returns a pointer to the
  * newly duplicated #msg_content_length_t header structure, or NULL
@@ -3428,44 +3428,44 @@ int msg_is_content_length(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_length_t *msg_content_length_dup(su_home_t *home, 
+msg_content_length_t *msg_content_length_dup(su_home_t *home,
 				 msg_content_length_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_length_t *msg_content_length_dup(su_home_t *home, 
+msg_content_length_t *msg_content_length_dup(su_home_t *home,
 				 msg_content_length_t const *header)
 {
   return (msg_content_length_t *)
-    msg_header_dup_as(home, msg_content_length_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_content_length_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_content_length_t header structure.
- * 
+ *
  * The function msg_content_length_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   content_length = msg_content_length_copy(home, msg->msg_content_length);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_content_length_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -3473,32 +3473,32 @@ msg_content_length_t *msg_content_length_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_content_length_t *msg_content_length_copy(su_home_t *home, 
+msg_content_length_t *msg_content_length_copy(su_home_t *home,
 				  msg_content_length_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_content_length_t *msg_content_length_copy(su_home_t *home, 
+msg_content_length_t *msg_content_length_copy(su_home_t *home,
 				  msg_content_length_t const *header)
 {
   return (msg_content_length_t *)
-    msg_header_copy_as(home, msg_content_length_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_content_length_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_content_length_t.
- * 
+ *
  * The function msg_content_length_make() makes a new #msg_content_length_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_content_length_make() returns a pointer to newly maked
  * #msg_content_length_t header structure, or NULL upon an error.
@@ -3514,24 +3514,24 @@ msg_content_length_t *msg_content_length_make(su_home_t *home, char const *s);
 
 
 /**Make a Content-Length header from formatting result.
- * 
+ *
  * The function msg_content_length_format() makes a new Content-Length header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_content_length_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -3545,11 +3545,11 @@ su_inline msg_content_length_t *msg_content_length_format(su_home_t *home, char 
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_content_length_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_content_length_t*)h;
 }
 #endif
@@ -3558,13 +3558,13 @@ su_inline msg_content_length_t *msg_content_length_format(su_home_t *home, char 
 
 /* Declare internal prototypes for Recursive multipart header */
 
-/**@addtogroup msg_multipart 
- * @{ 
+/**@addtogroup msg_multipart
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Recursive multipart header. @internal */
-  msg_multipart_hash = 58884 
+  msg_multipart_hash = 58884
 };
 
 /** Parse a Recursive multipart header. @internal */
@@ -3577,43 +3577,43 @@ MSG_DLL msg_xtra_f msg_multipart_dup_xtra;
 MSG_DLL msg_dup_f msg_multipart_dup_one;
 
 /**Header class for Recursive multipart header.
- * 
- * The header class msg_multipart_class defines how a 
+ *
+ * The header class msg_multipart_class defines how a
  * Recursive multipart header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_multipart_t header structure.
- * 
+ *
  */
 #ifndef msg_multipart_class
 MSG_DLL extern msg_hclass_t msg_multipart_class[];
 #endif
 
 /**Initializer for an #msg_multipart_t structure.
- * 
+ *
  * A static msg_multipart_t structure must be initialized
  * with the MSG_MULTIPART_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_multipart_t msg_multipart = MSG_MULTIPART_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_MULTIPART_INIT() MSG_HDR_INIT(multipart)
 
 /**Initialize an #msg_multipart_t structure.
- * 
+ *
  * An #msg_multipart_t structure can be initialized with the
  * msg_multipart_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_multipart_t msg_multipart;
- * 
+ *
  *  msg_multipart_init(&msg_multipart);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_multipart_t structure 
+ *
+ * @param x pointer to #msg_multipart_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_multipart_t *msg_multipart_init(msg_multipart_t x[1])
@@ -3626,13 +3626,13 @@ su_inline msg_multipart_t *msg_multipart_init(msg_multipart_t x[1])
 #endif
 
 /**Test if header object is an instance of #msg_multipart_t.
- * 
+ *
  * The function msg_is_multipart() returns true (nonzero) if
  * the header class is an instance of Recursive multipart header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_multipart() returns true (nonzero) if the
  * header object is an instance of header Recursive multipart header and false (zero)
  * otherwise.
@@ -3649,27 +3649,27 @@ int msg_is_multipart(msg_header_t const *header);
 #define msg_multipart_p(h) msg_is_multipart((h))
 
 /**Duplicate (deep copy) #msg_multipart_t.
- * 
+ *
  * The function msg_multipart_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   multipart = msg_multipart_dup(home, msg->msg_multipart);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_multipart_dup() returns a pointer to the
  * newly duplicated #msg_multipart_t header structure, or NULL
@@ -3678,44 +3678,44 @@ int msg_is_multipart(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_multipart_t *msg_multipart_dup(su_home_t *home, 
+msg_multipart_t *msg_multipart_dup(su_home_t *home,
 				 msg_multipart_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_multipart_t *msg_multipart_dup(su_home_t *home, 
+msg_multipart_t *msg_multipart_dup(su_home_t *home,
 				 msg_multipart_t const *header)
 {
   return (msg_multipart_t *)
-    msg_header_dup_as(home, msg_multipart_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_multipart_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_multipart_t header structure.
- * 
+ *
  * The function msg_multipart_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   multipart = msg_multipart_copy(home, msg->msg_multipart);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_multipart_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -3723,32 +3723,32 @@ msg_multipart_t *msg_multipart_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_multipart_t *msg_multipart_copy(su_home_t *home, 
+msg_multipart_t *msg_multipart_copy(su_home_t *home,
 				  msg_multipart_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_multipart_t *msg_multipart_copy(su_home_t *home, 
+msg_multipart_t *msg_multipart_copy(su_home_t *home,
 				  msg_multipart_t const *header)
 {
   return (msg_multipart_t *)
-    msg_header_copy_as(home, msg_multipart_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_multipart_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_multipart_t.
- * 
+ *
  * The function msg_multipart_make() makes a new #msg_multipart_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_multipart_make() returns a pointer to newly maked
  * #msg_multipart_t header structure, or NULL upon an error.
@@ -3764,24 +3764,24 @@ msg_multipart_t *msg_multipart_make(su_home_t *home, char const *s);
 
 
 /**Make a Recursive multipart header from formatting result.
- * 
+ *
  * The function msg_multipart_format() makes a new Recursive multipart header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_multipart_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -3795,11 +3795,11 @@ su_inline msg_multipart_t *msg_multipart_format(su_home_t *home, char const *fmt
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_multipart_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_multipart_t*)h;
 }
 #endif
@@ -3808,13 +3808,13 @@ su_inline msg_multipart_t *msg_multipart_format(su_home_t *home, char const *fmt
 
 /* Declare internal prototypes for Warning header */
 
-/**@addtogroup msg_warning 
- * @{ 
+/**@addtogroup msg_warning
+ * @{
  */
 
-enum { 
+enum {
   /** Hash of Warning header. @internal */
-  msg_warning_hash = 4130 
+  msg_warning_hash = 4130
 };
 
 /** Parse a Warning header. @internal */
@@ -3827,43 +3827,43 @@ MSG_DLL msg_xtra_f msg_warning_dup_xtra;
 MSG_DLL msg_dup_f msg_warning_dup_one;
 
 /**Header class for Warning header.
- * 
- * The header class msg_warning_class defines how a 
+ *
+ * The header class msg_warning_class defines how a
  * Warning header header is parsed and printed.  It also
  * contains methods used by message parser and other functions
  * to manipulate the #msg_warning_t header structure.
- * 
+ *
  */
 #ifndef msg_warning_class
 MSG_DLL extern msg_hclass_t msg_warning_class[];
 #endif
 
 /**Initializer for an #msg_warning_t structure.
- * 
+ *
  * A static msg_warning_t structure must be initialized
  * with the MSG_WARNING_INIT() macro. For instance,
- * @code 
- * 
+ * @code
+ *
  *  msg_warning_t msg_warning = MSG_WARNING_INIT;
- * 
+ *
  * @endcode
  * @HI
  */
 #define MSG_WARNING_INIT() MSG_HDR_INIT(warning)
 
 /**Initialize an #msg_warning_t structure.
- * 
+ *
  * An #msg_warning_t structure can be initialized with the
  * msg_warning_init() function/macro. For instance,
  * @code
- * 
+ *
  *  msg_warning_t msg_warning;
- * 
+ *
  *  msg_warning_init(&msg_warning);
- * 
+ *
  * @endcode
- * 
- * @param x pointer to #msg_warning_t structure 
+ *
+ * @param x pointer to #msg_warning_t structure
  */
 #if SU_HAVE_INLINE
 su_inline msg_warning_t *msg_warning_init(msg_warning_t x[1])
@@ -3876,13 +3876,13 @@ su_inline msg_warning_t *msg_warning_init(msg_warning_t x[1])
 #endif
 
 /**Test if header object is an instance of #msg_warning_t.
- * 
+ *
  * The function msg_is_warning() returns true (nonzero) if
  * the header class is an instance of Warning header
  * object and false (zero) otherwise.
- * 
+ *
  * @param header pointer to the header structure to be tested
- * 
+ *
  * @return The function msg_is_warning() returns true (nonzero) if the
  * header object is an instance of header Warning header and false (zero)
  * otherwise.
@@ -3899,27 +3899,27 @@ int msg_is_warning(msg_header_t const *header);
 #define msg_warning_p(h) msg_is_warning((h))
 
 /**Duplicate (deep copy) #msg_warning_t.
- * 
+ *
  * The function msg_warning_dup() duplicates a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->x_next) to a list of headers, all the headers in the
  * list are duplicated, too.
- * 
+ *
  * @param home   memory home used to allocate new structure
  * @param header header structure to be duplicated
- * 
+ *
  * When duplicating, all parameter lists and non-constant strings
  * attached to the header are copied, too. The function uses given
  * memory @a home to allocate all the memory areas used to copy the
  * header.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   warning = msg_warning_dup(home, msg->msg_warning);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_warning_dup() returns a pointer to the
  * newly duplicated #msg_warning_t header structure, or NULL
@@ -3928,44 +3928,44 @@ int msg_is_warning(msg_header_t const *header);
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_warning_t *msg_warning_dup(su_home_t *home, 
+msg_warning_t *msg_warning_dup(su_home_t *home,
 				 msg_warning_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_warning_t *msg_warning_dup(su_home_t *home, 
+msg_warning_t *msg_warning_dup(su_home_t *home,
 				 msg_warning_t const *header)
 {
   return (msg_warning_t *)
-    msg_header_dup_as(home, msg_warning_class, (msg_header_t const *)header); 
+    msg_header_dup_as(home, msg_warning_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Copy an #msg_warning_t header structure.
- * 
+ *
  * The function msg_warning_copy() copies a header structure @a
  * header. If the header structure @a header contains a reference
  * (@c header->h_next) to a list of headers, all the headers in that
  * list are copied, too. The function uses given memory @a home to
  * allocate all the memory areas used to copy the header structure
  * @a header.
- * 
+ *
  * @param home    memory home used to allocate new structure
  * @param header  pointer to the header structure to be duplicated
- * 
+ *
  * When copying, only the header structure and parameter lists
  * attached to it are duplicated. The new header structure retains
  * all the references to the strings within the old @a header,
  * including the encoding of the old header, if present.
- * 
+ *
  * @par Example
  * @code
- * 
+ *
  *   warning = msg_warning_copy(home, msg->msg_warning);
- * 
+ *
  * @endcode
- * 
+ *
  * @return
  * The function msg_warning_copy() returns a pointer to
  * newly copied header structure, or NULL upon an error.
@@ -3973,32 +3973,32 @@ msg_warning_t *msg_warning_dup(su_home_t *home,
 #if SU_HAVE_INLINE
 su_inline
 #endif
-msg_warning_t *msg_warning_copy(su_home_t *home, 
+msg_warning_t *msg_warning_copy(su_home_t *home,
 				  msg_warning_t const *header);
 
 #if SU_HAVE_INLINE
 su_inline
-msg_warning_t *msg_warning_copy(su_home_t *home, 
+msg_warning_t *msg_warning_copy(su_home_t *home,
 				  msg_warning_t const *header)
 {
   return (msg_warning_t *)
-    msg_header_copy_as(home, msg_warning_class, (msg_header_t const *)header); 
+    msg_header_copy_as(home, msg_warning_class, (msg_header_t const *)header);
 }
 #endif
 
 
 /**Make a header structure #msg_warning_t.
- * 
+ *
  * The function msg_warning_make() makes a new #msg_warning_t header
  * structure. It allocates a new header structure, and decodes the string @a
  * s as the value of the structure.
- * 
+ *
  * @param home memory home used to allocate new header structure.
  * @param s    string to be decoded as value of the new header structure
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_make().
- * 
+ *
  * @return
  * The function msg_warning_make() returns a pointer to newly maked
  * #msg_warning_t header structure, or NULL upon an error.
@@ -4014,24 +4014,24 @@ msg_warning_t *msg_warning_make(su_home_t *home, char const *s);
 
 
 /**Make a Warning header from formatting result.
- * 
+ *
  * The function msg_warning_format() makes a new Warning header object
  * using snprintf-formatted result as its value. The function first
  * prints the arguments according to the format @a fmt specified. Then it
  * allocates a new header structure, and uses the formatting result as the
  * header value.
- * 
+ *
  * @param home   memory home used to allocate new header structure.
  * @param fmt    string used as a printf()-style format
  * @param ...    argument list for format
- * 
+ *
  * @note This function may be implemented as a macro calling
  * msg_header_format().
- * 
+ *
  * @return
  * The function msg_warning_format() returns a pointer to newly
  * makes header structure, or NULL upon an error.
- * 
+ *
  * @HIDE
  */
 #if SU_HAVE_INLINE
@@ -4045,11 +4045,11 @@ su_inline msg_warning_t *msg_warning_format(su_home_t *home, char const *fmt, ..
 {
   msg_header_t *h;
   va_list ap;
-  
+
   va_start(ap, fmt);
   h = msg_header_vformat(home, msg_warning_class, fmt, ap);
   va_end(ap);
- 
+
   return (msg_warning_t*)h;
 }
 #endif

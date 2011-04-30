@@ -48,17 +48,30 @@
 #include <string.h>
 #include <sofia-sip/string0.h>
 
+#if HAVE_FUNC
+#elif HAVE_FUNCTION
+#define __func__ __FUNCTION__
+#else
+static char const __func__[] = "tport_type_tls";
+#endif
+
+#if HAVE_WIN32
+#include <io.h>
+#define access(_filename, _mode) _access(_filename, _mode)
+#define R_OK (04)
+#endif
+
 /* ---------------------------------------------------------------------- */
 /* TLS */
 
 #include "tport_tls.h"
 
 static int tport_tls_init_primary(tport_primary_t *,
-				  tp_name_t tpn[1], 
+				  tp_name_t tpn[1],
 				  su_addrinfo_t *, tagi_t const *,
 				  char const **return_culprit);
 static int tport_tls_init_client(tport_primary_t *,
-				 tp_name_t tpn[1], 
+				 tp_name_t tpn[1],
 				 su_addrinfo_t *, tagi_t const *,
 				 char const **return_culprit);
 static int tport_tls_init_master(tport_primary_t *pri,
@@ -161,6 +174,7 @@ static int tport_tls_init_master(tport_primary_t *pri,
   char *tbf = NULL;
   char const *path = NULL;
   unsigned tls_version = 1;
+  unsigned tls_verify = 0;
   su_home_t autohome[SU_HOME_AUTO_SIZE(1024)];
   tls_issues_t ti = {0};
 
@@ -172,6 +186,7 @@ static int tport_tls_init_master(tport_primary_t *pri,
   tl_gets(tags,
 	  TPTAG_CERTIFICATE_REF(path),
 	  TPTAG_TLS_VERSION_REF(tls_version),
+	  TPTAG_TLS_VERIFY_PEER_REF(tls_verify),
 	  TAG_END());
 
   if (!path) {
@@ -180,8 +195,9 @@ static int tport_tls_init_master(tport_primary_t *pri,
       homedir = "";
     path = tbf = su_sprintf(autohome, "%s/.sip/auth", homedir);
   }
-  
+
   if (path) {
+    ti.verify_peer = tls_verify;
     ti.verify_depth = 2;
     ti.configured = path != tbf;
     ti.randFile = su_sprintf(autohome, "%s/%s", path, "tls_seed.dat");
@@ -189,6 +205,7 @@ static int tport_tls_init_master(tport_primary_t *pri,
     ti.cert = ti.key;
     ti.CAfile = su_sprintf(autohome, "%s/%s", path, "cafile.pem");
     ti.version = tls_version;
+    ti.CApath = su_strdup(autohome, path);
 
     SU_DEBUG_9(("%s(%p): tls key = %s\n", __func__, (void *)pri, ti.key));
 
@@ -248,7 +265,7 @@ static void tport_tls_deinit_secondary(tport_t *self)
   tport_tls_t *tlstp = (tport_tls_t *)self;
 
   /* XXX - PPe: does the tls_shutdown zap everything but socket? */
-  if (tlstp->tlstp_context != NULL) 
+  if (tlstp->tlstp_context != NULL)
     tls_free(tlstp->tlstp_context);
   tlstp->tlstp_context = NULL;
 
@@ -277,16 +294,16 @@ int tport_tls_set_events(tport_t const *self)
   int mask = tls_events(tlstp->tlstp_context, self->tp_events);
 
   SU_DEBUG_7(("%s(%p): logical events%s%s real%s%s\n",
-	      "tport_tls_set_events", (void *)self, 
+	      "tport_tls_set_events", (void *)self,
 	      (self->tp_events & SU_WAIT_IN) ? " IN" : "",
 	      (self->tp_events & SU_WAIT_OUT) ? " OUT" : "",
 	      (mask & SU_WAIT_IN) ? " IN" : "",
 	      (mask & SU_WAIT_OUT) ? " OUT" : ""));
 
   return
-    su_root_eventmask(self->tp_master->mr_root, 
-		      self->tp_index, 
-		      self->tp_socket, 
+    su_root_eventmask(self->tp_master->mr_root,
+		      self->tp_index,
+		      self->tp_socket,
 		      mask);
 }
 
@@ -307,7 +324,7 @@ int tport_tls_events(tport_t *self, int events)
     else if (ret < 0)
       tport_error_report(self, errno, NULL);
   }
-  
+
   if ((self->tp_events & SU_WAIT_IN) && !self->tp_closed) {
     for (;;) {
       ret = tls_want_read(tlstp->tlstp_context, events);
@@ -344,15 +361,15 @@ int tport_tls_events(tport_t *self, int events)
     return 0;
 
   SU_DEBUG_7(("%s(%p): logical events%s%s real%s%s\n",
-	      "tport_tls_events", (void *)self, 
+	      "tport_tls_events", (void *)self,
 	      (events & SU_WAIT_IN) ? " IN" : "",
 	      (events & SU_WAIT_OUT) ? " OUT" : "",
 	      (mask & SU_WAIT_IN) ? " IN" : "",
 	      (mask & SU_WAIT_OUT) ? " OUT" : ""));
 
-  su_root_eventmask(self->tp_master->mr_root, 
-		    self->tp_index, 
-		    self->tp_socket, 
+  su_root_eventmask(self->tp_master->mr_root,
+		    self->tp_index,
+		    self->tp_socket,
 		    mask);
 
   return 0;
@@ -361,12 +378,12 @@ int tport_tls_events(tport_t *self, int events)
 /** Receive data from TLS.
  *
  * @retval -1 error
- * @retval 0  end-of-stream  
+ * @retval 0  end-of-stream
  * @retval 1  normal receive
  * @retval 2  incomplete recv, recv again
- * 
+ *
  */
-static 
+static
 int tport_tls_recv(tport_t *self)
 {
   tport_tls_t *tlstp = (tport_tls_t *)self;
@@ -407,7 +424,7 @@ int tport_tls_recv(tport_t *self)
     memcpy(iovec[i].mv_base, tls_buf + n, m);
     n += m;
   }
-    
+
   assert(N == n);
 
   /* Write the received data to the message dump file */
@@ -449,7 +466,7 @@ ssize_t tport_tls_send(tport_t const *self,
 
   for (i = 0; i < iovlen; i = j) {
 #if 0
-    nerror = tls_write(tlstp->tlstp_context, 
+    nerror = tls_write(tlstp->tlstp_context,
 		  iov[i].siv_base,
 		  m = iov[i].siv_len);
     j = i + 1;
@@ -460,7 +477,7 @@ ssize_t tport_tls_send(tport_t const *self,
     if (i + 1 == iovlen)
       buf = NULL;		/* Don't bother copying single chunk */
 
-    if (buf && 
+    if (buf &&
 	(char *)iov[i].siv_base - buf < TLSBUFSIZE &&
 	(char *)iov[i].siv_base - buf >= 0) {
       tlsbufsize = buf + TLSBUFSIZE - (char *)iov[i].siv_base;
@@ -483,8 +500,8 @@ ssize_t tport_tls_send(tport_t const *self,
     nerror = tls_write(tlstp->tlstp_context, buf, m);
 #endif
 
-    SU_DEBUG_9(("tport_tls_writevec: vec %p %p %lu ("MOD_ZD")\n",  
-		(void *)tlstp->tlstp_context, (void *)iov[i].siv_base, (LU)iov[i].siv_len, 
+    SU_DEBUG_9(("tport_tls_writevec: vec %p %p %lu ("MOD_ZD")\n",
+		(void *)tlstp->tlstp_context, (void *)iov[i].siv_base, (LU)iov[i].siv_len,
 		nerror));
 
     if (nerror == -1) {

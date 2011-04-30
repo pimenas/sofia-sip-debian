@@ -72,13 +72,13 @@ static char const __func__[] = "soa";
 /* Internal prototypes */
 su_inline int soa_media_is_ready(soa_session_t const *ss);
 
-enum soa_sdp_kind { 
+enum soa_sdp_kind {
   soa_capability_sdp_kind,
   soa_user_sdp_kind,
   soa_remote_sdp_kind
 };
 
-static int soa_set_sdp(soa_session_t *ss, 
+static int soa_set_sdp(soa_session_t *ss,
 		       enum soa_sdp_kind what,
 		       sdp_session_t const *sdp0,
 		       char const *sdp_str, issize_t str_len);
@@ -247,7 +247,7 @@ soa_session_t *soa_create(char const *name,
     return (void)su_seterrno(EFAULT), NULL;
 
   namelen = strlen(name) + 1;
-  
+
   ss = su_home_new(actions->sizeof_soa_session + namelen);
   if (ss) {
     ss->ss_root = root;
@@ -255,7 +255,9 @@ soa_session_t *soa_create(char const *name,
     ss->ss_actions = actions;
     ss->ss_name = strcpy((char *)ss + actions->sizeof_soa_session, name);
 
+    /* Calls soa_static_init by default */
     if (ss->ss_actions->soa_init(name, ss, NULL) < 0)
+      /* Calls soa_static_deinit by default */
       ss->ss_actions->soa_deinit(ss), ss = NULL;
   }
 
@@ -287,7 +289,9 @@ soa_session_t *soa_clone(soa_session_t *parent_ss,
     ss->ss_name = strcpy((char *)ss + ss->ss_actions->sizeof_soa_session,
 			 parent_ss->ss_name);
 
+    /* Calls soa_static_init by default */
     if (ss->ss_actions->soa_init(NULL, ss, parent_ss) < 0)
+      /* Calls soa_static_deinit by default */
       ss->ss_actions->soa_deinit(ss), ss = NULL;
   }
 
@@ -351,6 +355,7 @@ void soa_destroy(soa_session_t *ss)
   if (ss) {
     ss->ss_active = 0;
     ss->ss_terminated++;
+    /* Calls soa_static_deinit() by default. */
     ss->ss_actions->soa_deinit(ss);
     su_home_unref(ss->ss_home);
   }
@@ -399,6 +404,7 @@ int soa_set_params(soa_session_t *ss, tag_type_t tag, tag_value_t value, ...)
 
   ta_start(ta, tag, value);
 
+  /* Calls soa_static_set_params() by default. */
   n = ss->ss_actions->soa_set_params(ss, ta_args(ta));
 
   ta_end(ta);
@@ -514,7 +520,7 @@ int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
     }
   }
 
-  if (af < SOA_AF_ANY || af > SOA_AF_IP6_IP4) 
+  if (af < SOA_AF_ANY || af > SOA_AF_IP6_IP4)
     af = ss->ss_af;
 
   if (rtp_select < SOA_RTP_SELECT_SINGLE || rtp_select > SOA_RTP_SELECT_ALL)
@@ -527,7 +533,7 @@ int soa_base_set_params(soa_session_t *ss, tagi_t const *tags)
   srtp_confidentiality = srtp_confidentiality != 0;
   srtp_integrity = srtp_integrity != 0;
 
-  change_session 
+  change_session
     =  af != (int)ss->ss_af
     || rtp_select != (int)ss->ss_rtp_select
     || rtp_sort != (int)ss->ss_rtp_sort
@@ -609,6 +615,7 @@ int soa_get_params(soa_session_t const *ss,
 
   ta_start(ta, tag, value);
 
+  /* Calls soa_static_get_params() by default. */
   n = ss->ss_actions->soa_get_params(ss, ta_args(ta));
 
   ta_end(ta);
@@ -688,6 +695,7 @@ tagi_t *soa_get_paramlist(soa_session_t const *ss,
 
   if (ss) {
     ta_start(ta, tag, value);
+    /* Calls soa_static_get_paramlist() by default. */
     params = ss->ss_actions->soa_get_paramlist(ss, ta_tags(ta));
     ta_end(ta);
   }
@@ -697,8 +705,8 @@ tagi_t *soa_get_paramlist(soa_session_t const *ss,
 
 
 /** Base bethod for getting list of parameters. */
-tagi_t *soa_base_get_paramlist(soa_session_t const *ss, 
-			       tag_type_t tag, tag_value_t value, 
+tagi_t *soa_base_get_paramlist(soa_session_t const *ss,
+			       tag_type_t tag, tag_value_t value,
 			       ...)
 {
   ta_list ta;
@@ -706,7 +714,7 @@ tagi_t *soa_base_get_paramlist(soa_session_t const *ss,
 
   if (ss == NULL)
     return NULL;
-  
+
   ta_start(ta, tag, value);
 
   params = tl_llist(
@@ -731,7 +739,7 @@ tagi_t *soa_base_get_paramlist(soa_session_t const *ss,
 			  SOATAG_REMOTE_SDP_STR(ss->ss_remote->ssd_unparsed)),
 
 		   SOATAG_AF(ss->ss_af),
-		   TAG_IF(ss->ss_address, 
+		   TAG_IF(ss->ss_address,
 			  SOATAG_ADDRESS(ss->ss_address)),
 
 		   SOATAG_SRTP_ENABLE(ss->ss_srtp_enable),
@@ -747,7 +755,7 @@ tagi_t *soa_base_get_paramlist(soa_session_t const *ss,
 
 #include <sofia-sip/sip_status.h>
 
-/** Convert @soa error to a SIP response code and phrase. */ 
+/** Convert @soa error to a SIP response code and phrase. */
 int soa_error_as_sip_response(soa_session_t *ss,
 			      char const **return_phrase)
 {
@@ -765,7 +773,7 @@ int soa_error_as_sip_response(soa_session_t *ss,
   return ss->ss_status;
 }
 
-/** Convert @soa error to a SIP @Reason header. */ 
+/** Convert @soa error to a SIP @Reason header. */
 char const *soa_error_as_sip_reason(soa_session_t *ss)
 {
   char const *phrase;
@@ -781,7 +789,7 @@ char const *soa_error_as_sip_reason(soa_session_t *ss)
   status = soa_error_as_sip_response(ss, &phrase);
 
   reason = su_sprintf(ss->ss_home, "SIP;cause=%u;text=\"%s\"", status, phrase);
-  
+
   if (ss->ss_reason)
     su_free(ss->ss_home, reason);
 
@@ -807,7 +815,7 @@ int soa_get_warning(soa_session_t *ss, char const **return_text)
 /** Return SDP description of capabilities.
  *
  * @param ss  pointer to @soa session
- * @param return_sdp      return value for capability SDP structure 
+ * @param return_sdp      return value for capability SDP structure
  * @param return_sdp_str  return value for capability SDP string
  * @param return_len  return value for length of capability SDP string
  *
@@ -815,8 +823,8 @@ int soa_get_warning(soa_session_t *ss, char const **return_text)
  * @retval 1 if description is returned
  * @retval -1 upon an error
  *
- * @sa @RFC3261 section 11, soa_set_capability_sdp(), 
- * SOATAG_CAPS_SDP(), SOATAG_CAPS_SDP_STR(), 
+ * @sa @RFC3261 section 11, soa_set_capability_sdp(),
+ * SOATAG_CAPS_SDP(), SOATAG_CAPS_SDP_STR(),
  * nua_options(), #nua_i_options
  */
 int soa_get_capability_sdp(soa_session_t const *ss,
@@ -850,10 +858,10 @@ int soa_get_capability_sdp(soa_session_t const *ss,
 }
 
 
-/** Set capability SDP. 
+/** Set capability SDP.
  *
  * Capability SDP is used instead of user SDP when generating OPTIONS
- * responses describing media capabilities. 
+ * responses describing media capabilities.
  *
  * @param ss  pointer to @soa session
  * @param sdp pointer to SDP session structure
@@ -866,10 +874,10 @@ int soa_get_capability_sdp(soa_session_t const *ss,
  * @retval -1 upon an error
  *
  * @sa @RFC3261 section 11, soa_get_capability_sdp(),
- * SOATAG_CAPS_SDP(), SOATAG_CAPS_SDP_STR(), 
+ * SOATAG_CAPS_SDP(), SOATAG_CAPS_SDP_STR(),
  * nua_options(), #nua_i_options
  */
-int soa_set_capability_sdp(soa_session_t *ss, 
+int soa_set_capability_sdp(soa_session_t *ss,
 			   struct sdp_session_s const *sdp,
 			   char const *str, issize_t len)
 {
@@ -880,7 +888,7 @@ int soa_set_capability_sdp(soa_session_t *ss,
 }
 
 /** Set capabilities */
-int 
+int
 soa_base_set_capability_sdp(soa_session_t *ss,
 			    sdp_session_t *_sdp,
 			    char const *str0, isize_t len0)
@@ -939,12 +947,12 @@ soa_base_set_capability_sdp(soa_session_t *ss,
  *
  * @param ss  pointer to @soa session
  * @param return_sdp SDP  session structure return value
- * @param return_sdp_str  return value for pointer to string 
+ * @param return_sdp_str  return value for pointer to string
  *                        containing the user SDP session description
  * @param return_len  return value for user SDP session description string
- *                    length 
+ *                    length
  *
- * Any of the parameters @a return_sdp, @a return_sdp_str, or @a return_len 
+ * Any of the parameters @a return_sdp, @a return_sdp_str, or @a return_len
  * may be NULL.
  *
  * @retval 0 if there is no description to return
@@ -1000,9 +1008,9 @@ int soa_get_user_version(soa_session_t const *ss)
 {
   assert(ss != NULL);
   return ss ? (int)ss->ss_user_version : -1;
-} 
+}
 
-/**Store user SDP to soa session. 
+/**Store user SDP to soa session.
  *
  * User SDP is used as basis for SDP Offer/Answer negotiation. It can be
  * very minimal, consisting just m= line containing media name, transport
@@ -1031,7 +1039,7 @@ int soa_get_user_version(soa_session_t const *ss)
  * soa_generate_answer(), soa_get_local_sdp(), soa_set_capability_sdp(),
  * soa_set_remote_sdp()
  */
-int soa_set_user_sdp(soa_session_t *ss, 
+int soa_set_user_sdp(soa_session_t *ss,
 		     struct sdp_session_s const *sdp,
 		     char const *str, issize_t len)
 {
@@ -1042,7 +1050,7 @@ int soa_set_user_sdp(soa_session_t *ss,
 }
 
 /** Set user SDP (base version). */
-int soa_base_set_user_sdp(soa_session_t *ss, 
+int soa_base_set_user_sdp(soa_session_t *ss,
 			  sdp_session_t *sdp, char const *str0, isize_t len0)
 {
   ++ss->ss_user_version;
@@ -1056,12 +1064,12 @@ int soa_base_set_user_sdp(soa_session_t *ss,
  *
  * @param ss  pointer to @soa session
  * @param return_sdp SDP  session structure return value
- * @param return_sdp_str  return value for pointer to string 
+ * @param return_sdp_str  return value for pointer to string
  *                        containing the user SDP session description
  * @param return_len  return value for user SDP session descrioption string
- *                    length 
+ *                    length
  *
- * Any of the parameters @a return_sdp, @a return_sdp_str, or @a return_len 
+ * Any of the parameters @a return_sdp, @a return_sdp_str, or @a return_len
  * may be NULL.
  *
  * @retval 0 if there is no description to return
@@ -1117,11 +1125,11 @@ int soa_get_remote_version(soa_session_t const *ss)
 {
   assert(ss != NULL);
   return ss->ss_remote_version;
-} 
+}
 
 /** Set remote SDP (offer or answer).
  *
- * <i>Remote SDP</i> is an SDP offer or answer received from the remote end. 
+ * <i>Remote SDP</i> is an SDP offer or answer received from the remote end.
  * It is used together with <i>User SDP</i> as basis for SDP Offer/Answer
  * negotiation in soa_generate_answer() or soa_process_answer(). Remote SDP
  * can be set using soa_set_params() and SOATAG_REMOTE_SDP() or
@@ -1150,7 +1158,7 @@ int soa_get_remote_version(soa_session_t const *ss)
  * soa_clear_remote_sdp(), soa_init_offer_answer(), soa_get_local_sdp(),
  * soa_set_user_sdp(), soa_set_capability_sdp().
  */
-int soa_set_remote_sdp(soa_session_t *ss, 
+int soa_set_remote_sdp(soa_session_t *ss,
 		       struct sdp_session_s const *sdp,
 		       char const *str, issize_t len)
 {
@@ -1170,11 +1178,11 @@ int soa_base_set_remote_sdp(soa_session_t *ss,
 
   if (!new_version)
     return 0;
-    
+
   soa_set_activity(ss, sdp->sdp_media, soa_activity_remote);
 
   ss->ss_remote_version++;
-  
+
   return soa_description_set(ss, ss->ss_remote, sdp, str0, len0);
 }
 
@@ -1228,12 +1236,12 @@ int soa_has_received_sdp(soa_session_t const *ss)
  *
  * @param ss  pointer to @soa session
  * @param return_sdp SDP  session structure return value
- * @param return_sdp_str  return value for pointer to string 
+ * @param return_sdp_str  return value for pointer to string
  *                        containing the user SDP session description
  * @param return_len  return value for user SDP session descrioption string
- *                    length 
+ *                    length
  *
- * Any of the parameters @a return_sdp, @a return_sdp_str, or @a return_len 
+ * Any of the parameters @a return_sdp, @a return_sdp_str, or @a return_len
  * may be NULL.
  *
  * @retval 0 if there is no description to return
@@ -1311,6 +1319,7 @@ char **soa_media_features(soa_session_t *ss, int live, su_home_t *home)
 	      ss ? ss->ss_actions->soa_name : "", (void *)ss, live, (void *)home));
 
   if (ss)
+    /* Calls soa_base_media_features() by default. */
     return ss->ss_actions->soa_media_features(ss, live, home);
   else
     return (void)su_seterrno(EFAULT), NULL;
@@ -1327,6 +1336,7 @@ char const * const * soa_sip_require(soa_session_t const *ss)
 	      ss ? ss->ss_actions->soa_name : "", (void *)ss));
 
   if (ss)
+    /* Calls soa_base_sip_require() by default */
     return ss->ss_actions->soa_sip_require(ss);
   else
     return (void)su_seterrno(EFAULT), NULL;
@@ -1344,6 +1354,7 @@ char const * const * soa_sip_supported(soa_session_t const *ss)
 	      ss ? ss->ss_actions->soa_name : "", (void *)ss));
 
   if (ss)
+    /* Calls soa_base_sip_supported() by default */
     return ss->ss_actions->soa_sip_supported(ss);
   else
     return (void)su_seterrno(EFAULT), NULL;
@@ -1363,6 +1374,7 @@ int soa_remote_sip_features(soa_session_t *ss,
 	      ss ? ss->ss_actions->soa_name : "", (void *)ss, (void *)supported, (void *)require));
 
   if (ss)
+    /* Calls soa_base_remote_sip_features() by default */
     return ss->ss_actions->soa_remote_sip_features(ss, supported, require);
   else
     return (void)su_seterrno(EFAULT), -1;
@@ -1386,7 +1398,7 @@ int soa_base_remote_sip_features(soa_session_t *ss,
  * SOATAG_LOCAL_SDP() or SOATAG_LOCAL_SDP_STR().
  *
  * The user SDP has been stored to the soa session with soa_set_user_sdp()
- * or with soa_set_params() tags SOATAG_USER_SDP() or SOATAG_USER_SDP_STR(). 
+ * or with soa_set_params() tags SOATAG_USER_SDP() or SOATAG_USER_SDP_STR().
  * There are various other parameters directing the generation of offer, set
  * by soa_set_params().
  *
@@ -1435,7 +1447,9 @@ int soa_generate_offer(soa_session_t *ss,
   /* We should avoid actual operation unless always is true */
   (void)always;  /* We always regenerate offer */
 
+  /* Calls soa_static_generate_offer() by default. */
   return ss->ss_actions->soa_generate_offer(ss, completed);
+
   /** @sa soa_init_offer_answer(), soa_set_user_sdp(), soa_get_local_sdp(),
    * soa_set_remote_sdp(), soa_process_answer(), soa_process_reject(),
    * soa_generate_answer(), soa_set_params(), soa_get_params(),
@@ -1484,8 +1498,7 @@ int soa_base_generate_offer(soa_session_t *ss,
  * @param completed  pointer to callback function which is invoked when
  *                   operation is completed (currently not in use)
  *
- * @retval 1 when operation is successful
- * @retval 0 when operation was not needed
+ * @retval 0 when operation is successful
  * @retval -1 upon an error
  *
  * @ERRORS
@@ -1512,6 +1525,7 @@ int soa_generate_answer(soa_session_t *ss,
   if (!ss->ss_unprocessed_remote)
     return su_seterrno(EPROTO), -1;
 
+  /* Calls soa_static_generate_answer() by default. */
   return ss->ss_actions->soa_generate_answer(ss, completed);
 
   /**@sa soa_init_offer_answer(), soa_set_user_sdp(), soa_set_remote_sdp(),
@@ -1552,7 +1566,7 @@ int soa_base_generate_answer(soa_session_t *ss,
   return 0;
 }
 
-/** Complete offer-answer after receiving answer. 
+/** Complete offer-answer after receiving answer.
  *
  * The SDP offer/answer negotiation is completed after receiving answer from
  * remote end. The answer is combined with the offer, and the application
@@ -1583,7 +1597,7 @@ int soa_process_answer(soa_session_t *ss,
   if (ss->ss_in_progress)
     return su_seterrno(EALREADY), -1;
 
-  /** @ERROR EPROTO We have not sent an offer 
+  /** @ERROR EPROTO We have not sent an offer
       or already have received answer. */
   if (!ss->ss_offer_sent || ss->ss_answer_recv)
     return su_seterrno(EPROTO), -1;
@@ -1599,6 +1613,7 @@ int soa_process_answer(soa_session_t *ss,
    * SOATAG_REMOTE_SDP(), SOATAG_REMOTE_SDP_STR().
    */
 
+  /* Calls soa_static_process_answer() by default. */
   return ss->ss_actions->soa_process_answer(ss, completed);
 }
 
@@ -1632,7 +1647,7 @@ int soa_base_process_answer(soa_session_t *ss,
   return 0;
 }
 
-/** Process rejection of offer. 
+/** Process rejection of offer.
  *
  * If the SDP offer was rejected (e.g., an offer in re-INVITE asked remote
  * end to add video to the session but the request was rejected), the
@@ -1663,7 +1678,7 @@ int soa_process_reject(soa_session_t *ss,
   if (ss->ss_in_progress)
     return su_seterrno(EALREADY), -1;
 
-  /** @ERROR EPROTO We have not sent an offer 
+  /** @ERROR EPROTO We have not sent an offer
       or already have received answer. */
   if (!ss->ss_offer_sent || ss->ss_answer_recv)
     return su_seterrno(EPROTO), -1;
@@ -1675,6 +1690,7 @@ int soa_process_reject(soa_session_t *ss,
    * SOATAG_REMOTE_SDP(), SOATAG_REMOTE_SDP_STR().
    */
 
+  /* Calls soa_static_process_reject() by default. */
   return ss->ss_actions->soa_process_reject(ss, completed);
 }
 
@@ -1697,7 +1713,7 @@ int soa_base_process_reject(soa_session_t *ss,
   return 0;
 }
 
-/** Activate session. 
+/** Activate session.
  *
  * Mark soa session as active.
  *
@@ -1717,6 +1733,7 @@ int soa_activate(soa_session_t *ss, char const *option)
 
   ss->ss_active = 1;
 
+  /* Calls soa_static_activate() by default. */
   return ss->ss_actions->soa_activate_session(ss, option);
 }
 
@@ -1747,6 +1764,7 @@ int soa_deactivate(soa_session_t *ss, char const *option)
 
   ss->ss_active = 0;
 
+  /* Calls soa_static_deactivate() by default. */
   return ss->ss_actions->soa_deactivate_session(ss, option);
 }
 
@@ -1770,6 +1788,7 @@ void soa_terminate(soa_session_t *ss, char const *option)
   ss->ss_active = 0;
   ss->ss_terminated++;
 
+  /* Calls soa_static_terminate() by default. */
   ss->ss_actions->soa_terminate_session(ss, option);
 }
 
@@ -1963,7 +1982,7 @@ void soa_set_activity(soa_session_t *ss,
 
 /**
  * Parses and stores session description
- * 
+ *
  * @param ss instance pointer
  * @param what caps, local or remote
  * @param sdp0 new sdp (parsed)
@@ -1971,7 +1990,7 @@ void soa_set_activity(soa_session_t *ss,
  * @param str_len length on unparsed data
  **/
 static
-int soa_set_sdp(soa_session_t *ss, 
+int soa_set_sdp(soa_session_t *ss,
 		enum soa_sdp_kind what,
 		sdp_session_t const *sdp0,
 		char const *sdp_str, issize_t str_len)
@@ -2017,17 +2036,18 @@ int soa_set_sdp(soa_session_t *ss,
   if (!new_version) {
     if (what == soa_remote_sdp_kind) {
       *sdp = *ssd->ssd_sdp;
-      /* XXX - should check changes by soa_set_remote_sdp */
-      return ss->ss_actions->soa_set_remote_sdp(ss, new_version, 
+      /* Calls soa_static_set_remote_sdp() by default */
+      return ss->ss_actions->soa_set_remote_sdp(ss, new_version,
 						sdp, sdp_str, str_len);
+      /* XXX - should check changes by soa_set_remote_sdp */
     }
     return 0;
-  } 
+  }
 
   if (sdp0) {
     /* note: case 1 - src in parsed form */
     *sdp = *sdp0;
-  } 
+  }
   else /* if (sdp_str) */ {
     /* note: case 2 - src in unparsed form */
     parser = sdp_parse(ss->ss_home, sdp_str, str_len, flags | sdp_f_anynet);
@@ -2039,15 +2059,18 @@ int soa_set_sdp(soa_session_t *ss,
 
     *sdp = *sdp_session(parser);
   }
- 
+
   switch (what) {
   case soa_capability_sdp_kind:
+    /* Calls soa_static_set_capability_sdp() by default */
     retval = ss->ss_actions->soa_set_capability_sdp(ss, sdp, sdp_str, str_len);
     break;
   case soa_user_sdp_kind:
+    /* Calls soa_static_set_user_sdp() by default */
     retval =  ss->ss_actions->soa_set_user_sdp(ss, sdp, sdp_str, str_len);
     break;
   case soa_remote_sdp_kind:
+    /* Calls soa_static_set_remote_sdp() by default */
     retval = ss->ss_actions->soa_set_remote_sdp(ss, 1, sdp, sdp_str, str_len);
     break;
   default:
@@ -2087,7 +2110,7 @@ int soa_description_set(soa_session_t *ss,
     sdp_str0_new = su_strndup(ss->ss_home, sdp_str, str_len);
   else
     sdp_str0_new = sdp_str_new;
-  
+
   if (sdp_new && printer && sdp_str_new && sdp_str0_new) {
     tbf1 = ssd->ssd_sdp, tbf2 = ssd->ssd_printer;
     tbf3 = (void *)ssd->ssd_str, tbf4 = (void *)ssd->ssd_unparsed;
@@ -2095,14 +2118,14 @@ int soa_description_set(soa_session_t *ss,
     ssd->ssd_sdp = sdp_new;
     ssd->ssd_printer = printer;
     ssd->ssd_str = sdp_str_new;
-    ssd->ssd_unparsed = sdp_str0_new;      
+    ssd->ssd_unparsed = sdp_str0_new;
 
     retval = 1;
   }
   else {
     tbf1 = sdp_new, tbf2 = printer, tbf3 = sdp_str_new, tbf4 = sdp_str0_new;
   }
-  
+
   su_free(ss->ss_home, tbf1);
   sdp_printer_free(tbf2);
   if (tbf3 != tbf4)
@@ -2113,7 +2136,7 @@ int soa_description_set(soa_session_t *ss,
 
 
 /** Duplicate a session descriptions. */
-int soa_description_dup(su_home_t *home, 
+int soa_description_dup(su_home_t *home,
 			struct soa_description *ssd,
 			struct soa_description const *ssd0)
 {
@@ -2131,7 +2154,7 @@ int soa_description_dup(su_home_t *home,
 }
 
 /** Free session descriptions. */
-void soa_description_free(soa_session_t *ss, 
+void soa_description_free(soa_session_t *ss,
 			  struct soa_description *ssd)
 {
   void *tbf1, *tbf2, *tbf3, *tbf4;
@@ -2234,12 +2257,12 @@ soa_init_sdp_connection(soa_session_t *ss,
     /* Use the application-specified address -
      * do not check that it is found from the local address list */
     c->c_nettype = sdp_net_in;
-    
+
     if (host_is_ip4_address(address))
       c->c_addrtype = sdp_addr_ip4;
     else
       c->c_addrtype = sdp_addr_ip6;
-    
+
     if (!host_is_ip6_reference(address)) {
       c->c_address = strcpy(buffer, address);
     }
@@ -2247,7 +2270,7 @@ soa_init_sdp_connection(soa_session_t *ss,
       /* Remove brackets [] around the reference */
       size_t len = strlen(address + 1);
       c->c_address = memcpy(buffer, address + 1, len - 1);
-      buffer[len - 1] = '\0'; 
+      buffer[len - 1] = '\0';
     }
     return 0;
   }
@@ -2276,7 +2299,7 @@ soa_init_sdp_connection(soa_session_t *ss,
   }
 
   for (res = NULL; res == NULL;) {
-    if ((error = su_getlocalinfo(hints, &res)) < 0 
+    if ((error = su_getlocalinfo(hints, &res)) < 0
 	&& error != ELI_NOADDRESS) {
       SU_DEBUG_1(("%s: su_localinfo: %s\n", __func__,
 		  su_gli_strerror(error)));
