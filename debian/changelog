@@ -1,3 +1,9 @@
+sofia-sip (1.12.11-1) unstable; urgency=low
+
+  * New faces.  Thanks for your work on this one George!
+
+ -- Ron Lee <ron@debian.org>  Sun, 01 May 2011 01:11:11 +0930
+
 sofia-sip (1.12.10-4) unstable; urgency=low
 
   * Upload to unstable.

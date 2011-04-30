@@ -1,13 +1,14 @@
 This package was debianized by Martti Mela <martti.mela@nokia.com> on
 Mon, 7 Nov 2005 09:54:40 +0300.
 
-It was downloaded from http://sofia-sip.sourceforge.net 
+It was cloned from:
+    git://sofia-sip.git.sourceforge.net/gitroot/sofia-sip/sofia-sip
 
 Upstream Authors: Pekka Pessi  <pekka.pessi@nokia.com>
                   Martti Mela  <martti.mela@nokia.com>
                   Kai Vehmanen <kai.vehmanen@nokia.com>
 
-Copyright (C) 2005-2006 Nokia Corporation and others (see the 
+Copyright (C) 2005-2009 Nokia Corporation and others (see the
 in individual files for a detailed list of copyright holders).
 
 Contact: Pekka Pessi <Pekka.Pessi@nokia.com>

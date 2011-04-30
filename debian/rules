@@ -1,5 +1,12 @@
 #!/usr/bin/make -f
 
+NUM_CPUS = $(shell getconf _NPROCESSORS_ONLN 2>/dev/null)
+PARALLEL = $(subst parallel=,,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+NJOBS    = $(or $(PARALLEL),$(NUM_CPUS),1)
+
+DEB_BUILD_PARALLEL = 1
+DEB_PARALLEL_JOBS := $(NJOBS)
+
 include /usr/share/cdbs/1/rules/utils.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
@@ -21,43 +28,3 @@ clean::
 	rm -Rf libsofia-sip-ua/docs/html
 	rm -Rf libsofia-sip-ua-glib/docs/html
 
-# The following is for internal development usage only
-# Update that sum when new releases occur, this
-# catches silent file content forges at the server side
-
-MD5TRUSTED := 9e07fde3ad2009e44d1100ca3950d02b
-
-DEBVERSION:=$(DEB_VERSION)
-UPVERSION:=$(DEB_UPSTREAM_VERSION)
-UPNAME := sofia-sip
-UPFILE := $(UPNAME)-$(UPVERSION).tar.gz
-DEFILE := $(UPNAME)_$(UPVERSION).orig.tar.gz
-URL    := http://heanet.dl.sourceforge.net/sofia-sip
-MD5CURRENT := `md5sum ../tarballs/$(DEFILE) | sed -e 's/ .*//'`
-
-SRCDIR = sofia-sip-$(UPVERSION)
-
-get-orig-source:
-	@@dh_testdir
-	@@[ -d ../tarballs/. ]||mkdir -p ../tarballs
-
-	-@if [ ! -f ../tarballs/$(DEFILE) ] ; then \
-		echo "Downloading $(URL)/$(UPFILE) ..." ; \
-		wget --no-check-certificate --quiet -nv -T20 -t3 -O ../tarballs/$(DEFILE) $(URL)/$(UPFILE) ; \
-	else \
-		echo "Upstream source tarball have been already downloaded" ; \
-	fi
-
-	-@if [ "$(MD5CURRENT)" != "$(MD5TRUSTED)" ] ; then \
-		echo "Expecting upstream filename md5sum $(MD5TRUSTED), but $(MD5CURRENT) found" ; \
-		echo "Upstream filename md5sum is NOT trusted! Possible upstream filename forge!" ; \
-		echo "Purging downloaded file. Try new download." ; \
-		rm -f ../tarballs/$(DEFILE) ; \
-		false ; \
-	else \
-		echo "Upstream filename md5sum is trusted!" ; \
-	fi
-
-print-version:
-	@@echo "Debian version:          $(DEBVERSION)"
-	@@echo "Upstream version:        $(UPVERSION)"

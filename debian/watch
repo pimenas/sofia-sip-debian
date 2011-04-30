@@ -1,8 +1,0 @@
-# See uscan(1) for format
-
-# Compulsory line, this is a version 3 file
-version=3
-
-# NOTE: We do not want to match versions like: sofia-sip-22543-1.11.6.tar.gz,
-#     but triple digit-dot only versions like: sofia-sip-1.11.9.tar.gz
-http://sf.net/sofia-sip/sofia-sip-([\d]+)\.([\d]+)\.([\d]+)\.tar\.gz debian svn-upgrade

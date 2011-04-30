@@ -1,13 +1,12 @@
 Source: sofia-sip
 Section: net
 Priority: optional
-Maintainer: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
-Uploaders: George Danchev <danchev@spnet.net>, Kai Vehmanen <kai.vehmanen@nokia.com>, Kilian Krause <kilian@debian.org>, Mark Purcell <msp@debian.org>
-Build-Depends: debhelper (>= 4.2.0), cdbs, pkg-config, libglib2.0-dev, libssl-dev, doxygen, graphviz, autotools-dev, dpkg-dev (>= 1.13.19)
-Standards-Version: 3.8.0
+Maintainer: Ron Lee <ron@debian.org>
+Build-Depends: debhelper (>= 5), cdbs, pkg-config, libglib2.0-dev, libssl-dev, doxygen, graphviz, autotools-dev, dpkg-dev (>= 1.13.19)
+Standards-Version: 3.9.2.0
 Homepage: http://sofia-sip.sourceforge.net/
-Vcs-Svn: svn://svn.debian.org/pkg-voip/sofia-sip/trunk/
-Vcs-Browser: http://svn.debian.org/wsvn/pkg-voip/sofia-sip/?op=log
+Vcs-Git: git://git.debian.org/users/ron/sofia-sip.git
+Vcs-Browser: http://git.debian.org/?p=users/ron/sofia-sip.git;a=summary
 
 Package: sofia-sip-bin
 Architecture: any
@@ -25,8 +24,6 @@ Description: Sofia-SIP library utilities
  applications for use in scripts, testing and other uses. All
  the tools utilize the Sofia-SIP library.
 
-# note: debian guidelines are followed in library name and SONAME selection
-#       see http://www.netfort.gr.jp/~dancer/column/libpkg-guide/libpkg-guide.html
 Package: libsofia-sip-ua0
 Architecture: any
 Section: libs
@@ -62,10 +59,6 @@ Description: Sofia-SIP library development files
  This package provides the headers and libraries needed to build
  applications against the Sofia-SIP library.
 
-# note: debian guidelines are followed in library name and SONAME selection
-#       see http://www.netfort.gr.jp/~dancer/column/libpkg-guide/libpkg-guide.html
-# note-2: this package depends on internal APIs of libsofia-sip-ua, so the
-#         dependency is to a specific version of the libsofia-sip-ua package
 Package: libsofia-sip-ua-glib3
 Architecture: any
 Section: libs
