@@ -49,7 +49,7 @@ static int test_flags = 0;
 
 char const name[] = "torture_bnf";
 
-int count_bnf(int bnf_flags)
+static int count_bnf(int bnf_flags)
 {
   int i, n;
 
@@ -60,7 +60,7 @@ int count_bnf(int bnf_flags)
   return n;
 }
 
-int bnf_test(void)
+static int bnf_test(void)
 {
   BEGIN();
   TEST_1(IS_TOKEN('a'));
@@ -92,7 +92,7 @@ int bnf_test(void)
   END();
 }
 
-int ip_test(void)
+static int ip_test(void)
 {
   BEGIN();
   char *s;
@@ -249,7 +249,7 @@ int ip_test(void)
 
 #include <sofia-sip/hostdomain.h>
 
-int host_test(void)
+static int host_test(void)
 {
   BEGIN();
 
@@ -320,6 +320,11 @@ int host_test(void)
   TEST(host_has_domain_invalid("valid."), 0);
   TEST(host_has_domain_invalid("1-.invalid."), 0);
 
+  TEST(host_is_domain("127.0.0.1"), 0);
+  TEST(host_is_domain("3.com"), 1);
+  TEST(host_is_domain("127.0.0.com"), 1);
+  TEST(host_is_domain("actra.0.1"), 0);
+
   /* Invalid IP4 address (extra leading zeros) */
   TEST_1(!host_cmp("127.0.0.1", "127.0.0.01"));
   /* Invalid reference (extra leading zeros) */
@@ -342,7 +347,7 @@ int host_test(void)
   END();
 }
 
-void usage(int exitcode)
+static void usage(int exitcode)
 {
   fprintf(stderr, "usage: %s [-v] [-a]\n", name);
   exit(exitcode);

@@ -97,6 +97,10 @@ SOURCE="..\..\libsofia-sip-ua\su\inet_pton.c"
 # End Source File
 # Begin Source File
 
+SOURCE="..\..\libsofia-sip-ua\su\smoothsort.c"
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\libsofia-sip-ua\su\string0.c"
 # End Source File
 # Begin Source File
@@ -341,7 +345,7 @@ SOURCE="..\..\libsofia-sip-ua\su\memspn.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\libsofia-sip-ua\su\strcasestr.c"
+SOURCE="..\..\libsofia-sip-ua\su\su_string.c"
 # End Source File
 # Begin Source File
 
@@ -514,6 +518,10 @@ SOURCE="..\..\libsofia-sip-ua\sresolv\sres_cache.c"
 # Begin Source File
 
 SOURCE="..\..\libsofia-sip-ua\sresolv\sresolv.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\sresolv\sres_sip.c"
 # End Source File
 # End Group
 # Begin Group "nea"
@@ -697,6 +705,22 @@ SOURCE="..\..\libsofia-sip-ua\nua\nua_stack.h"
 # End Source File
 # Begin Source File
 
+SOURCE="..\..\libsofia-sip-ua\nua\nua_client.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\nua\nua_client.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\nua\nua_server.c"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\nua\nua_server.h"
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\libsofia-sip-ua\nua\nua_subnotref.c"
 # End Source File
 # Begin Source File
@@ -862,6 +886,10 @@ SOURCE="..\..\libsofia-sip-ua\su\sofia-sip\rbtree.h"
 # Begin Source File
 
 SOURCE="..\..\libsofia-sip-ua\su\sofia-sip\string0.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\su\sofia-sip\su_string.h"
 # End Source File
 # Begin Source File
 
@@ -1226,6 +1254,10 @@ SOURCE="..\..\libsofia-sip-ua\sresolv\sofia-resolv\sres_record.h"
 # Begin Source File
 
 SOURCE="..\..\libsofia-sip-ua\sresolv\sofia-sip\sresolv.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsofia-sip-ua\sresolv\sofia-sip\sres_sip.h"
 # End Source File
 # End Group
 # Begin Group "nea headers"

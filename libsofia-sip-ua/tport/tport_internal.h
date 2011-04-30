@@ -40,6 +40,7 @@
 #endif
 
 #include <sofia-sip/su_uniqueid.h>
+#include <sofia-sip/su_strlst.h>
 
 #ifndef MSG_ADDR_H
 #include <sofia-sip/msg_addr.h>
@@ -155,6 +156,7 @@ struct tport_s {
   unsigned            tp_has_stun_server:1;
   unsigned            tp_trunc:1;
   unsigned            tp_is_connected:1; /**< Connection is established */
+  unsigned            tp_verified:1;     /**< Certificate Chain was verified */
   unsigned:0;
 
   tport_t *tp_left, *tp_right, *tp_dad; /**< Links in tport tree */
@@ -176,6 +178,14 @@ struct tport_s {
 					 * This is either our name (if primary)
 					 * or peer name (if secondary).
 					 */
+
+  su_strlst_t        *tp_subjects;      /**< Transport Subjects.
+                                         *
+                                         * Subject Name(s) provided by the peer
+					 * in a TLS connection (if secondary).
+					 * or matched against incoming 
+					 * connections (if primary).
+                                         */
 
 #define tp_protoname tp_name->tpn_proto
 #define tp_canon     tp_name->tpn_canon
@@ -409,6 +419,7 @@ tport_t *tport_alloc_secondary(tport_primary_t *pri,
 			       char const **return_reason);
 
 int tport_accept(tport_primary_t *pri, int events);
+int tport_register_secondary(tport_t *self, su_wakeup_f wakeup, int events);
 void tport_zap_secondary(tport_t *self);
 
 int tport_set_secondary_timer(tport_t *self);
@@ -426,6 +437,9 @@ int tport_error_event(tport_t *self);
 void tport_recv_event(tport_t *self);
 void tport_send_event(tport_t *self);
 void tport_hup_event(tport_t *self);
+int tport_setname(tport_t *, char const *, su_addrinfo_t const *, char const *);
+
+int tport_wakeup(su_root_magic_t *magic, su_wait_t *w, tport_t *self);
 
 ssize_t tport_recv_iovec(tport_t const *self,
 			 msg_t **mmsg,

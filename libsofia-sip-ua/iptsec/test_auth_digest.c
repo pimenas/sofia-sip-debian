@@ -73,6 +73,7 @@
 #include <sofia-sip/auth_client.h>
 #include <sofia-sip/msg_header.h>
 #include <sofia-sip/su_wait.h>
+#include <sofia-sip/su_string.h>
 
 int tstflags;
 char *argv0;
@@ -97,7 +98,7 @@ void offset_time(su_time_t *tv)
   tv->tv_sec += offset;
 }
 
-int test_digest()
+int test_digest(void)
 {
   char challenge[] = "Digest "
     "realm=\"garage.sr.ntc.nokia.com\", "
@@ -349,8 +350,11 @@ Authorization: Digest       username="Mufasa",
     TEST_SIZE(auth_digest_challenge_get(home, ac, pa->au_params), 6);
 
     TEST0(pz = sip_proxy_authorization_make(home, cred));
-    TEST_SIZE(auth_digest_response_get(home, ar, pz->au_params), 8);
 
+    {
+    size_t n = auth_digest_response_get(home, ar, pz->au_params);
+    TEST_SIZE(n, 8);
+    }
     ar->ar_md5 = ac->ac_md5 || ac->ac_algorithm == NULL;
 
     TEST(auth_digest_sessionkey(ar, sessionkey, "test1"), 0);
@@ -472,7 +476,7 @@ void reinit_as(auth_status_t *as)
 }
 
 /* Test digest authentication client and server */
-int test_digest_client()
+int test_digest_client(void)
 {
   BEGIN();
 
@@ -702,7 +706,7 @@ int test_digest_client()
 
       if (au->au_params)
 	for (i = 0; au->au_params[i]; i++) {
-	  if (strncasecmp(au->au_params[i], "realm=", 6) == 0)
+	  if (su_casenmatch(au->au_params[i], "realm=", 6))
 	    continue;
 	  equal = strchr(au->au_params[i], '=');
 	  if (equal)
@@ -891,6 +895,26 @@ int test_digest_client()
     reinit_as(as);
     auth_mod_check_client(am, as, sip->sip_authorization, ach);
     TEST(as->as_status, 0);
+    aucs = NULL;
+
+    /* Test HA1+Digest */
+    reinit_as(as);
+    auth_mod_check_client(am, as, NULL, ach); TEST(as->as_status, 401);
+    TEST(auc_challenge(&aucs, home, (msg_auth_t *)as->as_response,
+		       sip_authorization_class), 1);
+    TEST(auc_all_credentials(&aucs, "HA1+Digest", "\"ims3.so.noklab.net\"",
+			     "user1", "HA1+c0890ff7a4fadc50c45f392ec4312965"),
+	 1);
+    msg_header_remove(m2, (void *)sip, (void *)sip->sip_authorization);
+    TEST(auc_authorization(&aucs, m2, (msg_pub_t*)sip, rq->rq_method_name,
+			   (url_t *)"sip:surf3@ims3.so.noklab.net",
+			   sip->sip_payload), 1);
+    TEST_1(sip->sip_authorization);
+
+    reinit_as(as);
+    auth_mod_check_client(am, as, sip->sip_authorization, ach);
+    TEST(as->as_status, 0);
+
     auth_mod_destroy(am); aucs = NULL;
 
     TEST_1(am = auth_mod_create(NULL,
@@ -1089,6 +1113,29 @@ int test_digest_client()
 
     auth_mod_destroy(am); deinit_as(as); aucs = NULL;
 
+    /* Test client with two challenges */
+    au = sip_www_authenticate_make(
+      NULL,
+      "Digest realm=\"test-realm\", "
+      "nonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\", "
+      "opaque=\"5ccc069c403ebaf9f0171e9517f40e41\"");
+    au->au_next = sip_www_authenticate_make(
+      NULL,
+      "Not-Digest realm=\"test-realm\", "
+      "zip=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\", "
+      "zap=\"5ccc069c403ebaf9f0171e9517f40e41\"");
+
+    TEST_1(auc_challenge(&aucs, home, (msg_auth_t *)au,
+			 sip_authorization_class) >= 1);
+    TEST_1(auc_all_credentials(&aucs, "Digest", "\"test-realm\"",
+			       "user", "pass"));
+    msg_header_remove(m2, (void *)sip, (void *)sip->sip_authorization);
+    TEST(auc_authorization(&aucs, m2, (msg_pub_t*)sip, rq->rq_method_name,
+			   (url_t *)"sip:surf3@ims3.so.noklab.net",
+			   sip->sip_payload), 1);
+    TEST_1(sip->sip_authorization);
+    aucs = NULL;
+
     /* Test asynchronous operation */
     aucs = NULL;
     TEST_1(am = auth_mod_create(root,
@@ -1141,6 +1188,54 @@ int test_digest_client()
   END();
 }
 
+int
+test_auth_client(void)
+{
+  BEGIN();
+
+  {
+    char challenge[] =
+      PROTOCOL " 401 Unauthorized\r\n"
+      "Call-ID:0e3dc2b2-dcc6-1226-26ac-258b5ce429ab\r\n"
+      "CSeq:32439043 REGISTER\r\n"
+      "From:surf3.ims3.so.noklab.net <sip:surf3@ims3.so.noklab.net>;tag=I8hFdg0H3OK\r\n"
+      "To:<sip:surf3@ims3.so.noklab.net>\r\n"
+      "Via:SIP/2.0/UDP 10.21.36.70:23800;branch=z9hG4bKJjKGu9vIHqf;received=10.21.36.70;rport\r\n"
+      "WWW-Authenticate:DIGEST algorithm=MD5,nonce=\"h7wIpP+atU+/+Zau5UwLMA==\",realm=\"[::1]\"\r\n"
+      "Proxy-Authenticate:DIGEST algorithm=MD5,nonce=\"h7wIpP+atU+/+Zau5UwLMA==\",realm=\"\\\"realm\\\"\"\r\n"
+      "Content-Length:0\r\n"
+      "Security-Server:digest\r\n"
+      "r\n";
+
+    su_home_t *home;
+    msg_t *msg;
+    sip_t *sip;
+    auth_client_t *aucs = NULL;
+
+    TEST_1(home = su_home_new(sizeof(*home)));
+
+    TEST_1(msg = read_message(MSG_DO_EXTRACT_COPY, challenge));
+    TEST_1(sip = sip_object(msg));
+
+    TEST_1(aucs == NULL);
+    TEST(auc_challenge(&aucs, home, sip->sip_www_authenticate,
+		       sip_authorization_class), 1);
+    TEST_1(aucs != NULL);
+
+    TEST(auc_credentials(&aucs, home, "Digest:\"[::1]\":user:pass"), 1);
+
+    TEST(auc_challenge(&aucs, home, sip->sip_proxy_authenticate,
+		       sip_proxy_authorization_class), 1);
+
+    TEST(auc_credentials(&aucs, home, "Digest:\"\\\"realm\\\"\":user:pass"), 1);
+
+    msg_destroy(msg);
+    su_home_unref(home);
+  }
+
+  END();
+}
+
 #if HAVE_FLOCK
 #include <sys/file.h>
 #endif
@@ -1169,7 +1264,7 @@ char const passwd[] =
   "\n";
 
 /* Test digest authentication client and server */
-int test_module_io()
+int test_module_io(void)
 {
   auth_mod_t *am, am0[1];
   auth_passwd_t *apw, *apw2;
@@ -1326,7 +1421,7 @@ int main(int argc, char *argv[])
 
   retval |= test_digest();
   retval |= test_digest_client();
-
+  retval |= test_auth_client();
   retval |= test_module_io();
 
   su_deinit();

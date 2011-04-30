@@ -150,6 +150,14 @@ typedef struct su_port_vtable {
   int (*su_port_execute)(su_task_r const task,
 			 int (*function)(void *), void *arg,
 			 int *return_value);
+
+  /* >= 1.12.11 */
+  su_timer_queue_t *(*su_port_deferrable)(su_port_t *port);
+  int (*su_port_max_defer)(su_port_t *port,
+			   su_duration_t *return_duration,
+			   su_duration_t *set_duration);
+  int (*su_port_wakeup)(su_port_t *port);
+  int (*su_port_is_running)(su_port_t const *port);
 } su_port_vtable_t;
 
 SOFIAPUBFUN su_port_t *su_port_create(void)
@@ -158,7 +166,7 @@ SOFIAPUBFUN su_port_t *su_port_create(void)
 /* Extension from >= 1.12.5 */
 
 SOFIAPUBFUN void su_msg_delivery_report(su_msg_r msg);
-SOFIAPUBFUN su_duration_t su_timer_next_expires(su_timer_t const * t,
+SOFIAPUBFUN su_duration_t su_timer_next_expires(su_timer_queue_t const *timers,
 						su_time_t now);
 SOFIAPUBFUN su_root_t *su_root_create_with_port(su_root_magic_t *magic,
 						su_port_t *port)
@@ -167,6 +175,8 @@ SOFIAPUBFUN su_root_t *su_root_create_with_port(su_root_magic_t *magic,
 /* Extension from >= 1.12.6 */
 
 SOFIAPUBFUN char const *su_port_name(su_port_t const *port);
+
+SOFIAPUBFUN int su_timer_reset_all(su_timer_queue_t *, su_task_r );
 
 /* ---------------------------------------------------------------------- */
 
@@ -242,6 +252,12 @@ int su_port_send(su_port_t *self, su_msg_r rmsg)
   return base->sup_vtable->su_port_send(self, rmsg);
 }
 
+su_inline
+int su_port_wakeup(su_port_t *self)
+{
+  su_virtual_port_t *base = (su_virtual_port_t *)self;
+  return base->sup_vtable->su_port_wakeup(self);
+}
 
 su_inline
 int su_port_register(su_port_t *self,
@@ -370,7 +386,7 @@ int su_port_remove_prepoll(su_port_t *self,
 }
 
 su_inline
-su_timer_t **su_port_timers(su_port_t *self)
+su_timer_queue_t *su_port_timers(su_port_t *self)
 {
   su_virtual_port_t *base = (su_virtual_port_t *)self;
   return base->sup_vtable->su_port_timers(self);
@@ -395,6 +411,43 @@ int su_port_getmsgs_from(su_port_t *self, su_port_t *cloneport)
 {
   su_virtual_port_t *base = (su_virtual_port_t *)self;
   return base->sup_vtable->su_port_getmsgs_from(self, cloneport);
+}
+
+/** Extension from >= 1.12.11 */
+
+su_inline
+su_timer_queue_t *su_port_deferrable(su_port_t *self)
+{
+  su_virtual_port_t *base = (su_virtual_port_t *)self;
+
+  if (base == NULL) {
+    errno = EFAULT;
+    return NULL;
+  }
+
+  return base->sup_vtable->su_port_deferrable(self);
+}
+
+su_inline
+int su_port_max_defer(su_port_t *self,
+		      su_duration_t *return_duration,
+		      su_duration_t *set_duration)
+{
+  su_virtual_port_t *base = (su_virtual_port_t *)self;
+
+  if (base == NULL)
+    return (errno = EFAULT), -1;
+
+  return base->sup_vtable->su_port_max_defer(self,
+					     return_duration,
+					     set_duration);
+}
+
+su_inline
+int su_port_is_running(su_port_t const *self)
+{
+  su_virtual_port_t *base = (su_virtual_port_t *)self;
+  return base && base->sup_vtable->su_port_is_running(self);
 }
 
 SOFIAPUBFUN void su_port_wait(su_clone_r rclone);
@@ -425,7 +478,9 @@ typedef struct su_base_port_s {
   su_msg_t        *sup_head, **sup_tail;
 
   /* Timer list */
-  su_timer_queue_t sup_timers;
+  su_timer_queue_t sup_timers, sup_deferrable;
+
+  su_duration_t    sup_max_defer; /**< Maximum time to defer */
 
   unsigned         sup_running;	  /**< In su_root_run() loop? */
 } su_base_port_t;
@@ -466,7 +521,7 @@ SOFIAPUBFUN int su_base_port_add_prepoll(su_port_t *self,
 
 SOFIAPUBFUN int su_base_port_remove_prepoll(su_port_t *self, su_root_t *root);
 
-SOFIAPUBFUN su_timer_t **su_base_port_timers(su_port_t *self);
+SOFIAPUBFUN su_timer_queue_t *su_base_port_timers(su_port_t *self);
 
 SOFIAPUBFUN int su_base_port_multishot(su_port_t *self, int multishot);
 
@@ -476,6 +531,14 @@ SOFIAPUBFUN int su_base_port_start_shared(su_root_t *parent,
 					  su_root_init_f init,
 					  su_root_deinit_f deinit);
 SOFIAPUBFUN void su_base_port_wait(su_clone_r rclone);
+
+SOFIAPUBFUN su_timer_queue_t *su_base_port_deferrable(su_port_t *self);
+
+SOFIAPUBFUN int su_base_port_max_defer(su_port_t *self,
+				       su_duration_t *return_duration,
+				       su_duration_t *set_duration);
+
+SOFIAPUBFUN int su_base_port_is_running(su_port_t const *self);
 
 /* ---------------------------------------------------------------------- */
 
@@ -491,7 +554,7 @@ typedef struct su_pthread_port_s {
   pthread_t        sup_tid;
   pthread_mutex_t  sup_obtained[1];
 
-#if 0
+#if 0 				/* Pausing and resuming are not used */
   pthread_mutex_t  sup_runlock[1];
   pthread_cond_t   sup_resume[1];
   short            sup_paused;	/**< True if thread is paused */
@@ -533,7 +596,6 @@ SOFIAPUBFUN int su_pthread_port_execute(su_task_r const task,
 					int (*function)(void *), void *arg,
 					int *return_value);
 
-
 #if 0
 SOFIAPUBFUN int su_pthread_port_pause(su_port_t *self);
 SOFIAPUBFUN int su_pthread_port_resume(su_port_t *self);
@@ -568,6 +630,7 @@ SOFIAPUBFUN int su_socket_port_init(su_socket_port_t *,
 				    su_port_vtable_t const *);
 SOFIAPUBFUN void su_socket_port_deinit(su_socket_port_t *self);
 SOFIAPUBFUN int su_socket_port_send(su_port_t *self, su_msg_r rmsg);
+SOFIAPUBFUN int su_socket_port_wakeup(su_port_t *self);
 
 SOFIA_END_DECLS
 

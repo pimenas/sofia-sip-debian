@@ -37,7 +37,7 @@
 
 #include "config.h"
 
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 #include <sofia-sip/su.h>
 #include <sofia-sip/su_errno.h>
 #include <sofia-sip/su_alloc.h>
@@ -268,7 +268,12 @@ int tport_has_ip6(tport_t const *self)
 int tport_has_tls(tport_t const *self)
 {
   return self && self->tp_pri->pri_has_tls;
+}
 
+/** Return true if transport certificate verified successfully */
+int tport_is_verified(tport_t const *self)
+{
+  return tport_has_tls(self) && self->tp_is_connected && self->tp_verified;
 }
 
 /** Return true if transport is being updated. */
@@ -399,9 +404,7 @@ static int
 		    char const * const transports[],  enum tport_via public,
 		    tagi_t *tags),
 
-  tport_setname(tport_t *, char const *, su_addrinfo_t const *, char const *),
   tport_wakeup_pri(su_root_magic_t *m, su_wait_t *w, tport_t *self),
-  tport_wakeup(su_root_magic_t *m, su_wait_t *w, tport_t *self),
   tport_base_wakeup(tport_t *self, int events),
   tport_connected(su_root_magic_t *m, su_wait_t *w, tport_t *self),
   tport_resolve(tport_t *self, msg_t *msg, tp_name_t const *tpn),
@@ -728,7 +731,7 @@ tport_primary_t *tport_listen(tport_master_t *mr,
   /* Create a primary transport object for another transport. */
   pri = tport_alloc_primary(mr, vtable, tpn, ai, tags, &culprit);
   if (pri == NULL)
-    return TPORT_LISTEN_ERROR(errno, culprit);
+    return TPORT_LISTEN_ERROR(su_errno(), culprit);
 
   if (pri->pri_primary->tp_socket != INVALID_SOCKET) {
     int index = 0;
@@ -949,13 +952,10 @@ tport_t *tport_base_connect(tport_primary_t *pri,
 			    su_addrinfo_t *real_ai,
 			    tp_name_t const *tpn)
 {
-  tport_master_t *mr = pri->pri_master;
   tport_t *self = NULL;
 
   su_socket_t s, server_socket;
-  su_wait_t wait[1] = { SU_WAIT_INIT };
   su_wakeup_f wakeup = tport_wakeup;
-  int index = 0;
   int events = SU_WAIT_IN | SU_WAIT_ERR;
 
   int err;
@@ -967,7 +967,6 @@ tport_t *tport_base_connect(tport_primary_t *pri,
 #define TPORT_CONNECT_ERROR(errno, what)			     \
   return							     \
     ((void)(err = errno,					     \
-	    su_wait_destroy(wait),				     \
 	    (SU_LOG_LEVEL >= errlevel ?				     \
 	     su_llog(tport_log, errlevel,			     \
 		     "%s(%p): %s(pf=%d %s/%s): %s\n",			\
@@ -986,7 +985,7 @@ tport_t *tport_base_connect(tport_primary_t *pri,
 
   what = "tport_alloc_secondary";
   if ((self = tport_alloc_secondary(pri, s, 0, &what)) == NULL)
-    TPORT_CONNECT_ERROR(errno, what);
+    TPORT_CONNECT_ERROR(su_errno(), what);
 
   self->tp_conn_orient = 1;
 
@@ -1013,7 +1012,7 @@ tport_t *tport_base_connect(tport_primary_t *pri,
     TPORT_CONNECT_ERROR(su_errno(), tport_setname);
 
   /* Try to have a non-blocking connect().
-   * The su_wait_create() below makes the socket non-blocking anyway. */
+   * The tport_register_secondary() below makes the socket non-blocking anyway. */
   su_setblocking(s, 0);
 
   if (connect(s, ai->ai_addr, (socklen_t)(ai->ai_addrlen)) == SOCKET_ERROR) {
@@ -1029,14 +1028,8 @@ tport_t *tport_base_connect(tport_primary_t *pri,
     self->tp_is_connected = 1;
   }
 
-  if (su_wait_create(wait, s, self->tp_events = events) == -1)
-    TPORT_CONNECT_ERROR(su_errno(), su_wait_create);
-
-  /* Register receiving function with events specified above */
-  if ((index = su_root_register(mr->mr_root, wait, wakeup, self, 0)) == -1)
-    TPORT_CONNECT_ERROR(su_errno(), su_root_register);
-
-  self->tp_index = index;
+  if (tport_register_secondary(self, wakeup, events) == -1)
+    TPORT_CONNECT_ERROR(su_errno(), tport_register_secondary);
 
   if (ai == real_ai) {
     SU_DEBUG_5(("%s(%p): %s to " TPN_FORMAT "\n",
@@ -1049,9 +1042,33 @@ tport_t *tport_base_connect(tport_primary_t *pri,
 		TPN_ARGS(self->tp_name)));
   }
 
-  tprb_append(&pri->pri_open, self);
-
   return self;
+}
+
+/** Register a new secondary transport. @internal */
+int tport_register_secondary(tport_t *self, su_wakeup_f wakeup, int events)
+{
+  int i;
+  su_root_t *root = tport_is_secondary(self) ? self->tp_master->mr_root : NULL;
+  su_wait_t wait[1] = { SU_WAIT_INIT };
+
+  if (root != NULL
+      /* Create wait object with appropriate events. */
+      &&
+      su_wait_create(wait, self->tp_socket, events) != -1
+      /* Register socket to root */
+      &&
+      (i = su_root_register(root, wait, wakeup, self, 0)) != -1) {
+
+    self->tp_index = i;
+    self->tp_events = events;
+
+    tprb_append(&self->tp_pri->pri_open, self);
+    return 0;
+  }
+
+  su_wait_destroy(wait);
+  return -1;
 }
 
 /** Destroy a secondary transport. @internal */
@@ -1179,6 +1196,7 @@ int tport_get_params(tport_t const *self,
   int n;
   tport_params_t const *tpp;
   int connect;
+  tport_master_t *mr = self->tp_master;
 
   if (self == NULL)
     return su_seterrno(EINVAL);
@@ -1210,6 +1228,10 @@ int tport_get_params(tport_t const *self,
 		      TPTAG_PUBLIC(self->tp_pri ?
 				   self->tp_pri->pri_public : 0)),
 	       TPTAG_TOS(tpp->tpp_tos),
+	       TAG_IF((void *)self == (void *)mr,
+		      TPTAG_LOG(mr->mr_log != 0)),
+	       TAG_IF((void *)self == (void *)mr,
+		      TPTAG_DUMP(mr->mr_dump)),
 	       TAG_END());
 
   ta_end(ta);
@@ -1304,7 +1326,7 @@ int tport_set_params(tport_t *self,
   tpp->tpp_pong2ping = pong2ping;
 
   if (memcmp(tpp0, tpp, sizeof tpp) == 0)
-    return n;
+    return n + m;
 
   if (tport_is_secondary(self) &&
       self->tp_params == self->tp_pri->pri_primary->tp_params) {
@@ -1387,7 +1409,7 @@ tport_vtable_t const *tport_vtable_by_name(char const *protoname,
       continue;
     if (vtable->vtp_public != public)
       continue;
-    if (strcasecmp(vtable->vtp_name, protoname))
+    if (!su_casematch(protoname, vtable->vtp_name))
       continue;
 
     assert(vtable->vtp_pri_size >= sizeof (tport_primary_t));
@@ -1448,8 +1470,8 @@ int tport_bind_set(tport_master_t *mr,
  *
  * @TAGS
  * TPTAG_SERVER(), TPTAG_PUBLIC(), TPTAG_IDENT(), TPTAG_HTTP_CONNECT(),
- * TPTAG_CERTIFICATE(), TPTAG_TLS_VERSION(), TPTAG_TLS_VERIFY_PEER, and tags used with
- * tport_set_params(), especially TPTAG_QUEUESIZE().
+ * TPTAG_CERTIFICATE(), TPTAG_TLS_VERSION(), TPTAG_TLS_VERIFY_POLICY, and 
+ * tags used with tport_set_params(), especially TPTAG_QUEUESIZE().
  */
 int tport_tbind(tport_t *self,
 		tp_name_t const *tpn,
@@ -1491,9 +1513,9 @@ int tport_tbind(tport_t *self,
     server = 0;
 
   if (server)
-    retval = tport_bind_server(mr, mytpn, transports, public, ta_args(ta));
+    retval = tport_bind_server(mr, mytpn, transports, (enum tport_via)public, ta_args(ta));
   else
-    retval = tport_bind_client(mr, mytpn, transports, public, ta_args(ta));
+    retval = tport_bind_client(mr, mytpn, transports, (enum tport_via)public, ta_args(ta));
 
   ta_end(ta);
 
@@ -1571,7 +1593,7 @@ int tport_bind_server(tport_master_t *mr,
 		      enum tport_via public,
 		      tagi_t *tags)
 {
-  char hostname[256];
+  char hostname[TPORT_HOSTPORTSIZE];
   char const *canon = NULL, *host, *service;
   int error = 0, not_supported, family = 0;
   tport_primary_t *pri = NULL, **tbf;
@@ -1591,10 +1613,12 @@ int tport_bind_server(tport_master_t *mr,
     host = NULL;
   }
 #ifdef SU_HAVE_IN6
-  else if (tpn->tpn_host && tpn->tpn_host[0] == '[') {
+  else if (host_is_ip6_reference(tpn->tpn_host)) {
     /* Remove [] around IPv6 addresses. */
-    host = strcpy(hostname, tpn->tpn_host + 1);
-    hostname[strlen(hostname) - 1] = '\0';
+    size_t len = strlen(tpn->tpn_host);
+    assert(len < sizeof hostname);
+    host = memcpy(hostname, tpn->tpn_host + 1, len - 2);
+    hostname[len - 2] = '\0';
   }
 #endif
   else
@@ -1781,8 +1805,7 @@ int tport_server_addrinfo(tport_master_t *mr,
   for (i = 0, N = 0; transports[i] && N < TPORT_N; i++) {
     su_addrinfo_t *ai = &hints[N];
 
-    if (strcasecmp(transports[i], protocol) != 0 &&
-	strcmp(protocol, tpn_any) != 0)
+    if (!su_casematch(protocol, transports[i]) && !su_strmatch(protocol, "*"))
       continue;
 
     /* Resolve protocol, skip unknown transport protocols. */
@@ -2229,7 +2252,7 @@ int tport_set_secondary_timer(tport_t *self)
   if (tport_is_closed(self)) {
     if (self->tp_refs == 0) {
       SU_DEBUG_7(("tport(%p): set timer at %u ms because %s\n",
-		  self, 0, "zap"));
+		  (void *)self, 0, "zap"));
       su_timer_set_interval(self->tp_timer, timer, self, 0);
     }
     else
@@ -2351,7 +2374,6 @@ int tport_convert_addr(su_home_t *home,
 
 /** Set transport object name. @internal
  */
-static
 int tport_setname(tport_t *self,
 		  char const *protoname,
 		  su_addrinfo_t const *ai,
@@ -2402,25 +2424,25 @@ int getprotohints(su_addrinfo_t *hints,
   hints->ai_canonname = (char *)proto;
 
 #if HAVE_TLS
-  if (strcasecmp(proto, "tls") == 0)
+  if (su_casematch(proto, "tls"))
     proto = "tcp";
 #endif
 
 #if HAVE_SCTP
-  if (strcasecmp(proto, "sctp") == 0) {
+  if (su_casematch(proto, "sctp")) {
     hints->ai_protocol = IPPROTO_SCTP;
     hints->ai_socktype = SOCK_STREAM;
     return 0;
   }
 #endif
 
-  if (strcasecmp(proto, "udp") == 0) {
+  if (su_casematch(proto, "udp")) {
     hints->ai_protocol = IPPROTO_UDP;
     hints->ai_socktype = SOCK_DGRAM;
     return 0;
   }
 
-  if (strcasecmp(proto, "tcp") == 0) {
+  if (su_casematch(proto, "tcp")) {
     hints->ai_protocol = IPPROTO_TCP;
     hints->ai_socktype = SOCK_STREAM;
     return 0;
@@ -2577,47 +2599,37 @@ int tport_accept(tport_primary_t *pri, int events)
   ai->ai_addr = &su->su_sa, ai->ai_addrlen = sulen;
 
   /* Alloc a new transport object, then register socket events with it */
-  self = tport_alloc_secondary(pri, s, 1, &reason);
-
-  if (self) {
-    int i;
-    su_root_t *root = self->tp_master->mr_root;
-    su_wakeup_f wakeup = tport_wakeup;
+  if ((self = tport_alloc_secondary(pri, s, 1, &reason)) == NULL) {
+    SU_DEBUG_3(("%s(%p): incoming secondary on "TPN_FORMAT
+                " failed. reason = %s\n", __func__, (void *)pri,
+                TPN_ARGS(pri->pri_primary->tp_name), reason));
+    return 0;
+  }
+  else {
     int events = SU_WAIT_IN|SU_WAIT_ERR|SU_WAIT_HUP;
-    su_wait_t wait[1] = { SU_WAIT_INIT };
 
     SU_CANONIZE_SOCKADDR(su);
 
-    if (/* Create wait object with appropriate events. */
-	su_wait_create(wait, s, events) != -1
-	/* Register socket to root */
+    if (/* Name this transport */
+        tport_setname(self, pri->pri_protoname, ai, NULL) != -1 
+	/* Register this secondary */ 
 	&&
-	(i = su_root_register(root, wait, wakeup, self, 0)) != -1) {
+	tport_register_secondary(self, tport_wakeup, events) != -1) {
 
-      self->tp_index     = i;
       self->tp_conn_orient = 1;
       self->tp_is_connected = 1;
-      self->tp_events = events;
 
-      if (tport_setname(self, pri->pri_protoname, ai, NULL) != -1) {
-	SU_DEBUG_5(("%s(%p): new connection from " TPN_FORMAT "\n",
-		    __func__,  (void *)self, TPN_ARGS(self->tp_name)));
+      SU_DEBUG_5(("%s(%p): new connection from " TPN_FORMAT "\n",
+                  __func__,  (void *)self, TPN_ARGS(self->tp_name)));
 
-	tprb_append(&pri->pri_open, self);
-
-	/* Return succesfully */
-	return 0;
-      }
+      return 0;
     }
-    else
-      su_wait_destroy(wait);
 
     /* Failure: shutdown socket,  */
     tport_close(self);
     tport_zap_secondary(self);
+    self = NULL;
   }
-
-  /* XXX - report error ? */
 
   return 0;
 }
@@ -2727,7 +2739,7 @@ static int tport_wakeup_pri(su_root_magic_t *m, su_wait_t *w, tport_t *self)
 }
 
 /** Process events for connected socket  */
-static int tport_wakeup(su_root_magic_t *magic, su_wait_t *w, tport_t *self)
+int tport_wakeup(su_root_magic_t *magic, su_wait_t *w, tport_t *self)
 {
   int events = su_wait_events(w, self->tp_socket);
 
@@ -2805,8 +2817,9 @@ void tport_hup_event(tport_t *self)
   if (!tport_is_secondary(self))
     return;
 
-  /* End of stream */
-  tport_shutdown0(self, 0);
+  /* Shutdown completely if there are no queued messages */
+  /* Problem reported by Arsen Chaloyan */
+  tport_shutdown0(self, tport_has_queued(self) ? 0 : 2);
   tport_set_secondary_timer(self);
 }
 
@@ -2941,6 +2954,7 @@ void tport_deliver(tport_t *self,
   tport_t *ref;
   int error;
   struct tport_delivery *d;
+  char ipaddr[SU_ADDRSIZE + 2];
 
   assert(msg);
 
@@ -2951,7 +2965,6 @@ void tport_deliver(tport_t *self,
   *d->d_from = *self->tp_name;
 
   if (tport_is_primary(self)) {
-    char ipaddr[SU_ADDRSIZE + 2];
     su_sockaddr_t const *su = msg_addr(msg);
 
 #if SU_HAVE_IN6
@@ -2994,16 +3007,16 @@ void tport_deliver(tport_t *self,
 
   ref = tport_incref(self);
 
-
   if (self->tp_pri->pri_vtable->vtp_deliver) {
     self->tp_pri->pri_vtable->vtp_deliver(self, msg, now);
   }
   else
     tport_base_deliver(self, msg, now);
 
-  tport_decref(&ref);
-
+  memset(d->d_from, 0, sizeof d->d_from);
   d->d_msg = NULL;
+
+  tport_decref(&ref);
 }
 
 /** Pass message to the protocol stack */
@@ -3039,6 +3052,17 @@ int tport_delivered_from(tport_t *tp, msg_t const *msg, tp_name_t name[1])
   }
 }
 
+/** Return TLS Subjects provided by the source transport */
+su_strlst_t const *tport_delivered_from_subjects(tport_t *tp, msg_t const *msg)
+{
+  if (tp && msg && msg == tp->tp_master->mr_delivery->d_msg) {
+    tport_t *tp_sec = tp->tp_master->mr_delivery->d_tport;
+    return (tp_sec) ? tp_sec->tp_subjects : NULL;
+  }
+  else
+    return NULL;
+}
+
 /** Return UDVM used to decompress the message. */
 int
 tport_delivered_with_comp(tport_t *tp, msg_t const *msg,
@@ -3049,6 +3073,57 @@ tport_delivered_with_comp(tport_t *tp, msg_t const *msg,
 
   if (return_compressor)
     *return_compressor = tp->tp_master->mr_delivery->d_comp;
+
+  return 0;
+}
+
+/** Search for subject in list of TLS Certificate subjects */
+int
+tport_subject_search(char const *subject, su_strlst_t const *lst)
+{
+  usize_t idx, ilen;
+  const char *subjuri;
+
+  if (!subject || su_strmatch(tpn_any, subject))
+    return 1;
+
+  if (!lst)
+    return 0;
+
+  /* Check if subject is a URI */
+  if (su_casenmatch(subject,"sip:",4) || su_casenmatch(subject,"sips:",5))
+    subjuri = subject + su_strncspn(subject,5,":") + 1;
+  else
+    subjuri = NULL;
+
+  ilen = su_strlst_len(lst);
+
+  for (idx = 0; idx < ilen; idx++) {
+    const char *lsturi, *lststr;
+
+    lststr = su_strlst_item(lst, idx);
+
+    /* check if lststr is a URI (sips URI is an unacceptable cert subject) */
+    if (su_casenmatch(lststr,"sip:",4))
+      lsturi = lststr + su_strncspn(lststr,4,":") + 1;
+    else
+      lsturi = NULL;
+
+
+    /* Match two SIP Server Identities */
+    if (host_cmp(subjuri ? subjuri : subject, lsturi ? lsturi : lststr) == 0)
+      return 1;
+#if 0
+    /* XXX - IETF drafts forbid wildcard certs */
+    if (!subjuri && !lsturi && su_strnmatch("*.", lststr, 2)) {
+      size_t urioffset = su_strncspn(subject, 64, ".");
+      if (urioffset) {
+        if (su_casematch(subject + urioffset, lststr+1))
+          return 1;
+      }
+    }
+#endif
+  }
 
   return 0;
 }
@@ -3136,7 +3211,7 @@ int tport_recv_error_report(tport_t *self)
  *
  * @TAGS
  * TPTAG_MTU(), TPTAG_REUSE(), TPTAG_CLOSE_AFTER(), TPTAG_SDWN_AFTER(),
- * TPTAG_FRESH(), TPTAG_COMPARTMENT().
+ * TPTAG_FRESH(), TPTAG_COMPARTMENT(), TPTAG_X509_SUBJECT()
  */
 tport_t *tport_tsend(tport_t *self,
 		     msg_t *msg,
@@ -3316,7 +3391,7 @@ int tport_prepare_and_send(tport_t *self, msg_t *msg,
 
   /* Prepare message for sending - i.e., encode it */
   if (msg_prepare(msg) < 0) {
-    msg_set_errno(msg, errno);
+    msg_set_errno(msg, errno);	/* msg parser uses plain errno. Hmph. */
     return -1;
   }
 
@@ -3667,7 +3742,7 @@ isize_t tport_queuelen(tport_t const *self)
   if (self && self->tp_queue) {
     unsigned short i, N = self->tp_params->tpp_qsize;
 
-    for (i = self->tp_qhead; self->tp_queue[i]; i = (i + 1) % N)
+    for (i = self->tp_qhead; self->tp_queue[i] && retval < N; i = (i + 1) % N)
       retval++;
   }
 
@@ -3913,29 +3988,21 @@ tport_resolve(tport_t *self, msg_t *msg, tp_name_t const *tpn)
   hints->ai_socktype = self->tp_addrinfo->ai_socktype;
   hints->ai_protocol = self->tp_addrinfo->ai_protocol;
 
-#if HAVE_OPEN_C
-  if (host_is_ip_address(tpn->tpn_host))
-    hints->ai_flags |= AI_NUMERICHOST;
-#endif
-
-  if (tpn->tpn_host[0] == '[') {
+  if (host_is_ip6_reference(tpn->tpn_host)) {
     /* Remove [] around IPv6 address */
-    char *end;
+    size_t len = strlen(tpn->tpn_host);
+    assert(len < sizeof ipaddr);
+    host = memcpy(ipaddr, tpn->tpn_host + 1, len - 2);
+    ipaddr[len - 2] = '\0';
     hints->ai_flags |= AI_NUMERICHOST;
-    host = strncpy(ipaddr, tpn->tpn_host +  1, sizeof(ipaddr) - 1);
-    ipaddr[sizeof(ipaddr) - 1] = '\0';
-
-    if ((end = strchr(host, ']'))) {
-      *end = 0;
-    }
-    else {
-      SU_DEBUG_3(("tport_resolve: bad IPv6 address\n"));
-      msg_set_errno(msg, EINVAL);
-      return -1;
-    }
   }
-  else
+  else {
+#if HAVE_OPEN_C
+    if (host_is_ip_address(tpn->tpn_host))
+      hints->ai_flags |= AI_NUMERICHOST;
+#endif
     host = tpn->tpn_host;
+  }
 
   if ((error = su_getaddrinfo(host, tpn->tpn_port, hints, &res))) {
     SU_DEBUG_3(("tport_resolve: getaddrinfo(\"%s\":%s): %s\n",
@@ -4310,7 +4377,7 @@ tport_t *tport_by_protocol(tport_t const *self, char const *proto)
 {
   if (proto && strcmp(proto, tpn_any) != 0) {
     for (; self; self = tport_next(self))
-      if (strcasecmp(proto, self->tp_protoname) == 0)
+      if (su_casematch(proto, self->tp_protoname))
 	break;
   }
 
@@ -4364,7 +4431,7 @@ tport_t *tport_primary_by_name(tport_t const *tp, tp_name_t const *tpn)
 	continue;
 #endif
     }
-    if (proto && strcasecmp(proto, tp->tp_protoname))
+    if (proto && !su_casematch(proto, tp->tp_protoname))
       continue;
 
     if (comp && comp != tp->tp_name->tpn_comp) {
@@ -4498,9 +4565,10 @@ tport_t *tport_by_name(tport_t const *self, tp_name_t const *tpn)
 	SU_DEBUG_7(("tport(%p): found %p by name " TPN_FORMAT "\n",
 		    (void *)self, (void *)sub, TPN_ARGS(tpn)));
       }
-      else if ((strcasecmp(canon, sub->tp_canon) &&
-		strcasecmp(host, sub->tp_host)) ||
-	       strcmp(port, sub->tp_port))
+      else if (!su_casematch(port, sub->tp_port))
+	continue;
+      else if (!su_casematch(canon, sub->tp_canon) &&
+	       !su_casematch(host, sub->tp_host))
 	continue;
 
       return (tport_t *)sub;
@@ -4564,6 +4632,13 @@ tport_t *tport_by_addrinfo(tport_primary_t const *pri,
     if (tport_is_shutdown(sub))
       continue;
 
+    if (tport_has_tls(sub) && !su_casematch(tpn->tpn_canon, sub->tp_name->tpn_canon)) {
+      if (!tport_is_verified(sub))
+        continue;
+      if (!tport_subject_search(tpn->tpn_canon, sub->tp_subjects))
+        continue;
+    }
+
     if (comp != sub->tp_name->tpn_comp)
       continue;
 
@@ -4603,7 +4678,7 @@ int tport_name_by_url(su_home_t *home,
     return -1;
   }
 
-  tpn->tpn_proto = url_tport_default(url->url_type);
+  tpn->tpn_proto = url_tport_default((enum url_type_e)url->url_type);
   tpn->tpn_canon = url->url_host;
   tpn->tpn_host = url->url_host;
   tpn->tpn_port = url_port(url);
@@ -4618,9 +4693,9 @@ int tport_name_by_url(su_home_t *home,
     for (b = (char *)url->url_params; b[0]; b += n) {
       n = strcspn(b, ";");
 
-      if (n > 10 && strncasecmp(b, "transport=", 10) == 0)
+      if (n > 10 && su_casenmatch(b, "transport=", 10))
 	tpn->tpn_proto = b + 10;
-      else if (n > 6 && strncasecmp(b, "maddr=", 6) == 0)
+      else if (n > 6 && su_casenmatch(b, "maddr=", 6))
 	tpn->tpn_host = b + 6;
 
       if (b[n])

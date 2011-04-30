@@ -7,8 +7,8 @@
 
 AUTOMAKE_OPTIONS = foreign 1.7
 
-SUBDIRS = libsofia-sip-ua $(GLIB_SUBDIRS) utils packages tests
-DIST_SUBDIRS = libsofia-sip-ua libsofia-sip-ua-glib utils packages \
+SUBDIRS = s2check libsofia-sip-ua $(GLIB_SUBDIRS) utils packages tests
+DIST_SUBDIRS = s2check libsofia-sip-ua libsofia-sip-ua-glib utils packages \
 	tests win32 open_c
 
 # note: when glib devel files are not available, make should not
@@ -59,12 +59,15 @@ CLEANFILES = $(dist_man_MANS)
 built-sources clean-built-sources valcheck doxygen:
 	@failcom='exit 1'; for f in x $$MAKEFLAGS; do \
 	case $$f in *=* | --[!k]*);; *k*) failcom='fail=yes';; esac; done; \
-	for i in libsofia-sip-ua $(GLIB_SUBDIRS) ; do \
+	for i in utils libsofia-sip-ua $(GLIB_SUBDIRS) ; do \
 	  (cd $$i && $(MAKE) $(AM_MAKEFLAGS) $@) || eval $$failcom; \
 	done ; \
 	test -z "$$fail"
 
 PHONY = built-sources clean-built-sources valcheck doxygen manpages
+
+# s2check depends on generated headers within libsofia-sip-ua
+all check: built-sources
 
 if HAVE_LCOV
 

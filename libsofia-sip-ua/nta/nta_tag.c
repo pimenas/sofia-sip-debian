@@ -418,6 +418,7 @@ tag_typedef_t ntatag_maxsize = USIZETAG_TYPEDEF(maxsize);
  * @par Values
  *    - Maximum acceptable size of a queue (size_t).
  *
+ * @NEW_1_12_9
  */
 tag_typedef_t ntatag_max_proceeding = USIZETAG_TYPEDEF(max_proceeding);
 
@@ -633,7 +634,7 @@ tag_typedef_t ntatag_progress = UINTTAG_TYPEDEF(progress);
  *    instead if NTATAG_TIMER_C(0) is given.
  *
  * @par Default Value
- *   - 180000 (milliseconds, 3 minutes)
+ *   - 185000 (milliseconds, 3 minutes)
  *
  * @sa @RFC3261 sections 13.3.1.1, 16.7 and 16.8,
  * NTATAG_UA(1), NTATAG_TIMER_C(),
@@ -665,6 +666,8 @@ tag_typedef_t ntatag_timer_c = UINTTAG_TYPEDEF(timer_c);
  *    - 600 (graylist server for 10 minutes)
  *
  * @sa NTATAG_BLACKLIST(), NTATAG_TIMEOUT_408()
+ *
+ * @NEW_1_12_8
  */
 tag_typedef_t ntatag_graylist = UINTTAG_TYPEDEF(graylist);
 
@@ -964,9 +967,17 @@ tag_typedef_t ntatag_pass_100 = BOOLTAG_TYPEDEF(pass_100);
  * to a request within half of the SIP T2 (the default value for T2 is 4000
  * milliseconds, so the extra <i>100 Trying</i> would be sent after 2 seconds).
  *
+ * At agent level, this option applies to retransmissions of both non-INVITE
+ * and INVITE transactions.
+ *
+ * At incoming request level, this option can disable sending the 100 Trying for
+ * both retransmissions (if set at agent level) and N1 firings, for just a given
+ * incoming request.
+ *
  * @par Used with
  *    nua_create(), nua_set_params(),
- *    nta_agent_create(), nta_agent_set_params()
+ *    nta_agent_create(), nta_agent_set_params(),
+ *    nta_incoming_set_params()
  *
  * @par Parameter type
  *    boolean: true (non-zero or non-NULL pointer)
@@ -976,9 +987,12 @@ tag_typedef_t ntatag_pass_100 = BOOLTAG_TYPEDEF(pass_100);
  *    - true - send extra 100 Trying if application does not respond
  *    - false - do not send 100 Trying
  *
- * @par Default Value
+ * @par Default Value at Agent level
  *    - 0 (false, do not respond with 100 Trying to retransmissions)
-
+ *
+ * @par Default Value at incoming transaction level
+ *    - 1 (true, respond with 100 Trying to retransmissions and when N1 fired)
+ *
  * @sa @RFC4320, NTATAG_PASS_408(), NTATAG_TIMEOUT_408()
  */
 tag_typedef_t ntatag_extra_100 = BOOLTAG_TYPEDEF(extra_100);
@@ -1334,6 +1348,8 @@ tag_typedef_t ntatag_client_rport = BOOLTAG_TYPEDEF(client_rport);
  *    - 0 - do not use "rport" parameter
  *
  * @sa @RFC3581, NTATAG_CLIENT_RPORT(), NTATAG_TCP_RPORT(), NTATAG_TLS_RPORT(), @Via
+ *
+ * @since Tag type and NTATAG_SERVER_RPORT(2) was added in @VERSION_1_12_9.
  */
 tag_typedef_t ntatag_server_rport = INTTAG_TYPEDEF(server_rport);
 
@@ -1376,6 +1392,8 @@ tag_typedef_t ntatag_tcp_rport = BOOLTAG_TYPEDEF(tcp_rport);
  *      on client side
  *
  * @sa @RFC3581, NTATAG_CLIENT_RPORT(), NTATAG_SERVER_RPORT(), @Via
+ *
+ * @NEW_1_12_10
  */
 tag_typedef_t ntatag_tls_rport = BOOLTAG_TYPEDEF(tls_rport);
 

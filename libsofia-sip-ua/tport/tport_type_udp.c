@@ -69,38 +69,52 @@ static char const __func__[] = "tport_type_udp";
 
 tport_vtable_t const tport_udp_client_vtable =
 {
-  "udp", tport_type_client,
-  sizeof (tport_primary_t),
-  tport_udp_init_client,
-  NULL,
-  NULL,
-  NULL,
-  sizeof (tport_t),
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  tport_recv_dgram,
-  tport_send_dgram,
+  /* vtp_name 		     */ "udp",
+  /* vtp_public              */ tport_type_client,
+  /* vtp_pri_size            */ sizeof (tport_primary_t),
+  /* vtp_init_primary        */ tport_udp_init_client,
+  /* vtp_deinit_primary      */ NULL,
+  /* vtp_wakeup_pri          */ NULL,
+  /* vtp_connect             */ NULL,
+  /* vtp_secondary_size      */ sizeof (tport_t),
+  /* vtp_init_secondary      */ NULL,
+  /* vtp_deinit_secondary    */ NULL,
+  /* vtp_shutdown            */ NULL,
+  /* vtp_set_events          */ NULL,
+  /* vtp_wakeup              */ NULL,
+  /* vtp_recv                */ tport_recv_dgram,
+  /* vtp_send                */ tport_send_dgram,
+  /* vtp_deliver             */ NULL,
+  /* vtp_prepare             */ NULL,
+  /* vtp_keepalive           */ NULL,
+  /* vtp_stun_response       */ NULL,
+  /* vtp_next_secondary_timer*/ NULL,
+  /* vtp_secondary_timer     */ NULL,
 };
 
 tport_vtable_t const tport_udp_vtable =
 {
-  "udp", tport_type_local,
-  sizeof (tport_primary_t),
-  tport_udp_init_primary,
-  NULL,
-  NULL,
-  NULL,
-  sizeof (tport_t),
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  tport_recv_dgram,
-  tport_send_dgram,
+  /* vtp_name 		     */ "udp",
+  /* vtp_public              */ tport_type_local,
+  /* vtp_pri_size            */ sizeof (tport_primary_t),
+  /* vtp_init_primary        */ tport_udp_init_primary,
+  /* vtp_deinit_primary      */ NULL,
+  /* vtp_wakeup_pri          */ NULL,
+  /* vtp_connect             */ NULL,
+  /* vtp_secondary_size      */ sizeof (tport_t),
+  /* vtp_init_secondary      */ NULL,
+  /* vtp_deinit_secondary    */ NULL,
+  /* vtp_shutdown            */ NULL,
+  /* vtp_set_events          */ NULL,
+  /* vtp_wakeup              */ NULL,
+  /* vtp_recv                */ tport_recv_dgram,
+  /* vtp_send                */ tport_send_dgram,
+  /* vtp_deliver             */ NULL,
+  /* vtp_prepare             */ NULL,
+  /* vtp_keepalive           */ NULL,
+  /* vtp_stun_response       */ NULL,
+  /* vtp_next_secondary_timer*/ NULL,
+  /* vtp_secondary_timer     */ NULL,
 };
 
 static void tport_check_trunc(tport_t *tp, su_addrinfo_t *ai);
@@ -254,19 +268,15 @@ static void tport_check_trunc(tport_t *tp, su_addrinfo_t *ai)
   if (n != 4)
     return;
 
-  for (;;) {
-    n = su_recvfrom(tp->tp_socket, buffer, sizeof buffer, MSG_TRUNC,
-		    (void *)&su, &sulen);
+  n = su_recvfrom(tp->tp_socket, buffer, sizeof buffer, MSG_TRUNC,
+		  (void *)&su, &sulen);
 
-    if (n > (ssize_t)sizeof buffer) {
-      tp->tp_trunc = 1;
-      return;
-    }
-
-    /* XXX - check that su and tp->tp_addrinfo->ai_addr match */
-
+  if (n > (ssize_t)sizeof buffer) {
+    tp->tp_trunc = 1;
     return;
   }
+
+  /* XXX - check that su and tp->tp_addrinfo->ai_addr match */
 #endif
 }
 

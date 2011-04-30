@@ -30,6 +30,8 @@ nobase_include_sofia_HEADERS = \
 			sofia-sip/nua.h sofia-sip/nua_tag.h
 
 libnua_la_SOURCES = 	nua.c nua_stack.h nua_common.c nua_stack.c \
+			nua_server.h nua_server.c \
+			nua_client.h nua_client.c \
 			nua_extension.c nua_types.h \
 			nua_dialog.c nua_dialog.h \
 			outbound.c outbound.h \
@@ -43,13 +45,7 @@ libnua_la_SOURCES = 	nua.c nua_stack.h nua_common.c nua_stack.c \
 
 COVERAGE_INPUT = 	$(libnua_la_SOURCES) $(include_sofia_HEADERS)
 
-check_nua_SOURCES = 	check_nua.c check_nua.h \
-			check_session.c check_register.c \
-			test_s2.h test_s2.c
-
-check_nua_LDADD = 	$(nua_libs) @CHECK_LIBS@
-
-nua_libs = 		libnua.la  \
+LDADD = 		libnua.la  \
 			../iptsec/libiptsec.la \
 			../ipt/libipt.la \
 			../nea/libnea.la \
@@ -67,6 +63,15 @@ nua_libs = 		libnua.la  \
 			../su/libsu.la
 
 # ----------------------------------------------------------------------
+
+check_nua_SOURCES = 	check_nua.c check_nua.h \
+			check_session.c check_register.c \
+			check_etsi.c check_simple.c
+
+check_nua_LDADD = 	$(LDADD) ${top_builddir}/s2check/libs2.a \
+			@CHECK_LIBS@
+
+# ----------------------------------------------------------------------
 # Install and distribution rules
 
 EXTRA_DIST =		nua.docs $(BUILT_SOURCES)
@@ -76,6 +81,6 @@ EXTRA_DIST =		nua.docs $(BUILT_SOURCES)
 
 include $(top_srcdir)/rules/sofia.am
 
-INCLUDES = ${INTERNAL_INCLUDES}
+INCLUDES = ${INTERNAL_INCLUDES} -I$(top_srcdir)/s2check
 
 TAG_DLL_FLAGS =		LIST=nua_tag_list

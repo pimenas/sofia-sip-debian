@@ -14,7 +14,8 @@ INCLUDES = 		-I$(srcdir)/../sdp -I../sdp \
 			-I$(srcdir)/../url -I../url \
 			-I$(srcdir)/../ipt -I../ipt \
 			-I$(srcdir)/../bnf -I../bnf \
-			-I$(srcdir)/../su -I../su
+			-I$(srcdir)/../su -I../su \
+			-I$(top_srcdir)/s2check
 
 # ----------------------------------------------------------------------
 # Build targets
@@ -47,6 +48,9 @@ LDADD = 		libsoa.la \
 			../ipt/libipt.la \
 			../bnf/libbnf.la \
 			../su/libsu.la
+
+test_soa_LDADD = 	$(top_builddir)/s2check/libs2.a \
+			$(LDADD)
 
 test_soa_LDFLAGS = 	-static
 

@@ -39,7 +39,7 @@
 
 #define TP_CLIENT_T          struct register_usage
 
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 #include <sofia-sip/su_strlst.h>
 #include <sofia-sip/su_uniqueid.h>
 #include <sofia-sip/su_tagarg.h>
@@ -780,12 +780,14 @@ int nua_register_client_request(nua_client_request_t *cr,
       /* Remove the expire parameters from contacts */
       msg_header_remove_param(m->m_common, "expires");
     }
-    else if (nr && nr->nr_min_expires &&
-	     strtoul(m->m_expires, 0, 10) < nr->nr_min_expires) {
-      if (min_expires == NULL)
-	min_expires = su_sprintf(msg_home(msg), "expires=%lu",
-				 nr->nr_min_expires);
-      msg_header_replace_param(msg_home(msg), m->m_common, min_expires);
+    else if (nr && nr->nr_min_expires) {
+      unsigned long exp = strtoul(m->m_expires, 0, 10);
+      if (exp != 0 && exp < nr->nr_min_expires) {
+        if (min_expires == NULL)
+          min_expires = su_sprintf(msg_home(msg), "expires=%lu",
+                                   nr->nr_min_expires);
+        msg_header_replace_param(msg_home(msg), m->m_common, min_expires);
+      }
     }
   }
 
@@ -1034,7 +1036,7 @@ void nua_register_connection_closed(tp_stack_t *sip_stack,
   tpn = tport_name(nr->nr_tport);
 
   SU_DEBUG_5(("nua_register(%p): tport to %s/%s:%s%s%s closed %s\n",
-	      du->du_dialog->ds_owner,
+		  (void *)du->du_dialog->ds_owner,
 	      tpn->tpn_proto, tpn->tpn_host, tpn->tpn_port,
 	      tpn->tpn_comp ? ";comp=" : "",
 	      tpn->tpn_comp ? tpn->tpn_comp : "",
@@ -1163,13 +1165,13 @@ nua_stack_init_transport(nua_t *nua, tagi_t const *tags)
 
   if (contact1 &&
       (url_is_string(contact1)
-       ? strncasecmp(contact1->us_str, "sips:", 5) == 0
+       ? su_casenmatch(contact1->us_str, "sips:", 5)
        : contact1->us_url->url_type == url_sips))
     name1 = "sips";
 
   if (contact2 &&
       (url_is_string(contact2)
-       ? strncasecmp(contact2->us_str, "sips:", 5) == 0
+       ? su_casenmatch(contact2->us_str, "sips:", 5)
        : contact2->us_url->url_type == url_sips))
     name2 = "sips";
 
@@ -1232,7 +1234,9 @@ static
 void nua_network_changed_cb(nua_t *nua, su_root_t *root)
 {
 
-  uint32_t nw_updates = NUA_NW_DETECT_TRY_FULL;
+  uint32_t nw_updates;
+
+  nw_updates = nua->nua_prefs->ngp_detect_network_updates;
 
   switch (nw_updates) {
   case NUA_NW_DETECT_ONLY_INFO:
@@ -1267,7 +1271,7 @@ int nua_stack_launch_network_change_detector(nua_t *nua)
   su_network_changed_t *snc = NULL;
 
   snc = su_root_add_network_changed(nua->nua_home,
-				    nua->nua_api_root,
+				    nua->nua_root,
 				    nua_network_changed_cb,
 				    nua);
 
@@ -1379,11 +1383,11 @@ int nua_registration_from_via(nua_registration_t **list,
     if (protocol) {
       /* Try to pair vias if we have both udp and tcp */
       for (prev = vv; *prev; prev = &(*prev)->v_next) {
-        if (strcasecmp(protocol, (*prev)->v_protocol))
+        if (!su_casematch(protocol, (*prev)->v_protocol))
           continue;
-        if (strcasecmp(v->v_host, (*prev)->v_host))
+        if (!su_casematch(v->v_host, (*prev)->v_host))
           continue;
-        if (str0cmp(v->v_port, (*prev)->v_port))
+        if (!su_strmatch(v->v_port, (*prev)->v_port))
           continue;
         break;
       }
@@ -2023,7 +2027,7 @@ sip_contact_t *nua_handle_contact_by_via(nua_handle_t *nh,
   }
 
   if (transport) {
-    if (strncasecmp(transport, "SIP/2.0/", 8) == 0)
+    if (su_casenmatch(transport, "SIP/2.0/", 8))
       transport += 8;
 
     /* Make transport parameter lowercase */

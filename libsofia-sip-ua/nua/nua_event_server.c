@@ -39,7 +39,7 @@
 
 #include <assert.h>
 
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 
 #include <sofia-sip/sip_protos.h>
 #include <sofia-sip/sip_status.h>
@@ -144,9 +144,13 @@ nea_event_t *nh_notifier_event(nua_handle_t *nh,
   char const *ct_s = NULL;
 
   if (ev == NULL) {
-    char *o_type = su_strdup(home, event->o_type);
-    char *o_subtype = o_type ? strchr(o_type, '.') : NULL;
+    char *o_type, *o_subtype;
+    char *temp = NULL;
 
+    o_type = su_strdup(home, event->o_type);
+    if (o_type == NULL)
+      return NULL;
+    o_subtype = strchr(o_type, '.');
     if (o_subtype)
       *o_subtype++ = '\0';
 
@@ -162,7 +166,7 @@ nea_event_t *nh_notifier_event(nua_handle_t *nh,
      * types
      */
     if (accept_s == NULL && accept)
-      accept_s = sip_header_as_string(home, (sip_header_t *)accept);
+      accept_s = temp = sip_header_as_string(home, (sip_header_t *)accept);
     if (accept_s == NULL && ct)
       accept_s = ct->c_type;
     if (accept_s == NULL && ct_s)
@@ -173,6 +177,9 @@ nea_event_t *nh_notifier_event(nua_handle_t *nh,
 			  o_type, o_subtype,
 			  ct ? ct->c_type : ct_s,
 			  accept_s);
+
+    su_free(home, temp);
+    su_free(home, o_type);
   }
 
   return ev;
@@ -221,7 +228,7 @@ void authorize_watcher(nea_server_t *nes,
     }
 
     SU_DEBUG_7(("nua(%p): authorize_watcher: %s\n", (void *)nh, what));
-    nea_sub_auth(sn->sn_subscriber, substate,
+    nea_sub_auth(sn->sn_subscriber, (nea_state_t)substate,
 		 TAG_IF(substate == nua_substate_pending,
 			NEATAG_FAKE(1)),
 		 TAG_IF(substate == nua_substate_terminated,
@@ -258,7 +265,7 @@ void nua_stack_authorize(nua_t *nua,
 	  TAG_END());
 
   if (sub && state > 0) {
-    nea_sub_auth(sub, state, TAG_NEXT(tags));
+    nea_sub_auth(sub, (nea_state_t)state, TAG_NEXT(tags));
     nua_stack_event(nua, nh, NULL, e, SIP_200_OK, NULL);
   }
   else {

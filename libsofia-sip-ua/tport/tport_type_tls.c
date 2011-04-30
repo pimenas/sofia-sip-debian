@@ -31,12 +31,15 @@
  * @author Tat Chan <Tat.Chan@nokia.com>
  * @author Kai Vehmanen <kai.vehmanen@nokia.com>
  * @author Martti Mela <Martti.Mela@nokia.com>
+ * @author Jarod Neuner <janeuner@networkharbor.com>
  *
  * @date Split here: Fri Mar 24 08:45:49 EET 2006 ppessi
  * @date Originally Created: Thu Jul 20 12:54:32 2000 ppessi
  */
 
 #include "config.h"
+
+#define SU_WAKEUP_ARG_T  struct tport_s
 
 #include "tport_internal.h"
 
@@ -46,7 +49,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 
 #if HAVE_FUNC
 #elif HAVE_FUNCTION
@@ -89,54 +92,58 @@ static int tport_tls_events(tport_t *self, int events);
 static int tport_tls_recv(tport_t *self);
 static ssize_t tport_tls_send(tport_t const *self, msg_t *msg,
 			      msg_iovec_t iov[], size_t iovused);
-
-typedef struct
-{
-  tport_primary_t tlspri_pri[1];
-  tls_t *tlspri_master;
-} tport_tls_primary_t;
-
-typedef struct
-{
-  tport_t tlstp_tp[1];
-  tls_t  *tlstp_context;
-  char   *tlstp_buffer;    /**< 2k Buffer  */
-} tport_tls_t;
+static int tport_tls_accept(tport_primary_t *pri, int events);
+static tport_t *tport_tls_connect(tport_primary_t *pri, su_addrinfo_t *ai,
+                                  tp_name_t const *tpn);
 
 tport_vtable_t const tport_tls_vtable =
 {
-  "tls", tport_type_local,
-  sizeof (tport_tls_primary_t),
-  tport_tls_init_primary,
-  tport_tls_deinit_primary,
-  tport_accept,
-  NULL,
-  sizeof (tport_tls_t),
-  tport_tls_init_secondary,
-  tport_tls_deinit_secondary,
-  tport_tls_shutdown,
-  tport_tls_set_events,
-  tport_tls_events,
-  tport_tls_recv,
-  tport_tls_send,
+  /* vtp_name 		     */ "tls",
+  /* vtp_public              */ tport_type_local,
+  /* vtp_pri_size            */ sizeof (tport_tls_primary_t),
+  /* vtp_init_primary        */ tport_tls_init_primary,
+  /* vtp_deinit_primary      */ tport_tls_deinit_primary,
+  /* vtp_wakeup_pri          */ tport_tls_accept,
+  /* vtp_connect             */ tport_tls_connect,
+  /* vtp_secondary_size      */ sizeof (tport_tls_t),
+  /* vtp_init_secondary      */ tport_tls_init_secondary,
+  /* vtp_deinit_secondary    */ tport_tls_deinit_secondary,
+  /* vtp_shutdown            */ tport_tls_shutdown,
+  /* vtp_set_events          */ tport_tls_set_events,
+  /* vtp_wakeup              */ tport_tls_events,
+  /* vtp_recv                */ tport_tls_recv,
+  /* vtp_send                */ tport_tls_send,
+  /* vtp_deliver             */ NULL,
+  /* vtp_prepare             */ NULL,
+  /* vtp_keepalive           */ NULL,
+  /* vtp_stun_response       */ NULL,
+  /* vtp_next_secondary_timer*/ NULL,
+  /* vtp_secondary_timer     */ NULL,
 };
 
 tport_vtable_t const tport_tls_client_vtable =
 {
-  "tls", tport_type_client,
-  sizeof (tport_tls_primary_t),
-  tport_tls_init_client,
-  tport_tls_deinit_primary,
-  tport_accept,
-  NULL,
-  sizeof (tport_tls_t),
-  tport_tls_init_secondary,
-  tport_tls_deinit_secondary,
-  tport_tls_shutdown,
-  tport_tls_set_events,
-  tport_tls_events,
-  tport_tls_recv,
-  tport_tls_send,
+  /* vtp_name 		     */ "tls",
+  /* vtp_public              */ tport_type_client,
+  /* vtp_pri_size            */ sizeof (tport_tls_primary_t),
+  /* vtp_init_primary        */ tport_tls_init_client,
+  /* vtp_deinit_primary      */ tport_tls_deinit_primary,
+  /* vtp_wakeup_pri          */ tport_tls_accept,
+  /* vtp_connect             */ tport_tls_connect,
+  /* vtp_secondary_size      */ sizeof (tport_tls_t),
+  /* vtp_init_secondary      */ tport_tls_init_secondary,
+  /* vtp_deinit_secondary    */ tport_tls_deinit_secondary,
+  /* vtp_shutdown            */ tport_tls_shutdown,
+  /* vtp_set_events          */ tport_tls_set_events,
+  /* vtp_wakeup              */ tport_tls_events,
+  /* vtp_recv                */ tport_tls_recv,
+  /* vtp_send                */ tport_tls_send,
+  /* vtp_deliver             */ NULL,
+  /* vtp_prepare             */ NULL,
+  /* vtp_keepalive           */ NULL,
+  /* vtp_stun_response       */ NULL,
+  /* vtp_next_secondary_timer*/ NULL,
+  /* vtp_secondary_timer     */ NULL,
 };
 
 static int tport_tls_init_primary(tport_primary_t *pri,
@@ -175,6 +182,11 @@ static int tport_tls_init_master(tport_primary_t *pri,
   char const *path = NULL;
   unsigned tls_version = 1;
   unsigned tls_verify = 0;
+  char const *passphrase = NULL;
+  unsigned tls_policy = TPTLS_VERIFY_NONE;
+  unsigned tls_depth = 0;
+  unsigned tls_date = 1;
+  su_strlst_t const *tls_subjects = NULL;
   su_home_t autohome[SU_HOME_AUTO_SIZE(1024)];
   tls_issues_t ti = {0};
 
@@ -187,6 +199,11 @@ static int tport_tls_init_master(tport_primary_t *pri,
 	  TPTAG_CERTIFICATE_REF(path),
 	  TPTAG_TLS_VERSION_REF(tls_version),
 	  TPTAG_TLS_VERIFY_PEER_REF(tls_verify),
+	  TPTAG_TLS_PASSPHRASE_REF(passphrase),
+	  TPTAG_TLS_VERIFY_POLICY_REF(tls_policy),
+	  TPTAG_TLS_VERIFY_DEPTH_REF(tls_depth),
+	  TPTAG_TLS_VERIFY_DATE_REF(tls_date),
+	  TPTAG_TLS_VERIFY_SUBJECTS_REF(tls_subjects),
 	  TAG_END());
 
   if (!path) {
@@ -197,11 +214,13 @@ static int tport_tls_init_master(tport_primary_t *pri,
   }
 
   if (path) {
-    ti.verify_peer = tls_verify;
-    ti.verify_depth = 2;
+    ti.policy = tls_policy | (tls_verify ? TPTLS_VERIFY_ALL : 0);
+    ti.verify_depth = tls_depth;
+    ti.verify_date = tls_date;
     ti.configured = path != tbf;
     ti.randFile = su_sprintf(autohome, "%s/%s", path, "tls_seed.dat");
     ti.key = su_sprintf(autohome, "%s/%s", path, "agent.pem");
+    ti.passphrase = su_strdup(autohome, passphrase);
     ti.cert = ti.key;
     ti.CAfile = su_sprintf(autohome, "%s/%s", path, "cafile.pem");
     ti.version = tls_version;
@@ -220,15 +239,25 @@ static int tport_tls_init_master(tport_primary_t *pri,
   su_home_zap(autohome);
 
   if (!tlspri->tlspri_master) {
+    /*
     if (!path || ti.configured) {
       SU_DEBUG_1(("tls_init_master: %s\n", strerror(errno)));
     }
     else {
       SU_DEBUG_5(("tls_init_master: %s\n", strerror(errno)));
     }
+    */
     return *return_culprit = "tls_init_master", -1;
+  } else {
+    char buf[TPORT_HOSTPORTSIZE];
+    su_sockaddr_t *sa = ai ? (void *)(ai->ai_addr) : NULL;
+    if (sa && tport_hostport(buf, sizeof(buf), sa, 2))
+      SU_DEBUG_5(("%s(%p): tls context initialized for %s\n", \
+                  __func__, (void *)pri, buf));
   }
 
+  if (tls_subjects)
+    pri->pri_primary->tp_subjects = su_strlst_dup(pri->pri_home, tls_subjects);
   pri->pri_has_tls = 1;
 
   return 0;
@@ -251,11 +280,9 @@ static int tport_tls_init_secondary(tport_t *self, int socket, int accepted,
   if (tport_tcp_init_secondary(self, socket, accepted, return_reason) < 0)
     return -1;
 
-  if (accepted) {
-    tlstp->tlstp_context = tls_init_slave(master, socket);
-    if (!tlstp->tlstp_context)
-      return *return_reason = "tls_init_slave", -1;
-  }
+  tlstp->tlstp_context = tls_init_secondary(master, socket, accepted);
+  if (!tlstp->tlstp_context)
+    return *return_reason = "tls_init_slave", -1;
 
   return 0;
 }
@@ -443,19 +470,11 @@ ssize_t tport_tls_send(tport_t const *self,
 		       msg_iovec_t iov[],
 		       size_t iovlen)
 {
-  tport_tls_primary_t *tlspri = (tport_tls_primary_t *)self->tp_pri;
   tport_tls_t *tlstp = (tport_tls_t *)self;
   enum { TLSBUFSIZE = 2048 };
   size_t i, j, n, m, size = 0;
   ssize_t nerror;
   int oldmask, mask;
-
-  if (tlstp->tlstp_context == NULL) {
-    tls_t *master = tlspri->tlspri_master;
-    tlstp->tlstp_context = tls_init_client(master, self->tp_socket);
-    if (!tlstp->tlstp_context)
-      return -1;
-  }
 
   oldmask = tls_events(tlstp->tlstp_context, self->tp_events);
 
@@ -526,4 +545,145 @@ ssize_t tport_tls_send(tport_t const *self,
     tport_tls_set_events(self);
 
   return size;
+}
+
+static
+int tport_tls_accept(tport_primary_t *pri, int events)
+{
+  tport_t *self;
+  su_addrinfo_t ai[1];
+  su_sockaddr_t su[1];
+  socklen_t sulen = sizeof su;
+  su_socket_t s = INVALID_SOCKET, l = pri->pri_primary->tp_socket;
+  char const *reason = "accept";
+
+  if (events & SU_WAIT_ERR)
+    tport_error_event(pri->pri_primary);
+
+  if (!(events & SU_WAIT_ACCEPT))
+    return 0;
+
+  memcpy(ai, pri->pri_primary->tp_addrinfo, sizeof ai);
+  ai->ai_canonname = NULL;
+
+  s = accept(l, &su->su_sa, &sulen);
+
+  if (s < 0) {
+    tport_error_report(pri->pri_primary, su_errno(), NULL);
+    return 0;
+  }
+
+  ai->ai_addr = &su->su_sa, ai->ai_addrlen = sulen;
+
+  /* Alloc a new transport object, then register socket events with it */
+  if ((self = tport_alloc_secondary(pri, s, 1, &reason)) == NULL) {
+    SU_DEBUG_3(("%s(%p): incoming secondary on "TPN_FORMAT
+                " failed. reason = %s\n", __func__, (void *)pri,
+                TPN_ARGS(pri->pri_primary->tp_name), reason));
+    return 0;
+  }
+  else {
+    int events = SU_WAIT_IN|SU_WAIT_ERR|SU_WAIT_HUP;
+
+    SU_CANONIZE_SOCKADDR(su);
+
+    if (/* Name this transport */
+        tport_setname(self, pri->pri_protoname, ai, NULL) != -1
+	/* Register this secondary */
+	&&
+	tport_register_secondary(self, tls_connect, events) != -1) {
+
+      self->tp_conn_orient = 1;
+      self->tp_is_connected = 0;
+
+      SU_DEBUG_5(("%s(%p): new connection from " TPN_FORMAT "\n",
+		  __func__, (void *)self, TPN_ARGS(self->tp_name)));
+
+      /* Return succesfully */
+      return 0;
+    }
+
+    /* Failure: shutdown socket,  */
+    tport_close(self);
+    tport_zap_secondary(self);
+    self = NULL;
+  }
+
+  return 0;
+}
+
+static
+tport_t *tport_tls_connect(tport_primary_t *pri,
+                           su_addrinfo_t *ai,
+			   tp_name_t const *tpn)
+{
+  tport_t *self = NULL;
+
+  su_socket_t s, server_socket;
+  int events = SU_WAIT_CONNECT | SU_WAIT_ERR;
+
+  int err;
+  unsigned errlevel = 3;
+  char buf[TPORT_HOSTPORTSIZE];
+  char const *what;
+
+  what = "su_socket";
+  s = su_socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+  if (s == INVALID_SOCKET)
+    goto sys_error;
+
+  what = "tport_alloc_secondary";
+  if ((self = tport_alloc_secondary(pri, s, 0, &what)) == NULL)
+    goto sys_error;
+
+  self->tp_conn_orient = 1;
+
+  if ((server_socket = pri->pri_primary->tp_socket) != INVALID_SOCKET) {
+    su_sockaddr_t susa;
+    socklen_t susalen = sizeof(susa);
+
+    if (getsockname(server_socket, &susa.su_sa, &susalen) < 0) {
+      SU_DEBUG_3(("%s(%p): getsockname(): %s\n",
+                  __func__, (void *)self, su_strerror(su_errno())));
+    } else {
+      susa.su_port = 0;
+      if (bind(s, &susa.su_sa, susalen) < 0) {
+        SU_DEBUG_3(("%s(%p): bind(local-ip): %s\n",
+                    __func__, (void *)self, su_strerror(su_errno())));
+      }
+    }
+  }
+
+  what = "connect";
+  if (connect(s, ai->ai_addr, (socklen_t)(ai->ai_addrlen)) == SOCKET_ERROR) {
+    err = su_errno();
+    if (!su_is_blocking(err))
+      goto sys_error;
+  }
+
+  what = "tport_setname";
+  if (tport_setname(self, tpn->tpn_proto, ai, tpn->tpn_canon) == -1)
+    goto sys_error;
+
+  what = "tport_register_secondary";
+  if (tport_register_secondary(self, tls_connect, events) == -1)
+    goto sys_error;
+
+  SU_DEBUG_5(("%s(%p): connecting to " TPN_FORMAT "\n",
+              __func__, (void *)self, TPN_ARGS(self->tp_name)));
+
+  tport_set_secondary_timer(self);
+
+  return self;
+
+sys_error:
+  err = errno;
+  if (SU_LOG_LEVEL >= errlevel)
+    su_llog(tport_log, errlevel, "%s(%p): %s (pf=%d %s/%s): %s\n",
+            __func__, (void *)pri, what, ai->ai_family, tpn->tpn_proto,
+	    tport_hostport(buf, sizeof(buf), (void *)ai->ai_addr, 2),
+	    su_strerror(err));
+  tport_zap_secondary(self);
+  su_seterrno(err);
+  return NULL;
 }

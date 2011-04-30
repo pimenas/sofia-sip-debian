@@ -32,7 +32,7 @@
 
 #include "config.h"
 
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 #include <sofia-sip/su_strlst.h>
 #include <sofia-sip/token64.h>
 #include <sofia-sip/su_tagarg.h>
@@ -53,10 +53,6 @@
 #include <limits.h>
 
 #include <assert.h>
-
-#if !HAVE_STRCASESTR
-char *strcasestr(char const *haystack, char const *needle);
-#endif
 
 /* ====================================================================== */
 /* Helper macros and functions for handling #nua_handle_preferences_t. */
@@ -113,7 +109,7 @@ static int already_contains_package_name(char const *s)
   char const pn[] = " " PACKAGE_NAME "/";
   size_t pnlen = strlen(pn + 1);
 
-  return strncasecmp(s, pn + 1, pnlen) == 0 || strcasestr(s, pn);
+  return su_casenmatch(s, pn + 1, pnlen) || su_strcasestr(s, pn);
 }
 
 /* ====================================================================== */
@@ -163,6 +159,9 @@ int nua_stack_set_defaults(nua_handle_t *nh,
 
   NHP_SET(nhp, refer_expires, 300);
   NHP_SET(nhp, refer_with_id, 1);
+
+  NHP_SET(nhp, auto302, 1);
+  NHP_SET(nhp, auto305, 1);
 
   NHP_SET(nhp, substate, nua_substate_active);
   NHP_SET(nhp, sub_expires, 3600);
@@ -745,6 +744,14 @@ static int nhp_set_tags(su_home_t *home,
     else if (tag == nutag_autoack) {
       NHP_SET(nhp, auto_ack, value != 0);
     }
+    /* NUTAG_AUTO302(auto302) */
+    else if (tag == nutag_auto302) {
+      NHP_SET(nhp, auto302, value != 0);
+    }
+    /* NUTAG_AUTO305(auto305) */
+    else if (tag == nutag_auto305) {
+      NHP_SET(nhp, auto305, value != 0);
+    }
     /* NUTAG_INVITE_TIMER(invite_timeout) */
     else if (tag == nutag_invite_timer) {
       NHP_SET(nhp, invite_timeout, (unsigned)value);
@@ -766,7 +773,7 @@ static int nhp_set_tags(su_home_t *home,
       else if (refresher <= nua_no_refresher)
 	refresher = nua_no_refresher;
 
-      NHP_SET(nhp, refresher, refresher);
+      NHP_SET(nhp, refresher, (enum nua_session_refresher)refresher);
     }
     /* NUTAG_UPDATE_REFRESH(update_refresh) */
     else if (tag == nutag_update_refresh) {
@@ -964,7 +971,7 @@ static int nhp_set_tags(su_home_t *home,
     /* NUTAG_REGISTRAR(registrar) */
     else if (tag == nutag_registrar) {
       NHP_SET_STR_BY_URL(nhp, char, registrar, value);
-      if (NHP_ISSET(nhp, registrar) && !str0cmp(nhp->nhp_registrar, "*"))
+      if (NHP_ISSET(nhp, registrar) && su_strmatch(nhp->nhp_registrar, "*"))
 	NHP_SET_STR(nhp, registrar, 0);
     }
     /* NUTAG_INSTANCE(instance) */
@@ -1659,6 +1666,9 @@ int nua_stack_get_params(nua_t *nua, nua_handle_t *nh, nua_event_t e,
      TIF(NUTAG_AUTH_CACHE, auth_cache),
      TIF(NUTAG_REFER_EXPIRES, refer_expires),
      TIF(NUTAG_REFER_WITH_ID, refer_with_id),
+
+     TIF(NUTAG_AUTO302, auto302),
+     TIF(NUTAG_AUTO305, auto305),
 
      TIF(NUTAG_SUBSTATE, substate),
      TIF(NUTAG_SUB_EXPIRES, sub_expires),

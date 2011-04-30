@@ -62,7 +62,7 @@ struct soa_static_complete;
 #include <sofia-sip/su_tag_class.h>
 #include <sofia-sip/su_tagarg.h>
 #include <sofia-sip/su_strlst.h>
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 #include <sofia-sip/bnf.h>
 
 #include "sofia-sip/soa.h"
@@ -71,10 +71,6 @@ struct soa_static_complete;
 
 #define NONE ((void *)-1)
 #define XXX assert(!"implemented")
-
-#if !HAVE_STRCASESTR
-char *strcasestr(const char *haystack, const char *needle);
-#endif
 
 typedef struct soa_static_session
 {
@@ -87,6 +83,11 @@ typedef struct soa_static_session
   int  *sss_u2s;
   /** Mapping from session SDP m= lines to user SDP m= lines */
   int *sss_s2u;
+
+  /** State kept from SDP before current offer */
+  struct {
+    int  *u2s, *s2u;
+  } sss_previous;
 
   /** Our latest offer or answer */
   sdp_session_t *sss_latest;
@@ -175,7 +176,7 @@ static int soa_static_set_params(soa_session_t *ss, tagi_t const *tags)
 	      SOATAG_REUSE_REJECTED_REF(reuse_rejected),
 	      TAG_END());
 
-  if (n > 0 && str0casecmp(audio_aux, sss->sss_audio_aux)) {
+  if (n > 0 && !su_casematch(audio_aux, sss->sss_audio_aux)) {
     char *s = su_strdup(ss->ss_home, audio_aux), *tbf = sss->sss_audio_aux;
     if (s == NULL && audio_aux != NULL)
       return -1;
@@ -280,7 +281,12 @@ sdp_media_t *soa_sdp_make_rejected_media(su_home_t *home,
   rejected->m_proto_name = m->m_proto_name;
 
   if (include_all_codecs) {
-    rejected->m_rtpmaps = m->m_rtpmaps;
+    if (m->m_rtpmaps) {
+      rejected->m_rtpmaps = m->m_rtpmaps;
+    }
+    else if (m->m_format) {
+      rejected->m_format = m->m_format;
+    }
   }
 
   rejected->m_rejected = 1;
@@ -358,7 +364,7 @@ int soa_sdp_is_auxiliary_codec(sdp_rtpmap_t const *rm, char const *auxiliary)
     return 0;
 
   for (match = auxiliary;
-       (match = strcasestr(match, codec));
+       (match = su_strcasestr(match, codec));
        match = match + 1) {
     if (IS_ALPHANUM(match[clen]) || match[clen] == '-')
       continue;
@@ -710,7 +716,7 @@ int soa_sdp_upgrade(soa_session_t *ss,
 {
   soa_static_session_t *sss = (soa_static_session_t *)ss;
 
-  int Ns, Nu, Nr, size, i, j;
+  int Ns, Nu, Nr, Nmax, n, i, j;
   sdp_media_t *m, **mm, *um;
   sdp_media_t **s_media, **o_media, **u_media;
   sdp_media_t const *rm, **r_media;
@@ -719,18 +725,18 @@ int soa_sdp_upgrade(soa_session_t *ss,
   if (session == NULL || user == NULL)
     return (errno = EFAULT), -1;
 
-  Ns = sdp_media_count(session, sdp_media_any, 0, 0, 0);
-  Nu = sdp_media_count(user, sdp_media_any, 0, 0, 0);
-  Nr = sdp_media_count(remote, sdp_media_any, 0, 0, 0);
+  Ns = sdp_media_count(session, sdp_media_any, (sdp_text_t)0, (sdp_proto_e)0, (sdp_text_t)0);
+  Nu = sdp_media_count(user, sdp_media_any, (sdp_text_t)0, (sdp_proto_e)0, (sdp_text_t)0);
+  Nr = sdp_media_count(remote, sdp_media_any, (sdp_text_t)0, (sdp_proto_e)0, (sdp_text_t)0);
 
   if (remote == NULL)
-    size = Ns + Nu + 1;
+    Nmax = Ns + Nu;
   else if (Ns < Nr)
-    size = Nr + 1;
+    Nmax = Nr;
   else
-    size = Ns + 1;
+    Nmax = Ns;
 
-  s_media = su_zalloc(home, size * (sizeof *s_media));
+  s_media = su_zalloc(home, (Nmax + 1) * (sizeof *s_media));
   o_media = su_zalloc(home, (Ns + 1) * (sizeof *o_media));
   u_media = su_zalloc(home, (Nu + 1) * (sizeof *u_media));
   r_media = su_zalloc(home, (Nr + 1) * (sizeof *r_media));
@@ -742,17 +748,17 @@ int soa_sdp_upgrade(soa_session_t *ss,
     return -1;
 
   u2s = su_alloc(home, (Nu + 1) * sizeof(*u2s));
-  s2u = su_alloc(home, size * sizeof(*s2u));
+  s2u = su_alloc(home, (Nmax + 1) * sizeof(*s2u));
   if (!u2s || !s2u)
     return -1;
 
   for (i = 0; i < Nu; i++)
     u2s[i] = U2S_NOT_USED;
-  u2s[i] = U2S_SENTINEL;
+  u2s[Nu] = U2S_SENTINEL;
 
-  for (i = 0; i <= size; i++)
+  for (i = 0; i < Nmax; i++)
     s2u[i] = U2S_NOT_USED;
-  s2u[i] = U2S_SENTINEL;
+  s2u[Nmax] = U2S_SENTINEL;
 
   for (i = 0, m = session->sdp_media; m && i < Ns; m = m->m_next)
     o_media[i++] = m;
@@ -772,6 +778,7 @@ int soa_sdp_upgrade(soa_session_t *ss,
 	continue;
       if (j >= Nu) /* lines removed from user SDP */
 	continue;
+      assert(i < Ns);
       s_media[i] = u_media[j], u_media[j] = SDP_MEDIA_NONE;
       u2s[j] = i, s2u[i] = j;
     }
@@ -828,7 +835,7 @@ int soa_sdp_upgrade(soa_session_t *ss,
 	if (u_media[j] == SDP_MEDIA_NONE)
 	  continue;
 
-	for (i = 0; i < size - 1; i++) {
+	for (i = 0; i < Nmax; i++) {
 	  if (s_media[i] == NULL) {
 	    s_media[i] = u_media[j], u_media[j] = SDP_MEDIA_NONE;
 	    u2s[j] = i, s2u[i] = j;
@@ -836,7 +843,7 @@ int soa_sdp_upgrade(soa_session_t *ss,
 	  }
 	}
 
-	assert(i != size - 1);
+	assert(i != Nmax);
       }
     }
 
@@ -863,7 +870,7 @@ int soa_sdp_upgrade(soa_session_t *ss,
 	i++;
       }
     }
-    assert(i <= size);
+    assert(i <= Nmax);
   }
 
   mm = &session->sdp_media;
@@ -872,7 +879,7 @@ int soa_sdp_upgrade(soa_session_t *ss,
   }
   *mm = NULL;
 
-  s2u[size = i] = U2S_SENTINEL;
+  s2u[n = i] = U2S_SENTINEL;
   *return_u2s = u2s;
   *return_s2u = s2u;
 
@@ -881,7 +888,7 @@ int soa_sdp_upgrade(soa_session_t *ss,
     i = u2s[j];
     assert(i == U2S_NOT_USED || s2u[i] == j);
   }
-  for (i = 0; i < size; i++) {
+  for (i = 0; i < n; i++) {
     j = s2u[i];
     assert(j == U2S_NOT_USED || u2s[j] == i);
   }
@@ -890,6 +897,7 @@ int soa_sdp_upgrade(soa_session_t *ss,
   return 0;
 }
 
+static
 int *u2s_alloc(su_home_t *home, int const *u2s)
 {
   if (u2s) {
@@ -1009,8 +1017,8 @@ int soa_sdp_mode_set(sdp_session_t const *user,
 
   rm = remote ? remote->sdp_media : NULL, rm_next = NULL;
 
-  hold_all = str0cmp(hold, "*") == 0;
-  inactive_all = str0cmp(hold, "#") == 0;
+  hold_all = su_strmatch(hold, "*");
+  inactive_all = su_strmatch(hold, "#");
 
   i = 0;
 
@@ -1036,29 +1044,28 @@ int soa_sdp_mode_set(sdp_session_t const *user,
       continue;
     }
 
-    send_mode = um->m_mode & sdp_sendonly;
+    send_mode = (sdp_mode_t)(um->m_mode & sdp_sendonly);
     if (rm)
-      send_mode = (rm->m_mode & sdp_recvonly) ? sdp_sendonly : 0;
+      send_mode = (rm->m_mode & sdp_recvonly) ? send_mode : 0;
 
-    recv_mode = um->m_mode & sdp_recvonly;
+    recv_mode = (sdp_mode_t)(um->m_mode & sdp_recvonly);
+    if (rm)
+      recv_mode = (rm->m_mode & sdp_sendonly) ? recv_mode : 0;
 
-    if (rm && rm->m_mode == sdp_inactive) {
-      send_mode = recv_mode = 0;
-    }
-    else if (inactive_all) {
-      send_mode = recv_mode = 0;
+    if (inactive_all) {
+      send_mode = recv_mode = (sdp_mode_t)0;
     }
     else if (hold_all) {
-      recv_mode = 0;
+      recv_mode = (sdp_mode_t)0;
     }
-    else if (hold && (hold_media = strcasestr(hold, sm->m_type_name))) {
-      recv_mode = 0;
+    else if (hold && (hold_media = su_strcasestr(hold, sm->m_type_name))) {
+      recv_mode = (sdp_mode_t)0;
       hold_media += strlen(sm->m_type_name);
       hold_media += strspn(hold_media, " \t");
       if (hold_media[0] == '=') {
 	hold_media += strspn(hold, " \t");
-	if (strncasecmp(hold_media, "inactive", strlen("inactive")) == 0)
-	  recv_mode = send_mode = 0;
+	if (su_casenmatch(hold_media, "inactive", strlen("inactive")))
+	  recv_mode = send_mode = (sdp_mode_t)0;
       }
     }
 
@@ -1090,7 +1097,6 @@ static int offer_answer_step(soa_session_t *ss,
 {
   soa_static_session_t *sss = (soa_static_session_t *)ss;
 
-  char c_address[64];
   sdp_session_t *local = ss->ss_local->ssd_sdp;
   sdp_session_t local0[1];
 
@@ -1100,8 +1106,12 @@ static int offer_answer_step(soa_session_t *ss,
   sdp_session_t *remote = ss->ss_remote->ssd_sdp;
   unsigned remote_version = ss->ss_remote_version;
 
+  int fresh = 0;
+
   sdp_origin_t o[1] = {{ sizeof(o) }};
   sdp_connection_t *c, c0[1] = {{ sizeof(c0) }};
+  char c0_buffer[64];
+
   sdp_time_t t[1] = {{ sizeof(t) }};
 
   int *u2s = NULL, *s2u = NULL, *tbf;
@@ -1129,8 +1139,8 @@ static int offer_answer_step(soa_session_t *ss,
   if (local && remote) switch (action) {
   case generate_answer:
   case process_answer:
-    if (sdp_media_count(remote, sdp_media_any, "*", 0, 0) <
-	sdp_media_count(local, sdp_media_any, "*", 0, 0)) {
+    if (sdp_media_count(remote, sdp_media_any, "*", (sdp_proto_e)0, (sdp_text_t)0) <
+	sdp_media_count(local, sdp_media_any, "*", (sdp_proto_e)0, (sdp_text_t)0)) {
       SU_DEBUG_5(("%s: remote %s is truncated: expanding\n",
 		  by, action == generate_answer ? "offer" : "answer"));
       remote = soa_sdp_expand_media(tmphome, remote, local);
@@ -1148,22 +1158,16 @@ static int offer_answer_step(soa_session_t *ss,
     SU_DEBUG_7(("soa_static(%p, %s): %s\n", (void *)ss, by,
 		"generating local description"));
 
+    fresh = 1;
     local = local0;
     *local = *user, local->sdp_media = NULL;
 
-    if (local->sdp_origin) {
-      o->o_username = local->sdp_origin->o_username;
-      /* o->o_address = local->sdp_origin->o_address; */
-    }
-    if (!o->o_address)
-      o->o_address = c0;
-    local->sdp_origin = o;
+    o->o_username = "-";
+    o->o_address = c0;
+    c0->c_address = c0_buffer;
 
-    if (soa_init_sdp_origin(ss, o, c_address) < 0) {
-      phrase = "Cannot Get IP Address for Media";
-      goto internal_error;
-    }
-
+    if (!local->sdp_origin)
+      local->sdp_origin = o;
     break;
 
   case process_answer:
@@ -1281,28 +1285,46 @@ static int offer_answer_step(soa_session_t *ss,
     break;
   }
 
-  /* Step F: Update c= line */
+  /* Step F0: Initialize o= line */
+  if (fresh) {
+    if (user->sdp_origin)
+      o->o_username = user->sdp_origin->o_username;
+
+    if (soa_init_sdp_origin_with_session(ss, o, c0_buffer, local) < 0) {
+      phrase = "Cannot Get IP Address for Session Description";
+      goto internal_error;
+    }
+
+    local->sdp_origin = o;
+  }
+
+  /* Step F: Update c= line(s) */
   switch (action) {
+    sdp_connection_t *user_c, *local_c;
+
   case generate_offer:
   case generate_answer:
-    /* Upgrade local SDP based of user SDP */
-    if (ss->ss_local_user_version == user_version &&
-	local->sdp_connection)
-      break;
+    user_c = user->sdp_connection;
+    if (!soa_check_sdp_connection(user_c))
+      user_c = NULL;
 
-    if (local->sdp_connection == NULL ||
-	(user->sdp_connection != NULL &&
-	 sdp_connection_cmp(local->sdp_connection, user->sdp_connection))) {
+    local_c = local->sdp_connection;
+    if (!soa_check_sdp_connection(local_c))
+      local_c = NULL;
+
+    if (ss->ss_local_user_version != user_version ||
+	local_c == NULL ||
+	(user_c != NULL && sdp_connection_cmp(local_c, user_c))) {
       sdp_media_t *m;
+
+      if (user_c)
+	c = user_c;
+      else
+	c = local->sdp_origin->o_address;
 
       /* Every m= line (even rejected one) must have a c= line
        * or there must be a c= line at session level
        */
-      if (user->sdp_connection)
-	c = user->sdp_connection;
-      else
-	c = local->sdp_origin->o_address;
-
       for (m = local->sdp_media; m; m = m->m_next)
 	if (m->m_connections == NULL)
 	  break;
@@ -1322,6 +1344,8 @@ static int offer_answer_step(soa_session_t *ss,
   }
 
   soa_description_free(ss, ss->ss_previous);
+  su_free(ss->ss_home, sss->sss_previous.u2s), sss->sss_previous.u2s = NULL;
+  su_free(ss->ss_home, sss->sss_previous.s2u), sss->sss_previous.s2u = NULL;
 
   if (u2s) {
     u2s = u2s_alloc(ss->ss_home, u2s);
@@ -1362,10 +1386,18 @@ static int offer_answer_step(soa_session_t *ss,
 
     if (action == generate_offer) {
       /* Keep a copy of previous session state */
+      int *previous_u2s = u2s_alloc(ss->ss_home, sss->sss_u2s);
+      int *previous_s2u = u2s_alloc(ss->ss_home, sss->sss_s2u);
+
+      if ((sss->sss_u2s && !previous_u2s) || (sss->sss_s2u && !previous_s2u))
+	goto internal_error;
+
       *ss->ss_previous = *ss->ss_local;
       memset(ss->ss_local, 0, (sizeof *ss->ss_local));
       ss->ss_previous_user_version = ss->ss_local_user_version;
       ss->ss_previous_remote_version = ss->ss_local_remote_version;
+      sss->sss_previous.u2s = previous_u2s;
+      sss->sss_previous.s2u = previous_s2u;
     }
 
     SU_DEBUG_7(("soa_static(%p, %s): %s\n", (void *)ss, by,
@@ -1378,6 +1410,8 @@ static int offer_answer_step(soa_session_t *ss,
 	memset(ss->ss_previous, 0, (sizeof *ss->ss_previous));
 	ss->ss_previous_user_version = 0;
 	ss->ss_previous_remote_version = 0;
+	su_free(ss->ss_home, sss->sss_previous.u2s), sss->sss_previous.u2s = NULL;
+	su_free(ss->ss_home, sss->sss_previous.s2u), sss->sss_previous.s2u = NULL;
       }
 
       su_free(ss->ss_home, u2s), su_free(ss->ss_home, s2u);
@@ -1471,21 +1505,32 @@ static int soa_static_process_answer(soa_session_t *ss,
 static int soa_static_process_reject(soa_session_t *ss,
 				     soa_callback_f *completed)
 {
+  soa_static_session_t *sss = (soa_static_session_t *)ss;
   struct soa_description d[1];
+  int *u2s, *s2u;
 
-  if (ss->ss_previous_user_version) {
-    *d = *ss->ss_local;
-    *ss->ss_local = *ss->ss_previous;
-    ss->ss_local_user_version = ss->ss_previous_user_version;
-    ss->ss_local_remote_version = ss->ss_previous_remote_version;
+  soa_base_process_reject(ss, NULL);
 
-    memset(ss->ss_previous, 0, (sizeof *ss->ss_previous));
-    soa_description_free(ss, d);
-    ss->ss_previous_user_version = 0;
-    ss->ss_previous_remote_version = 0;
-  }
+  *d = *ss->ss_local;
+  u2s = sss->sss_u2s, s2u = sss->sss_s2u;
 
-  return soa_base_process_reject(ss, NULL);
+  *ss->ss_local = *ss->ss_previous;
+  ss->ss_local_user_version = ss->ss_previous_user_version;
+  ss->ss_local_remote_version = ss->ss_previous_remote_version;
+  sss->sss_u2s = sss->sss_previous.u2s;
+  sss->sss_s2u = sss->sss_previous.s2u;
+
+  memset(ss->ss_previous, 0, (sizeof *ss->ss_previous));
+  memset(&sss->sss_previous, 0, (sizeof sss->sss_previous));
+  soa_description_free(ss, d);
+  ss->ss_previous_user_version = 0;
+  ss->ss_previous_remote_version = 0;
+
+  su_free(ss->ss_home, u2s);
+  su_free(ss->ss_home, s2u);
+  su_free(ss->ss_home, sss->sss_latest), sss->sss_latest = NULL;
+
+  return 0;
 }
 
 static int soa_static_activate(soa_session_t *ss, char const *option)
@@ -1500,6 +1545,19 @@ static int soa_static_deactivate(soa_session_t *ss, char const *option)
 
 static void soa_static_terminate(soa_session_t *ss, char const *option)
 {
-  soa_description_free(ss, ss->ss_user);
+  soa_static_session_t *sss = (soa_static_session_t *)ss;
+
+  soa_description_free(ss, ss->ss_local);
+  su_free(ss->ss_home, sss->sss_u2s), sss->sss_u2s = NULL;
+  su_free(ss->ss_home, sss->sss_s2u), sss->sss_s2u = NULL;
+
+  soa_description_free(ss, ss->ss_previous);
+  ss->ss_previous_user_version = 0;
+  ss->ss_previous_remote_version = 0;
+  su_free(ss->ss_home, sss->sss_previous.u2s), sss->sss_previous.u2s = NULL;
+  su_free(ss->ss_home, sss->sss_previous.s2u), sss->sss_previous.s2u = NULL;
+
+  su_free(ss->ss_home, sss->sss_latest), sss->sss_latest = NULL;
+
   soa_base_terminate(ss, option);
 }

@@ -62,7 +62,7 @@ typedef struct client_t client_t;
 #include <sofia-sip/hostdomain.h>
 #include <sofia-sip/tport.h>
 
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -71,6 +71,8 @@ typedef struct client_t client_t;
 #include <stdio.h>
 #include <assert.h>
 #include <unistd.h>
+
+#include "s2util.h"
 
 #if HAVE_OPEN_C
 #include <sys/param.h>
@@ -93,7 +95,7 @@ int tstflags = 0;
 
 #define NONE ((void *)-1)
 
-int expensive_checks;
+int expensive_checks, test_nta_sips;
 
 #define EXPENSIVE_CHECKS (expensive_checks)
 
@@ -501,6 +503,17 @@ void until_final_received(client_t *c)
 }
 
 static
+void fast_final_received(client_t *c)
+{
+  for (c->c_final = 0; !c->c_final; ) {
+    if (tstflags & tst_verbatim) {
+      fputs(".", stdout); fflush(stdout);
+    }
+    s2_fast_forward(500, c->c_ag->ag_root);
+  }
+}
+
+static
 int client_run(client_t *c, int expected)
 {
   return client_run_with(c, expected, until_final_received);
@@ -530,7 +543,7 @@ until_server_canceled(client_t *c)
 {
   agent_t *ag = c->c_ag;
 
-  for (ag->ag_canceled = 0; !ag->ag_canceled;) {
+  for (ag->ag_canceled = 0; !ag->ag_canceled || c->c_status < 200;) {
     if (tstflags & tst_verbatim) {
       fputs(".", stdout); fflush(stdout);
     }
@@ -564,7 +577,7 @@ int test_init(agent_t *ag, char const *resolv_conf)
   TEST_1(ag->ag_mclass);
 
 #if SU_HAVE_IN6
-  if (str0cmp(getenv("ipv6"), "true") == 0) {
+  if (su_strmatch(getenv("ipv6"), "true")) {
     contact = "sip:[::]:*;comp=sigcomp";
     af = AF_INET6, sulen0 = sizeof (struct sockaddr_in6);
   }
@@ -621,6 +634,15 @@ int test_init(agent_t *ag, char const *resolv_conf)
 				  NTATAG_PRELOAD(2048),
 				  TAG_END());
   TEST_1(ag->ag_agent);
+
+  contact = getenv("SIPSCONTACT");
+  if (contact) {
+    if (nta_agent_add_tport(ag->ag_agent, URL_STRING_MAKE(contact),
+			    TPTAG_CERTIFICATE(getenv("TEST_NTA_CERTDIR")),
+			    TPTAG_TLS_VERIFY_POLICY(TPTLS_VERIFY_NONE),
+			    TAG_END()) == 0)
+      test_nta_sips = 1;
+  }
 
   {
     /* Initialize our headers */
@@ -1075,22 +1097,22 @@ int test_tports(agent_t *ag)
   TEST_1(v = nta_agent_via(ag->ag_agent));
 
   for (; v; v = v->v_next) {
-    if (strcasecmp(v->v_protocol, sip_transport_udp) == 0) {
+    if (su_casematch(v->v_protocol, sip_transport_udp)) {
       if (udp)
 	v_udp_only = v;
       udp = 1;
       if (udp_comp == NULL)
 	udp_comp = v->v_comp;
     }
-    else if (strcasecmp(v->v_protocol, sip_transport_tcp) == 0) {
+    else if (su_casematch(v->v_protocol, sip_transport_tcp)) {
       tcp = 1;
       if (tcp_comp == NULL)
 	tcp_comp = v->v_comp;
     }
-    else if (strcasecmp(v->v_protocol, sip_transport_sctp) == 0) {
+    else if (su_casematch(v->v_protocol, sip_transport_sctp)) {
       sctp = 1;
     }
-    else if (strcasecmp(v->v_protocol, sip_transport_tls) == 0) {
+    else if (su_casematch(v->v_protocol, sip_transport_tls)) {
       tls = 1;
     }
   }
@@ -1454,7 +1476,7 @@ int test_tports(agent_t *ag)
     TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
 
     TEST_1(ag->ag_in_via);
-    TEST_1(strcasecmp(ag->ag_in_via->v_protocol, "SIP/2.0/UDP") == 0);
+    TEST_1(su_casematch(ag->ag_in_via->v_protocol, "SIP/2.0/UDP"));
     su_free(ag->ag_home, ag->ag_in_via), ag->ag_in_via = NULL;
   }
 
@@ -1616,15 +1638,8 @@ int test_tports(agent_t *ag)
     url_t url[1];
     client_t ctx[1] = {{ ag, "Test 0.9" }};
 
-    printf("%s: starting MESSAGE timeout test, completing in 4 seconds\n",
-	   name);
-
     nta_agent_set_params(ag->ag_agent,
 			 NTATAG_TIMEOUT_408(1),
-			 NTATAG_SIP_T1(25),
-			 NTATAG_SIP_T1X64(64 * 25),
-			 NTATAG_SIP_T2(8 * 25),
-			 NTATAG_SIP_T4(10 * 25),
 			 TAG_END());
 
     *url = *ag->ag_aliases->m_url;
@@ -1644,14 +1659,10 @@ int test_tports(agent_t *ag)
 			   SIPTAG_CONTACT(ag->ag_m_bob),
 			   TAG_END());
 
-    TEST_1(!client_run(ctx, 408));
+    TEST_1(!client_run_with(ctx, 408, fast_final_received));
     TEST_P(ag->ag_latest_leg, NULL);
 
     nta_agent_set_params(ag->ag_agent,
-			 NTATAG_SIP_T1(500),
-			 NTATAG_SIP_T1X64(64 * 500),
-			 NTATAG_SIP_T2(NTA_SIP_T2),
-			 NTATAG_SIP_T4(NTA_SIP_T4),
 			 TAG_END());
   }
 
@@ -1787,13 +1798,13 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
 
   TEST_1(v = nta_agent_via(ag->ag_agent));
   for (; v; v = v->v_next) {
-    if (strcasecmp(v->v_protocol, sip_transport_udp) == 0)
+    if (su_casematch(v->v_protocol, sip_transport_udp))
       udp = 1;
-    else if (strcasecmp(v->v_protocol, sip_transport_tcp) == 0)
+    else if (su_casematch(v->v_protocol, sip_transport_tcp))
       tcp = 1;
-    else if (strcasecmp(v->v_protocol, sip_transport_sctp) == 0)
+    else if (su_casematch(v->v_protocol, sip_transport_sctp))
       sctp = 1;
-    else if (strcasecmp(v->v_protocol, sip_transport_tls) == 0)
+    else if (su_casematch(v->v_protocol, sip_transport_tls))
       tls = 1;
   }
 
@@ -2119,6 +2130,27 @@ int test_resolv(agent_t *ag, char const *resolv_conf)
     TEST_1(!client_run(ctx, 200));
     TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
     url->url_params = NULL;
+  }
+
+  if (test_nta_sips) {
+    /* Test 1.8 - Send a message to sips:example.org
+     *
+     * Tests sf.net bug #1292657 (SIPS resolving with NAPTR).
+     */
+    client_t ctx[1] = {{ ag, "Test 1.8" }};
+    ag->ag_expect_leg = ag->ag_default_leg;
+    ctx->c_orq =
+      nta_outgoing_tcreate(ag->ag_default_leg, outgoing_callback, ctx,
+			   ag->ag_obp,
+			   SIP_METHOD_MESSAGE,
+			   (url_string_t *)"sips:example.org",
+			   SIPTAG_SUBJECT_STR(ctx->c_name),
+			   SIPTAG_FROM(ag->ag_alice),
+			   SIPTAG_TO(ag->ag_bob),
+			   SIPTAG_CONTACT(ag->ag_m_alice),
+			   TAG_END());
+    TEST_1(!client_run(ctx, 200));
+    TEST_P(ag->ag_latest_leg, ag->ag_default_leg);
   }
 
   nta_agent_set_params(ag->ag_agent,
@@ -3612,8 +3644,9 @@ int test_prack(agent_t *ag)
 				SIPTAG_PAYLOAD(sdp),
 				TAG_END()));
 
-    /* Run until 1) server gets CANCEL and 2) client gets 408 */
-    TEST_1(!client_run_until_canceled(ctx, 408));
+    /* Run until 1) server gets CANCEL and 2) client gets 487 */
+    /* Note: this has been changed in 1.12.11 */
+    TEST_1(!client_run_until_canceled(ctx, 487));
 
     TEST_1(ag->ag_canceled != 0);
     TEST_P(ag->ag_latest_leg, ag->ag_server_leg);
@@ -3957,6 +3990,9 @@ int main(int argc, char *argv[])
     retval |= test_prack(ag); SINGLE_FAILURE_CHECK();
     retval |= test_fix_467(ag); SINGLE_FAILURE_CHECK();
   }
+
+  s2_fast_forward(64000, ag->ag_root);
+
   retval |= test_deinit(ag); fflush(stdout);
 
   su_home_deinit(ag->ag_home);

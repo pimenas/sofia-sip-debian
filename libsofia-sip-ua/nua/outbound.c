@@ -216,6 +216,8 @@ outbound_new(outbound_owner_t *owner,
 	su_sprintf(ob->ob_home, "+sip.instance=\"<%s>\"", instance);
     ob->ob_reg_id = 0;
 
+    outbound_peer_info(ob, NULL);
+
     /* Generate a random cookie (used as Call-ID) for us */
     su_md5_init(md5);
     su_guid_generate(guid);
@@ -261,7 +263,7 @@ int outbound_set_options(outbound_t *ob,
   prefs->interval = interval;
   prefs->stream_interval = stream_interval;
 
-#define MATCH(v) (len == sizeof(#v) - 1 && strncasecmp(#v, s, len) == 0)
+#define MATCH(v) (len == sizeof(#v) - 1 && su_casenmatch(#v, s, len))
 
   if (options) {
     for (s = options; s[0]; s++) if (s[0] == '-') s[0] = '_';
@@ -278,9 +280,9 @@ int outbound_set_options(outbound_t *ob,
     size_t len = span_token(s);
     int value = 1;
 
-    if (len > 3 && strncasecmp(s, "no_", 3) == 0)
+    if (len > 3 && su_casenmatch(s, "no_", 3))
       value = 0, s += 3, len -= 3;
-    else if (len > 4 && strncasecmp(s, "not_", 4) == 0)
+    else if (len > 4 && su_casenmatch(s, "not_", 4))
       value = 0, s += 4, len -= 4;
 
     if (len == 0)
@@ -307,13 +309,12 @@ int outbound_set_options(outbound_t *ob,
   }
 
   invalid = s && s[0];
-  su_free(NULL, options);
-
-  if (invalid) {
+  if (invalid)
     SU_DEBUG_1(("outbound(%p): invalid options \"%s\"\n",
 		(void *)ob->ob_owner, options));
+  su_free(NULL, options);
+  if (invalid)
     return -1;
-  }
 
   if (prefs->natify &&
       !(prefs->outbound ||
@@ -399,9 +400,24 @@ int outbound_register_response(outbound_t *ob,
 
   if (status < 300) {
     if (request->sip_contact && response->sip_contact) {
-      if (ob->ob_rcontact != NULL)
+      sip_contact_t *m;
+
+      if (ob->ob_rcontact != NULL) {
         msg_header_free(ob->ob_home, (msg_header_t *)ob->ob_rcontact);
-      ob->ob_rcontact = sip_contact_dup(ob->ob_home, request->sip_contact);
+        ob->ob_rcontact = NULL;
+      }
+
+      /* Ignore the contacts that were unregistered, if any */
+      for (m = request->sip_contact; m; m = m->m_next) {
+        if (!m->m_expires || strtoul(m->m_expires, NULL, 10) != 0)
+          break;
+      }
+      assert (!ob->ob_registering || m != NULL);
+
+      if (m)
+        ob->ob_rcontact = (sip_contact_t *)
+	  msg_header_dup_one(ob->ob_home, (const msg_header_t *)m);
+
       ob->ob_registered = ob->ob_registering;
     } else
       ob->ob_registered = 0;
@@ -525,7 +541,7 @@ int outbound_nat_detect(outbound_t *ob,
   nat_port = ob->ob_nat_port;
 
   if (nat_detected && host_cmp(received, nat_detected) == 0) {
-    if (nat_port && strcasecmp(rport, nat_port) == 0)
+    if (nat_port && su_casematch(rport, nat_port))
       return 1;
     if (!v->v_rport || !v->v_rport[0])
       return 1;
@@ -682,9 +698,19 @@ void outbound_start_keepalive(outbound_t *ob,
   if (ob->ob_keepalive.timer)
     su_timer_destroy(ob->ob_keepalive.timer), ob->ob_keepalive.timer = NULL;
 
-  if (interval)
+  if (interval) {
+    su_duration_t max_defer;
+
+    max_defer = su_root_get_max_defer(ob->ob_root);
+    if ((su_duration_t)interval >= max_defer) {
+      interval -= max_defer - 100;
+    }
+
     ob->ob_keepalive.timer =
       su_timer_create(su_root_task(ob->ob_root), interval);
+
+    su_timer_deferrable(ob->ob_keepalive.timer, 1);
+  }
 
   ob->ob_keepalive.interval = interval;
 
@@ -1028,7 +1054,7 @@ int outbound_targeted_request(sip_t const *sip)
     sip->sip_request->rq_method == sip_method_options &&
     sip->sip_accept &&
     sip->sip_accept->ac_type &&
-    strcasecmp(sip->sip_accept->ac_type, outbound_content_type) == 0;
+    su_casematch(sip->sip_accept->ac_type, outbound_content_type);
 }
 
 /** Answer to the connectivity probe OPTIONS */
@@ -1209,6 +1235,9 @@ int outbound_set_contact(outbound_t *ob,
     }
   }
 
+  if (previous)
+    msg_header_replace_param(home, (msg_common_t *)previous, "expires=0");
+
   ob->ob_by_stack = application_contact == NULL;
 
   ob->ob_contacts = rcontact != NULL;
@@ -1261,7 +1290,7 @@ feature_level(sip_t const *sip, char const *tag, int level)
   else if (sip_has_feature(sip->sip_unsupported, tag))
     return outbound_feature_unsupported;
   else
-    return level;
+    return (enum outbound_feature)level;
 }
 
 

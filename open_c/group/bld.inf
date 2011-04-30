@@ -57,6 +57,7 @@ PRJ_EXPORTS
 ../../libsofia-sip-ua/nth/sofia-sip/nth_tag.h \epoc32\include\osextensions\sofia-sip\nth_tag.h
 ../../libsofia-sip-ua/nua/sofia-sip/nua.h \epoc32\include\osextensions\sofia-sip\nua.h
 ../../libsofia-sip-ua/nua/sofia-sip/nua_tag.h \epoc32\include\osextensions\sofia-sip\nua_tag.h
+../../libsofia-sip-ua/nua/nua_types.h \epoc32\include\osextensions\sofia-sip\nua_types.h
 ../../libsofia-sip-ua/sdp/sofia-sip/sdp.h \epoc32\include\osextensions\sofia-sip\sdp.h
 ../../libsofia-sip-ua/sdp/sofia-sip/sdp_tag.h \epoc32\include\osextensions\sofia-sip\sdp_tag.h
 ../../libsofia-sip-ua/sip/sofia-sip/sip.h \epoc32\include\osextensions\sofia-sip\sip.h
@@ -74,6 +75,7 @@ PRJ_EXPORTS
 ../../libsofia-sip-ua/soa/sofia-sip/soa_session.h \epoc32\include\osextensions\sofia-sip\soa_session.h
 ../../libsofia-sip-ua/soa/sofia-sip/soa_tag.h \epoc32\include\osextensions\sofia-sip\soa_tag.h
 ../../libsofia-sip-ua/sresolv/sofia-sip/sresolv.h \epoc32\include\osextensions\sofia-sip\sresolv.h
+../../libsofia-sip-ua/sresolv/sofia-sip/sres_sip.h \epoc32\include\osextensions\sofia-sip\sres_sip.h
 ../../libsofia-sip-ua/sresolv/sofia-resolv/sres.h \epoc32\include\osextensions\sofia-resolv/sres.h
 ../../libsofia-sip-ua/sresolv/sofia-resolv/sres_async.h \epoc32\include\osextensions\sofia-resolv/sres_async.h
 ../../libsofia-sip-ua/sresolv/sofia-resolv/sres_cache.h \epoc32\include\osextensions\sofia-resolv/sres_cache.h
@@ -87,6 +89,7 @@ PRJ_EXPORTS
 ../../libsofia-sip-ua/su/sofia-sip/htable2.h \epoc32\include\osextensions\sofia-sip\htable2.h
 ../../libsofia-sip-ua/su/sofia-sip/rbtree.h \epoc32\include\osextensions\sofia-sip\rbtree.h
 ../../libsofia-sip-ua/su/sofia-sip/string0.h \epoc32\include\osextensions\sofia-sip\string0.h
+../../libsofia-sip-ua/su/sofia-sip/su_string.h \epoc32\include\osextensions\sofia-sip\su_string.h
 ../../libsofia-sip-ua/su/sofia-sip/su.h \epoc32\include\osextensions\sofia-sip\su.h
 ../../libsofia-sip-ua/su/sofia-sip/su_addrinfo.h \epoc32\include\osextensions\sofia-sip\su_addrinfo.h
 ../../libsofia-sip-ua/su/sofia-sip/su_alloc.h \epoc32\include\osextensions\sofia-sip\su_alloc.h
@@ -135,9 +138,9 @@ libsofia-sip-ua-glib.mmp
 //torture_sip.mmp
 //test_http.mmp
 //test_soa.mmp
-test_tport.mmp
-test_nua.mmp
+//test_tport.mmp
+//test_nua.mmp
 //test_nta.mmp
-su_source_test.mmp
+//su_source_test.mmp
 
 //  End of File  

@@ -214,11 +214,12 @@ issize_t sl_payload_print(FILE *stream, char const *prefix, sip_payload_t const 
   size_t n, total = 0, crlf = 1;
 
   while (s < end && *s != '\0') {
-    n = strncspn(s, end - s, "\r\n");
-    crlf = strnspn(s + n, end - s - n, "\r\n");
+    n = su_strncspn(s, end - s, "\r\n");
+    crlf = su_strnspn(s + n, end - s - n, "\r\n");
     if (prefix)
       fputs(prefix, stream), total += strlen(prefix);
-    fwrite(s, 1, n + crlf, stream);
+    if (fwrite(s, 1, n + crlf, stream) < n + crlf)
+      return (issize_t)-1;
     s += n + crlf;
     total += n + crlf;
   }

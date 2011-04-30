@@ -47,6 +47,7 @@
 
 #include <sofia-sip/su.h>
 #include <sofia-sip/su_alloc.h>
+#include <sofia-sip/su_string.h>
 
 #include "msg_internal.h"
 #include "sofia-sip/msg_parser.h"
@@ -414,12 +415,14 @@ issize_t msg_avlist_d(su_home_t *home,
 
     if (n == N) {
       /* Reallocate params */
-      char **nparams = su_alloc(home,
-				(N = MSG_PARAMS_NUM(N + 1)) * sizeof(*params));
+      char const **nparams = su_realloc(home, (void*)(params != stack ? params : NULL),
+					(N = MSG_PARAMS_NUM(N + 1)) * sizeof(*params));
       if (!nparams) {
 	goto error;
       }
-      params = memcpy(nparams, params, n * sizeof(*params));
+      if (params == stack)
+	memcpy(nparams, stack, n * sizeof(*params));
+      params = nparams;
     }
 
     params[n++] = p;
@@ -440,12 +443,14 @@ issize_t msg_avlist_d(su_home_t *home,
   }
   else if (n == N) {
     /* Reallocate params */
-    char **nparams = su_alloc(home,
-			      (N = MSG_PARAMS_NUM(N + 1)) * sizeof(*params));
+    char const **nparams = su_realloc(home, (void*)(params != stack ? params : NULL),
+				      (N = MSG_PARAMS_NUM(N + 1)) * sizeof(*params));
     if (!nparams) {
       goto error;
     }
-    params = memcpy(nparams, params, n * sizeof(*params));
+    if (params == stack)
+      memcpy(nparams, stack, n * sizeof(*params));
+    params = nparams;
   }
 
   params[n] = NULL;
@@ -791,6 +796,47 @@ int msg_hostport_d(char **ss,
   return 0;
 }
 
+/** Clear encoded data from header fields.
+ *
+ * Clear encoded or cached unencoded headers from header fields.
+ *
+ * @param h pointer to header structure
+ */
+void msg_fragment_clear_chain(msg_header_t *h)
+{
+  char const *data;
+  msg_header_t *prev, *succ;
+
+  if (h == NULL || h->sh_data == NULL)
+    return;
+
+  data = (char *)h->sh_data + h->sh_len;
+
+  /* Find first field of header */
+  for (prev = (msg_header_t *)h->sh_prev;
+       prev && (void *)prev->sh_next == (void *)h;) {
+    if (!prev->sh_data)
+      break;
+    if ((char *)prev->sh_data + prev->sh_len != data)
+      break;
+    h = prev, prev = (msg_header_t *)h->sh_prev;
+  }
+
+  for (h = h; h; h = succ) {
+    succ = h->sh_succ;
+
+    h->sh_data = NULL, h->sh_len = 0;
+
+    if (!data ||
+	!succ ||
+	h->sh_next != succ ||
+	succ->sh_data != (void *)data ||
+	succ->sh_len)
+      return;
+  }
+}
+
+
 /** Find a header parameter.
  *
  * Searches for given parameter @a name from the header. If parameter is
@@ -871,7 +917,7 @@ int msg_header_param_modify(su_home_t *home, msg_common_t *h,
 	}
       }
       else {
-	if (strncasecmp(maybe, param, plen) == 0 &&
+	if (su_casenmatch(maybe, param, plen) &&
 	    (maybe[plen] == '=' || maybe[plen] == 0))
 	  break;
       }
@@ -912,7 +958,8 @@ int msg_header_param_modify(su_home_t *home, msg_common_t *h,
     params[n] = param;	/* Add .. or replace */
   }
 
-  msg_fragment_clear(h);
+  if (h->h_data)
+    msg_fragment_clear_chain((msg_header_t *)h);
 
   if (h->h_class->hc_update) {
     /* Update shortcuts */
@@ -1212,7 +1259,7 @@ msg_param_t msg_params_find(msg_param_t const params[], msg_param_t token)
 
     for (i = 0; params[i]; i++) {
       msg_param_t param = params[i];
-      if (strncasecmp(param, token, n) == 0) {
+      if (su_casenmatch(param, token, n)) {
 	if (param[n] == '=')
 	  return param + n + 1;
         else if (param[n] == 0)
@@ -1246,7 +1293,7 @@ msg_param_t *msg_params_find_slot(msg_param_t params[], msg_param_t token)
 
     for (i = 0; params[i]; i++) {
       msg_param_t param = params[i];
-      if (strncasecmp(param, token, n) == 0) {
+      if (su_casenmatch(param, token, n)) {
 	if (param[n] == '=')
 	  return params + i;
         else if (param[n] == 0 || token[n - 1] == '=')
@@ -1295,7 +1342,7 @@ int msg_params_replace(su_home_t *home,
     for (i = 0; params[i]; i++) {
       msg_param_t maybe = params[i];
 
-      if (!(strncasecmp(maybe, param, n))) {
+      if (su_casenmatch(maybe, param, n)) {
 	if (maybe[n] == '=' || maybe[n] == 0) {
 	  params[i] = param;
 	  return 1;
@@ -1327,7 +1374,7 @@ int msg_params_remove(msg_param_t *params, msg_param_t param)
   for (i = 0; params[i]; i++) {
     msg_param_t maybe = params[i];
 
-    if (strncasecmp(maybe, param, n) == 0) {
+    if (su_casenmatch(maybe, param, n)) {
       if (maybe[n] == '=' || maybe[n] == 0) {
 	/* Remove */
 	do {
@@ -1415,10 +1462,10 @@ int msg_param_prune(msg_param_t const d[], msg_param_t p, unsigned prune)
 
   for (i = 0; d[i]; i++) {
     if ((prune == 1 &&
-	 strncasecmp(p, d[i], nlen) == 0
+	 su_casenmatch(p, d[i], nlen)
 	 && (d[i][nlen] == '=' || d[i][nlen] == '\0'))
 	||
-	(prune == 2 && strcasecmp(p, d[i]) == 0)
+	(prune == 2 && su_casematch(p, d[i]))
 	||
 	(prune == 3 && strcmp(p, d[i]) == 0))
       return 1;
@@ -1548,7 +1595,8 @@ int msg_header_join_items(su_home_t *home,
   if (s == NULL)
     return 0;
 
-  for (M = 0; s[M]; M++);
+  for (M = 0; s[M]; M++)
+    {}
 
   if (M == 0)
     return 0;
@@ -1565,7 +1613,8 @@ int msg_header_join_items(su_home_t *home,
   dd = (msg_param_t **)((char *)dst + dst->h_class->hc_params);
   d = *dd;
 
-  for (N = 0; d && d[N]; N++);
+  for (N = 0; d && d[N]; N++)
+    {}
 
   for (m = 0, M = 0, total = 0; s[m]; m++) {
     t = s[m];
@@ -1649,7 +1698,7 @@ int msg_params_cmp(char const * const a[], char const * const b[])
     if (*a == NULL || *b == NULL)
       return (*a != NULL) - (*b != NULL);
     nlen = strcspn(*a, "=");
-    if ((c = strncasecmp(*a, *b, nlen)))
+    if ((c = su_strncasecmp(*a, *b, nlen)))
       return c;
     if ((c = strcmp(*a + nlen, *b + nlen)))
       return c;
@@ -1736,35 +1785,37 @@ char *msg_unquote(char *dst, char const *s)
 /** Quote string */
 issize_t msg_unquoted_e(char *b, isize_t bsiz, char const *s)
 {
-  char *begin = b;
-  char *end = b + bsiz;
+  isize_t e = 0;
 
-  if (b && b + 1 < end)
+  if (b == NULL)
+    bsiz = 0;
+
+  if (0 < bsiz)
     *b = '"';
-  b++;
+  e++;
 
   for (;*s;) {
     size_t n = strcspn(s, "\"\\");
 
     if (n == 0) {
-      if (b && b + 2 < end)
-	b[0] = '\\', b[1] = s[0];
-      b += 2;
+      if (e + 2 <= bsiz)
+	b[e] = '\\', b[e + 1] = s[0];
+      e += 2;
       s++;
     }
     else {
-      if (b && b + n < end)
-	memcpy(b, s, n);
-      b += n;
+      if (e + n <= bsiz)
+	memcpy(b + e, s, n);
+      e += n;
       s += n;
     }
   }
 
-  if (b && b + 1 < end)
-    *b = '"';
-  b++;
+  if (e < bsiz)
+    b[e] = '"';
+  e++;
 
-  return b - begin;
+  return e;
 }
 
 

@@ -39,7 +39,7 @@
 
 #include <assert.h>
 
-#include <sofia-sip/string0.h>
+#include <sofia-sip/su_string.h>
 #include <sofia-sip/su_uniqueid.h>
 
 #include <sofia-sip/sip_protos.h>
@@ -104,13 +104,16 @@ void nua_dialog_uas_route(nua_owner_t *own,
  * @param ds   dialog state
  * @param sip  SIP message containing response used to update dialog
  * @param rtag if true, set remote tag within the leg
+ * @param initial if true, @a sip is response to initial transaction
  */
 void nua_dialog_uac_route(nua_owner_t *own,
 			  nua_dialog_state_t *ds,
 			  sip_t const *sip,
-			  int rtag)
+			  int rtag,
+			  int initial)
 {
   int established = nua_dialog_is_established(ds);
+  int status = sip->sip_status->st_status;
 
   if (!established && sip->sip_to->a_tag)
     ds->ds_remote_tag = su_strdup(own, sip->sip_to->a_tag);
@@ -118,7 +121,11 @@ void nua_dialog_uac_route(nua_owner_t *own,
   if (ds->ds_leg == NULL)
     return;
 
-  nta_leg_client_route(ds->ds_leg, sip->sip_record_route, sip->sip_contact);
+  if (initial && status >= 200)
+    nta_leg_client_reroute(ds->ds_leg, sip->sip_record_route, sip->sip_contact, 1);
+  else
+    nta_leg_client_reroute(ds->ds_leg, sip->sip_record_route, sip->sip_contact, 0);
+
   ds->ds_route = ds->ds_route || sip->sip_record_route || sip->sip_contact;
 
   if (rtag && !established && sip->sip_to->a_tag)
@@ -241,10 +248,10 @@ nua_dialog_usage_at(nua_dialog_state_t const *ds,
       if (event != o) {
 	if (event == NULL || o == NULL)
 	  continue;
-	if (strcmp(event->o_type, o->o_type))
+	if (!su_strmatch(event->o_type, o->o_type))
 	  continue;
-	if (str0casecmp(event->o_id, o->o_id)) {
-	  if (event->o_id || strcmp(event->o_type, "refer"))
+	if (!su_casematch(event->o_id, o->o_id)) {
+	  if (event->o_id || !su_strmatch(event->o_type, "refer"))
 	    continue;
 	}
       }
@@ -536,7 +543,7 @@ void nua_dialog_usage_set_refresh_range(nua_dialog_usage_t *du,
 
   du->du_refquested = now;
 
-  nua_dialog_usage_set_refresh_at(du, target);
+  du->du_refresh = target;
 }
 
 /** Set absolute refresh time */

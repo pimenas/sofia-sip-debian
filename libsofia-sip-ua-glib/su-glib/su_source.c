@@ -1,7 +1,7 @@
 /*
  * This file is part of the Sofia-SIP package
  *
- * Copyright (C) 2005 Nokia Corporation.
+ * Copyright (C) 2005-2009 Nokia Corporation.
  *
  * Contact: Pekka Pessi <pekka.pessi@nokia.com>
  *
@@ -38,7 +38,13 @@
 
 #include "config.h"
 
+#ifdef SYMBIAN
+#include <e32def.h>
+#endif
+
+#ifndef __GLIB_H__
 #include <glib.h>
+#endif
 
 #if HAVE_OPEN_C
 #include <glib/gthread.h>
@@ -97,8 +103,6 @@ static void su_source_incref(su_port_t *self, char const *who);
 static void su_source_decref(su_port_t *self, int blocking, char const *who);
 static struct _GSource *su_source_gsource(su_port_t *port);
 
-static int su_source_send(su_port_t *self, su_msg_r rmsg);
-
 static int su_source_register(su_port_t *self,
 			    su_root_t *root,
 			    su_wait_t *wait,
@@ -126,6 +130,8 @@ static int su_source_add_prepoll(su_port_t *port,
 static int su_source_remove_prepoll(su_port_t *port,
 				  su_root_t *root);
 static int su_source_multishot(su_port_t *self, int multishot);
+static int su_source_wakeup(su_port_t *self);
+static int su_source_is_running(su_port_t const *self);
 
 static char const *su_source_name(su_port_t const *self);
 
@@ -141,7 +147,7 @@ su_port_vtable_t const su_source_port_vtable[1] =
 
       su_source_gsource,
 
-      su_source_send,
+      su_base_port_send,
       su_source_register,
       su_source_unregister,
       su_source_deregister,
@@ -162,6 +168,10 @@ su_port_vtable_t const su_source_port_vtable[1] =
       su_base_port_start_shared,
       su_base_port_wait,
       NULL,
+      su_base_port_deferrable,
+      su_base_port_max_defer,
+      su_source_wakeup,
+      su_source_is_running,
     }};
 
 static char const *su_source_name(su_port_t const *self)
@@ -308,37 +318,10 @@ void su_source_finalize(GSource *gs)
   su_source_port_deinit(ss->ss_port);
 }
 
-void su_source_port_lock(su_port_t *self, char const *who)
-{
-  PORT_LOCK_DEBUG(("%p at %s locking(%p)...",
-		   (void *)g_thread_self(), who, self));
-
-  g_static_mutex_lock(self->sup_mutex);
-
-  PORT_LOCK_DEBUG((" ...%p at %s locked(%p)...",
-		   (void *)g_thread_self(), who, self));
-}
-
-void su_source_port_unlock(su_port_t *self, char const *who)
-{
-  g_static_mutex_unlock(self->sup_mutex);
-
-  PORT_LOCK_DEBUG((" ...%p at %s unlocked(%p)\n",
-		   (void *)g_thread_self(), who, self));
-}
-
 /** @internal Send a message to the port. */
-int su_source_send(su_port_t *self, su_msg_r rmsg)
+int su_source_wakeup(su_port_t *self)
 {
-  int wakeup = su_base_port_send(self, rmsg);
-  GMainContext *gmc;
-
-  if (wakeup < 0)
-    return -1;
-  if (wakeup == 0)
-    return 0;
-
-  gmc = g_source_get_context(self->sup_source);
+  GMainContext *gmc = g_source_get_context(self->sup_source);
 
   if (gmc)
     g_main_context_wakeup(gmc);
@@ -400,6 +383,7 @@ gboolean su_source_prepare(GSource *gs, gint *return_tout)
 {
   SuSource *ss = (SuSource *)gs;
   su_port_t *self = ss->ss_port;
+  su_duration_t tout = SU_WAIT_FOREVER;
 
   enter;
 
@@ -408,24 +392,33 @@ gboolean su_source_prepare(GSource *gs, gint *return_tout)
     return TRUE;
   }
 
-  if (self->sup_base->sup_timers) {
+  if (self->sup_base->sup_timers || self->sup_base->sup_deferrable) {
     su_time_t now;
     GTimeVal  gtimeval;
-    su_duration_t tout;
 
     g_source_get_current_time(gs, &gtimeval);
     now.tv_sec = gtimeval.tv_sec + 2208988800UL;
     now.tv_usec = gtimeval.tv_usec;
 
-    tout = su_timer_next_expires(self->sup_base->sup_timers, now);
+    tout = su_timer_next_expires(&self->sup_base->sup_timers, now);
 
-    *return_tout = (tout < 0 || tout > (su_duration_t)G_MAXINT)?
-	-1 : (gint)tout;
+    if (self->sup_base->sup_deferrable) {
+      su_duration_t tout_defer;
 
-    return (tout == 0);
+      tout_defer = su_timer_next_expires(&self->sup_base->sup_deferrable, now);
+
+      if (tout_defer < self->sup_base->sup_max_defer)
+        tout_defer = self->sup_base->sup_max_defer;
+
+      if (tout > tout_defer)
+        tout = tout_defer;
+    }
   }
 
-  return FALSE;
+  *return_tout = (tout >= 0 && tout <= (su_duration_t)G_MAXINT)?
+      (gint)tout : -1;
+
+  return (tout == 0);
 }
 
 static
@@ -434,13 +427,15 @@ gboolean su_source_check(GSource *gs)
   SuSource *ss = (SuSource *)gs;
   su_port_t *self = ss->ss_port;
   gint tout;
+#if SU_HAVE_POLL
   unsigned i, I;
+#endif
 
   enter;
 
+#if SU_HAVE_POLL
   I = self->sup_n_waits;
 
-#if SU_HAVE_POLL
   for (i = 0; i < I; i++) {
     if (self->sup_waits[i].revents)
       return TRUE;
@@ -463,11 +458,10 @@ gboolean su_source_dispatch(GSource *gs,
   if (self->sup_base->sup_head)
     su_base_port_getmsgs(self);
 
-  if (self->sup_base->sup_timers) {
+  if (self->sup_base->sup_timers || self->sup_base->sup_deferrable) {
     su_time_t now;
     GTimeVal  gtimeval;
     su_duration_t tout;
-    int timers = 0;
 
     tout = SU_DURATION_MAX;
 
@@ -476,7 +470,8 @@ gboolean su_source_dispatch(GSource *gs,
     now.tv_sec = gtimeval.tv_sec + 2208988800UL;
     now.tv_usec = gtimeval.tv_usec;
 
-    timers = su_timer_expire(&self->sup_base->sup_timers, &tout, now);
+    su_timer_expire(&self->sup_base->sup_timers, &tout, now);
+    su_timer_expire(&self->sup_base->sup_deferrable, &tout, now);
   }
 
 #if SU_HAVE_POLL
@@ -837,7 +832,7 @@ int su_source_deregister(su_port_t *self, int i)
  * @return Number of wait objects removed.
  */
 int su_source_unregister_all(su_port_t *self,
-			   su_root_t *root)
+			     su_root_t *root)
 {
   unsigned i, j;
   unsigned         n_waits;
@@ -881,8 +876,7 @@ int su_source_unregister_all(su_port_t *self,
 
 /**Set mask for a registered event. @internal
  *
- * The function su_source_eventmask() sets the mask describing events that can
- * signal the registered callback.
+ * Sets the mask describing events that can signal the registered callback.
  *
  * @param port   pointer to port object
  * @param index  registration index
@@ -892,6 +886,7 @@ int su_source_unregister_all(su_port_t *self,
  * @retval 0 when successful,
  * @retval -1 upon an error.
  */
+static
 int su_source_eventmask(su_port_t *self, int index, int socket, int events)
 {
   unsigned n;
@@ -932,15 +927,13 @@ int su_source_multishot(su_port_t *self, int multishot)
 }
 
 
-/** @internal Main loop.
+/** @internal Run the main loop.
  *
- * The function @c su_source_run() runs the main loop
+ * The main loop runs until su_source_break() is called from a callback.
  *
- * The function @c su_source_run() runs until @c su_source_break() is called
- * from a callback.
- *
- * @param self     pointer to root object
+ * @param self     pointer to port object
  * */
+static
 void su_source_run(su_port_t *self)
 {
   GMainContext *gmc;
@@ -959,6 +952,11 @@ void su_source_run(su_port_t *self)
   }
 }
 
+static int su_source_is_running(su_port_t const *self)
+{
+  return self->sup_main_loop && g_main_loop_is_running(self->sup_main_loop);
+}
+
 /** @internal
  * The function @c su_source_break() is used to terminate execution of @c
  * su_source_run(). It can be called from a callback function.
@@ -966,6 +964,7 @@ void su_source_run(su_port_t *self)
  * @param self     pointer to port
  *
  */
+static
 void su_source_break(su_port_t *self)
 {
   enter;
@@ -1112,4 +1111,3 @@ void su_glib_prefer_gsource(void)
 {
   su_port_prefer(su_source_port_create, NULL);
 }
-

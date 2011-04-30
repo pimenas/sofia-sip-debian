@@ -55,6 +55,7 @@
 
 #include <sofia-sip/su_wait.h>
 
+#include <sofia-sip/su_string.h>
 #include <sofia-sip/su_strlst.h>
 
 #include "sofia-sip/nua.h"
@@ -308,6 +309,8 @@ int nua_event_is_incoming_request(nua_event_t event)
 char const *nua_event_name(nua_event_t event)
 {
   switch (event) {
+  case nua_i_none: return "nua_i_none";
+
   case nua_i_error: return "nua_i_error";
   case nua_i_invite: return "nua_i_invite";
   case nua_i_cancel: return "nua_i_cancel";
@@ -420,11 +423,11 @@ enum nua_substate nua_substate_make(char const *sip_substate)
 {
   if (sip_substate == NULL)
     return nua_substate_active;
-  else if (strcasecmp(sip_substate, "terminated") == 0)
+  else if (su_casematch(sip_substate, "terminated"))
     return nua_substate_terminated;
-  else if (strcasecmp(sip_substate, "pending") == 0)
+  else if (su_casematch(sip_substate, "pending"))
     return nua_substate_pending;
-  else /* if (strcasecmp(sip_substate, "active") == 0) */
+  else /* if (su_casematch(sip_substate, "active")) */
     return nua_substate_active;
 }
 

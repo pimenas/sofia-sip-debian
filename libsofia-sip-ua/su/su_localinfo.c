@@ -41,6 +41,7 @@
 
 #include <sofia-sip/su.h>
 #include <sofia-sip/su_localinfo.h>
+#include <sofia-sip/su_string.h>
 #include "su_module_debug.h"
 
 #include <stdio.h>
@@ -66,7 +67,11 @@
 #include <net/if_types.h>
 #endif
 
-#if HAVE_GETIFADDRS
+#if SU_LOCALINFO_TEST
+
+#undef USE_LOCALINFO0
+
+#elif HAVE_GETIFADDRS
 
 #define USE_LOCALINFO0 1
 #define localinfo0 bsd_localinfo
@@ -80,6 +85,7 @@ static int bsd_localinfo(su_localinfo_t const *, su_localinfo_t **);
 static int win_localinfo(su_localinfo_t const *, su_localinfo_t **);
 
 #else
+/* No localinfo0(), use localinfo4() and localinfo6() */
 
 #undef USE_LOCALINFO0
 static int localinfo4(su_localinfo_t const *, su_localinfo_t **);
@@ -89,9 +95,15 @@ static int localinfo6(su_localinfo_t const *, su_localinfo_t **);
 
 #endif
 
+static int li_scope4(uint32_t ip4);
+#if SU_HAVE_IN6
+static int li_scope6(struct in6_addr const *ip6);
+#endif
+
+#if !SU_LOCALINFO_TEST
+
 static int li_name(su_localinfo_t const*, int, su_sockaddr_t const*, char **);
 static void li_sort(su_localinfo_t *i, su_localinfo_t **rresult);
-static int li_scope4(uint32_t ip4);
 
 /** @brief Request local address information.
  *
@@ -195,8 +207,13 @@ int su_getlocalinfo(su_localinfo_t const *hints,
     *hh = *hints;
     if (hh->li_canonname)
       hh->li_flags |= LI_CANONNAME;
+#if 0
+    /* hints->li_ifname is used to select by interface,
+       li_ifname is returned with LI_IFNAME flag
+    */
     if ((hh->li_flags & LI_IFNAME) && hh->li_ifname == NULL)
       return ELI_BADHINTS;
+#endif
   }
 
   switch (hh->li_family) {
@@ -253,6 +270,8 @@ int su_getlocalinfo(su_localinfo_t const *hints,
 
   return error;
 }
+
+#endif
 
 /** Free local address information.
  *
@@ -414,16 +433,17 @@ int su_sockaddr_scope(su_sockaddr_t const *su, socklen_t sulen)
 extern int su_get_local_ip_addr(su_sockaddr_t *su);
 #endif
 
-#if USE_LOCALINFO0
+#if SU_LOCALINFO_TEST
 
+#elif USE_LOCALINFO0
+/* no localinfo4 */
 #elif HAVE_IFCONF
 #if __APPLE_CC__
 /** Build a list of local IPv4 addresses and append it to *rresult. */
 static
 int localinfo4(su_localinfo_t const *hints, su_localinfo_t **rresult)
 {
-  su_localinfo_t *tbf = NULL, **lli = &tbf;
-  su_localinfo_t *li = NULL, *li_first = NULL;
+  su_localinfo_t *li = NULL;
   su_sockaddr_t *su;
   int error = ELI_NOADDRESS;
   char *canonname = NULL;
@@ -452,8 +472,8 @@ int localinfo4(su_localinfo_t const *hints, su_localinfo_t **rresult)
   }
 
 
-  li = calloc(1, sizeof(su_localinfo_t));
-  sa = calloc(1, sizeof(su_sockaddr_t));
+  li = calloc(1, (sizeof *li) + (sizeof *sa));
+  sa = (void *)(li + 1);
 
   error = getsockname(s, (struct sockaddr *) sa, &salen);
   if (error < 0 && errno == SOCKET_ERROR) {
@@ -510,8 +530,7 @@ int localinfo4(su_localinfo_t const *hints, su_localinfo_t **rresult)
 
 err:
   if (canonname) free(canonname);
-  if (li_first) free(li_first);
-  su_freelocalinfo(tbf);
+  if (li) free(li);
   su_close(s);
 
   return error;
@@ -612,7 +631,9 @@ int localinfo4(su_localinfo_t const *hints, su_localinfo_t **rresult)
     struct ifreq ifreq[1];
     int scope, if_index, flags = 0, gni_flags = 0;
     char *if_name;
+#if SU_HAVE_IN6
     su_sockaddr_t su2[1];
+#endif
 
 #if SA_LEN
     if (ifr->ifr_addr.sa_len > sizeof(ifr->ifr_addr))
@@ -771,8 +792,7 @@ int localinfo4(su_localinfo_t const *hints, su_localinfo_t **rresult)
     li->li_addrlen = su_sockaddr_size(su);
     li->li_addr = su;
     li->li_canonname = canonname;
-    if (hints->li_flags & LI_IFNAME)
-      li->li_ifname = if_name;
+    li->li_ifname = if_name;
 
     canonname = NULL;
     li_first = NULL;
@@ -916,8 +936,8 @@ err:
 
 #endif
 
-#if USE_LOCALINFO0 || !SU_HAVE_IN6
-
+#if USE_LOCALINFO0 || !SU_HAVE_IN6 || SU_LOCALINFO_TEST
+/* No localinfo6() */
 #elif HAVE_PROC_NET_IF_INET6
 /** Build a list of local IPv6 addresses and append it to *return_result. */
 static
@@ -1127,8 +1147,9 @@ err:
 }
 #endif
 
-
-#if HAVE_GETIFADDRS
+#if !USE_LOCALINFO0
+/* no localinfo0() or bsd_localinfo() */
+#elif HAVE_GETIFADDRS
 
 #include <ifaddrs.h>
 
@@ -1454,6 +1475,7 @@ err:
 }
 
 #elif HAVE_SIO_ADDRESS_LIST_QUERY
+
 static
 int localinfo0(su_localinfo_t const *hints, su_localinfo_t **rresult)
 {
@@ -1571,6 +1593,8 @@ err:
 }
 #endif
 
+#if !SU_LOCALINFO_TEST
+
 static
 int li_name(su_localinfo_t const *hints,
 	    int gni_flags,
@@ -1600,7 +1624,7 @@ int li_name(su_localinfo_t const *hints,
 	return ELI_RESOLVER;
     }
 
-    if (hints->li_canonname && strcasecmp(name, hints->li_canonname))
+    if (hints->li_canonname && !su_casematch(name, hints->li_canonname))
       return 1;
 
     if (!(flags & LI_CANONNAME))
@@ -1637,6 +1661,8 @@ void li_sort(su_localinfo_t *i, su_localinfo_t **rresult)
     *lli = li;
   }
 }
+
+#endif
 
 /**Get local IP address.
  *
