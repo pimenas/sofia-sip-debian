@@ -809,6 +809,61 @@ tag_typedef_t siptag_refer_sub = SIPHDRTAG_TYPEDEF(refer_sub);
  */
 tag_typedef_t siptag_refer_sub_str = SIPSTRTAG_TYPEDEF(refer_sub);
 
+extern msg_hclass_t sip_alert_info_class[];
+
+/**@ingroup sip_alert_info
+ * Tag for @ref sip_alert_info "Alert-Info header" object.
+ */
+tag_typedef_t siptag_alert_info = SIPHDRTAG_TYPEDEF(alert_info);
+/**@ingroup sip_alert_info
+ * Tag for string with @ref sip_alert_info "Alert-Info header" value.
+ */
+tag_typedef_t siptag_alert_info_str = SIPSTRTAG_TYPEDEF(alert_info);
+
+extern msg_hclass_t sip_reply_to_class[];
+
+/**@ingroup sip_reply_to
+ * Tag for @ref sip_reply_to "Reply-To header" object.
+ */
+tag_typedef_t siptag_reply_to = SIPHDRTAG_TYPEDEF(reply_to);
+/**@ingroup sip_reply_to
+ * Tag for string with @ref sip_reply_to "Reply-To header" value.
+ */
+tag_typedef_t siptag_reply_to_str = SIPSTRTAG_TYPEDEF(reply_to);
+
+extern msg_hclass_t sip_remote_party_id_class[];
+
+/**@ingroup sip_remote_party_id
+ * Tag for @ref sip_remote_party_id "Remote-Party-ID header" object.
+ */
+tag_typedef_t siptag_remote_party_id = SIPHDRTAG_TYPEDEF(remote_party_id);
+/**@ingroup sip_remote_party_id
+ * Tag for string with @ref sip_remote_party_id "Remote-Party-ID header" value.
+ */
+tag_typedef_t siptag_remote_party_id_str = SIPSTRTAG_TYPEDEF(remote_party_id);
+
+extern msg_hclass_t sip_p_asserted_identity_class[];
+
+/**@ingroup sip_p_asserted_identity
+ * Tag for @ref sip_p_asserted_identity "P-Asserted-Identity header" object.
+ */
+tag_typedef_t siptag_p_asserted_identity = SIPHDRTAG_TYPEDEF(p_asserted_identity);
+/**@ingroup sip_p_asserted_identity
+ * Tag for string with @ref sip_p_asserted_identity "P-Asserted-Identity header" value.
+ */
+tag_typedef_t siptag_p_asserted_identity_str = SIPSTRTAG_TYPEDEF(p_asserted_identity);
+
+extern msg_hclass_t sip_p_preferred_identity_class[];
+
+/**@ingroup sip_p_preferred_identity
+ * Tag for @ref sip_p_preferred_identity "P-Preferred-Identity header" object.
+ */
+tag_typedef_t siptag_p_preferred_identity = SIPHDRTAG_TYPEDEF(p_preferred_identity);
+/**@ingroup sip_p_preferred_identity
+ * Tag for string with @ref sip_p_preferred_identity "P-Preferred-Identity header" value.
+ */
+tag_typedef_t siptag_p_preferred_identity_str = SIPSTRTAG_TYPEDEF(p_preferred_identity);
+
 #if SU_HAVE_EXPERIMENTAL
 extern msg_hclass_t sip_suppress_body_if_match_class[];
 
@@ -950,6 +1005,11 @@ tag_type_t sip_tag_list[] =
   siptag_content_disposition,
   siptag_content_length,
   siptag_refer_sub,
+  siptag_alert_info,
+  siptag_reply_to,
+  siptag_remote_party_id,
+  siptag_p_asserted_identity,
+  siptag_p_preferred_identity,
 #if SU_HAVE_EXPERIMENTAL
   siptag_suppress_body_if_match,
   siptag_suppress_notify_if_match,
@@ -1032,6 +1092,11 @@ tag_type_t sip_tag_str_list[] =
   siptag_content_disposition_str,
   siptag_content_length_str,
   siptag_refer_sub_str,
+  siptag_alert_info_str,
+  siptag_reply_to_str,
+  siptag_remote_party_id_str,
+  siptag_p_asserted_identity_str,
+  siptag_p_preferred_identity_str,
 #if SU_HAVE_EXPERIMENTAL
   siptag_suppress_body_if_match_str,
   siptag_suppress_notify_if_match_str,

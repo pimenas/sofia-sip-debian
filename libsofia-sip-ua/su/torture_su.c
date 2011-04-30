@@ -22,8 +22,7 @@
  *
  */
 
-/**@ingroup su
- * 
+/**@internal
  * @file torture_su.c
  *
  * Testing functions for su socket functions.
@@ -204,6 +203,8 @@ int test_sendrecv(void)
 
   TEST(getsockname(l, &su.su_sa, &sulen), 0);
   TEST(listen(l, 5), 0);
+
+  TEST(su_setblocking(s, 1), 0);
   
   TEST(connect(s, &su.su_sa, sulen), 0);
   a = accept(l, &csu.su_sa, &csulen); TEST_1(a != -1);

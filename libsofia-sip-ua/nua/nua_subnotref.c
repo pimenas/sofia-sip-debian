@@ -121,7 +121,9 @@ void nua_subscribe_usage_remove(nua_handle_t *nh,
 /* ====================================================================== */
 /* SUBSCRIBE */
 
-/** Subscribe to a SIP event. 
+/**@fn void nua_subscribe(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...);
+ *
+ *  Subscribe to a SIP event. 
  *
  * Subscribe a SIP event using the SIP SUBSCRIBE request. If the 
  * SUBSCRBE is successful a subscription state is established and 
@@ -136,7 +138,7 @@ void nua_subscribe_usage_remove(nua_handle_t *nh,
  *
  * @par Related Tags:
  *    NUTAG_URL()
- *    Tags in <sip_tag.h>
+ *    Header tags defined in <sofia-sip/sip_tag.h>
  *
  * @par Events:
  *    #nua_r_subscribe \n
@@ -145,7 +147,9 @@ void nua_subscribe_usage_remove(nua_handle_t *nh,
  * @sa NUTAG_SUBSTATE(), @RFC3265
  */
 
-/** Unsubscribe an event. 
+/**@fn void nua_unsubscribe(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...);
+ *
+ * Unsubscribe an event. 
  *
  * Unsubscribe an active or pending subscription with SUBSCRIBE request 
  * containing Expires: header with value 0. The dialog associated with 
@@ -160,7 +164,7 @@ void nua_subscribe_usage_remove(nua_handle_t *nh,
  *
  * @par Related Tags:
  *    SIPTAG_EVENT() or SIPTAG_EVENT_STR() \n
- *    Tags in <sip_tag.h> except SIPTAG_EXPIRES() or SIPTAG_EXPIRES_STR()
+ *    Header tags defined in <sofia-sip/sip_tag.h> except SIPTAG_EXPIRES() or SIPTAG_EXPIRES_STR()
  *
  * @par Events:
  *    #nua_r_unsubscribe 
@@ -385,7 +389,7 @@ static int nua_subscribe_client_response(nua_client_request_t *cr,
       if (eu->eu_substate == nua_substate_terminated)
 	eu->eu_substate = nua_substate_embryonic;
 
-      nua_dialog_usage_refresh_range(du, delta, delta);
+      nua_dialog_usage_set_refresh_range(du, delta, delta);
     }
     else {
       eu->eu_substate = nua_substate_terminated;
@@ -397,9 +401,10 @@ static int nua_subscribe_client_response(nua_client_request_t *cr,
       /* let nua_base_client_tresponse to remove usage */
       cr->cr_terminated = 1;	
   }
-  
+
   return nua_base_client_tresponse(cr, status, phrase, sip, 
 				   NUTAG_SUBSTATE(substate),
+				   SIPTAG_EVENT(du ? du->du_event : NULL),
 				   TAG_END());
 }
 
@@ -630,6 +635,7 @@ int nua_notify_server_report(nua_server_request_t *sr, tagi_t const *tags)
   sip_t const *sip = sr->sr_request.sip;
   enum nua_substate substate = nua_substate_terminated;
   sip_time_t delta = SIP_TIME_MAX;
+  sip_event_t const *o = sip->sip_event;
   int retry = -1;
   int retval;
 
@@ -665,6 +671,7 @@ int nua_notify_server_report(nua_server_request_t *sr, tagi_t const *tags)
   
   retval = nua_base_server_treport(sr, /* can destroy sr */
 				   NUTAG_SUBSTATE(substate),
+				   SIPTAG_EVENT(o),
 				   TAG_NEXT(tags)); 
 
   if (retval != 1 || du == NULL)
@@ -676,7 +683,7 @@ int nua_notify_server_report(nua_server_request_t *sr, tagi_t const *tags)
   else if (retry >= 0) {		/* Try to subscribe again */
     /* XXX - this needs through testing */
     nua_dialog_remove(nh, nh->nh_ds, du); /* tear down */
-    nua_dialog_usage_refresh_range(du, retry, retry + 5);
+    nua_dialog_usage_set_refresh_range(du, retry, retry + 5);
   }
   else {
     nua_dialog_usage_set_refresh(du, delta);
@@ -689,7 +696,9 @@ int nua_notify_server_report(nua_server_request_t *sr, tagi_t const *tags)
 /* ======================================================================== */
 /* REFER */
 
-/** Transfer a call. 
+/**@fn void nua_refer(nua_handle_t *nh, tag_type_t tag, tag_value_t value, ...);
+ *
+ * Transfer a call. 
  * 
  * Send a REFER request asking the recipient to transfer the call. 
  *
@@ -721,14 +730,17 @@ int nua_notify_server_report(nua_server_request_t *sr, tagi_t const *tags)
  * @par Related Tags:
  *    NUTAG_URL() \n
  *    Tags of nua_set_hparams() \n
- *    Tags in <sip_tag.h>
+ *    Header tags defined in <sofia-sip/sip_tag.h>
  *
  * @par Events:
  *    #nua_r_refer \n
  *    #nua_i_notify
  *
  * @sa #nua_r_refer, NUTAG_SUBSTATE(), NUTAG_REFER_EVENT(),#nua_i_refer,
- * @RFC3515, @ReferTo, @RFC3892, @ReferredBy
+ * @RFC3515, @ReferTo, SIPTAG_REFER_TO(), SIPTAG_REFER_TO_STR(),
+ * @RFC3892, @ReferredBy, SIPTAG_REFERRED_BY(), SIPTAG_REFERRED_BY_STR(),
+ * @RFC3891, @Replaces, SIPTAG_REPLACES(), SIPTAG_REPLACES_STR(),
+ * @RFC4488, @ReferSub, SIPTAG_REFER_SUB(), SIPTAG_REFER_SUB_STR()
  */
 
 /**@NUA_EVENT nua_r_refer
@@ -749,7 +761,7 @@ int nua_notify_server_report(nua_server_request_t *sr, tagi_t const *tags)
  *                NUTAG_SUBSTATE()
  *
  * @sa nua_refer(), NUTAG_SUBSTATE(), #nua_i_refer,
- * @RFC3515, @ReferTo, @RFC3892, @ReferredBy
+ * @RFC3515, @RFC4488, @ReferSub
  *
  * @END_NUA_EVENT
  */
@@ -846,6 +858,7 @@ static int nua_refer_client_request(nua_client_request_t *cr,
     nua_stack_tevent(nh->nh_nua, nh, NULL,
 		     cr->cr_event, SIP_100_TRYING,
 		     NUTAG_REFER_EVENT(event),
+		     SIPTAG_EVENT(event),
 		     TAG_END());
     su_free(nh->nh_home, event);
   }
@@ -879,5 +892,6 @@ static int nua_refer_client_response(nua_client_request_t *cr,
   
   return nua_base_client_tresponse(cr, status, phrase, sip, 
 				   NUTAG_SUBSTATE(substate),
+				   SIPTAG_EVENT(du ? du->du_event : NULL),
 				   TAG_END());
 }

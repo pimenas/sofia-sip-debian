@@ -52,6 +52,16 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+# 
+# Generate lcov output
+#
+
+#
+# Copyright (C) 2007 Nokia Corporation
+# Contact: Pekka Pessi <pekka.pessi@nokia.com>
+# Licensed under LGPL. See file COPYING.
+#
+
 
 
 srcdir = @srcdir@
@@ -81,17 +91,19 @@ bin_PROGRAMS =
 check_PROGRAMS = test_tport$(EXEEXT)
 DIST_COMMON = $(nobase_include_sofia_HEADERS) $(srcdir)/Doxyfile.in \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am \
-	ChangeLog
+	$(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/sofia.am \
+	$(top_srcdir)/rules/valcheck.am ChangeLog
 
 # Use with --enable-ndebug
 @NDEBUG_TRUE@am__append_1 = -DNDEBUG
+@HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_2 = --frames
+@HAVE_LCOV_TRUE@am__append_3 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
 subdir = libsofia-sip-ua/tport
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/sac-general.m4 \
-	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su.m4 \
-	$(top_srcdir)/m4/sac-su2.m4 $(top_srcdir)/m4/sac-tport.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/sac-coverage.m4 \
+	$(top_srcdir)/m4/sac-general.m4 \
+	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su2.m4 \
+	$(top_srcdir)/m4/sac-tport.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -168,6 +180,7 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
 COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
+COVERAGE_FLAGS = @COVERAGE_FLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -192,13 +205,20 @@ EXPENSIVE_CHECKS_FALSE = @EXPENSIVE_CHECKS_FALSE@
 EXPENSIVE_CHECKS_TRUE = @EXPENSIVE_CHECKS_TRUE@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+GCOV = @GCOV@
+GENHTML = @GENHTML@
+GENPNG = @GENPNG@
 GLIB_CFLAGS = @GLIB_CFLAGS@
 GLIB_LIBS = @GLIB_LIBS@
 GLIB_VERSION = @GLIB_VERSION@
 HAVE_DOXYGEN_FALSE = @HAVE_DOXYGEN_FALSE@
 HAVE_DOXYGEN_TRUE = @HAVE_DOXYGEN_TRUE@
+HAVE_GENPNG_FALSE = @HAVE_GENPNG_FALSE@
+HAVE_GENPNG_TRUE = @HAVE_GENPNG_TRUE@
 HAVE_GLIB_FALSE = @HAVE_GLIB_FALSE@
 HAVE_GLIB_TRUE = @HAVE_GLIB_TRUE@
+HAVE_LCOV_FALSE = @HAVE_LCOV_FALSE@
+HAVE_LCOV_TRUE = @HAVE_LCOV_TRUE@
 HAVE_MINGW32_FALSE = @HAVE_MINGW32_FALSE@
 HAVE_MINGW32_TRUE = @HAVE_MINGW32_TRUE@
 HAVE_NTH_FALSE = @HAVE_NTH_FALSE@
@@ -213,6 +233,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
@@ -250,7 +271,6 @@ REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
-SOFIA_COVERAGE = @SOFIA_COVERAGE@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -367,6 +387,7 @@ EXTRA_DIST = tport.docs \
 
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
 	$(openssl_CFLAGS) $(am__append_1)
+SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
@@ -393,14 +414,29 @@ INTERNAL_INCLUDES = \
 	-I$(srcdir)/../url -I../url \
 	-I$(srcdir)/../su -I../su
 
+PHONY = built-sources clean-built-sources $(am__append_3)
 VALGRIND = valgrind 
 VALGRINDFLAGS = --tool=memcheck
+
+# Scripts
+@HAVE_LCOV_TRUE@LCOV_UNCOVERED = ${top_srcdir}/scripts/uncovered
+@HAVE_LCOV_TRUE@LCOV_REPORT = ${top_srcdir}/scripts/lcov-report
+
+# Report directory
+@HAVE_LCOV_TRUE@lcovdir = ${top_builddir}/lcov
+
+# Options
+@HAVE_LCOV_TRUE@GENHTML_OPTIONS = --show-details --legend \
+@HAVE_LCOV_TRUE@	$(am__append_2)
+
+# Fancy shell command that expands to directory relative to top_builddir
+@HAVE_LCOV_TRUE@expand_subdir = `pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: _tag_ref.c _tag.c .c .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -409,9 +445,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  libsofia-sip-ua/tport/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  libsofia-sip-ua/tport/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  libsofia-sip-ua/tport/Makefile
+	  $(AUTOMAKE) --foreign  libsofia-sip-ua/tport/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -741,10 +777,12 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+@HAVE_LCOV_FALSE@clean-local:
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-checkPROGRAMS clean-generic \
-	clean-libtool clean-noinstLTLIBRARIES mostlyclean-am
+	clean-libtool clean-local clean-noinstLTLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -795,12 +833,12 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am \
 
 .PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
 	clean-binPROGRAMS clean-checkPROGRAMS clean-generic \
-	clean-libtool clean-noinstLTLIBRARIES ctags distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-binPROGRAMS install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-man \
+	clean-libtool clean-local clean-noinstLTLIBRARIES ctags \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-binPROGRAMS \
+	install-data install-data-am install-exec install-exec-am \
+	install-info install-info-am install-man \
 	install-nobase_include_sofiaHEADERS install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
@@ -819,15 +857,12 @@ clean-built-sources:
 _tag.c_tag_ref.c:
 	$(AWK) -f $(TAG_AWK) NODLL=1 $(TAG_DLL_FLAGS) REF=$@ $<
 
-@ENABLE_COVERAGE_TRUE@coverage:
-@ENABLE_COVERAGE_TRUE@	@$(top_srcdir)/scripts/coverage $(COVERAGE_FLAGS) $(COVERAGE_INPUT)
-
 ../bnf/libbnf.la ../http/libhttp.la ../ipt/libipt.la ../iptsec/libiptsec.la \
  ../msg/libmsg.la ../nea/libnea.la ../nta/libnta.la ../nth/libnth.la \
  ../nua/libnua.la ../sdp/libsdp.la ../sip/libsip.la ../soa/libsoa.la \
  ../sresolv/libsresolv.la ../stun/libstun.la ../su/libsu.la \
  ../tport/libtport.la ../url/liburl.la:
-	$(MAKE) -C $(@D) $(@F)
+	cd $(@D) && $(MAKE) $(@F)
 
 valcheck: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) valcheck-am
@@ -914,6 +949,44 @@ valcheck-TESTS:	$(TESTS)
 	  echo "$$dashes"; \
 	  test "$$failed" -eq 0; \
 	else :; fi
+
+#
+# Generate pretty coverage report (unless it has been already done)
+#
+@HAVE_LCOV_TRUE@lcov:
+@HAVE_LCOV_TRUE@	@-test -r ${lcovdir}${expand_subdir}/lcov.info \
+@HAVE_LCOV_TRUE@	|| make lcov-report
+
+# Generate pretty coverage report based on current coverage data
+@HAVE_LCOV_TRUE@lcov-report:
+@HAVE_LCOV_TRUE@	sub=${expand_subdir} odir=${lcovdir}$$sub ; \
+@HAVE_LCOV_TRUE@	rm -rf $$odir ; mkdir -p $$odir && \
+@HAVE_LCOV_TRUE@	${LCOV_REPORT} ${GENHTML_OPTIONS} \
+@HAVE_LCOV_TRUE@          --title "${PACKAGE_NAME}-${PACKAGE_VERSION}$$sub" \
+@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir 
+
+# Rerun checks before generating report
+@HAVE_LCOV_TRUE@lcov-rerun: clean-lcov
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) check
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) lcov-report
+
+# Show all uncovered lines as errors
+@HAVE_LCOV_TRUE@uncovered:
+@HAVE_LCOV_TRUE@	${LCOV_UNCOVERED} --lcov-dir=${lcovdir} --srcdir=${srcdir}
+
+# Run check in current dir and show all uncovered lines as errors
+@HAVE_LCOV_TRUE@covcheck:
+@HAVE_LCOV_TRUE@	-find . -name "*.gcda" | xargs rm -rf
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) check
+@HAVE_LCOV_TRUE@	${LCOV_UNCOVERED} --lcov-dir=${lcovdir} --srcdir=${srcdir}
+
+@HAVE_LCOV_TRUE@clean-local::
+@HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+@HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
+
+@HAVE_LCOV_TRUE@clean-lcov:
+@HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+@HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
 
 # ----------------------------------------------------------------------
 # Sofia specific rules

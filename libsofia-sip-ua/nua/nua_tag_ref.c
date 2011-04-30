@@ -12,7 +12,7 @@
 
 #include <sofia-sip/su_tag_class.h>
 
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_OPEN_C
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT
@@ -26,9 +26,6 @@
 extern tag_typedef_t nutag_url;
 EXPORT tag_typedef_t nutag_url_ref = 
   REFTAG_TYPEDEF(nutag_url);
-extern tag_typedef_t nutag_address;
-EXPORT tag_typedef_t nutag_address_ref = 
-  REFTAG_TYPEDEF(nutag_address);
 extern tag_typedef_t nutag_method;
 EXPORT tag_typedef_t nutag_method_ref = 
   REFTAG_TYPEDEF(nutag_method);
@@ -56,9 +53,6 @@ EXPORT tag_typedef_t nutag_include_extra_sdp_ref =
 extern tag_typedef_t nutag_media_enable;
 EXPORT tag_typedef_t nutag_media_enable_ref = 
   REFTAG_TYPEDEF(nutag_media_enable);
-extern tag_typedef_t nutag_soa_session;
-EXPORT tag_typedef_t nutag_soa_session_ref = 
-  REFTAG_TYPEDEF(nutag_soa_session);
 extern tag_typedef_t nutag_soa_name;
 EXPORT tag_typedef_t nutag_soa_name_ref = 
   REFTAG_TYPEDEF(nutag_soa_name);
@@ -158,6 +152,12 @@ EXPORT tag_typedef_t nutag_certificate_dir_ref =
 extern tag_typedef_t nutag_certificate_phrase;
 EXPORT tag_typedef_t nutag_certificate_phrase_ref = 
   REFTAG_TYPEDEF(nutag_certificate_phrase);
+extern tag_typedef_t nutag_initial_route;
+EXPORT tag_typedef_t nutag_initial_route_ref = 
+  REFTAG_TYPEDEF(nutag_initial_route);
+extern tag_typedef_t nutag_initial_route_str;
+EXPORT tag_typedef_t nutag_initial_route_str_ref = 
+  REFTAG_TYPEDEF(nutag_initial_route_str);
 extern tag_typedef_t nutag_registrar;
 EXPORT tag_typedef_t nutag_registrar_ref = 
   REFTAG_TYPEDEF(nutag_registrar);
@@ -221,9 +221,6 @@ EXPORT tag_typedef_t nutag_phrase_ref =
 extern tag_typedef_t nutag_handle;
 EXPORT tag_typedef_t nutag_handle_ref = 
   REFTAG_TYPEDEF(nutag_handle);
-extern tag_typedef_t nutag_hold;
-EXPORT tag_typedef_t nutag_hold_ref = 
-  REFTAG_TYPEDEF(nutag_hold);
 extern tag_typedef_t nutag_notify_refer;
 EXPORT tag_typedef_t nutag_notify_refer_ref = 
   REFTAG_TYPEDEF(nutag_notify_refer);
@@ -266,6 +263,15 @@ EXPORT tag_typedef_t nutag_with_ref =
 extern tag_typedef_t nutag_dialog;
 EXPORT tag_typedef_t nutag_dialog_ref = 
   REFTAG_TYPEDEF(nutag_dialog);
+extern tag_typedef_t nutag_soa_session;
+EXPORT tag_typedef_t nutag_soa_session_ref = 
+  REFTAG_TYPEDEF(nutag_soa_session);
+extern tag_typedef_t nutag_hold;
+EXPORT tag_typedef_t nutag_hold_ref = 
+  REFTAG_TYPEDEF(nutag_hold);
+extern tag_typedef_t nutag_address;
+EXPORT tag_typedef_t nutag_address_ref = 
+  REFTAG_TYPEDEF(nutag_address);
 
 EXPORT tag_type_t nua_tag_list[] =
 {
@@ -279,6 +285,7 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_substate,
   nutag_allow,
   nutag_enablemessage,
+  nutag_initial_route,
   nutag_user_agent,
   nutag_smime_opt,
   nutag_include_extra_sdp,
@@ -294,8 +301,8 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_service_route_enable,
   nutag_min_se,
   nutag_media_features,
-  nutag_method,
   nutag_address,
+  nutag_method,
   nutag_registrar,
   nutag_sips_url,
   nutag_smime_signature,
@@ -326,9 +333,9 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_session_timer,
   nutag_invite_timer,
   nutag_callee_caps,
+  nutag_soa_session,
   nutag_phrase,
   nutag_autoack,
-  nutag_soa_session,
   nutag_handle,
   nutag_keepalive,
   nutag_detect_network_updates,
@@ -345,6 +352,7 @@ EXPORT tag_type_t nua_tag_list[] =
   nutag_event,
   nutag_refer_with_id,
   nutag_m_display,
+  nutag_initial_route_str,
   nutag_newsub,
   nutag_auth,
   nutag_early_media,

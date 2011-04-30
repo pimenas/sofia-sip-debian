@@ -1,7 +1,7 @@
 /*
  * This file is part of the Sofia-SIP package
  *
- * Copyright (C) 2005 Nokia Corporation.
+ * Copyright (C) 2005,2006,2007 Nokia Corporation.
  *
  * Contact: Pekka Pessi <pekka.pessi@nokia.com>
  *
@@ -37,10 +37,10 @@
 /* Includes */
 
 #ifndef SU_CONFIG_H
-#include "sofia-sip/su_config.h"
+#include <sofia-sip/su_config.h>
 #endif
 #ifndef SU_TYPES_H
-#include "sofia-sip/su_types.h"
+#include <sofia-sip/su_types.h>
 #endif
 #ifndef SU_ERRNO_H
 #include <sofia-sip/su_errno.h>
@@ -66,15 +66,14 @@
 #if SU_HAVE_WINSOCK		/* Windows includes */
 #  include <winsock2.h>
 #  include <ws2tcpip.h>
-
-#  if defined(IPPROTO_IPV6)
-/* IPv6 defined in ws2tcpip.h */
-#  elif SU_HAVE_IN6 
-#    include <tpipv6.h>		/* From "IPv6 Tech Preview"  */
-#  else
-#    error Winsock with IPv6 support required
+#  if SU_HAVE_IN6
+#    if defined(IPPROTO_IPV6)
+/*     case 1: IPv6 defined in winsock2.h/ws2tcpip.h */
+#    else
+/*     case 2: try to use "IPv6 Tech Preview" */
+#      include <tpipv6.h>		
+#    endif
 #  endif
-
 #endif
 
 SOFIA_BEGIN_DECLS
@@ -95,6 +94,9 @@ enum {
   /** Return code for an unsuccessful call */
   su_failure = -1
 };
+#if SYMBIAN && !defined(MSG_NOSIGNAL)
+#define MSG_NOSIGNAL (0)
+#endif
 #elif SU_HAVE_WINSOCK
 enum { 
   su_success = 0, 
@@ -274,7 +276,9 @@ SOFIAPUBFUN int su_close(su_socket_t s);
 /** Control socket. */
 SOFIAPUBFUN int su_ioctl(su_socket_t s, int request, ...);
 
-/** Checks if the @a errcode indicates that the socket call failed because
+/**Check for in-progress error codes.
+ * 
+ * Checks if the @a errcode indicates that the socket call failed because
  * it would have blocked.
  *
  * Defined as macro with POSIX sockets.
@@ -289,6 +293,9 @@ SOFIAPUBFUN int su_setblocking(su_socket_t s, int blocking);
 SOFIAPUBFUN int su_setreuseaddr(su_socket_t s, int reuse);
 /** Get the error code associated with the socket. */
 SOFIAPUBFUN int su_soerror(su_socket_t s);
+/** Get the socket type. */
+SOFIAPUBFUN int su_getsocktype(su_socket_t s);
+
 /** Get size of message available in socket. */
 SOFIAPUBFUN issize_t su_getmsgsize(su_socket_t s);
 

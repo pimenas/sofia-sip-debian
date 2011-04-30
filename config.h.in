@@ -36,6 +36,9 @@
 /* Define to 1 if you have the `clock_gettime' function. */
 #undef HAVE_CLOCK_GETTIME
 
+/* Defined when gcov is enabled to force by changing config.h */
+#undef HAVE_COVERAGE
+
 /* Define to 1 if you have /dev/urandom. */
 #undef HAVE_DEV_URANDOM
 
@@ -153,6 +156,9 @@
 
 /* Define to 1 if you have the `crypto' library (-lcrypto). */
 #undef HAVE_LIBCRYPTO
+
+/* Define to 1 if you have the `gcov' library (-lgcov). */
+#undef HAVE_LIBGCOV
 
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD

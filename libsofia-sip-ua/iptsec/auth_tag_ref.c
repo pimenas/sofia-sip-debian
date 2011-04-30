@@ -12,7 +12,7 @@
 
 #include <sofia-sip/su_tag_class.h>
 
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_OPEN_C
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT
@@ -49,6 +49,9 @@ EXPORT tag_typedef_t authtag_expires_ref =
 extern tag_typedef_t authtag_next_expires;
 EXPORT tag_typedef_t authtag_next_expires_ref = 
   REFTAG_TYPEDEF(authtag_next_expires);
+extern tag_typedef_t authtag_max_ncount;
+EXPORT tag_typedef_t authtag_max_ncount_ref = 
+  REFTAG_TYPEDEF(authtag_max_ncount);
 extern tag_typedef_t authtag_blacklist;
 EXPORT tag_typedef_t authtag_blacklist_ref = 
   REFTAG_TYPEDEF(authtag_blacklist);

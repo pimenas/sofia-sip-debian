@@ -148,13 +148,11 @@ su_port_vtable_t const su_select_port_vtable[1] =
       su_base_port_run,
       su_base_port_break,
       su_base_port_step,
-      su_pthread_port_own_thread,
+      su_pthread_port_thread,
       su_base_port_add_prepoll,
       su_base_port_remove_prepoll,
       su_base_port_timers,
       su_select_port_multishot,
-      su_base_port_threadsafe,
-      su_base_port_yield,
       su_select_port_wait_events,
       su_base_port_getmsgs,
       su_base_port_getmsgs_from,
@@ -560,7 +558,7 @@ int su_select_port_wait_events(su_port_t *self, su_duration_t tout)
   if (self->sup_maxfd == 0)
     su_select_port_update_maxfd(self);
 
-  bytes = self->sup_maxfd ? FDSETSIZE(self->sup_maxfd - 1) : 0;
+  bytes = FDSETSIZE(self->sup_maxfd);
 
   if (bytes) {
     rset = memcpy(self->sup_readfds2, self->sup_readfds, bytes);

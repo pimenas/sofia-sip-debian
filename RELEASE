@@ -1,39 +1,75 @@
-===============================================
-Release notes for Sofia-SIP 1.12.6 (2007-04-25)
-===============================================
+==================================
+Release notes for Sofia-SIP 1.12.7
+==================================
 
 Changes since last release
 --------------------------
+The stack now compiles and runs on Symbian SDK with Open C support
+enabled.
 
-Numerous nua bugs introduced in the release 1.12.5 have been fixed. Support
-for nextnonce in Authentication-Info header has been added. The nua engine
-now fully supports application-driven SDP.
+The stack supports specifying the outbound proxy by a set of Route
+headers as recommended by RFC3261. It also supports CR-LF-based keepalives
+on TCP connections.
+
+Bugs in call state machines, URI and SDP handling has been fixed.
+
 
 API/ABI changes and versioning
 ------------------------------
 
+New features in API are marked with Doxytag macro @VERSION_1_12_7 or
+@NEW_1_12_7.
+
 libsofia-sip-ua:
-- Use calling/received callstate in nua_i_state event sent because of UPDATE
-  while call is ready
-- Added tag define NUTAG_WITH_CURRENT() as an alias to NUTAG_WITH_THIS()
-- Added tag NUTAG_DIALOG() controlling whether nua_method() creates a dialog.
-- Added tag NUTAG_AUTH_CACHE() <sofia-sip/nua_tag.h> determining when to 
-  include credentials in the request
-- Added kqueue and /dev/poll interfaces (su_devpoll_port_create(),
-  su_devpoll_clone_start(), su_kqueue_port_create(), su_kqueue_clone_start()
-  in <sofia-sip/su_wait.h>)
-- Added SIP_IS_ALLOWED() macro to <sofia-sip/sip_util.h>
-- Fixed NUTAG_APPL_METHOD() implementation for UPDATE and PRACK as documented
-  ("100rel" and "precondition" extensions now require explicit calls to
-  nua_update() and nua_prack() if those methods are included in
-  NUTAG_APPL_METHOD())
-- Added auc_clear field and member to authentication client plugin interface
-  in <sofia-sip/auth_client_plugin.h>
-- Added nua_event_is_incoming_request() to <sofia-sip/nua.h>
 - This release is ABI/API compatible with applications linked against 
   any 1.12.x release. However, applications built against this release won't 
   work against an older library. The ABI has been tested with the nua module 
   unit test (test_nua) built against original 1.12.0 release.
+
+libsofia-sip-ua/nua:
+- Added tag NUTAG_INITIAL_ROUTE(), NUTAG_INITIAL_ROUTE_STR()
+
+libsofia-sip-ua/nta:
+- Added nta_incoming_received()
+- Added accessor function nta_outgoing_branch()
+- Added tag NTATAG_TIMER_C()
+- Deprecated nta_msg_ackbye()
+
+libsofia-sip-ua/iptsec:
+- Added tag AUTHTAG_MAX_NCOUNT()
+
+libsofia-sip-ua/sip:
+- Added SIPEXTHDRTAG_TYPEDEF() macro and tag class sipexthdrtag_class[]
+- Added SIP headers Alert-Info, Reply-To. Remote-Party-ID,
+  P-Asserted-Identity, and P-Preferred-Identity
+- Added sip_update_default_mclass() and sip_extend_mclass()
+- Added macros SIP_HAVE_XXXX for extra headers, e.g., SIP_HAVE_ALERT_INFO().
+
+libsofia-sip-ua/soa:
+- Added tags SOATAG_ORDERED_USER() and SOATAG_REUSE_REJECTED()
+
+libsofia-sip-ua/tport:
+- Updated transport timers
+  - Added TPTAG_KEEPALIVE(), TPTAG_PINGPONG(), TPTAG_PONG2PING()
+  - Added tport_is_clear_to_send(), tport_has_queued()
+- Updated timer handling
+  - Added abstract type su_timer_queue_t (typedef'd to SU_TIMER_QUEUE_T)
+  - Updated su_task_timers() and su_timer_expire() prototypes
+
+libsofia-sip-ua/stun:
+- Removed extra system headers from <sofia-sip/stun_common.h>
+
+libsofia-sip-ua/su:
+- Added su_nanotime_t and functions su_nanotime()/su_monotime()
+- Added function su_getsocktype()
+- Added heap template in <sofia-sip/heap.h>
+- Added configure option --disable-tag-cast and macro SU_INLINE_TAG_CAST
+- Added global variable su_socket_blocking. If it is set to true,
+  sockets are created as blocking.
+- Added access point selection functionality for Open C / Symbian
+- Added functions su_root_release(), su_root_obtain() and
+  su_root_has_thread(). A thread can release a su_root_t and another one can
+  obtain it.
 
 libsofia-sip-ua-glib:
 - No ABI/API changes, compatible with 1.12.0. Note, libsofia-sip-ua-glib
@@ -43,74 +79,84 @@ libsofia-sip-ua-glib:
 Contributors to this release
 ----------------------------
 
-- Pekka Pessi (/dev/poll interface to Solaris, kqueue)
-- Martti Mela (kqueue interface to Max OS X and FreeBSD)
-- Michael Jerris (Solaris patches)
-- Colin Whittaker (sresolv patch)
+- Mikhail Zabaluev (bug fixes)
+- Fabio Margarido (bug fixes)
+- Martti Mela (Open C port and extra functionality, bug fixes)
+- Kai Vehmanen (fixes to win32 VC6/2005 project files)
+- Pekka Pessi (everything else)
 
 See the AUTHORS file in the distribution package.
 
 Notes on new features
 ---------------------
 
-The Sofia-SIP has been compiled and tested on Solaris. The /dev/poll
-interface (in su_devpoll_port.c) has been added for Solaris. Likewise, the
-kqueue interface (in su_kqueue_port.c) has been added for FreeBSD and Mac OS
-X. There is also a select-based reactor for systems without poll().
+The route to the outbound proxy can now be specified as an explicit route
+set.
 
-The client authentication in nua has been updated. The nextnonce in
-Authentication-Info or Proxy-Authentication-Info headers is now used with
-the next authorized operation. The NUTAG_AUTH_CACHE() policy determines how
-the cached credentials are used. By default, the credentials are included in
-each request within the dialog, however, with the
-NUTAG_AUTH_CACHE(nua_auth_cache_challenged) the client authenticates
-requests only after they have been challenged.
+The TCP transport can use CR-LF keepalive and CR-LF PING-PONG messages.
 
-The application can now fully control the SDP negotiation (when soa is
-disabled with NUTAG_MEDIA_ENABLE(0)). The application can send UPDATE and
-PRACK requests and respond to them. The callstate sent in nua_i_state after
-UPDATE while the call has already been completed has been also changed.
+IPv6 support can now be disabled in VC6/VC2005 builds, by setting
+SU_HAVE_IN6 to zero `win32/sofia-sip/su_configure.h'.
+
+Symbian Open C build and packaging (SIS) files for libsofia-sip-ua,
+libsofia-sip-ua-glib and for several test applications have been added under
+sofia-sip/open_c.
+
+The new SIP headers Alert-Info, Reply-To. Remote-Party-ID,
+P-Asserted-Identity, and P-Preferred-Identity are not available in the SIP
+parser by default in order to prevent problems with older applications
+looking for them in sip_unknown field. Applications must enable the new
+headers with sip_update_default_mclass() and sip_extend_mclass().
 
 Bugs fixed in this release
 --------------------------
 
-- Fixed nua failing to refresh publication with re-PUBLISH.
-  Problem reported by Jan van den Bosch.
-- Fixed encoding of c= lines without IN address.
-  Problem reported by Saurav Sahu.
-- Fixed status code sent to network and returned to the client if there was
-  an internal error while responding to a request. 
-  The problem was reported by Michael Jerris and Joshua Engelbrecht.
-- Fixed #1685249, unclear termination of call in absence of credentials by
-  nua_authenticate(). Problem reported by Mikhail Zabaluev.
-- Fixed status code reported to application when REGISTER transaction was
-  restarted by nua stack. Problem reported by Mikhail Zabaluev.
-- An invalid Contact was used if STUN was disabled but there was no STUN
-  server. Problem reported by Miguel Freitas.
-- Fixed problem logging long lines from with TPORT_LOG.
-  Problem reported by Mike Murdock and Michael Jerris.
-- Nua now includes the SDP capabilities in the response to the OPTIONS
-- Fixed assertion failure because BYE destroyed a session twice.
-  Problem reported by Michael Jerris.
-- Fixed crash caused by a 0-length UDP datagram.
-  Problem reported by Michael Jerris.
-- Fixed the 305 response handling by nua stack.
-  Bug #1676445 reported by Fabio Margarido.
-- Fixed authentication-related bugs #1685245 and #1570746.
-  #1685245 reported by Mikhail Zabaluev.
-- Fixed problems resuming DNS after server or link downtime.
-  Bug #1631198 reported and initial patch submitted by Colin Whittaker.
-- Fixed NUTAG_APPL_METHOD() implementation for UPDATE and PRACK as documented
-- Fixed crashes in nua state engines:
-  - when nua_invite() was called second time before receiving
-    final response to first INVITE
-  - when UAS expected PRACK but received CANCEL
-  - when UAC received error response to PRACK, it tried to send BYE and crashed
-  - when UAS rejected initial request, the subsequent request with same 
-    dialog id (Call-ID, From-tag) crashed (dialog cleanup code left dialog
-    dangling)
-  Problems reported by Michael Jerris
-- Fixed crash in nta state engine:
-  - DNS resolver failure in non-invite transactions crashed
-- Fixed SDP handling when soa is disabled (NUTAG_MEDIA_ENABLE(0)).
-  Problem reported by Marcin Michalak
+- Fixed sf.net bug #1804248: nua_prack() now works. 
+  Thanks to Fabio Margarido for sending the patch.
+- Fixed sf.net bug #1810115: crash after failed outgoing request and
+  nta_destroy()
+  Thanks to Mikhail Zabaluev for reporting the problem.
+- Fixed sf.net bug #1804248: nua_prack() now works. 
+  Thanks to Fabio Margarido for sending the patch.
+- Fixed sf.net bug 1803686: nua_destroy() can now be called from inside 
+  nua event callback.
+  Thanks to Mikhail Zabaluev for reporting the problem.
+- SIP Content-Length structure was casted to one with 64-bit integer instead 
+  of 32-bit, so message body was not parsed on 64-bit big-endian platform.
+  Thanks to Martin Drasar for hunting down the bug.
+- Authentication scheme token was compared as case-sensitive on client side.
+  Thanks to Russell McConnachie for reporting this problem.
+- Fixed sf.net bug #1706629: in-dialog requests not routed according to the
+  dialog route. Problem was because the outbound proxy was not handles as
+  RECOMMENDED by RFC 3261. The new tag NUTAG_INITIAL_ROUTE() allows correct
+  handling of requests.
+- Fixed problems in nua state engines (call setup failing if some messages 
+  were re-ordered or crashing when they were lost)
+  Thanks to Michael Jerris, Anthony Minessale, and others in Freeswitch
+  project for hunting down these bugs and reporting them
+- When nua generates Contact URI, the user-specified URI parameters are now
+  overridden by actual transport parameters (e.g., transport=tcp)
+  Thanks to Mikhail Zabaluev for submitting the patch.
+- Fixed sf.net bug #1750691: used to send ACK&BYE when extra 200 OK is
+  received and the 200 OK did not match any client transaction.
+  Thanks to Mikhail Zabaluev for reporting the problem.
+- Fixed problem of un-escaping reserved characters in URIs 
+  Thanks to Jan van den Bosch, Fabio Margarido and Mikhail Zabaluev for
+  reporting the problem.
+- Fixed missing links in Doxygen-generated documentation
+  Thanks to Jerry Richards for reporting this problem.
+- Fixed timing problem with CANCELed INVITE transactions.
+  Thanks to Fabio Margarido for reporting this problem.
+- Fixed sf.net bug #1771243: tport_check_trunc() does not block anymore
+  Thanks to Erland Lwin for reporting the problem
+- Fixed sf.net bug #1733323: extra tag arguments were used by 
+  nta_outgoing_tcancel().
+  Thanks to Fabio Margarido for reporting this problem.
+- Fixed sf.net bug #1747149: sdp_session_cmp() ignored some m= lines
+  (e.g., new SDP in re-INVITE was sometimes ignored)
+  Thanks to Mikhail Zabaluev for reporting the problem.
+- Fixed sf.net bug #1726034: crash in msg_as_string() with too large messages 
+- Fixed sf.net bug #1472682: ACK did not find INVITE server transaction when
+  the To URI had been changed.
+- Do not block when making a TCP connect()ion in tport.
+  Thanks to Mikhail Zabaluev for submitting the patch.

@@ -22,7 +22,7 @@
  *
  */
 
-/**
+/**@internal
  * @file stun_common.c
  * @brief 
  * 
@@ -43,6 +43,7 @@
 
 #include "stun_internal.h"
 
+#include <string.h>
 #include <assert.h>
 
 #if HAVE_FUNC

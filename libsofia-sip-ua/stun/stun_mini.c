@@ -22,7 +22,7 @@
  *
  */
 
-/**
+/**@internal
  * @file stun_mini.c
  * @brief Minimal stun server 
  * 
@@ -39,6 +39,7 @@
 #include "stun_internal.h"
 
 #include <assert.h>
+#include <string.h>
 
 typedef struct stun_bound_s stun_bound_t;
 

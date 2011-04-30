@@ -12,7 +12,7 @@
 
 #include <sofia-sip/su_tag_class.h>
 
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_OPEN_C
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT
@@ -92,6 +92,9 @@ EXPORT tag_typedef_t ntatag_sip_t4_ref =
 extern tag_typedef_t ntatag_progress;
 EXPORT tag_typedef_t ntatag_progress_ref = 
   REFTAG_TYPEDEF(ntatag_progress);
+extern tag_typedef_t ntatag_timer_c;
+EXPORT tag_typedef_t ntatag_timer_c_ref = 
+  REFTAG_TYPEDEF(ntatag_timer_c);
 extern tag_typedef_t ntatag_blacklist;
 EXPORT tag_typedef_t ntatag_blacklist_ref = 
   REFTAG_TYPEDEF(ntatag_blacklist);
@@ -326,6 +329,7 @@ EXPORT tag_type_t nta_tag_list[] =
   ntatag_bad_req_mask,
   ntatag_s_acked_tr,
   ntatag_use_timestamp,
+  ntatag_timer_c,
   ntatag_use_naptr,
   ntatag_cancel_2543,
   ntatag_sipflags,

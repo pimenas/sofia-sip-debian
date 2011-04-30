@@ -57,13 +57,16 @@
 
 SOFIA_BEGIN_DECLS
 
-/** Return built-in SIP parser object. */
+/** Return a built-in SIP parser object. */
 SOFIAPUBFUN msg_mclass_t const *sip_default_mclass(void);
 
-/** Check that sip_t is a SIP structure (not RTSP or HTTP). @HIDE */
+SOFIAPUBFUN int sip_update_default_mclass(msg_mclass_t const *mclass);
+SOFIAPUBFUN msg_mclass_t *sip_extend_mclass(msg_mclass_t *input);
+
+/** Check that sip_t is a SIP header structure (not MIME or HTTP). @HIDE */
 #define sip_is_sip(sip) ((sip) && (sip)->sip_ident == SIP_PROTOCOL_TAG)
 
-/** Initializer for a SIP header object. @HIDE */
+/** Initializer for a SIP header structure. @HIDE */
 #define SIP_HDR_INIT(name) {{{ 0, 0, sip_##name##_class }}}
 
 /** Initialize a SIP header structure. @HIDE */
@@ -349,26 +352,114 @@ int sip_has_feature(msg_list_t const *supported, char const *feature);
 SOFIAPUBFUN int sip_is_allowed(sip_allow_t const *allow, 
 			       sip_method_t method, char const *name);
 
-/** Check if the well-known method is listed in @Allow header. @NEW_1_12_6 */
+/** Check if the well-known method is listed in @Allow header. @NEW_1_12_6. */
 #define SIP_IS_ALLOWED(allow, method) \
   (sip_method_unknown < (method) && (method) < 32 && \
    (allow) && ((allow)->k_bitmap & (1 << (method))) != 0)
 
-/* ---------------------------------------------------------------------------
- * Bitmasks for header classifications
+/**
+ * Bitmasks for header classifications.
+ *
+ * If parsing of a particular header fails, the error bits in #msg_t are
+ * updated. The error bits can be obtained via msg_extract_errors() after
+ * parsing. The header-specific bits are stored along with the
+ * @ref msg_hclass_t "header class" in the #msg_href_t structure, found in
+ * the parser tables of the #msg_mclass_t object.
+ *
+ * @sa NTATAG_BAD_REQ_MASK(), NTATAG_BAD_RESP_MASK(),
+ * #msg_mclass_t, struct #msg_mclass_s, msg_mclass_clone(),
+ * msg_mclass_insert_with_mask(),
+ * #msg_href_t, struct #msg_href_s, msg_mclass_insert().
  */
-enum {
-  sip_mask_request = 1,
-  sip_mask_response = 2,
-  sip_mask_ua = 4,
-  sip_mask_proxy = 8,
-  sip_mask_registrar = 16,
-  sip_mask_100rel = 32,
-  sip_mask_events = 64,
-  sip_mask_timer = 128,
-  sip_mask_privacy = 256,
-  sip_mask_pref = 512,
-  sip_mask_publish = 1024
+enum sip_bad_mask {
+  /** Bit marking essential headers in a request message.
+   *
+   * @ref sip_request \"request line\"", @From, @To, @CSeq, @CallID,
+   * @ContentLength, @Via
+   */
+  sip_mask_request = (1 << 0),
+
+  /** Bit marking essential headers in a response message.
+   *
+   * @ref sip_status \"status line\"", @From, @To, @CSeq, @CallID,
+   * @ContentLength, @Via
+   */
+  sip_mask_response = (1 << 1),
+
+  /** Bit marking essential headers for User-Agent.
+   *
+   * @ContentType, @ContentDisposition, @ContentEncoding, @Supported,
+   * @Contact, @Require, and @RecordRoute.
+   */
+  sip_mask_ua = (1 << 2),
+
+  /** Bit marking essential headers for proxy server.
+   *
+   * @Route, @MaxForwards, @ProxyRequire, @ProxyAuthorization, @Supported,
+   * @Contact, and @RecordRoute.
+   */
+  sip_mask_proxy = (1 << 3),
+
+  /** Bit marking essential headers for registrar server.
+   *
+   * @MinExpires, @Authorization, @Path, @Supported, @Contact, @Require, and
+   * @Expires.
+   * 
+   */
+  sip_mask_registrar = (1 << 4),
+
+  /** Bit marking essential headers for 100rel extension.
+   *
+   * @RAck and @RSeq.
+   *
+   * @sa @RFC3262.
+   */
+  sip_mask_100rel = (1 << 5),
+
+  /** Bit marking essential headers for SIP events.
+   *
+   * @Event, @Expires, and @SubscriptionState.
+   * 
+   * @sa @RFC3265.
+   */
+  sip_mask_events = (1 << 6),
+
+  /** Bit marking essential headers for session timer extension.
+   *
+   * @SessionExpires, and @MinSE.
+   * 
+   * @RFC4028
+   */
+  sip_mask_timer = (1 << 7),
+
+  /** Bit marking essential headers for privacy extension.
+   *
+   * @Privacy.
+   * 
+   * @sa @RFC3323
+   */
+  sip_mask_privacy = (1 << 8),
+
+  /** Bit marking essential headers for caller preference extension.
+   *
+   * @RequestDisposition, @AcceptContact, and @RejectContact.
+   * 
+   * @sa @RFC3841.
+   */
+  sip_mask_pref = (1 << 9),
+
+  /** Bit marking essential headers for PUBLISH servers and clients.
+   *
+   * @SIPETag, and @SIPIfMatch.
+   * 
+   * @sa @RFC3903.
+   */
+  sip_mask_publish = (1 << 10)
+
+  /* NOTE:
+   * When adding bits, please update nta_agent_create() and 
+   * NTATAG_BAD_RESP_MASK()/NTATAG_BAD_REQ_MASK() documentation.
+   */
 };
 
 /* ------------------------------------------------------------------------- */

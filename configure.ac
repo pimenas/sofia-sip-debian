@@ -11,14 +11,14 @@ dnl information on the package
 dnl ---------------------------
 
 dnl update both the version for AC_INIT and the LIBSOFIA_SIP_UA_MAJOR_MINOR
-AC_INIT([sofia-sip], [1.12.6])
+AC_INIT([sofia-sip], [1.12.7])
 AC_CONFIG_SRCDIR([libsofia-sip-ua/sip/sofia-sip/sip.h])
 AC_SUBST(VER_LIBSOFIA_SIP_UA_MAJOR_MINOR, [1.12])
 dnl Includedir specific to this sofia version
 AC_SUBST(include_sofiadir, '${includedir}/sofia-sip-1.12')
-AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [5])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_CUR, [6])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_REV, [0])
-AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [5])
+AC_SUBST(LIBVER_SOFIA_SIP_UA_AGE, [6])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_SOVER, [0]) # CUR-AGE
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_CUR, [3])
 AC_SUBST(LIBVER_SOFIA_SIP_UA_GLIB_REV, [0])
@@ -69,7 +69,6 @@ AM_CONDITIONAL([HAVE_DOXYGEN], [test $DOXYGEN != echo])
 SAC_SOFIA_SU
 SAC_OPENSSL
 SAC_TPORT
-SAC_SU
 
 ### internal modules
 ### ----------------
@@ -296,6 +295,8 @@ utils/Makefile
 utils/Doxyfile
 win32/Makefile
 win32/config.h
+open_c/Makefile
+open_c/config.h
 ])
 
 AC_CONFIG_COMMANDS([version],,[PACKAGE_VERSION=${PACKAGE_VERSION}])

@@ -22,8 +22,7 @@
  *
  */
 
-/**@SU_TAG
- * 
+/**@internal
  * @file torture_su_tag.c
  *
  * Testing functions for su_tag module.
@@ -275,8 +274,16 @@ static int test_stackargs(int l, ...) { return 0; }
 /** Test tl_list, tl_llist and tl_dup */
 static int test_dup(void)
 {
-  tagi_t const rest[] = {{ TAG_A("Foo") }, { TAG_NULL() }};
   tagi_t *lst, *dup;
+#if HAVE_OPEN_C
+  tagi_t rest[2];
+  rest[0].t_tag = tag_a;
+  rest[0].t_value = tag_str_v("Foo");
+  rest[1].t_tag = (tag_type_t)0;
+  rest[0].t_value = (tag_value_t)0;
+#else
+  tagi_t const rest[] = {{ TAG_A("Foo") }, { TAG_NULL() }};
+#endif
 
   BEGIN();
 
@@ -643,6 +650,10 @@ int main(int argc, char *argv[])
     else
       usage(1);
   }
+
+#if HAVE_OPEN_C
+  tstflags |= tst_verbatim;
+#endif
 
   retval |= test_assumptions();
   retval |= test_stackargs(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);

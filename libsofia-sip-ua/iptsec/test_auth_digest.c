@@ -92,11 +92,9 @@ char const name[] = "test_auth_digest";
 
 unsigned offset;
 
-void su_time(su_time_t *tv)
+void offset_time(su_time_t *tv)
 {
-  tv->tv_sec = time(NULL) + offset + 
-    /* Seconds from 1.1.1900 to 1.1.1970 */ 2208988800UL ;
-  tv->tv_usec = 555555;
+  tv->tv_sec += offset;
 }
 
 int test_digest()
@@ -486,7 +484,7 @@ int test_digest_client()
       "From:surf3.ims3.so.noklab.net <sip:surf3@ims3.so.noklab.net>;tag=I8hFdg0H3OK\r\n"
       "To:<sip:surf3@ims3.so.noklab.net>\r\n"
       "Via:SIP/2.0/UDP 10.21.36.70:23800;branch=z9hG4bKJjKGu9vIHqf;received=10.21.36.70;rport\r\n"
-      "WWW-Authenticate:Digest algorithm=MD5,nonce=\"h7wIpP+atU+/+Zau5UwLMA==\",realm=\"ims3.so.noklab.net\"\r\n"
+      "WWW-Authenticate:DIGEST algorithm=MD5,nonce=\"h7wIpP+atU+/+Zau5UwLMA==\",realm=\"ims3.so.noklab.net\"\r\n"
       "Content-Length:0\r\n"
       "Security-Server:digest\r\n"
       "r\n";
@@ -528,11 +526,13 @@ int test_digest_client()
     TEST_1(m1 = read_message(MSG_DO_EXTRACT_COPY, challenge));
     TEST_1(sip = sip_object(m1));
     
+    TEST_1(aucs == NULL);
     TEST(auc_challenge(&aucs, home, sip->sip_www_authenticate, 
 		       sip_authorization_class), 1);
+    TEST_1(aucs != NULL);
     msg_destroy(m1);
-    
-    TEST(auc_all_credentials(&aucs, "Digest", "\"ims3.so.noklab.net\"", 
+
+    TEST(auc_all_credentials(&aucs, "DIGEST", "\"ims3.so.noklab.net\"", 
 			     "surf3.private@ims3.so.noklab.net", "1234"), 1);
 
     TEST_1(m2 = read_message(MSG_DO_EXTRACT_COPY, request));
@@ -765,6 +765,44 @@ int test_digest_client()
 
     reinit_as(as); auth_mod_destroy(am); aucs = NULL;
 
+    /* Test without realm */
+    {
+      msg_auth_t *au;
+
+      TEST_1(am = auth_mod_create(NULL, 
+				  AUTHTAG_METHOD("Digest"),
+				  AUTHTAG_DB(testpasswd),
+				  AUTHTAG_ALGORITHM("MD5-sess"),
+				  AUTHTAG_QOP("auth"),
+				  AUTHTAG_OPAQUE("opaque=="),
+				  TAG_END()));
+      as->as_realm = NULL;
+      auth_mod_check_client(am, as, NULL, ach); TEST(as->as_status, 500);
+
+      as->as_realm = "ims3.so.noklab.net";
+      auth_mod_check_client(am, as, NULL, ach); TEST(as->as_status, 401);
+
+      au = (void *)msg_header_dup(home, as->as_response); TEST_1(au);
+
+      TEST(auc_challenge(&aucs, home, au, sip_authorization_class), 1);
+      TEST(auc_all_credentials(&aucs, "Digest", "\"ims3.so.noklab.net\"", 
+			       "user1", "secret"), 1);
+      msg_header_remove(m2, (void *)sip, (void *)sip->sip_authorization);
+
+      TEST(auc_authorization(&aucs, m2, (msg_pub_t*)sip, rq->rq_method_name, 
+			     (url_t *)"sip:surf3@ims3.so.noklab.net", 
+			     sip->sip_payload), 1);
+
+      TEST_1(sip->sip_authorization);
+      reinit_as(as);
+
+      as->as_realm = "ims3.so.noklab.net";
+      auth_mod_check_client(am, as, sip->sip_authorization, ach);
+      TEST(as->as_status, 0);
+    }
+
+    reinit_as(as); auth_mod_destroy(am); aucs = NULL;
+
     /* Test nextnonce */
     {
       char const *nonce1, *nextnonce, *nonce2;
@@ -858,6 +896,7 @@ int test_digest_client()
 				AUTHTAG_QOP("auth,auth-int"),
 				AUTHTAG_FORBIDDEN(1),
 				AUTHTAG_ANONYMOUS(1),
+				AUTHTAG_MAX_NCOUNT(1),
 				TAG_END()));
 
     reinit_as(as);
@@ -904,6 +943,36 @@ int test_digest_client()
     TEST(as->as_status, 401);
     TEST_1(au = (void *)as->as_response); TEST_1(au->au_params);
     TEST_S(msg_params_find(au->au_params, "stale="), "true");
+
+    TEST(auc_challenge(&aucs, home, (msg_auth_t *)as->as_response, 
+		       sip_authorization_class), 1);
+    msg_header_remove(m2, (void *)sip, (void *)sip->sip_authorization);
+    TEST(auc_authorization(&aucs, m2, (msg_pub_t*)sip, rq->rq_method_name, 
+			   (url_t *)"sip:surf3@ims3.so.noklab.net", 
+			   sip->sip_payload), 1);
+    TEST_1(sip->sip_authorization);
+    TEST_S(msg_header_find_param(sip->sip_authorization->au_common, "nc="),
+	   "00000001");
+
+    reinit_as(as);
+    auth_mod_check_client(am, as, sip->sip_authorization, ach);
+    TEST(as->as_status, 0);
+
+    /* Test nonce count check */
+    msg_header_remove(m2, (void *)sip, (void *)sip->sip_authorization);
+    TEST(auc_authorization(&aucs, m2, (msg_pub_t*)sip, rq->rq_method_name, 
+			   (url_t *)"sip:surf3@ims3.so.noklab.net", 
+			   sip->sip_payload), 1);
+    TEST_1(sip->sip_authorization);
+    TEST_S(msg_header_find_param(sip->sip_authorization->au_common, "nc="),
+	   "00000002");
+
+    reinit_as(as);
+    auth_mod_check_client(am, as, sip->sip_authorization, ach);
+    TEST(as->as_status, 401);
+    TEST_1(au = (void *)as->as_response); TEST_1(au->au_params);
+    TEST_S(msg_params_find(au->au_params, "stale="), "true");
+
     aucs = NULL;
 
     /* Test anonymous operation */
@@ -1172,6 +1241,9 @@ int main(int argc, char *argv[])
 {
   int retval = 0;
   int i;
+  extern void (*_su_time)(su_time_t *tv);
+
+  _su_time = offset_time;
 
   argv0 = argv[0];
 

@@ -129,13 +129,11 @@ su_port_vtable_t const su_poll_port_vtable[1] =
       su_base_port_run,
       su_base_port_break,
       su_base_port_step,
-      su_pthread_port_own_thread,
+      su_pthread_port_thread,
       su_base_port_add_prepoll,
       su_base_port_remove_prepoll,
       su_base_port_timers,
       su_poll_port_multishot,
-      su_base_port_threadsafe,
-      su_base_port_yield,
       su_poll_port_wait_events,
       su_base_port_getmsgs,
       su_base_port_getmsgs_from,
@@ -671,7 +669,7 @@ int su_poll_clone_start(su_root_t *parent,
 			su_root_init_f init,
 			su_root_deinit_f deinit)
 {
-  return su_pthreaded_port_start(su_default_port_create, 
+  return su_pthreaded_port_start(su_poll_port_create, 
 				 parent, return_clone, magic, init, deinit);
 }
 

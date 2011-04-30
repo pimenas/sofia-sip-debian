@@ -12,7 +12,7 @@
 
 #include <sofia-sip/su_tag_class.h>
 
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_OPEN_C
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT

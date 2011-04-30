@@ -22,7 +22,7 @@
  *
  */
 
-/**
+/**@internal
  * @file stun_dns.c 
  * @brief Functins to discover STUN server address using DNS-SRV.
  *
@@ -53,6 +53,8 @@ static char const __func__[] = "stun_dns";
 #endif
 
 #include "stun_internal.h"
+
+#include <string.h>
 
 struct stun_dns_lookup_s {
   su_home_t          stun_home[1];

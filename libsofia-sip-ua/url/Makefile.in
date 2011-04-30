@@ -52,6 +52,16 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+# 
+# Generate lcov output
+#
+
+#
+# Copyright (C) 2007 Nokia Corporation
+# Contact: Pekka Pessi <pekka.pessi@nokia.com>
+# Licensed under LGPL. See file COPYING.
+#
+
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -76,20 +86,22 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-check_PROGRAMS = torture_url$(EXEEXT) test_urlmap$(EXEEXT)
+check_PROGRAMS = torture_url$(EXEEXT)
 DIST_COMMON = $(nobase_include_sofia_HEADERS) $(srcdir)/Doxyfile.in \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am \
-	ChangeLog
+	$(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/sofia.am \
+	$(top_srcdir)/rules/valcheck.am ChangeLog
 
 # Use with --enable-ndebug
 @NDEBUG_TRUE@am__append_1 = -DNDEBUG
+@HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_2 = --frames
+@HAVE_LCOV_TRUE@am__append_3 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
 subdir = libsofia-sip-ua/url
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/sac-general.m4 \
-	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su.m4 \
-	$(top_srcdir)/m4/sac-su2.m4 $(top_srcdir)/m4/sac-tport.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/sac-coverage.m4 \
+	$(top_srcdir)/m4/sac-general.m4 \
+	$(top_srcdir)/m4/sac-openssl.m4 $(top_srcdir)/m4/sac-su2.m4 \
+	$(top_srcdir)/m4/sac-tport.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -100,11 +112,6 @@ LTLIBRARIES = $(noinst_LTLIBRARIES)
 liburl_la_LIBADD =
 am_liburl_la_OBJECTS = url.lo url_tag.lo url_tag_ref.lo
 liburl_la_OBJECTS = $(am_liburl_la_OBJECTS)
-am_test_urlmap_OBJECTS = test_urlmap-urlmap.$(OBJEXT)
-test_urlmap_OBJECTS = $(am_test_urlmap_OBJECTS)
-test_urlmap_LDADD = $(LDADD)
-test_urlmap_DEPENDENCIES = liburl.la ../bnf/libbnf.la ../ipt/libipt.la \
-	../su/libsu.la
 torture_url_SOURCES = torture_url.c
 torture_url_OBJECTS = torture_url.$(OBJEXT)
 torture_url_LDADD = $(LDADD)
@@ -121,9 +128,8 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(liburl_la_SOURCES) $(test_urlmap_SOURCES) torture_url.c
-DIST_SOURCES = $(liburl_la_SOURCES) $(test_urlmap_SOURCES) \
-	torture_url.c
+SOURCES = $(liburl_la_SOURCES) torture_url.c
+DIST_SOURCES = $(liburl_la_SOURCES) torture_url.c
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -151,6 +157,7 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COREFOUNDATION_FALSE = @COREFOUNDATION_FALSE@
 COREFOUNDATION_TRUE = @COREFOUNDATION_TRUE@
+COVERAGE_FLAGS = @COVERAGE_FLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CWFLAG = @CWFLAG@
@@ -175,13 +182,20 @@ EXPENSIVE_CHECKS_FALSE = @EXPENSIVE_CHECKS_FALSE@
 EXPENSIVE_CHECKS_TRUE = @EXPENSIVE_CHECKS_TRUE@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+GCOV = @GCOV@
+GENHTML = @GENHTML@
+GENPNG = @GENPNG@
 GLIB_CFLAGS = @GLIB_CFLAGS@
 GLIB_LIBS = @GLIB_LIBS@
 GLIB_VERSION = @GLIB_VERSION@
 HAVE_DOXYGEN_FALSE = @HAVE_DOXYGEN_FALSE@
 HAVE_DOXYGEN_TRUE = @HAVE_DOXYGEN_TRUE@
+HAVE_GENPNG_FALSE = @HAVE_GENPNG_FALSE@
+HAVE_GENPNG_TRUE = @HAVE_GENPNG_TRUE@
 HAVE_GLIB_FALSE = @HAVE_GLIB_FALSE@
 HAVE_GLIB_TRUE = @HAVE_GLIB_TRUE@
+HAVE_LCOV_FALSE = @HAVE_LCOV_FALSE@
+HAVE_LCOV_TRUE = @HAVE_LCOV_TRUE@
 HAVE_MINGW32_FALSE = @HAVE_MINGW32_FALSE@
 HAVE_MINGW32_TRUE = @HAVE_MINGW32_TRUE@
 HAVE_NTH_FALSE = @HAVE_NTH_FALSE@
@@ -196,6 +210,7 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
@@ -233,7 +248,6 @@ REPLACE_LIBADD = @REPLACE_LIBADD@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOFIA_CFLAGS = @SOFIA_CFLAGS@
-SOFIA_COVERAGE = @SOFIA_COVERAGE@
 SOFIA_GLIB_PKG_REQUIRES = @SOFIA_GLIB_PKG_REQUIRES@
 STRIP = @STRIP@
 TESTS_ENVIRONMENT = @TESTS_ENVIRONMENT@
@@ -314,18 +328,23 @@ LDADD = liburl.la \
 			../ipt/libipt.la \
 			../su/libsu.la
 
-test_urlmap_SOURCES = urlmap.c urlmap.h
-test_urlmap_CFLAGS = $(CFLAGS) -DTEST_URLMAP=1
 
 # ----------------------------------------------------------------------
 # Install and distribution rules
-EXTRA_DIST = url.docs $(BUILT_SOURCES)
+
+# ----------------------------------------------------------------------
+# urlmap is not used
+#check_PROGRAMS +=	test_urlmap
+#test_urlmap_SOURCES = 	urlmap.c urlmap.h
+#test_urlmap_CFLAGS =	$(CFLAGS) -DTEST_URLMAP=1
+EXTRA_DIST = url.docs $(BUILT_SOURCES) urlmap.c urlmap.h
 
 # ----------------------------------------------------------------------
 # Tests
-TESTS = torture_url test_urlmap
+TESTS = torture_url
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
 	$(openssl_CFLAGS) $(am__append_1)
+SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
 # rules for building tag files
@@ -352,8 +371,23 @@ INTERNAL_INCLUDES = \
 	-I$(srcdir)/../url -I../url \
 	-I$(srcdir)/../su -I../su
 
+PHONY = built-sources clean-built-sources $(am__append_3)
 VALGRIND = valgrind 
 VALGRINDFLAGS = --tool=memcheck
+
+# Scripts
+@HAVE_LCOV_TRUE@LCOV_UNCOVERED = ${top_srcdir}/scripts/uncovered
+@HAVE_LCOV_TRUE@LCOV_REPORT = ${top_srcdir}/scripts/lcov-report
+
+# Report directory
+@HAVE_LCOV_TRUE@lcovdir = ${top_builddir}/lcov
+
+# Options
+@HAVE_LCOV_TRUE@GENHTML_OPTIONS = --show-details --legend \
+@HAVE_LCOV_TRUE@	$(am__append_2)
+
+# Fancy shell command that expands to directory relative to top_builddir
+@HAVE_LCOV_TRUE@expand_subdir = `pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
 
 # ----------------------------------------------------------------------
 # Sofia specific rules
@@ -363,7 +397,7 @@ all: $(BUILT_SOURCES)
 
 .SUFFIXES:
 .SUFFIXES: _tag_ref.c _tag.c .c .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/rules/sofia.am $(top_srcdir)/rules/valcheck.am $(top_srcdir)/rules/lcov.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -372,9 +406,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  libsofia-sip-ua/url/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  libsofia-sip-ua/url/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  libsofia-sip-ua/url/Makefile
+	  $(AUTOMAKE) --foreign  libsofia-sip-ua/url/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -412,9 +446,6 @@ clean-checkPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-test_urlmap$(EXEEXT): $(test_urlmap_OBJECTS) $(test_urlmap_DEPENDENCIES) 
-	@rm -f test_urlmap$(EXEEXT)
-	$(LINK) $(test_urlmap_LDFLAGS) $(test_urlmap_OBJECTS) $(test_urlmap_LDADD) $(LIBS)
 torture_url$(EXEEXT): $(torture_url_OBJECTS) $(torture_url_DEPENDENCIES) 
 	@rm -f torture_url$(EXEEXT)
 	$(LINK) $(torture_url_LDFLAGS) $(torture_url_OBJECTS) $(torture_url_LDADD) $(LIBS)
@@ -425,7 +456,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_urlmap-urlmap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/torture_url.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/url.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/url_tag.Plo@am__quote@
@@ -451,20 +481,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
-
-test_urlmap-urlmap.o: urlmap.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_urlmap_CFLAGS) $(CFLAGS) -MT test_urlmap-urlmap.o -MD -MP -MF "$(DEPDIR)/test_urlmap-urlmap.Tpo" -c -o test_urlmap-urlmap.o `test -f 'urlmap.c' || echo '$(srcdir)/'`urlmap.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/test_urlmap-urlmap.Tpo" "$(DEPDIR)/test_urlmap-urlmap.Po"; else rm -f "$(DEPDIR)/test_urlmap-urlmap.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='urlmap.c' object='test_urlmap-urlmap.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_urlmap_CFLAGS) $(CFLAGS) -c -o test_urlmap-urlmap.o `test -f 'urlmap.c' || echo '$(srcdir)/'`urlmap.c
-
-test_urlmap-urlmap.obj: urlmap.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_urlmap_CFLAGS) $(CFLAGS) -MT test_urlmap-urlmap.obj -MD -MP -MF "$(DEPDIR)/test_urlmap-urlmap.Tpo" -c -o test_urlmap-urlmap.obj `if test -f 'urlmap.c'; then $(CYGPATH_W) 'urlmap.c'; else $(CYGPATH_W) '$(srcdir)/urlmap.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/test_urlmap-urlmap.Tpo" "$(DEPDIR)/test_urlmap-urlmap.Po"; else rm -f "$(DEPDIR)/test_urlmap-urlmap.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='urlmap.c' object='test_urlmap-urlmap.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_urlmap_CFLAGS) $(CFLAGS) -c -o test_urlmap-urlmap.obj `if test -f 'urlmap.c'; then $(CYGPATH_W) 'urlmap.c'; else $(CYGPATH_W) '$(srcdir)/urlmap.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -682,9 +698,10 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+@HAVE_LCOV_FALSE@clean-local:
 clean: clean-am
 
-clean-am: clean-checkPROGRAMS clean-generic clean-libtool \
+clean-am: clean-checkPROGRAMS clean-generic clean-libtool clean-local \
 	clean-noinstLTLIBRARIES mostlyclean-am
 
 distclean: distclean-am
@@ -734,7 +751,7 @@ ps-am:
 uninstall-am: uninstall-info-am uninstall-nobase_include_sofiaHEADERS
 
 .PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
-	clean-checkPROGRAMS clean-generic clean-libtool \
+	clean-checkPROGRAMS clean-generic clean-libtool clean-local \
 	clean-noinstLTLIBRARIES ctags distclean distclean-compile \
 	distclean-generic distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
@@ -758,15 +775,12 @@ clean-built-sources:
 _tag.c_tag_ref.c:
 	$(AWK) -f $(TAG_AWK) NODLL=1 $(TAG_DLL_FLAGS) REF=$@ $<
 
-@ENABLE_COVERAGE_TRUE@coverage:
-@ENABLE_COVERAGE_TRUE@	@$(top_srcdir)/scripts/coverage $(COVERAGE_FLAGS) $(COVERAGE_INPUT)
-
 ../bnf/libbnf.la ../http/libhttp.la ../ipt/libipt.la ../iptsec/libiptsec.la \
  ../msg/libmsg.la ../nea/libnea.la ../nta/libnta.la ../nth/libnth.la \
  ../nua/libnua.la ../sdp/libsdp.la ../sip/libsip.la ../soa/libsoa.la \
  ../sresolv/libsresolv.la ../stun/libstun.la ../su/libsu.la \
  ../tport/libtport.la ../url/liburl.la:
-	$(MAKE) -C $(@D) $(@F)
+	cd $(@D) && $(MAKE) $(@F)
 
 valcheck: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) valcheck-am
@@ -853,6 +867,44 @@ valcheck-TESTS:	$(TESTS)
 	  echo "$$dashes"; \
 	  test "$$failed" -eq 0; \
 	else :; fi
+
+#
+# Generate pretty coverage report (unless it has been already done)
+#
+@HAVE_LCOV_TRUE@lcov:
+@HAVE_LCOV_TRUE@	@-test -r ${lcovdir}${expand_subdir}/lcov.info \
+@HAVE_LCOV_TRUE@	|| make lcov-report
+
+# Generate pretty coverage report based on current coverage data
+@HAVE_LCOV_TRUE@lcov-report:
+@HAVE_LCOV_TRUE@	sub=${expand_subdir} odir=${lcovdir}$$sub ; \
+@HAVE_LCOV_TRUE@	rm -rf $$odir ; mkdir -p $$odir && \
+@HAVE_LCOV_TRUE@	${LCOV_REPORT} ${GENHTML_OPTIONS} \
+@HAVE_LCOV_TRUE@          --title "${PACKAGE_NAME}-${PACKAGE_VERSION}$$sub" \
+@HAVE_LCOV_TRUE@	  --srcdir=${srcdir} -o $$odir 
+
+# Rerun checks before generating report
+@HAVE_LCOV_TRUE@lcov-rerun: clean-lcov
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) check
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) lcov-report
+
+# Show all uncovered lines as errors
+@HAVE_LCOV_TRUE@uncovered:
+@HAVE_LCOV_TRUE@	${LCOV_UNCOVERED} --lcov-dir=${lcovdir} --srcdir=${srcdir}
+
+# Run check in current dir and show all uncovered lines as errors
+@HAVE_LCOV_TRUE@covcheck:
+@HAVE_LCOV_TRUE@	-find . -name "*.gcda" | xargs rm -rf
+@HAVE_LCOV_TRUE@	$(MAKE) $(AM_MAKEFLAGS) check
+@HAVE_LCOV_TRUE@	${LCOV_UNCOVERED} --lcov-dir=${lcovdir} --srcdir=${srcdir}
+
+@HAVE_LCOV_TRUE@clean-local::
+@HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+@HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
+
+@HAVE_LCOV_TRUE@clean-lcov:
+@HAVE_LCOV_TRUE@	-rm -rf ${lcovdir}`pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+@HAVE_LCOV_TRUE@	find . -name "*.gcda" | xargs rm -f || true
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

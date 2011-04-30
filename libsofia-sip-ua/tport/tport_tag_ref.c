@@ -12,7 +12,7 @@
 
 #include <sofia-sip/su_tag_class.h>
 
-#ifdef _WIN32
+#if defined _WIN32 || defined HAVE_OPEN_C
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT
@@ -58,6 +58,15 @@ EXPORT tag_typedef_t tptag_idle_ref =
 extern tag_typedef_t tptag_timeout;
 EXPORT tag_typedef_t tptag_timeout_ref = 
   REFTAG_TYPEDEF(tptag_timeout);
+extern tag_typedef_t tptag_keepalive;
+EXPORT tag_typedef_t tptag_keepalive_ref = 
+  REFTAG_TYPEDEF(tptag_keepalive);
+extern tag_typedef_t tptag_pingpong;
+EXPORT tag_typedef_t tptag_pingpong_ref = 
+  REFTAG_TYPEDEF(tptag_pingpong);
+extern tag_typedef_t tptag_pong2ping;
+EXPORT tag_typedef_t tptag_pong2ping_ref = 
+  REFTAG_TYPEDEF(tptag_pong2ping);
 extern tag_typedef_t tptag_sigcomp_lifetime;
 EXPORT tag_typedef_t tptag_sigcomp_lifetime_ref = 
   REFTAG_TYPEDEF(tptag_sigcomp_lifetime);
@@ -103,3 +112,6 @@ EXPORT tag_typedef_t tptag_log_ref =
 extern tag_typedef_t tptag_dump;
 EXPORT tag_typedef_t tptag_dump_ref = 
   REFTAG_TYPEDEF(tptag_dump);
+extern tag_typedef_t tptag_trusted;
+EXPORT tag_typedef_t tptag_trusted_ref = 
+  REFTAG_TYPEDEF(tptag_trusted);

@@ -814,6 +814,7 @@ static
 size_t change_status_to_483(void *a, void *message, size_t len);
 int save_until_notified_and_responded_twice(CONDITION_PARAMS);
 int save_until_notify_responded_twice(CONDITION_PARAMS);
+int accept_subscription_until_terminated(CONDITION_PARAMS);
 
 int test_subscribe_notify_graceful(struct context *ctx)
 {
@@ -902,7 +903,7 @@ int test_subscribe_notify_graceful(struct context *ctx)
   SUBSCRIBE(a, a_call, a_call->nh, TAG_END());
 
   run_ab_until(ctx, -1, save_until_notified_and_responded_twice, 
-	       -1, save_until_notify_responded_twice);
+	       -1, accept_subscription_until_terminated);
 
 #if 0
   /* Client events:
@@ -1194,7 +1195,7 @@ int test_subscription_timeout(struct context *ctx)
 
   struct endpoint *a = &ctx->a,  *b = &ctx->b;
   struct call *a_call = a->call, *b_call = b->call;
-  struct event *e;
+  struct event *e, *en, *es;
   sip_t const *sip;
   tagi_t const *n_tags, *r_tags;
 
@@ -1220,22 +1221,16 @@ int test_subscription_timeout(struct context *ctx)
   /* Client events:
      nua_method(), nua_i_notify/nua_r_method, nua_i_notify
   */
-  TEST_1(e = a->events->head);
-  if (e->data->e_event == nua_i_notify) {
-    TEST_E(e->data->e_event, nua_i_notify);
-    TEST_1(sip = sip_object(e->data->e_msg));
-    n_tags = e->data->e_tags;
-    TEST_1(e = e->next); TEST_E(e->data->e_event, nua_r_subscribe);
-    r_tags = e->data->e_tags;
-  }
-  else {
-    TEST_E(e->data->e_event, nua_r_method);
-    TEST(e->data->e_status, 202);
-    r_tags = e->data->e_tags;
-    TEST_1(e = e->next); TEST_E(e->data->e_event, nua_i_notify);
-    TEST_1(sip = sip_object(e->data->e_msg));
-    n_tags = e->data->e_tags;
-  }
+  TEST_1(en = event_by_type(a->events->head, nua_i_notify));
+  TEST_1(es = event_by_type(a->events->head, nua_r_method));
+
+  TEST_1(e = en); TEST_E(e->data->e_event, nua_i_notify);
+  TEST_1(sip = sip_object(e->data->e_msg));
+  n_tags = e->data->e_tags;
+
+  TEST_1(e = es); TEST_E(e->data->e_event, nua_r_method);
+  r_tags = e->data->e_tags;
+
   TEST_1(sip->sip_event); TEST_S(sip->sip_event->o_type, "presence");
   TEST_1(sip->sip_content_type);
   TEST_S(sip->sip_content_type->c_type, "application/pidf+xml");
@@ -1245,7 +1240,12 @@ int test_subscription_timeout(struct context *ctx)
   TEST_1(tl_find(n_tags, nutag_substate));
   TEST(tl_find(n_tags, nutag_substate)->t_value, nua_substate_pending);
 
-  TEST_1(e = e->next); TEST_E(e->data->e_event, nua_i_notify);
+  if (es->next == en)
+    e = en->next;
+  else
+    e = es->next;
+
+  TEST_1(e); TEST_E(e->data->e_event, nua_i_notify);
   n_tags = e->data->e_tags;
   TEST_1(tl_find(n_tags, nutag_substate));
   TEST(tl_find(n_tags, nutag_substate)->t_value, nua_substate_terminated);

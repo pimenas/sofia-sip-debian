@@ -22,7 +22,7 @@
  *
  */
 
-/**@file nea_server.c
+/**@internal @file nea_server.c
  * @brief Nokia Event API - event notifier implementation.
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
@@ -65,7 +65,7 @@
 /** Number of primary views (with different MIME type or content) */
 #define NEA_VIEW_MAX (8)
 
-/** Server object, created for every notifier.
+/** @internal Server object, created for every notifier.
  */
 struct nea_server_s {
   su_home_t                 nes_home[1];
@@ -112,7 +112,7 @@ struct nea_server_s {
 };
 
 
-/** Supported events and their subscribers  */
+/** @internal Supported events and their subscribers  */
 struct nea_event_s {
   nea_event_t              *ev_next;
   nea_event_t             **ev_prev;
@@ -141,7 +141,7 @@ struct nea_event_s {
 
 typedef struct nea_event_queue_s nea_event_queue_t;
 
-/** Object representing particular view of event */
+/** @internal Object representing particular view of event */
 struct nea_event_view_s
 {
   nea_event_view_t *evv_next;
@@ -156,7 +156,7 @@ struct nea_event_view_s
   unsigned          evv_reliable:1;     /**< Keep all notifications */
   unsigned:0;
 
-  /** Queued notification */
+  /** @internal Queued notification */
   struct nea_event_queue_s
   {
     nea_event_queue_t  *evq_next;
@@ -173,7 +173,7 @@ struct nea_event_view_s
 #define evv_payload evv_head->evq_payload
 
 
-/** Subscription object 
+/** @internal Subscription object.
  */
 struct nea_sub_s {
   nea_sub_t        *s_next;
@@ -200,6 +200,8 @@ struct nea_sub_s {
 
   sip_content_type_t *s_content_type; /** Content-Type of SUBSCRIBE body. */
   sip_payload_t    *s_payload;      /**< Body of SUBSCRIBE. */
+
+  unsigned          s_reported :1 ; /**< Made watcher report upon un-SUBSCRIBE */
 
   unsigned          s_processing : 1;
   unsigned          s_rejected : 1; 
@@ -1384,14 +1386,18 @@ static
 int nes_watcher_callback(nea_server_t *nes, 
 			 nea_event_t *ev, 
 			 nea_sub_t *s, 
-			 sip_t const *sip)
+			 sip_t const *sip,
+			 sip_time_t now)
 {
   if (!nes->nes_in_callback) {
     nes->nes_in_callback = 1;
-    if (ev->ev_callback) {
+    if (ev->ev_callback && !s->s_reported) {
       nea_subnode_t sn[1];
 
-      nea_subnode_init(sn, s, sip_now());
+      nea_subnode_init(sn, s, now);
+      
+      if (sn->sn_expires == 0  || sn->sn_state == nea_terminated)
+	s->s_reported = 1;
 
       ev->ev_callback(nes, ev->ev_magic, ev, sn, sip);
     }
@@ -1908,13 +1914,15 @@ int nea_sub_process_subscribe(nea_sub_t *s,
   }
 
   /* Callback for checking subscriber authorization */
-  if (nes_watcher_callback(nes, ev, s, sip) < 0) {
+  if (nes_watcher_callback(nes, ev, s, sip, now) < 0) {
     if (irq) {
       nta_incoming_treply(irq, SIP_503_SERVICE_UNAVAILABLE, TAG_END());
       nta_incoming_destroy(irq);
     }
     return -1;
   }
+
+  
   
   evv = s->s_view;  /* Callback can change event view */
 
@@ -1975,7 +1983,7 @@ int nea_sub_notify(nea_server_t *nes, nea_sub_t *s,
 {
   int notified = 0;
   ta_list ta;
-  int subscription_state_change = now == 0;
+  int suppress = now != 0;
   nea_event_t *ev = s->s_event;
   nea_state_t substate = s->s_state;
 
@@ -1990,7 +1998,7 @@ int nea_sub_notify(nea_server_t *nes, nea_sub_t *s,
 
   assert(s->s_view); assert(ev);
 
-  if (!subscription_state_change && s->s_view->evv_updated == s->s_updated) 
+  if (suppress && s->s_view->evv_updated == s->s_updated) 
     return 0;
 
   if (now == 0)
@@ -2069,7 +2077,7 @@ int nea_sub_notify(nea_server_t *nes, nea_sub_t *s,
 	break;
     }
 
-    subscription_state_change = (s->s_view->evv_updated == s->s_updated);
+    suppress = (s->s_view->evv_updated == s->s_updated);
 
     n_evq = evq->evq_payload ? evq : evv->evv_primary->evv_head;
 
@@ -2083,9 +2091,9 @@ int nea_sub_notify(nea_server_t *nes, nea_sub_t *s,
 			   SIPTAG_USER_AGENT_STR(nes->nes_server),
 			   SIPTAG_CONTACT(s->s_local),
 			   SIPTAG_EVENT(s->s_id),
-			   TAG_IF(!subscription_state_change, 
+			   TAG_IF(!suppress, 
 				  SIPTAG_CONTENT_TYPE(n_evq->evq_content_type)),
-			   TAG_IF(!subscription_state_change,
+			   TAG_IF(!suppress,
 				  SIPTAG_PAYLOAD(n_evq->evq_payload)),
 			   ta_tags(ta)); 
 
@@ -2104,7 +2112,7 @@ int nea_sub_notify(nea_server_t *nes, nea_sub_t *s,
     if (callback == NULL) {
       nta_outgoing_destroy(s->s_oreq), s->s_oreq = NULL;
       /* Inform the application of a subscriber leaving the subscription. */
-      nes_watcher_callback(nes, ev, s, NULL);
+      nes_watcher_callback(nes, ev, s, NULL, now);
     }
   }
   ta_end(ta);
@@ -2127,6 +2135,7 @@ int response_to_notify(nea_sub_t *s,
 {
   nea_server_t *nes = s->s_nes;
   int status = sip->sip_status->st_status;
+  sip_time_t now = sip_now();
 
   if (status < 200)
     return 0;
@@ -2135,8 +2144,6 @@ int response_to_notify(nea_sub_t *s,
 
   if (status < 300) {
     if (s->s_view->evv_updated != s->s_updated) {
-      sip_time_t now = sip_now();
-
       if (s->s_notified + s->s_throttle <= now)
 	nea_sub_notify(nes, s, now, TAG_END());
       else
@@ -2148,7 +2155,7 @@ int response_to_notify(nea_sub_t *s,
     SU_DEBUG_5(("nea_server: removing subscriber " URL_PRINT_FORMAT "\n",
 		URL_PRINT_ARGS(s->s_from->a_url)));
     /* Inform the application of a subscriber leaving the subscription. */
-    nes_watcher_callback(nes, s->s_event, s, NULL);
+    nes_watcher_callback(nes, s->s_event, s, NULL, now);
   }
 
   return 0;

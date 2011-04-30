@@ -1,7 +1,7 @@
 /*
  * This file is part of the Sofia-SIP package
  *
- * Copyright (C) 2005 Nokia Corporation.
+ * Copyright (C) 2005,2006,2007 Nokia Corporation.
  *
  * Contact: Pekka Pessi <pekka.pessi@nokia.com>
  *
@@ -87,6 +87,9 @@
 #undef SU_INLINE
 /** Define as suitable declarator static inline functions */
 #undef su_inline
+
+/** Define as 1 the tag value casts use inlined functions */
+#undef SU_INLINE_TAG_CAST
 
 /** Define this as 1 if we can use tags directly from stack. */
 #undef SU_HAVE_TAGSTACK 

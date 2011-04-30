@@ -26,8 +26,9 @@
 /** Defined when <tport_internal.h> has been included. */
 #define TPORT_INTERNAL_H
 
-/**@file tport_internal.h
- * @brief Transport interface
+/**@internal
+ * @file tport_internal.h
+ * @brief Internal implementation of transport interface
  *
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
  *
@@ -61,7 +62,7 @@
 
 #include <sofia-sip/su_debug.h>
 
-#if !defined(MSG_NOSIGNAL) || defined(__CYGWIN__)
+#if !defined(MSG_NOSIGNAL) || defined(__CYGWIN__) || defined(SYMBIAN)
 #undef MSG_NOSIGNAL
 #define MSG_NOSIGNAL (0)
 #endif
@@ -89,11 +90,14 @@ struct sigcomp_compartment;
 
 typedef long unsigned LU; 	/* for printf() and friends */
 
-/** Transport parameters */
+/** @internal Transport parameters */
 typedef struct {
   unsigned tpp_mtu;		/**< Maximum packet size */
   unsigned tpp_idle;		/**< Allowed connection idle time. */
   unsigned tpp_timeout;		/**< Allowed idle time for message. */
+  unsigned tpp_keepalive;	/**< Keepalive PING interval */
+  unsigned tpp_pingpong;	/**< PONG-to-PING interval */
+
   unsigned tpp_sigcomp_lifetime;  /**< SigComp compartment lifetime  */
   unsigned tpp_thrpsize;	/**< Size of thread pool */
 
@@ -106,13 +110,14 @@ typedef struct {
   unsigned tpp_conn_orient:1;   /**< Connection-orienteded */
   unsigned tpp_sdwn_error:1;	/**< If true, shutdown is error. */
   unsigned tpp_stun_server:1;	/**< If true, use stun server */
+  unsigned tpp_pong2ping:1;	/**< If true, respond with pong to ping */
 
   unsigned :0;
 
 } tport_params_t;
 
 
-/** Transport object.
+/** @internal Transport object.
  *
  * A transport object can be used in three roles, to represent transport
  * list (aka master transport), to represent available transports (aka
@@ -122,7 +127,7 @@ typedef struct {
 struct tport_s {
   su_home_t           tp_home[1];       /**< Memory home */
 
-  int                 tp_refs;		/**< Number of references to tport */
+  ssize_t             tp_refs;		/**< Number of references to tport */
 
   unsigned            tp_black:1;       /**< Used by red-black-tree */
   
@@ -130,8 +135,13 @@ struct tport_s {
   unsigned            tp_conn_orient:1;	/**< Is connection-oriented */
   unsigned            tp_has_connection:1; /**< Has real connection */
   unsigned            tp_reusable:1;    /**< Can this connection be reused */
-  unsigned            tp_closed : 1;    /**< This transport is closed */
-  /**< Remote end has sent FIN (2) or we should not just read */
+  unsigned            tp_closed : 1;
+  /**< This transport is closed.
+   * 
+   * A closed transport is inserted into pri_closed list.
+   */
+
+  /** Remote end has sent FIN (2) or we should not just read */
   unsigned            tp_recv_close:2;
   /** We will send FIN (1) or have sent FIN (2) */
   unsigned            tp_send_close:2; 
@@ -150,10 +160,10 @@ struct tport_s {
 
   tp_magic_t         *tp_magic; 	/**< Context provided by consumer */
 
-  msg_t const        *tp_rlogged;       /**< Last logged when receiving */
-  msg_t const        *tp_slogged;       /**< Last logged when sending */
+  su_timer_t         *tp_timer;	        /**< Timer object */
 
-  unsigned            tp_time;	        /**< When this transport was last used */
+  su_time_t           tp_ktime;	        /**< Keepalive timer updated */
+  su_time_t           tp_ptime;	        /**< Ping sent */
 
   tp_name_t           tp_name[1];	/**< Transport name.
 					 * 
@@ -178,16 +188,18 @@ struct tport_s {
   /* ==== Receive queue ================================================== */
 
   msg_t   	     *tp_msg;		/**< Message being received */
+  msg_t const        *tp_rlogged;       /**< Last logged when receiving */
+  su_time_t           tp_rtime;	        /**< Last time received data */
+  unsigned short      tp_ping;	        /**< Whitespace ping being received */
 
   /* ==== Pending messages =============================================== */
 
-  tport_pending_t    *tp_pending;       /**< Pending requests */
-  tport_pending_t    *tp_released;      /**< Released pends */
+  unsigned short      tp_reported;      /**< Report counter */
   unsigned            tp_plen;          /**< Size of tp_pending */
   unsigned            tp_pused;         /**< Used pends */
-  unsigned short      tp_reported;      /**< Report counter */
-  unsigned short      tp_pad;
-
+  tport_pending_t    *tp_pending;       /**< Pending requests */
+  tport_pending_t    *tp_released;      /**< Released pends */
+  
   /* ==== Send queue ===================================================== */
 
   msg_t             **tp_queue;		/**< Messages being sent */
@@ -198,6 +210,9 @@ struct tport_s {
 
   msg_iovec_t        *tp_iov;		/**< Iovecs allocated for sending */
   size_t              tp_iovlen;	/**< Number of allocated iovecs */
+
+  msg_t const        *tp_slogged;       /**< Last logged when sending */
+  su_time_t           tp_stime;	        /**< Last time sent message */
 
   /* ==== Extensions  ===================================================== */
 
@@ -211,7 +226,7 @@ struct tport_s {
   } tp_stats;
 };
 
-/** Primary structure */
+/** @internal Primary structure */
 struct tport_primary {
   tport_t             pri_primary[1];   /**< Transport part */
 #if DOXYGEN_ONLY
@@ -228,10 +243,10 @@ struct tport_primary {
 					 * tport_type_stun, etc. 
 					 */
 
-  char                pri_ident[16];
   tport_primary_t    *pri_next;	        /**< Next primary tport */
 
-  tport_t            *pri_secondary;	/**< Secondary tports */
+  tport_t            *pri_open;		/**< Open secondary tports */
+  tport_t            *pri_closed;       /**< Closed secondary tports */
 
   unsigned            pri_updating:1;   /**< Currently updating address */
   unsigned            pri_natted:1;	/**< Using natted address  */
@@ -241,10 +256,9 @@ struct tport_primary {
   void               *pri_stun_handle;
 
   tport_params_t      pri_params[1];      /**< Transport parameters */
-
 };
 
-/** Master structure */
+/** @internal Master structure */
 struct tport_master {
   tport_t             mr_master[1];
 #if DOXYGEN_ONLY
@@ -307,7 +321,7 @@ struct tport_master {
 #endif
 };
 
-/** Virtual funtion table for transports */
+/** @internal Virtual function table for transports */
 struct tport_vtable
 {
   char const *vtp_name;
@@ -344,17 +358,20 @@ struct tport_vtable
   int (*vtp_stun_response)(tport_t const *self,
 			   void *msg, size_t msglen,
 			   void *addr, socklen_t addrlen);
+  int (*vtp_next_secondary_timer)(tport_t *self, su_time_t *, 
+				  char const **return_why);
+  void (*vtp_secondary_timer)(tport_t *self, su_time_t);
 };
 
 int tport_register_type(tport_vtable_t const *vtp);
 
-/** Test if transport is needs connect() before sending. */
+/** @internal Test if transport is needs connect() before sending. */
 su_inline int tport_is_connection_oriented(tport_t const *self)
 {
   return self->tp_conn_orient;
 }
 
-/** Test if transport involves connection. @NEW_1_12_5 */
+/** @internal Test if transport involves connection. @NEW_1_12_5. */
 su_inline int tport_has_connection(tport_t const *self)
 {
   return self->tp_has_connection;
@@ -388,11 +405,16 @@ tport_t *tport_alloc_secondary(tport_primary_t *pri,
 int tport_accept(tport_primary_t *pri, int events);
 void tport_zap_secondary(tport_t *self);
 
+int tport_set_secondary_timer(tport_t *self);
+void tport_base_timer(tport_t *self, su_time_t now);
+
 int tport_bind_socket(int socket,
 		      su_addrinfo_t *ai,
 		      char const **return_culprit);
 void tport_close(tport_t *self);
+int tport_shutdown0(tport_t *self, int how);
 
+int tport_has_queued(tport_t const *self);
 
 int tport_error_event(tport_t *self);
 void tport_recv_event(tport_t *self);
@@ -414,6 +436,8 @@ int tport_send_msg(tport_t *self, msg_t *msg,
 		   tp_name_t const *tpn, 
 		   struct sigcomp_compartment *cc);
 
+void tport_send_queue(tport_t *self);
+
 void tport_deliver(tport_t *self, msg_t *msg, msg_t *next, 
 		   tport_compressor_t *comp,
 		   su_time_t now);
@@ -429,6 +453,9 @@ void tport_log_msg(tport_t *tp, msg_t *msg, char const *what,
 void tport_dump_iovec(tport_t const *self, msg_t *msg, 
 		      size_t n, su_iovec_t const iov[], size_t iovused,
 		      char const *what, char const *how);
+
+int tport_tcp_ping(tport_t *self, su_time_t now);
+int tport_tcp_pong(tport_t *self);
 
 extern tport_vtable_t const tport_udp_vtable;
 extern tport_vtable_t const tport_udp_client_vtable;
@@ -460,6 +487,15 @@ int tport_tcp_init_secondary(tport_t *self, int socket, int accepted,
 int tport_recv_stream(tport_t *self);
 ssize_t tport_send_stream(tport_t const *self, msg_t *msg,
 			  msg_iovec_t iov[], size_t iovused);
+
+int tport_tcp_next_timer(tport_t *self, su_time_t *, char const **);
+void tport_tcp_timer(tport_t *self, su_time_t);
+
+int tport_next_recv_timeout(tport_t *, su_time_t *, char const **);
+void tport_recv_timeout_timer(tport_t *self, su_time_t now);
+
+int tport_next_keepalive(tport_t *self, su_time_t *, char const **);
+void tport_keepalive_timer(tport_t *self, su_time_t now);
 
 extern tport_vtable_t const tport_sctp_vtable;
 extern tport_vtable_t const tport_sctp_client_vtable;

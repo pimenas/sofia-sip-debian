@@ -202,6 +202,166 @@ issize_t sip_error_info_e(char b[], isize_t bsiz, sip_header_t const *h, int f)
 			 NULL, 1, ei->ei_url, ei->ei_params, NULL);
 }
 
+/* ====================================================================== */
+
+/**@SIP_HEADER sip_alert_info Alert-Info Header
+ *
+ * When present in an INVITE request, the Alert-Info header field
+ * specifies an alternative ring tone to the UAS.  When present in a 180
+ * (Ringing) response, the Alert-Info header field specifies an
+ * alternative ringback tone to the UAC.  A typical usage is for a proxy
+ * to insert this header field to provide a distinctive ring feature.
+ *
+ * @code
+ *    Alert-Info   =  "Alert-Info" HCOLON alert-param *(COMMA alert-param)
+ *    alert-param  =  LAQUOT absoluteURI RAQUOT *(SEMI generic-param)
+ * @endcode
+ *
+ * The parsed Alert-Info header is stored in #sip_alert_info_t structure.
+ *
+ * @NEW_1_12_7. In order to use @b Alert-Info header, 
+ * initialize the SIP parser with, e.g.,
+ * sip_update_default_mclass(sip_extend_mclass(NULL))
+ */
+
+/**@ingroup sip_alert_info
+ * @typedef struct sip_alert_info_s sip_alert_info_t;
+ *
+ * The structure #sip_alert_info_t contains representation of an
+ * @AlertInfo header.
+ *
+ * The #sip_alert_info_t is defined as follows:
+ * @code
+ * struct sip_alert_info_s
+ * {
+ *   sip_common_t        ai_common[1]; // Common fragment info
+ *   sip_alert_info_t   *ai_next;      // Link to next @AlertInfo
+ *   url_t               ai_url[1];    // URI to alert info
+ *   msg_param_t const  *ai_params;    // List of optional parameters
+ * };
+ * @endcode
+ *
+ * @NEW_1_12_7.
+ */
+
+msg_hclass_t sip_alert_info_class[] =
+SIP_HEADER_CLASS(alert_info, "Alert-Info", "",
+		 ai_params, append, info);
+
+issize_t sip_alert_info_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
+{
+  return sip_info_d(home, h, s, slen);
+}
+
+issize_t sip_alert_info_e(char b[], isize_t bsiz, sip_header_t const *h, int f)
+{
+  sip_alert_info_t *ai = (sip_alert_info_t *)h;
+  return sip_name_addr_e(b, bsiz, f, NULL, 1, ai->ai_url, ai->ai_params, NULL);
+}
+
+/* ====================================================================== */
+
+/**@SIP_HEADER sip_reply_to Reply-To Header
+ *
+ * The @b Reply-To header field contains a logical return URI that may be
+ * different from the @From header field. For example, the URI MAY be used to
+ * return missed calls or unestablished sessions. If the user wished to
+ * remain anonymous, the header field SHOULD either be omitted from the
+ * request or populated in such a way that does not reveal any private
+ * information. Its syntax is defined in @RFC3261 as follows:
+ *
+ * @code
+ *   Reply-To      =  "Reply-To" HCOLON rplyto-spec
+ *   rplyto-spec   =  ( name-addr / addr-spec )
+ *                   *( SEMI rplyto-param )
+ *   rplyto-param  =  generic-param
+ * @endcode
+ *
+ * The parsed Reply-To header is stored in #sip_reply_to_t structure.
+ *
+ * @sa sip_update_default_mclass()
+ *
+ * @NEW_1_12_7. In order to use @b Reply-To header,
+ * initialize the SIP parser with, e.g.,
+ * sip_update_default_mclass(sip_extend_mclass(NULL)).
+ */
+
+/**@ingroup sip_reply_to
+ * @typedef struct msg_list_s sip_reply_to_t;
+ *
+ * The structure #sip_reply_to_t contains representation of SIP
+ * @ReplyTo header.
+ *
+ * The #sip_reply_to_t is defined as follows:
+ * @code
+ * struct sip_reply_to_s
+ * {
+ *   sip_common_t       rplyto_common[1]; // Common fragment info
+
+ *   sip_error_t       *rplyto_next;	 // Dummy link to next header
+ *   char const        *rplyto_display;	 // Display name
+ *   url_t              rplyto_url[1];	 // Return URI
+ *   msg_param_t const *rplyto_params;	 // List of optional parameters
+ * };
+ * @endcode
+ */
+
+static isize_t sip_reply_to_dup_xtra(sip_header_t const *h, isize_t offset);
+static char *sip_reply_to_dup_one(sip_header_t *dst,
+				  sip_header_t const *src,
+				  char *b,
+				  isize_t xtra);
+#define sip_reply_to_update NULL
+
+msg_hclass_t sip_reply_to_class[] =
+  SIP_HEADER_CLASS(reply_to, "Reply-To", "", rplyto_params, single, reply_to);
+
+issize_t sip_reply_to_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
+{
+  sip_reply_to_t *rplyto = (sip_reply_to_t *)h;
+
+  return sip_name_addr_d(home,
+			 &s,
+			 &rplyto->rplyto_display,
+			 rplyto->rplyto_url,
+			 &rplyto->rplyto_params,
+			 NULL);
+}
+
+issize_t sip_reply_to_e(char b[], isize_t bsiz, sip_header_t const *h, int flags)
+{
+  sip_reply_to_t *rplyto = (sip_reply_to_t *)h;
+
+  return sip_name_addr_e(b, bsiz,
+			 flags,
+			 rplyto->rplyto_display,
+			 MSG_IS_CANONIC(flags), rplyto->rplyto_url,
+			 rplyto->rplyto_params,
+			 NULL);
+}
+
+static isize_t sip_reply_to_dup_xtra(sip_header_t const *h, isize_t offset)
+{
+  sip_reply_to_t const *rplyto = (sip_reply_to_t const *)h;
+
+  return sip_name_addr_xtra(rplyto->rplyto_display,
+			    rplyto->rplyto_url,
+			    rplyto->rplyto_params,
+			    offset);
+}
+
+/**@internal Duplicate one sip_reply_to_t object. */
+static char *sip_reply_to_dup_one(sip_header_t *dst, sip_header_t const *src,
+				  char *b, isize_t xtra)
+{
+  sip_reply_to_t *rplyto = (sip_reply_to_t *)dst;
+  sip_reply_to_t const *o = (sip_reply_to_t *)src;
+
+  return sip_name_addr_dup(&rplyto->rplyto_display, o->rplyto_display,
+			   rplyto->rplyto_url, o->rplyto_url,
+			   &rplyto->rplyto_params, o->rplyto_params,
+			   b, xtra);
+}
 
 /* ====================================================================== */
 
@@ -231,7 +391,7 @@ issize_t sip_error_info_e(char b[], isize_t bsiz, sip_header_t const *h, int f)
  *   msg_common_t       k_common[1];  // Common fragment info
  *   msg_list_t        *k_next;       // Link to next header
  *   msg_param_t       *k_items;      // List of call ids
- * } sip_allow_events_t;
+ * } sip_in_reply_to_t;
  * @endcode
  */
 
@@ -248,7 +408,6 @@ issize_t sip_in_reply_to_e(char b[], isize_t bsiz, sip_header_t const *h, int f)
   assert(sip_in_reply_to_p(h));
   return msg_list_e(b, bsiz, h, f);
 }
-
 
 /* ====================================================================== */
 
@@ -733,10 +892,10 @@ isize_t sip_info_dup_xtra(sip_header_t const *h, isize_t offset)
 {
   sip_call_info_t const *ci = h->sh_call_info;
 
-  MSG_PARAMS_SIZE(offset, ci->ci_params);
-  offset += url_xtra(ci->ci_url);
-
-  return offset;
+  return sip_name_addr_xtra(NULL,
+			    ci->ci_url,
+			    ci->ci_params,
+			    offset);
 }
 
 char *sip_info_dup_one(sip_header_t *dst,
@@ -746,14 +905,11 @@ char *sip_info_dup_one(sip_header_t *dst,
 {
   sip_call_info_t *ci = dst->sh_call_info;
   sip_call_info_t const *o = src->sh_call_info;
-  char *end = b + xtra;
 
-  b = msg_params_dup(&ci->ci_params, o->ci_params, b, xtra);
-  URL_DUP(b, end, ci->ci_url, o->ci_url);
-
-  assert(b <= end);
-
-  return b;
+  return sip_name_addr_dup(NULL, NULL,
+			   ci->ci_url, o->ci_url,
+			   &ci->ci_params, o->ci_params,
+			   b, xtra);
 }
 
 /* ====================================================================== */
@@ -891,3 +1047,319 @@ issize_t sip_suppress_notify_if_match_e(char b[], isize_t bsiz,
 }
 
 #endif
+
+#if SIP_HAVE_REMOTE_PARTY_ID
+
+/**@SIP_HEADER sip_remote_party_id Remote-Party-ID Header
+ *
+ * The syntax of the Remote-Party-ID header is described as follows:
+ * @code
+ *   Remote-Party-ID  = "Remote-Party-ID" HCOLON rpid *(COMMA rpid)
+ *
+ *   rpid             =  [display-name] LAQUOT addr-spec RAQUOT
+ *                                                 *(SEMI rpi-token)
+ *
+ *   rpi-token        = rpi-screen / rpi-pty-type /
+ *                       rpi-id-type / rpi-privacy / other-rpi-token
+ *
+ *   rpi-screen       = "screen" EQUAL ("no" / "yes")
+ *
+ *   rpi-pty-type     = "party" EQUAL ("calling" / "called" / token)
+ *
+ *   rpi-id-type      = "id-type" EQUAL ("subscriber" / "user" /
+ *                                                  "term"  / token)
+ *
+ *   rpi-privacy      = "privacy" EQUAL
+ *                      ( rpi-priv-element
+ *                        / (LDQUOT rpi-priv-element
+ *                          *(COMMA rpi-priv-element) RDQUOT) )
+ *
+ *   rpi-priv-element = ("full" / "name" / "uri" / "off" / token)
+ *                                      ["-" ( "network" / token )]
+ *
+ *   other-rpi-token  = ["-"] token [EQUAL (token / quoted-string)]
+ *
+ * @endcode
+ *
+ * @sa sip_update_default_mclass(), draft-ietf-sip-privacy-04.txt, @RFC3325
+ *
+ * @NEW_1_12_7. In order to use @b Remote-Party-ID header,
+ * initialize the SIP parser with, e.g.,
+ * sip_update_default_mclass(sip_extend_mclass(NULL)).
+ */
+
+/**@ingroup sip_remote_party_id
+ * @typedef typedef struct sip_remote_party_id_s sip_remote_party_id_t;
+ *
+ * The structure #sip_remote_party_id_t contains representation of SIP
+ * @RemotePartyID header.
+ *
+ * The #sip_remote_party_id_t is defined as follows:
+ * @code
+ * typedef struct sip_remote_party_id_s {
+ *   sip_common_t           rpid_common[1]; // Common fragment info
+ *   sip_remote_party_id_t *rpid_next;      // Link to next
+ *   char const        *rpid_display;       // Display name
+ *   url_t              rpid_url[1];        // URL
+ *   sip_param_t const *rpid_params;        // Parameters
+ *   // Shortcuts to screen, party, id-type and privacy parameters
+ *   char const        *rpid_screen, *rpid_party, *rpid_id_type, *rpid_privacy;
+ * } sip_remote_party_id_t;
+ * @endcode
+ */
+
+extern msg_xtra_f sip_remote_party_id_dup_xtra;
+extern msg_dup_f sip_remote_party_id_dup_one;
+
+static msg_update_f sip_remote_party_id_update;
+
+msg_hclass_t sip_remote_party_id_class[] =
+SIP_HEADER_CLASS(remote_party_id, "Remote-Party-ID", "",
+		 rpid_params, append, remote_party_id);
+
+issize_t sip_remote_party_id_d(su_home_t *home, sip_header_t *h,
+			       char *s, isize_t slen)
+{
+  sip_remote_party_id_t *rpid = (sip_remote_party_id_t *)h;
+
+  while (*s == ',')   /* Ignore empty entries (comma-whitespace) */
+    *s = '\0', s += span_lws(s + 1) + 1;
+
+  if (sip_name_addr_d(home, &s,
+		      &rpid->rpid_display,
+		      rpid->rpid_url,
+		      &rpid->rpid_params, NULL) == -1)
+    return -1;
+
+  return msg_parse_next_field(home, h, s, slen);
+}
+
+issize_t sip_remote_party_id_e(char b[], isize_t bsiz,
+			       sip_header_t const *h, int f)
+{
+  sip_remote_party_id_t const *rpid = (sip_remote_party_id_t *)h;
+
+  return sip_name_addr_e(b, bsiz, f,
+			 rpid->rpid_display, 1,
+			 rpid->rpid_url,
+			 rpid->rpid_params,
+			 NULL);
+}
+
+/** Calculate size of extra data required for duplicating one
+ *  sip_remote_party_id_t header. 
+ */
+isize_t sip_remote_party_id_dup_xtra(sip_header_t const *h, isize_t offset)
+{
+  sip_remote_party_id_t const *rpid = (sip_remote_party_id_t *)h;
+  return sip_name_addr_xtra(rpid->rpid_display, 
+			    rpid->rpid_url,
+			    rpid->rpid_params,
+			    offset);
+}
+
+/** Duplicate one sip_remote_party_id_t object */
+char *sip_remote_party_id_dup_one(sip_header_t *dst,
+				  sip_header_t const *src,
+				  char *b, isize_t xtra)
+{
+  sip_remote_party_id_t *rpid = (sip_remote_party_id_t *)dst;
+  sip_remote_party_id_t const *o = (sip_remote_party_id_t const *)src;
+
+  return sip_name_addr_dup(&rpid->rpid_display, o->rpid_display,
+			   rpid->rpid_url, o->rpid_url,
+			   &rpid->rpid_params, o->rpid_params,
+			   b, xtra);
+}
+
+static int sip_remote_party_id_update(msg_common_t *h, 
+				      char const *name, isize_t namelen,
+				      char const *value)
+{
+  sip_remote_party_id_t *rpid = (sip_remote_party_id_t *)h;
+
+  if (name == NULL) {
+    rpid->rpid_screen = NULL;
+    rpid->rpid_party = NULL;
+    rpid->rpid_id_type = NULL;
+    rpid->rpid_privacy = NULL;
+  }
+
+#define MATCH(s) (namelen == strlen(#s) && !strncasecmp(name, #s, strlen(#s)))
+
+  else if (MATCH(screen))
+    rpid->rpid_screen = value;
+  else if (MATCH(party))
+    rpid->rpid_party = value;
+  else if (MATCH(id-type))
+    rpid->rpid_id_type = value;
+  else if (MATCH(privacy))
+    rpid->rpid_privacy = value;
+
+#undef MATCH
+
+  return 0;
+}
+
+#endif
+
+#if SIP_HAVE_P_ASSERTED_IDENTITY
+
+/**@SIP_HEADER sip_p_asserted_identity P-Asserted-Identity Header
+ *
+ * The P-Asserted-Identity header is used used among trusted SIP entities
+ * (typically intermediaries) to carry the identity of the user sending a
+ * SIP message as it was verified by authentication. It is "defined" in
+ * @RFC3325 section 9.1 as follows:
+ *
+ * @code
+ *    PAssertedID = "P-Asserted-Identity" HCOLON PAssertedID-value
+ *                    *(COMMA PAssertedID-value)
+ *    PAssertedID-value = name-addr / addr-spec
+ * @endcode
+ *
+ * @sa @RFC3325, @PPreferredIdentity
+ *
+ * @NEW_1_12_7. In order to use @b P-Asserted-Identity header, 
+ * initialize the SIP parser with, e.g.,
+ * sip_update_default_mclass(sip_extend_mclass(NULL)).
+ */
+
+/**@ingroup sip_p_asserted_identity
+ * @typedef typedef struct sip_p_asserted_identity_s sip_p_asserted_identity_t;
+ *
+ * The structure #sip_p_asserted_identity_t contains representation of SIP
+ * @PAssertedIdentity header.
+ *
+ * The #sip_p_asserted_identity_t is defined as follows:
+ * @code
+ * typedef struct sip_p_asserted_identity_s {
+ *   sip_common_t           paid_common[1];   // Common fragment info
+ *   sip_p_asserted_identity_t *paid_next;    // Link to next
+ *   char const                *paid_display; // Display name
+ *   url_t                      paid_url[1];  // URL
+ * } sip_p_asserted_identity_t;
+ * @endcode
+ */
+
+static msg_xtra_f sip_p_asserted_identity_dup_xtra;
+static msg_dup_f sip_p_asserted_identity_dup_one;
+
+#define sip_p_asserted_identity_update NULL
+
+msg_hclass_t sip_p_asserted_identity_class[] =
+SIP_HEADER_CLASS(p_asserted_identity, "P-Asserted-Identity", "",
+		 paid_common, append, p_asserted_identity);
+
+issize_t sip_p_asserted_identity_d(su_home_t *home, sip_header_t *h,
+				   char *s, isize_t slen)
+{
+  sip_p_asserted_identity_t *paid = (sip_p_asserted_identity_t *)h;
+
+  while (*s == ',')   /* Ignore empty entries (comma-whitespace) */
+    *s = '\0', s += span_lws(s + 1) + 1;
+
+  if (sip_name_addr_d(home, &s,
+		      &paid->paid_display,
+		      paid->paid_url,
+		      NULL, NULL) == -1)
+    return -1;
+
+  return msg_parse_next_field(home, h, s, slen);
+}
+
+issize_t sip_p_asserted_identity_e(char b[], isize_t bsiz,
+				   sip_header_t const *h, int f)
+{
+  sip_p_asserted_identity_t const *paid = (sip_p_asserted_identity_t *)h;
+
+  return sip_name_addr_e(b, bsiz, f,
+			 paid->paid_display, MSG_IS_CANONIC(f),
+			 paid->paid_url,
+			 NULL,
+			 NULL);
+}
+
+isize_t sip_p_asserted_identity_dup_xtra(sip_header_t const *h, isize_t offset)
+{
+  sip_p_asserted_identity_t const *paid = (sip_p_asserted_identity_t *)h;
+
+  return sip_name_addr_xtra(paid->paid_display, 
+			    paid->paid_url,
+			    NULL,
+			    offset);
+}
+
+/** Duplicate one sip_p_asserted_identity_t object */
+char *sip_p_asserted_identity_dup_one(sip_header_t *dst,
+				      sip_header_t const *src,
+				      char *b, isize_t xtra)
+{
+  sip_p_asserted_identity_t *paid = (sip_p_asserted_identity_t *)dst;
+  sip_p_asserted_identity_t const *o = (sip_p_asserted_identity_t *)src;
+
+  return sip_name_addr_dup(&paid->paid_display, o->paid_display,
+			   paid->paid_url, o->paid_url,
+			   NULL, NULL,
+			   b, xtra);
+}
+
+#endif
+
+#if SIP_HAVE_P_PREFERRED_IDENTITY
+
+/**@SIP_HEADER sip_p_preferred_identity P-Preferred-Identity Header
+ *
+ * The P-Preferred-Identity header is used used among trusted SIP entities
+ * (typically intermediaries) to carry the identity of the user sending a
+ * SIP message as it was verified by authentication. It is "defined" in
+ * @RFC3325 section 9.1 as follows:
+ *
+ * @code
+ *    PPreferredID = "P-Preferred-Identity" HCOLON PPreferredID-value
+ *                    *(COMMA PPreferredID-value)
+ *    PPreferredID-value = name-addr / addr-spec
+ * @endcode
+ *
+ * @sa @RFC3325, @PAssertedIdentity
+ *
+ * @NEW_1_12_7. In order to use @b P-Preferred-Identity header,
+ * initialize the SIP parser with, e.g.,
+ * sip_update_default_mclass(sip_extend_mclass(NULL)).
+ */
+
+/**@ingroup sip_p_preferred_identity
+ * @typedef typedef struct sip_p_preferred_identity_s sip_p_preferred_identity_t;
+ *
+ * The structure #sip_p_preferred_identity_t contains representation of SIP
+ * @PPreferredIdentity header.
+ *
+ * The #sip_p_preferred_identity_t is defined as follows:
+ * @code
+ * typedef struct sip_p_preferred_identity_s {
+ *   sip_common_t           ppid_common[1]; // Common fragment info
+ *   sip_p_preferred_identity_t *ppid_next; // Link to next
+ *   char const        *ppid_display;       // Display name
+ *   url_t              ppid_url[1];        // URL
+ * } sip_p_preferred_identity_t;
+ * @endcode
+ */
+
+
+msg_hclass_t sip_p_preferred_identity_class[] =
+SIP_HEADER_CLASS(p_preferred_identity, "P-Preferred-Identity", "",
+		 ppid_common, append, p_asserted_identity);
+
+issize_t sip_p_preferred_identity_d(su_home_t *home, sip_header_t *h,
+				    char *s, isize_t slen)
+{
+  return sip_p_asserted_identity_d(home, h, s, slen);
+}
+
+issize_t sip_p_preferred_identity_e(char b[], isize_t bsiz,
+				    sip_header_t const *h, int f)
+{
+  return sip_p_asserted_identity_e(b, bsiz, h, f);
+}
+
+#endif 

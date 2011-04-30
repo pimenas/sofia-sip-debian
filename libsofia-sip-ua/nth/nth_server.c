@@ -22,7 +22,7 @@
  *
  */
 
-/**@file nth_server.c
+/**@internal @file nth_server.c
  * @brief HTTP server.
  * 
  * @author Pekka Pessi <Pekka.Pessi@nokia.com>
@@ -32,19 +32,8 @@
 
 #include "config.h"
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <errno.h>
-#include <assert.h>
-
 #include <sofia-sip/string0.h>
-#include <sofia-sip/hostdomain.h>
-
-#if !defined(EALREADY) && defined(_WIN32)
-#define EALREADY WSAEALREADY
-#endif
+#include <sofia-sip/su.h>
 
 typedef struct server_s server_t;
 
@@ -71,6 +60,13 @@ typedef struct server_s server_t;
 #include <sofia-sip/htable.h>
 
 #include <sofia-sip/auth_module.h>
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <errno.h>
+#include <assert.h>
 
 #ifndef UINT32_MAX
 #define UINT32_MAX (0xffffffffU)
@@ -176,7 +172,7 @@ struct nth_request_s
  * The NTH_DEBUG environment variable is used to determine the debug
  * logging level for @b nth module. The default level is 1.
  * 
- * @sa <su_debug.h>, nth_server_log, SOFIA_DEBUG
+ * @sa <sofia-sip/su_debug.h>, nth_server_log, SOFIA_DEBUG
  */
 extern char const NTH_DEBUG[];
 

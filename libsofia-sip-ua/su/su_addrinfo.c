@@ -29,8 +29,8 @@
 
 #include "config.h"
 
-#include <sofia-sip/su_addrinfo.h>
 #include <sofia-sip/su.h>
+#include <sofia-sip/su_addrinfo.h>
 
 #ifndef IN_LOOPBACKNET
 #define IN_LOOPBACKNET          127
@@ -46,6 +46,10 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <ctype.h>
+
+#ifndef EAI_NODATA
+#define EAI_NODATA 7
+#endif
 
 /*
  * "#ifdef FAITH" part is local hack for supporting IPv4-v6 translator.

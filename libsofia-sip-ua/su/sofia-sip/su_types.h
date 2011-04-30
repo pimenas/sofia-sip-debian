@@ -34,7 +34,7 @@
  */
 
 #ifndef SU_CONFIG_H
-#include "sofia-sip/su_config.h"
+#include <sofia-sip/su_config.h>
 #endif
 
 #if SU_HAVE_STDINT
@@ -68,7 +68,7 @@ SOFIA_BEGIN_DECLS
 
 #if DOXYGEN_ONLY || (!SU_HAVE_STDINT && !SU_HAVE_INTTYPES && SU_HAVE_WIN32)
 
-/* Use macros defined in <su_configure_win32.h> */
+/* Use macros defined in <sofia-sip/su_configure_win32.h> */
 
 #ifndef _INTPTR_T_DEFINED
 /** Integer type large enough to store pointers */
