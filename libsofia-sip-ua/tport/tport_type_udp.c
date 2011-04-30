@@ -144,7 +144,7 @@ int tport_udp_init_primary(tport_primary_t *pri,
     imr->imr_multiaddr = su->su_sin.sin_addr;
 
     if (host_is_ip4_address(tpn->tpn_canon) &&
-	inet_pton(AF_INET, tpn->tpn_canon, &iface) > 0) {
+	su_inet_pton(AF_INET, tpn->tpn_canon, &iface) > 0) {
       imr->imr_interface = iface;
     }
 
@@ -159,6 +159,17 @@ int tport_udp_init_primary(tport_primary_t *pri,
 		    "IP_MULTICAST_LOOP", su_strerror(su_errno())));
     }
 #endif
+  }
+#endif
+
+#if HAVE_IP_MTU_DISCOVER
+  {
+    /* Turn off DF flag on Linux */
+    int dont = IP_PMTUDISC_DONT;
+    if (setsockopt(s, IPPROTO_IP, IP_MTU_DISCOVER, &dont, sizeof(dont)) < 0) {
+	SU_DEBUG_3(("setsockopt(%s): %s\n",
+		    "IP_MTU_DISCOVER", su_strerror(su_errno())));
+    }
   }
 #endif
 
@@ -238,7 +249,7 @@ static void tport_check_trunc(tport_t *tp, su_addrinfo_t *ai)
 
   n = su_sendto(tp->tp_socket,
 		"TEST", 4, 0,
-		(void *)ai->ai_addr, ai->ai_addrlen);
+		(void *)ai->ai_addr, (socklen_t)ai->ai_addrlen);
 
   if (n != 4)
     return;
@@ -495,8 +506,8 @@ int tport_udp_error(tport_t const *self, su_sockaddr_t name[1])
 		  origin, info));
       if (from->su_family != AF_UNSPEC)
 	SU_DEBUG_3(("\treported by [%s]:%u\n",
-		    inet_ntop(from->su_family, SU_ADDR(from), 
-			      info, sizeof(info)),
+		    su_inet_ntop(from->su_family, SU_ADDR(from),
+				 info, sizeof(info)),
 		    ntohs(from->su_port)));
 
       if (msg->msg_namelen == 0)

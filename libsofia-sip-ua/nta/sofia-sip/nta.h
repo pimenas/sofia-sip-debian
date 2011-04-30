@@ -210,6 +210,12 @@ SOFIAPUBFUN char const *nta_leg_rtag(nta_leg_t *leg, char const *tag);
 /** Get remote tag. */
 SOFIAPUBFUN char const *nta_leg_get_rtag(nta_leg_t const *leg);
 
+/** Get local request sequence number. @NEW_1_12_9 */
+SOFIAPUBFUN uint32_t nta_leg_get_seq(nta_leg_t const *leg);
+
+/** Get remote request sequence number. @NEW_1_12_9 */
+SOFIAPUBFUN uint32_t nta_leg_get_rseq(nta_leg_t const *leg);
+
 /** Set UAC route. */
 SOFIAPUBFUN int nta_leg_client_route(nta_leg_t *leg, 
 				     sip_record_route_t const *route, 
@@ -246,6 +252,10 @@ SOFIAPUBFUN sip_replaces_t *nta_leg_make_replaces(nta_leg_t *leg,
 /** Get dialog leg by Replaces header */
 SOFIAPUBFUN
 nta_leg_t *nta_leg_by_replaces(nta_agent_t *, sip_replaces_t const *);
+
+/** Get dialog leg by CallID */
+SOFIAPUBFUN
+nta_leg_t *nta_leg_by_call_id(nta_agent_t *sa, const char *call_id);
 
 /* ----------------------------------------------------------------------
  * 6) Prototypes for incoming transactions 
@@ -377,6 +387,9 @@ nta_outgoing_t *nta_outgoing_default(nta_agent_t *agent,
 				     nta_response_f *callback,
 				     nta_outgoing_magic_t *magic);
 
+SOFIAPUBFUN int nta_outgoing_bind(nta_outgoing_t *orq,
+				  nta_response_f *callback,
+				  nta_outgoing_magic_t *magic);
 SOFIAPUBFUN int nta_outgoing_status(nta_outgoing_t const *orq);
 SOFIAPUBFUN sip_method_t nta_outgoing_method(nta_outgoing_t const *orq);
 SOFIAPUBFUN char const *nta_outgoing_method_name(nta_outgoing_t const *orq);

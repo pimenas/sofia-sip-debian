@@ -104,7 +104,13 @@ static int nua_register_usage_add(nua_handle_t *nh,
 				  nua_dialog_usage_t *du);
 static void nua_register_usage_remove(nua_handle_t *nh,
 				      nua_dialog_state_t *ds,
-				      nua_dialog_usage_t *du);
+				      nua_dialog_usage_t *du,
+				      nua_client_request_t *cr,
+				      nua_server_request_t *sr);
+static void nua_register_usage_update_params(nua_dialog_usage_t const *du,
+					     nua_handle_preferences_t const *,
+					     nua_handle_preferences_t const *,
+					     nua_handle_preferences_t const *);
 static void nua_register_usage_peer_info(nua_dialog_usage_t *du,
 					 nua_dialog_state_t const *ds,
 					 sip_t const *sip);
@@ -167,6 +173,7 @@ nua_usage_class const nua_register_usage[1] = {
     nua_register_usage_add,
     nua_register_usage_remove,
     nua_register_usage_name,
+    nua_register_usage_update_params,
     nua_register_usage_peer_info,
     nua_register_usage_refresh,
     nua_register_usage_shutdown
@@ -181,7 +188,7 @@ static int nua_register_usage_add(nua_handle_t *nh,
 				  nua_dialog_state_t *ds,
 				  nua_dialog_usage_t *du)
 {
-  nua_registration_t *nr = nua_dialog_usage_private(du);
+  nua_registration_t *nr = NUA_DIALOG_USAGE_PRIVATE(du);
 
   if (ds->ds_has_register)
     return -1;			/* There can be only one usage */
@@ -196,9 +203,11 @@ static int nua_register_usage_add(nua_handle_t *nh,
 
 static void nua_register_usage_remove(nua_handle_t *nh,
 				      nua_dialog_state_t *ds,
-				      nua_dialog_usage_t *du)
+				      nua_dialog_usage_t *du,
+				      nua_client_request_t *cr,
+				      nua_server_request_t *sr)
 {
-  nua_registration_t *nr = nua_dialog_usage_private(du);
+  nua_registration_t *nr = NUA_DIALOG_USAGE_PRIVATE(du);
 
   if (nr->nr_list)
     nua_registration_remove(nr);	/* Remove from list of registrations */
@@ -227,7 +236,7 @@ static void nua_register_usage_peer_info(nua_dialog_usage_t *du,
 					 nua_dialog_state_t const *ds,
 					 sip_t const *sip)
 {
-  nua_registration_t *nr = nua_dialog_usage_private(du);
+  nua_registration_t *nr = NUA_DIALOG_USAGE_PRIVATE(du);
   if (nr->nr_ob)
     outbound_peer_info(nr->nr_ob, sip);
 }
@@ -570,18 +579,21 @@ static int nua_register_client_response(nua_client_request_t *cr,
 					sip_t const *sip);
 
 static nua_client_methods_t const nua_register_client_methods = {
-  SIP_METHOD_REGISTER,
-  0,
-  {
+  SIP_METHOD_REGISTER,		/* crm_method, crm_method_name */
+  0,				/* crm_extra */
+  {				/* crm_flags */
     /* create_dialog */ 1,
     /* in_dialog */ 0,
     /* target refresh */ 0
   },
-  nua_register_client_template,
-  nua_register_client_init,
-  nua_register_client_request,
-  nua_register_client_check_restart,
-  nua_register_client_response
+  nua_register_client_template,	/* crm_template */
+  nua_register_client_init,	/* crm_init */
+  nua_register_client_request,	/* crm_send */
+  nua_register_client_check_restart, /* crm_check_restart */
+  nua_register_client_response,	/* crm_recv */
+  NULL,				/* crm_preliminary */
+  NULL,				/* crm_report */
+  NULL,				/* crm_complete */
 };
 
 /**@internal Send REGISTER. */
@@ -665,6 +677,11 @@ static int nua_register_client_init(nua_client_request_t *cr,
 			     NH_PGET(nh, instance));
     if (!nr->nr_ob)
       return nua_client_return(cr, 900, "Cannot create outbound", msg);
+
+    nua_register_usage_update_params(du,
+				     NULL,
+				     nh->nh_prefs,
+				     nh->nh_dprefs);
   }
 
   if (nr->nr_ob) {
@@ -679,13 +696,6 @@ static int nua_register_client_init(nua_client_request_t *cr,
       if (m == NULL)
 	unreg = 1;	/* All contacts have expires=0 */
     }
-
-    outbound_set_options(ob,
-			 NH_PGET(nh, outbound),
-			 NH_PGET(nh, keepalive),
-			 NH_PISSET(nh, keepalive_stream)
-			 ? NH_PGET(nh, keepalive_stream)
-			 : NH_PGET(nh, keepalive));
 
     if (outbound_set_contact(ob, sip->sip_contact, nr->nr_via, unreg) < 0)
       return nua_client_return(cr, 900, "Cannot set outbound contact", msg);
@@ -705,6 +715,7 @@ int nua_register_client_request(nua_client_request_t *cr,
   sip_contact_t *m, *contacts = sip->sip_contact;
   char const *min_expires = NULL;
   int unreg;
+  tport_t *tport = NULL;
 
   (void)nh;
 
@@ -748,6 +759,8 @@ int nua_register_client_request(nua_client_request_t *cr,
       if (previous)
 	sip_add_dup(msg, sip, (sip_header_t *)previous);
     }
+
+    tport = nr->nr_tport;
   }
 
   for (m = sip->sip_contact; m; m = m->m_next) {
@@ -782,7 +795,7 @@ int nua_register_client_request(nua_client_request_t *cr,
 				  TAG_IF(unreg, NTATAG_SIGCOMP_CLOSE(1)),
 				  TAG_IF(!unreg, NTATAG_COMP("sigcomp")),
 #endif
-				  NTATAG_TPORT(nr->nr_tport),
+				  NTATAG_TPORT(tport),
 				  TAG_NEXT(tags));
 }
 
@@ -1003,16 +1016,18 @@ void nua_register_connection_closed(tp_stack_t *sip_stack,
 				    msg_t *msg,
 				    int error)
 {
-  nua_dialog_usage_t *du = nua_dialog_usage_public(nr);
+  nua_dialog_usage_t *du;
   tp_name_t const *tpn;
-  int pending = nr->nr_error_report_id;
+  int pending;
 
-  assert(tport == nr->nr_tport);
-
-  if (!nr->nr_tport)
+  assert(nr && tport == nr->nr_tport);
+  if (nr == NULL || tport != nr->nr_tport)
     return;
 
-  if (tport_release(nr->nr_tport, pending, NULL, NULL, nr, 0) < 0)
+  du = NUA_DIALOG_USAGE_PUBLIC(nr);
+  pending = nr->nr_error_report_id;
+
+  if (tport_release(tport, pending, NULL, NULL, nr, 0) < 0)
     SU_DEBUG_1(("nua_register: tport_release() failed\n"));
   nr->nr_error_report_id = 0;
 
@@ -1031,6 +1046,42 @@ void nua_register_connection_closed(tp_stack_t *sip_stack,
   nua_dialog_usage_set_refresh_range(du, 0, 0);
 }
 
+static void
+nua_register_usage_update_params(nua_dialog_usage_t const *du,
+				 nua_handle_preferences_t const *changed,
+				 nua_handle_preferences_t const *nhp,
+				 nua_handle_preferences_t const *dnhp)
+{
+  nua_registration_t *nr = nua_dialog_usage_private(du);
+  outbound_t *ob = nr->nr_ob;
+
+  if (!ob)
+    return;
+
+  if (!changed ||
+      NHP_ISSET(changed, outbound) ||
+      NHP_ISSET(changed, keepalive) ||
+      NHP_ISSET(changed, keepalive_stream)) {
+    char const *outbound =
+      NHP_ISSET(nhp, outbound) ? nhp->nhp_outbound
+      : dnhp->nhp_outbound;
+    unsigned keepalive =
+      NHP_ISSET(nhp, keepalive) ? nhp->nhp_keepalive
+      : dnhp->nhp_keepalive;
+    unsigned keepalive_stream =
+      NHP_ISSET(nhp, keepalive_stream) ? nhp->nhp_keepalive_stream
+      : NHP_ISSET(dnhp, keepalive_stream) ? nhp->nhp_keepalive_stream
+      : keepalive;
+
+    outbound_set_options(ob, outbound, keepalive, keepalive_stream);
+  }
+
+  if (!changed || NHP_ISSET(changed, proxy)) {
+    if (NHP_ISSET(nhp, proxy))
+      outbound_set_proxy(ob, nhp->nhp_proxy);
+  }
+}
+
 
 static void nua_register_usage_refresh(nua_handle_t *nh,
 				       nua_dialog_state_t *ds,
@@ -1047,7 +1098,7 @@ static void nua_register_usage_refresh(nua_handle_t *nh,
 
   /* Report that we have de-registered */
   nua_stack_event(nua, nh, NULL, nua_r_register, NUA_ERROR_AT(__FILE__, __LINE__), NULL);
-  nua_dialog_usage_remove(nh, ds, du);
+  nua_dialog_usage_remove(nh, ds, du, NULL, NULL);
 }
 
 /** @interal Shut down REGISTER usage.
@@ -1061,7 +1112,7 @@ static int nua_register_usage_shutdown(nua_handle_t *nh,
 				       nua_dialog_usage_t *du)
 {
   nua_client_request_t *cr = du->du_cr;
-  nua_registration_t *nr = nua_dialog_usage_private(du);
+  nua_registration_t *nr = NUA_DIALOG_USAGE_PRIVATE(du);
 
   if (cr) {
     if (nua_client_is_queued(cr)) /* Already registering. */
@@ -1075,7 +1126,7 @@ static int nua_register_usage_shutdown(nua_handle_t *nh,
   if (nr->nr_tport)
     tport_decref(&nr->nr_tport), nr->nr_tport = NULL;
 
-  nua_dialog_usage_remove(nh, ds, du);
+  nua_dialog_usage_remove(nh, ds, du, NULL, NULL);
   return 200;
 }
 
@@ -1288,7 +1339,7 @@ nua_stack_init_registrations(nua_t *nua)
     }
   }
 
-  nta_agent_bind_tport_update(nua->nua_nta, nua, nua_stack_tport_update);
+  nta_agent_bind_tport_update(nua->nua_nta, (nta_update_magic_t *)nua, nua_stack_tport_update);
 
   return 0;
 }

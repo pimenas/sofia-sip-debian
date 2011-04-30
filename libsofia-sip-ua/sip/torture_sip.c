@@ -281,7 +281,7 @@ int test_url_headers(void)
      TAG_END());
 
   TEST_1(s);
-  TEST_S(s, "to=%22Joe%22%20%3Csip%3Ajoe@example.com%3E;tag%3Dfoofaa"
+  TEST_S(s, "to=%22Joe%22%20%3Csip%3Ajoe@example.com%3E%3Btag%3Dfoofaa"
 	 "&subject=foo");
 
   url = url_format(home, "sip:test@example.net?%s", s); TEST_1(url);
@@ -290,19 +290,19 @@ int test_url_headers(void)
 
   s = sip_headers_as_url_query
     (home,
-     SIPTAG_FROM_STR("<sip:joe@example.com>"),
+     SIPTAG_FROM_STR("<sip:joe@example.com;user=ip>"),
      SIPTAG_ACCEPT_STR(""),
      SIPTAG_PAYLOAD_STR("hello"),
      SIPTAG_ACCEPT_STR(""),
      TAG_END());
 
-  TEST_S(s, "from=%3Csip%3Ajoe@example.com%3E"
+  TEST_S(s, "from=%3Csip%3Ajoe@example.com%3Buser%3Dip%3E"
 	 "&accept="
 	 "&body=hello"
 	 "&accept=");
 
   d = url_query_as_header_string(home, s);
-  TEST_S(d, "from:<sip:joe@example.com>\n"
+  TEST_S(d, "from:<sip:joe@example.com;user=ip>\n"
 	 "accept:\n"
 	 "accept:\n"
 	 "\n"
@@ -2227,7 +2227,6 @@ static int test_accept(void)
 
 static int test_content_disposition(void)
 {
-  /* Test Accept header */
   sip_content_disposition_t *cd, *cd0;
   su_home_t *home;
 
@@ -2242,6 +2241,63 @@ static int test_content_disposition(void)
   TEST_S(cd->cd_handling, "required");
   TEST_1(cd->cd_required);
   TEST_1(!cd->cd_optional);
+
+  su_home_unref(home);
+  END();
+}
+
+
+static int test_content_type(void)
+{
+  sip_content_type_t *c;
+  sip_content_type_t c0[1];
+  su_home_t *home;
+
+  BEGIN();
+
+  TEST_1(home = su_home_create());
+  TEST_1(c = sip_content_type_make(home, "application/sdp ; charset = utf-8"));
+  TEST_S(c->c_type, "application/sdp");
+  TEST_S(c->c_subtype, "sdp");
+  TEST_1(c->c_params && c->c_params[0] && !c->c_params[1]);
+  TEST_S(c->c_params[0], "charset=utf-8");
+  TEST_P(c->c_params[1], NULL);
+
+  sip_content_type_init(c0);
+  c = sip_content_type_dup(home, c0);
+  TEST_P(c->c_type, NULL);
+  TEST_P(c->c_subtype, NULL);
+
+  c0->c_type = "text";
+  c = sip_content_type_dup(home, c0);
+  TEST_S(c->c_type, "text");
+  TEST_P(c->c_subtype, NULL);
+
+  su_home_unref(home);
+  END();
+}
+
+
+static int test_www_authenticate(void)
+{
+  sip_www_authenticate_t *www;
+  su_home_t *home;
+  char const *s;
+  BEGIN();
+
+  TEST_1(home = su_home_create());
+  TEST_1(www = sip_www_authenticate_make
+	 (home, "Digest realm=\"Registered_Subscribers\",\n"
+	  "domain=\"sip:206.229.26.61\",\n"
+	  "nonce=\"20dfb7e5a77abee7a02dbe53efe42cdd\", "
+	  "opaque=\"423767123y723742376423762376423784623782a794e58\",\n"
+	  "stale=FALSE,algorithm=MD5"));
+  TEST_S(www->au_scheme, "Digest");
+  TEST_1(www->au_params && www->au_params[0] && www->au_params[1] && www->au_params[2] && 
+	 www->au_params[3] && www->au_params[4] && www->au_params[5] && 
+	 !www->au_params[6]);
+  TEST_1(s = sip_header_as_string(home, (sip_header_t *)www));
+  TEST_1(strlen(s) >= 128);
 
   su_home_unref(home);
   END();
@@ -3545,10 +3601,11 @@ int main(int argc, char *argv[])
   retval |= test_refer(); fflush(stdout);
   retval |= test_route(); fflush(stdout);
   retval |= test_request_disposition(); fflush(stdout);
+  retval |= test_content_type(); fflush(stdout);
   retval |= test_caller_prefs(); fflush(stdout);
   retval |= test_callerpref_scoring(); fflush(stdout);
   retval |= test_warning(); fflush(stdout);
-
+  retval |= test_www_authenticate(); fflush(stdout);
   retval |= test_sec_ext(); fflush(stdout);
 
   retval |= test_utils(); fflush(stdout);

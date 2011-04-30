@@ -532,7 +532,6 @@ tport_t *tport_tcreate(tp_stack_t *stack,
   ta_start(ta, tag, value);
 
   tport_set_params(mr->mr_master, ta_tags(ta));
-  tport_open_log(mr, ta_args(ta));
 
 #if HAVE_SOFIA_STUN
   tport_init_stun_server(mr, ta_args(ta));
@@ -1179,7 +1178,6 @@ int tport_get_params(tport_t const *self,
   ta_list ta;
   int n;
   tport_params_t const *tpp;
-  tport_primary_t const *pri = self->tp_pri;
   int connect;
 
   if (self == NULL)
@@ -1208,7 +1206,9 @@ int tport_get_params(tport_t const *self,
 	       TPTAG_THRPRQSIZE(tpp->tpp_thrprqsize),
 	       TPTAG_SIGCOMP_LIFETIME(tpp->tpp_sigcomp_lifetime),
 	       TPTAG_STUN_SERVER(tpp->tpp_stun_server),
-	       TAG_IF(pri, TPTAG_PUBLIC(pri ? pri->pri_public : 0)),
+	       TAG_IF(self->tp_pri,
+		      TPTAG_PUBLIC(self->tp_pri ?
+				   self->tp_pri->pri_public : 0)),
 	       TPTAG_TOS(tpp->tpp_tos),
 	       TAG_END());
 
@@ -1233,12 +1233,12 @@ int tport_set_params(tport_t *self,
 		     tag_type_t tag, tag_value_t value, ...)
 {
   ta_list ta;
-  int n;
+  int n, m = 0;
   tport_params_t tpp[1], *tpp0;
   
   usize_t mtu;
   int connect, sdwn_error, reusable, stun_server, pong2ping;
-  
+
   if (self == NULL)
     return su_seterrno(EINVAL);
 
@@ -1272,10 +1272,13 @@ int tport_set_params(tport_t *self,
 	      TPTAG_TOS_REF(tpp->tpp_tos),
 	      TAG_END());
 
+  if (self == (tport_t *)self->tp_master)
+    m = tport_open_log(self->tp_master, ta_args(ta));
+
   ta_end(ta);
 
   if (n == 0)
-    return 0;
+    return m;
 
   if (tpp->tpp_idle > 0 && tpp->tpp_idle < 100)
     tpp->tpp_idle = 100;
@@ -1314,7 +1317,7 @@ int tport_set_params(tport_t *self,
   if (tport_is_secondary(self))
     tport_set_secondary_timer(self);
 
-  return n;
+  return n + m;
 }
 
 extern tport_vtable_t const tport_udp_vtable;
@@ -2954,14 +2957,14 @@ void tport_deliver(tport_t *self,
 #if SU_HAVE_IN6
     if (su->su_family == AF_INET6) {
       ipaddr[0] = '[';
-      inet_ntop(su->su_family, SU_ADDR(su), ipaddr + 1, sizeof(ipaddr) - 1);
+      su_inet_ntop(su->su_family, SU_ADDR(su), ipaddr + 1, SU_ADDRSIZE);
       strcat(ipaddr, "]");
     }
     else {
-      inet_ntop(su->su_family, SU_ADDR(su), ipaddr, sizeof(ipaddr));
+      su_inet_ntop(su->su_family, SU_ADDR(su), ipaddr, sizeof(ipaddr));
     }
 #else
-    inet_ntop(su->su_family, SU_ADDR(su), ipaddr, sizeof(ipaddr));
+    su_inet_ntop(su->su_family, SU_ADDR(su), ipaddr, sizeof(ipaddr));
 #endif
 
     d->d_from->tpn_canon = ipaddr;
@@ -3949,13 +3952,13 @@ tport_resolve(tport_t *self, msg_t *msg, tp_name_t const *tpn)
 #if SU_HAVE_IN6
   SU_DEBUG_9(("tport_resolve addrinfo = %s%s%s:%d\n", 
 	      su->su_family == AF_INET6 ? "[" : "",
-              inet_ntop(su->su_family, SU_ADDR(su), ipaddr, sizeof(ipaddr)),
+              su_inet_ntop(su->su_family, SU_ADDR(su), ipaddr, sizeof(ipaddr)),
 	      su->su_family == AF_INET6 ? "]" : "",
               htons(su->su_port)));
 #else
   SU_DEBUG_9(("tport_resolve addrinfo = %s%s%s:%d\n", 
 	      "",
-              inet_ntop(su->su_family, SU_ADDR(su), ipaddr, sizeof(ipaddr)),
+              su_inet_ntop(su->su_family, SU_ADDR(su), ipaddr, sizeof(ipaddr)),
 	      "",
               htons(su->su_port)));
 #endif
@@ -4260,6 +4263,7 @@ tport_t *tport_next(tport_t const *self)
     return NULL;
   else if (tport_is_master(self))
     return ((tport_master_t *)self)->mr_primaries->pri_primary;
+
   else if (tport_is_primary(self))
     return ((tport_primary_t *)self)->pri_next->pri_primary;
   else
@@ -4433,7 +4437,7 @@ tport_t *tport_by_name(tport_t const *self, tp_name_t const *tpn)
 
     su->su_port = htons(strtoul(port, NULL, 10));
     
-    if (inet_pton(su->su_family, host, SU_ADDR(su)) > 0) {
+    if (su_inet_pton(su->su_family, host, SU_ADDR(su)) > 0) {
       resolved = 1;
       next = NULL;
 
@@ -4655,6 +4659,9 @@ int tport_name_dup(su_home_t *home,
   size_t n_proto, n_host, n_port, n_canon, n_comp = 0;
   char *s;
 
+  if (!src->tpn_proto || !src->tpn_host || !src->tpn_port || !src->tpn_canon)
+    return -1;
+
   if (strcmp(src->tpn_proto, tpn_any)) 
     n_proto = strlen(src->tpn_proto) + 1;
   else
@@ -4674,7 +4681,9 @@ int tport_name_dup(su_home_t *home,
     n_canon = 0;
 
   s = su_alloc(home, n_proto + n_canon + n_host + n_port + n_comp);
-  
+  if (s == NULL)
+    return -1;
+
   if (n_proto)
     dst->tpn_proto = memcpy(s, src->tpn_proto, n_proto), s += n_proto;
   else
@@ -4710,7 +4719,7 @@ char *tport_hostport(char buf[], isize_t bufsize,
   }
 #endif
 
-  if (inet_ntop(su->su_family, SU_ADDR(su), b, bufsize) == NULL)
+  if (su_inet_ntop(su->su_family, SU_ADDR(su), b, bufsize) == NULL)
     return NULL;
   n = strlen(b); 
   if (bufsize < n + 2)

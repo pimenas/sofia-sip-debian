@@ -537,11 +537,10 @@ void auth_method_basic(auth_mod_t *am,
     if (n < 0 || n >= INT_MAX)
       continue;
     if (n >= upsize) {
-      upsize = n + 1;
-      userpass = realloc(userpass == buffer ? NULL : userpass, upsize);
-      if (userpass == NULL)
-	continue;
-      base64_d(userpass, upsize - 1, au->au_params[0]);
+      void *b = realloc(userpass == buffer ? NULL : userpass, upsize = n + 1);
+      if (b == NULL)
+	break;
+      base64_d(userpass = b, upsize - 1, au->au_params[0]);
     }
     userpass[n] = 0;
     if (!(pass = strchr(userpass, ':')))
@@ -1033,7 +1032,8 @@ int auth_readdb_internal(auth_mod_t *am, int always)
     N = i, i = 0;
 
     if (N > 0) {
-      if (auth_htable_resize(am->am_home, am->am_users, N) < 0 ||
+      size_t size = (N * 5 + 3) / 4;
+      if (auth_htable_resize(am->am_home, am->am_users, size) < 0 ||
 	  !(fresh = su_zalloc(am->am_home, sizeof(*fresh) * N))) {
 	su_free(am->am_home, buffer);
 	return -1;
@@ -1078,13 +1078,15 @@ int auth_readdb_internal(auth_mod_t *am, int always)
       if (!*pass || !*user)
 	continue;
 
-      realm = ""; ident = "";
-
-      if ((realm = strchr(pass, ':'))) {
+      if ((realm = strchr(pass, ':')))
 	*realm++ = '\0';
-	if ((ident = strchr(realm, ':')))
-	  *ident++ = '\0';
-      }
+      else
+	realm = "";
+
+      if ((ident = strchr(realm, ':')))
+	*ident++ = '\0';
+      else
+	ident = "";
 
       apw = fresh + i++;
 
@@ -1134,7 +1136,7 @@ int auth_readdb_internal(auth_mod_t *am, int always)
   return -1;
 }
 
-/** Append to hash, remove existing user */
+/** Append to hash, remove existing local user */
 su_inline void
 auth_htable_append_local(auth_htable_t *aht, auth_passwd_t *apw)
 {

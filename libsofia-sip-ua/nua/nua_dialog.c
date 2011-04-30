@@ -60,7 +60,9 @@
 /* Dialog handling */
 
 static void nua_dialog_usage_remove_at(nua_owner_t*, nua_dialog_state_t*, 
-				       nua_dialog_usage_t**);
+				       nua_dialog_usage_t**,
+				       nua_client_request_t *cr,
+				       nua_server_request_t *sr);
 static void nua_dialog_log_usage(nua_owner_t *, nua_dialog_state_t *);
 
 /**@internal
@@ -183,21 +185,34 @@ void nua_dialog_store_peer_info(nua_owner_t *own,
   }
 }
 
+/** Remove dialog information. */
+int nua_dialog_zap(nua_owner_t *own,
+		   nua_dialog_state_t *ds)
+{
+  /* zap peer info */
+  nua_dialog_store_peer_info(own, ds, NULL); 
+  /* Local Contact */
+  msg_header_free(own, (msg_header_t *)ds->ds_ltarget), ds->ds_ltarget = NULL;
+  /* Leg */
+  nta_leg_destroy(ds->ds_leg), ds->ds_leg = NULL;
+  /* Remote tag */
+  su_free(own, (void *)ds->ds_remote_tag), ds->ds_remote_tag = NULL;
+  /* Ready to set route/remote target */
+  ds->ds_route = 0;
+
+  return 0;
+}
+
 /** Remove dialog (if there is no other usages). */
 int nua_dialog_remove(nua_owner_t *own,
 		      nua_dialog_state_t *ds,
 		      nua_dialog_usage_t *usage)
 {
   if (ds->ds_usage == usage && (usage == NULL || usage->du_next == NULL)) {
-    nua_dialog_store_peer_info(own, ds, NULL); /* zap peer info */
-    msg_header_free(own, (msg_header_t *)ds->ds_ltarget), ds->ds_ltarget = NULL;
-    nta_leg_destroy(ds->ds_leg), ds->ds_leg = NULL;
-    su_free(own, (void *)ds->ds_remote_tag), ds->ds_remote_tag = NULL;
-    ds->ds_route = 0;
+    return nua_dialog_zap(own, ds);
   }
   return 0;
 }
-
 
 /** @internal Get dialog usage slot. */
 nua_dialog_usage_t **
@@ -318,7 +333,9 @@ nua_dialog_usage_t *nua_dialog_usage_add(nua_owner_t *own,
 /** @internal Remove dialog usage. */
 void nua_dialog_usage_remove(nua_owner_t *own, 
 			     nua_dialog_state_t *ds,
-			     nua_dialog_usage_t *du)
+			     nua_dialog_usage_t *du,
+			     nua_client_request_t *cr,
+			     nua_server_request_t *sr)
 {
   nua_dialog_usage_t **at;
 
@@ -330,7 +347,7 @@ void nua_dialog_usage_remove(nua_owner_t *own,
 
   assert(*at);
 
-  nua_dialog_usage_remove_at(own, ds, at);
+  nua_dialog_usage_remove_at(own, ds, at, cr, sr);
 }
 
 /** @internal Remove dialog usage. 
@@ -340,7 +357,9 @@ void nua_dialog_usage_remove(nua_owner_t *own,
 static 
 void nua_dialog_usage_remove_at(nua_owner_t *own, 
 				nua_dialog_state_t *ds,
-				nua_dialog_usage_t **at)
+				nua_dialog_usage_t **at,
+				nua_client_request_t *cr0,
+				nua_server_request_t *sr0)
 {
   if (*at) {
     nua_dialog_usage_t *du = *at;
@@ -355,13 +374,17 @@ void nua_dialog_usage_remove_at(nua_owner_t *own,
     SU_DEBUG_5(("nua(%p): removing %s usage%s%s\n",
 		(void *)own, nua_dialog_usage_name(du), 
 		o ? " with event " : "", o ? o->o_type :""));
-    du->du_class->usage_remove(own, ds, du);
+    du->du_class->usage_remove(own, ds, du, cr0, sr0);
 
     /* Destroy saved client request */
-    if (nua_client_is_bound(du->du_cr)) {
+    if (cr0 != du->du_cr && nua_client_is_bound(du->du_cr)) {
       nua_client_bind(cr = du->du_cr, NULL);
-      if (!nua_client_is_queued(cr) &&
-	  !nua_client_is_reporting(cr))
+
+      if (nua_client_is_queued(cr))
+	nua_client_request_complete(cr);
+      else if (nua_client_is_reporting(cr))
+	;
+      else
 	nua_client_request_destroy(cr);
     }
 
@@ -374,8 +397,11 @@ void nua_dialog_usage_remove_at(nua_owner_t *own,
 
     for (sr = ds->ds_sr; sr; sr = sr_next) {
       sr_next = sr->sr_next;
-      if (sr->sr_usage == du)
-	nua_server_request_destroy(sr);
+      if (sr->sr_usage == du) {
+	if (sr != sr0)
+	  nua_server_request_destroy(sr);
+	sr->sr_usage = NULL;
+      }
     }
 
     su_home_unref(own);
@@ -437,13 +463,33 @@ void nua_dialog_deinit(nua_owner_t *own,
   ds->ds_terminating = 1;
 
   while (ds->ds_usage) {
-    nua_dialog_usage_remove_at(own, ds, &ds->ds_usage);
+    nua_dialog_usage_remove_at(own, ds, &ds->ds_usage, NULL, NULL);
   }
 
   nua_dialog_remove(own, ds, NULL);
 
   ds->ds_has_events = 0;
   ds->ds_terminating = 0;
+}
+
+void nua_dialog_update_params(nua_dialog_state_t *ds,
+			      nua_handle_preferences_t const *changed,
+			      nua_handle_preferences_t const *params,
+			      nua_handle_preferences_t const *defaults)
+{
+  nua_dialog_usage_t *usage;
+
+  for (usage = ds->ds_usage; usage; usage = usage->du_next) {
+    usage->du_class->usage_update_params(usage, changed, params, defaults);
+  }
+}
+
+void nua_base_usage_update_params(nua_dialog_usage_t const *du,
+				  nua_handle_preferences_t const *changed,
+				  nua_handle_preferences_t const *params,
+				  nua_handle_preferences_t const *defaults)
+{
+  (void)du, (void)changed, (void)params, (void)defaults;
 }
 
 /**@internal
@@ -495,6 +541,8 @@ void nua_dialog_usage_set_refresh_range(nua_dialog_usage_t *du,
   SU_DEBUG_7(("nua(): refresh %s after %lu seconds (in [%u..%u])\n",
 	      nua_dialog_usage_name(du), target - now, min, max));
 
+  du->du_refquested = now;
+
   nua_dialog_usage_set_refresh_at(du, target);
 }
 
@@ -510,8 +558,10 @@ void nua_dialog_usage_set_refresh_at(nua_dialog_usage_t *du,
 /**@internal Do not refresh. */
 void nua_dialog_usage_reset_refresh(nua_dialog_usage_t *du)
 {
-  if (du)
+  if (du) {
+    du->du_refquested = sip_now();
     du->du_refresh = 0;
+  }
 }
 
 /** @internal Refresh usage. */

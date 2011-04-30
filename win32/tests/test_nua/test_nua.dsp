@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /WX /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /WX /GX /O2 /I "..\.." /I "..\..\..\libsofia-sip-ua\su" /I "..\..\..\libsofia-sip-ua\ipt" /I "..\..\..\libsofia-sip-ua\sresolv" /I "..\..\..\libsofia-sip-ua\bnf" /I "..\..\..\libsofia-sip-ua\url" /I "..\..\..\libsofia-sip-ua\msg" /I "..\..\..\libsofia-sip-ua\sip" /I "..\..\..\libsofia-sip-ua\nta" /I "..\..\..\libsofia-sip-ua\nua" /I "..\..\..\libsofia-sip-ua\iptsec" /I "..\..\..\libsofia-sip-ua\http" /I "..\..\..\libsofia-sip-ua\nth" /I "..\..\..\libsofia-sip-ua\nea" /I "..\..\..\libsofia-sip-ua\sdp" /I "..\..\..\libsofia-sip-ua\soa" /I "..\..\..\libsofia-sip-ua\stun" /I "..\..\..\libsofia-sip-ua\tport" /I "include" /I "." /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /FR /YX /FD /c
+# ADD CPP /nologo /MD /W3 /WX /GX /O2 /I "..\.." /I "..\..\..\libsofia-sip-ua\su" /I "..\..\..\libsofia-sip-ua\ipt" /I "..\..\..\libsofia-sip-ua\sresolv" /I "..\..\..\libsofia-sip-ua\bnf" /I "..\..\..\libsofia-sip-ua\url" /I "..\..\..\libsofia-sip-ua\msg" /I "..\..\..\libsofia-sip-ua\sip" /I "..\..\..\libsofia-sip-ua\nta" /I "..\..\..\libsofia-sip-ua\nua" /I "..\..\..\libsofia-sip-ua\iptsec" /I "..\..\..\libsofia-sip-ua\http" /I "..\..\..\libsofia-sip-ua\nth" /I "..\..\..\libsofia-sip-ua\nea" /I "..\..\..\libsofia-sip-ua\sdp" /I "..\..\..\libsofia-sip-ua\soa" /I "..\..\..\libsofia-sip-ua\stun" /I "..\..\..\libsofia-sip-ua\tport" /I "..\..\..\tests" /I "." /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /FR /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -66,7 +66,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /WX /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "HAVE_CONFIG_H" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /WX /Gm /GX /ZI /Od /I "..\.." /I "..\..\..\libsofia-sip-ua\su" /I "..\..\..\libsofia-sip-ua\ipt" /I "..\..\..\libsofia-sip-ua\sresolv" /I "..\..\..\libsofia-sip-ua\bnf" /I "..\..\..\libsofia-sip-ua\url" /I "..\..\..\libsofia-sip-ua\msg" /I "..\..\..\libsofia-sip-ua\sip" /I "..\..\..\libsofia-sip-ua\nta" /I "..\..\..\libsofia-sip-ua\nua" /I "..\..\..\libsofia-sip-ua\iptsec" /I "..\..\..\libsofia-sip-ua\http" /I "..\..\..\libsofia-sip-ua\nth" /I "..\..\..\libsofia-sip-ua\nea" /I "..\..\..\libsofia-sip-ua\sdp" /I "..\..\..\libsofia-sip-ua\soa" /I "..\..\..\libsofia-sip-ua\stun" /I "..\..\..\libsofia-sip-ua\tport" /I "include" /I "." /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /WX /Gm /GX /ZI /Od /I "..\.." /I "..\..\..\libsofia-sip-ua\su" /I "..\..\..\libsofia-sip-ua\ipt" /I "..\..\..\libsofia-sip-ua\sresolv" /I "..\..\..\libsofia-sip-ua\bnf" /I "..\..\..\libsofia-sip-ua\url" /I "..\..\..\libsofia-sip-ua\msg" /I "..\..\..\libsofia-sip-ua\sip" /I "..\..\..\libsofia-sip-ua\nta" /I "..\..\..\libsofia-sip-ua\nua" /I "..\..\..\libsofia-sip-ua\iptsec" /I "..\..\..\libsofia-sip-ua\http" /I "..\..\..\libsofia-sip-ua\nth" /I "..\..\..\libsofia-sip-ua\nea" /I "..\..\..\libsofia-sip-ua\sdp" /I "..\..\..\libsofia-sip-ua\soa" /I "..\..\..\libsofia-sip-ua\stun" /I "..\..\..\libsofia-sip-ua\tport" /I "..\..\..\tests" /I "." /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -89,39 +89,39 @@ SOURCE="..\..\..\libsofia-sip-ua\su\memmem.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_100rel.c"
+SOURCE="..\..\..\tests\test_100rel.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_basic_call.c"
+SOURCE="..\..\..\tests\test_basic_call.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_call_hold.c"
+SOURCE="..\..\..\tests\test_call_hold.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_call_reject.c"
+SOURCE="..\..\..\tests\test_call_reject.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_cancel_bye.c"
+SOURCE="..\..\..\tests\test_cancel_bye.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_extension.c"
+SOURCE="..\..\..\tests\test_extension.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_init.c"
+SOURCE="..\..\..\tests\test_init.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_nat.c"
+SOURCE="..\..\..\tests\test_nat.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_nat.h"
+SOURCE="..\..\..\tests\test_nat.h"
 # End Source File
 # Begin Source File
 
@@ -129,55 +129,55 @@ SOURCE=.\test_nat_tags.cpp
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_nua.c"
+SOURCE="..\..\..\tests\test_nua.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_nua.h"
+SOURCE="..\..\..\tests\test_nua.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_nua_api.c"
+SOURCE="..\..\..\tests\test_nua_api.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_nua_params.c"
+SOURCE="..\..\..\tests\test_nua_params.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_offer_answer.c"
+SOURCE="..\..\..\tests\test_offer_answer.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_ops.c"
+SOURCE="..\..\..\tests\test_ops.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_proxy.c"
+SOURCE="..\..\..\tests\test_proxy.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_proxy.h"
+SOURCE="..\..\..\tests\test_proxy.h"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_refer.c"
+SOURCE="..\..\..\tests\test_refer.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_register.c"
+SOURCE="..\..\..\tests\test_register.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_session_timer.c"
+SOURCE="..\..\..\tests\test_session_timer.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_simple.c"
+SOURCE="..\..\..\tests\test_simple.c"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\..\libsofia-sip-ua\nua\test_sip_events.c"
+SOURCE="..\..\..\tests\test_sip_events.c"
 # End Source File
 # Begin Source File
 

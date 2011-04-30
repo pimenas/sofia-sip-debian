@@ -364,17 +364,17 @@ sip_sanity_check(sip_t const *sip)
  */
 issize_t sip_header_field_d(su_home_t *home, sip_header_t *h, char *s, isize_t slen)
 {
-  assert(SIP_HDR_TEST(h));
-
   if (h && s && s[slen] == '\0') {
     size_t n = span_lws(s);
     s += n; slen -= n;
-    
+
     for (n = slen; n >= 1 && IS_LWS(s[n - 1]); n--)
       ;
     
     s[n] = '\0';
     
+    assert(SIP_HDR_TEST(h));
+
     return h->sh_class->hc_parse(home, h, s, slen);
   }
   else
@@ -412,7 +412,7 @@ char *sip_header_as_string(su_home_t *home, sip_header_t const *h)
   for (rv = su_alloc(home, len);
        rv;
        rv = su_realloc(home, rv, len)) {
-    ssize_t n = sip_header_field_e(s, sizeof(s), h, 0);
+    ssize_t n = sip_header_field_e(rv, len, h, 0);
     if (n > -1 && n + 1 <= len)
       break;
     if (n > -1)			/* glibc >2.1 */
@@ -883,7 +883,7 @@ sip_security_client_select(sip_security_client_t const *client,
  * decide whether to gracefully terminate or not, the
  * @a *return_graceful_terminate_usage is left unmodified.
  *
- * @RFC 5057
+ * @RFC5057
  */
 int sip_response_terminates_dialog(int response_code,
 				   sip_method_t method,

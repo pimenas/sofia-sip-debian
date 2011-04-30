@@ -11,13 +11,15 @@
 # ----------------------------------------------------------------------
 # Build targets
 
-noinst_LTLIBRARIES = 	libnua.la libtestnua.la libtestproxy.la libtestnat.la
+noinst_LTLIBRARIES = 	libnua.la
 
-check_PROGRAMS =	test_nua
+check_PROGRAMS =
+TESTS =
 
-TESTS = 		test_nua
-
-CLEANFILES =           tmp_sippasswd.??????
+if HAVE_CHECK
+check_PROGRAMS +=	check_nua
+TESTS += 		check_nua
+endif
 
 # ----------------------------------------------------------------------
 # Rules for building the targets
@@ -28,7 +30,7 @@ nobase_include_sofia_HEADERS = \
 			sofia-sip/nua.h sofia-sip/nua_tag.h
 
 libnua_la_SOURCES = 	nua.c nua_stack.h nua_common.c nua_stack.c \
-			nua_extension.c \
+			nua_extension.c nua_types.h \
 			nua_dialog.c nua_dialog.h \
 			outbound.c outbound.h \
 			nua_params.c nua_params.h \
@@ -41,26 +43,13 @@ libnua_la_SOURCES = 	nua.c nua_stack.h nua_common.c nua_stack.c \
 
 COVERAGE_INPUT = 	$(libnua_la_SOURCES) $(include_sofia_HEADERS)
 
-test_nua_LDFLAGS = 	-static
+check_nua_SOURCES = 	check_nua.c check_nua.h \
+			check_session.c check_register.c \
+			test_s2.h test_s2.c
 
-libtestnua_la_SOURCES = test_nua.h test_ops.c \
-			test_init.c \
-			test_nua_api.c test_nua_params.c \
-			test_register.c test_basic_call.c \
-			test_offer_answer.c \
-			test_call_reject.c test_cancel_bye.c \
-			test_call_hold.c test_session_timer.c \
-			test_refer.c test_100rel.c \
-			test_simple.c test_sip_events.c \
-			test_extension.c
+check_nua_LDADD = 	$(nua_libs) @CHECK_LIBS@
 
-libtestproxy_la_SOURCES = test_proxy.h test_proxy.c
-
-libtestnat_la_SOURCES = test_nat.h test_nat.c test_nat_tags.c
-
-test_nua_SOURCES = 	test_nua.c 
-
-test_nua_LDADD = 	libnua.la libtestnua.la libtestproxy.la libtestnat.la \
+nua_libs = 		libnua.la  \
 			../iptsec/libiptsec.la \
 			../ipt/libipt.la \
 			../nea/libnea.la \

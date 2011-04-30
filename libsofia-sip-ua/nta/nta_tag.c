@@ -103,7 +103,7 @@ tag_typedef_t ntatag_mclass = PTRTAG_TYPEDEF(mclass);
  *   @ContentLength, @Via, @ContentType, @ContentDisposition,
  *   @ContentEncoding, @Supported, @Contact, @Require, @RecordRoute, @RAck,
  *   @RSeq, @Event, @Expires, @SubscriptionState, @SessionExpires,
- *   @MinSE, @SIPEtag, and @SIPIfMatch.
+ *   @MinSE, @SIPETag, and @SIPIfMatch.
  *  
  * @sa enum #sip_bad_mask, NTATAG_BAD_RESP_MASK()
  */
@@ -140,7 +140,7 @@ tag_typedef_t ntatag_bad_req_mask = UINTTAG_TYPEDEF(bad_req_mask);
  *   @ContentLength, @Via, @ContentType, @ContentDisposition,
  *   @ContentEncoding, @Supported, @Contact, @Require, @RecordRoute, @RAck,
  *   @RSeq, @Event, @Expires, @SubscriptionState, @SessionExpires, 
- *   @MinSE, @SIPEtag, and @SIPIfMatch.
+ *   @MinSE, @SIPETag, and @SIPIfMatch.
  */
 tag_typedef_t ntatag_bad_resp_mask = UINTTAG_TYPEDEF(bad_resp_mask);
 
@@ -399,6 +399,27 @@ tag_typedef_t ntatag_remote_cseq = UINTTAG_TYPEDEF(remote_cseq);
  * @sa msg_maxsize(), NTATAG_UDP_MTU()
  */
 tag_typedef_t ntatag_maxsize = USIZETAG_TYPEDEF(maxsize);
+
+/**@def NTATAG_MAX_PROCEEDING(x)
+ *
+ * Maximum size of proceeding queue. 
+ *
+ * If the size of the proceedng message queue would exceed the
+ * given limit, the stack will automatically respond with <i>503 
+ * Service Unavailable</i>.
+ *
+ * @par Used with
+ *    nua_create(), nua_set_params(),
+ *    nta_agent_create(), nta_agent_set_params()
+ *
+ * @par Parameter type
+ *    - #usize_t 
+ *
+ * @par Values
+ *    - Maximum acceptable size of a queue (size_t).
+ *
+ */
+tag_typedef_t ntatag_max_proceeding = USIZETAG_TYPEDEF(max_proceeding);
 
 /**@def NTATAG_UDP_MTU(x)
  *
@@ -664,10 +685,10 @@ tag_typedef_t ntatag_graylist = UINTTAG_TYPEDEF(graylist);
  *     unsigned int
  *
  * @par Values
- *    - Value of @i delta-seconds in @RetryAfter header, from 0 to 86400
+ *    - Value of @a delta-seconds in @RetryAfter header, from 0 to 86400
  *
  * @par Default Value
- *    - 0 (no Retry-After is included)
+ *    - 0 (no @RetryAfter header is included)
  *
  * @sa NTATAG_TIMEOUT_408()
  */
@@ -941,7 +962,7 @@ tag_typedef_t ntatag_pass_100 = BOOLTAG_TYPEDEF(pass_100);
  * As per recommended by @RFC4320, the stack can generate a 100 Trying
  * response to the non-INVITE requests if the application has not responded
  * to a request within half of the SIP T2 (the default value for T2 is 4000
- * milliseconds, so the extra <i>100 Trying<i/> would be sent after 2 seconds).
+ * milliseconds, so the extra <i>100 Trying</i> would be sent after 2 seconds).
  *
  * @par Used with	
  *    nua_create(), nua_set_params(),
@@ -1313,7 +1334,7 @@ tag_typedef_t ntatag_client_rport = BOOLTAG_TYPEDEF(client_rport);
  *
  * @sa @RFC3581, NTATAG_CLIENT_RPORT(), NTATAG_TCP_RPORT(), @Via
  */
-tag_typedef_t ntatag_server_rport = BOOLTAG_TYPEDEF(server_rport);
+tag_typedef_t ntatag_server_rport = UINTTAG_TYPEDEF(server_rport);
 
 
 /**@def NTATAG_TCP_RPORT(x)

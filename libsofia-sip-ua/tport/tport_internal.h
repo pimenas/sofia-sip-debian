@@ -67,6 +67,12 @@
 #define MSG_NOSIGNAL (0)
 #endif
 
+#if (_WIN32_WINNT >= 0x0600)
+#ifndef HAVE_MSG_TRUNC
+#define HAVE_MSG_TRUNC 1
+#endif
+#endif
+
 #if !HAVE_MSG_TRUNC
 #define MSG_TRUNC (0)
 #endif
@@ -277,9 +283,9 @@ struct tport_master {
 
   /**< Timer reclaiming unused connections and compartment */
   su_timer_t         *mr_timer;		
-  /** File to dump received and sent data */
+  /** FILE to dump received and sent data */
   FILE               *mr_dump_file;	
-
+  char               *mr_dump;	/**< Filename for dumping received/sent data */
   tport_primary_t    *mr_primaries;        /**< List of primary contacts */
 
   tport_params_t      mr_params[1];
@@ -447,7 +453,7 @@ int tport_recv_error_report(tport_t *self);
 void tport_error_report(tport_t *self, int errcode, 
 			su_sockaddr_t const *addr);
 
-void tport_open_log(tport_master_t *mr, tagi_t *tags);
+int tport_open_log(tport_master_t *mr, tagi_t *tags);
 void tport_log_msg(tport_t *tp, msg_t *msg, char const *what, 
 		   char const *via, su_time_t now);
 void tport_dump_iovec(tport_t const *self, msg_t *msg, 

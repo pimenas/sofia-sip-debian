@@ -401,13 +401,13 @@
 #define PACKAGE_NAME "sofia-sip"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "sofia-sip 1.12.8"
+#define PACKAGE_STRING "sofia-sip 1.12.9"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "sofia-sip"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.12.8"
+#define PACKAGE_VERSION "1.12.9"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -419,7 +419,7 @@
 #undef TIME_WITH_SYS_TIME
 
 /* Version number of package */
-#define VERSION "1.12.8"
+#define VERSION "1.12.9"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
@@ -457,7 +457,13 @@
 #define strncasecmp _strnicmp
 
 #define snprintf _snprintf
+
+#ifndef _MSC_VER 
 #define vsnprintf _vsnprintf
+#endif
+#if _MSC_VER < 1500
+#define vsnprintf _vsnprintf
+#endif
 
 #define srandom(x)    srand((x))
 #define random()      rand()

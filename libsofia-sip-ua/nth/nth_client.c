@@ -440,6 +440,8 @@ static char const *const he_tports[] = {
   "tcp", "tls", NULL
 };
 
+static char const *const he_no_tls_tports[] = { "tcp", NULL };
+
 static tp_stack_class_t http_client_class[1] = { {
 						  sizeof(http_client_class),
 						  he_recv_message,
@@ -456,7 +458,11 @@ int he_create_tports(nth_engine_t * he, tagi_t *tags)
   if (!he->he_tports)
     return -1;
 
-  return tport_tbind(he->he_tports, he_name, he_tports,
+  if (tport_tbind(he->he_tports, he_name, he_tports,
+		  TPTAG_SERVER(0), TAG_NEXT(tags)) >= 0)
+    return 0;
+
+  return tport_tbind(he->he_tports, he_name, he_no_tls_tports,
 		     TPTAG_SERVER(0), TAG_NEXT(tags));
 }
 
@@ -1075,7 +1081,7 @@ void hc_tport_error(nth_engine_t * he, nth_client_t * hc,
 	 hc->hc_method_name,
 	 errmsg, error,
 	 tpn->tpn_proto,
-	 inet_ntop(su->su_family, SU_ADDR(su), addr, sizeof(addr)),
+	 su_inet_ntop(su->su_family, SU_ADDR(su), addr, sizeof(addr)),
 	 htons(su->su_port));
 
   he->he_stats->st_tp_errors++;

@@ -15,8 +15,11 @@
 @SET_MAKE@
 
 #
-# Tests using check
+# Makefile.am for Sofia SIP tests
 #
+# Copyright (C) 2007,2008 Nokia Corporation
+# Contact: Pekka Pessi <pekka.pessi@nokia.com>
+# Licensed under LGPL. See file COPYING.
 
 # common Makefile targets for libsofia-sip-ua(-glib) modules
 # ----------------------------------------------------------
@@ -78,17 +81,17 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-check_PROGRAMS = $(am__EXEEXT_1)
+check_PROGRAMS = test_nua$(EXEEXT) $(am__EXEEXT_1)
+@HAVE_CHECK_TRUE@am__append_1 = check_sofia
+@HAVE_CHECK_TRUE@am__append_2 = check_sofia
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/rules/lcov.am $(top_srcdir)/rules/sofia.am \
 	$(top_srcdir)/rules/valcheck.am
 
 # Use with --enable-ndebug
-@NDEBUG_TRUE@am__append_1 = -DNDEBUG
-@HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_2 = --frames
-@HAVE_LCOV_TRUE@am__append_3 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
-@HAVE_CHECK_TRUE@am__append_4 = check_sofia
-@HAVE_CHECK_TRUE@am__append_5 = check_sofia
+@NDEBUG_TRUE@am__append_3 = -DNDEBUG
+@HAVE_GENPNG_TRUE@@HAVE_LCOV_TRUE@am__append_4 = --frames
+@HAVE_LCOV_TRUE@am__append_5 = lcov lcov-report lcov-rerun clean-lcov covcheck uncovered
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/sac-coverage.m4 \
@@ -101,17 +104,37 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h \
 	$(top_builddir)/libsofia-sip-ua/su/sofia-sip/su_configure.h
 CONFIG_CLEAN_FILES =
+ARFLAGS = cru
+libtestnat_a_AR = $(AR) $(ARFLAGS)
+libtestnat_a_LIBADD =
+am_libtestnat_a_OBJECTS = test_nat.$(OBJEXT) test_nat_tags.$(OBJEXT)
+libtestnat_a_OBJECTS = $(am_libtestnat_a_OBJECTS)
+libtestnua_a_AR = $(AR) $(ARFLAGS)
+libtestnua_a_LIBADD =
+am_libtestnua_a_OBJECTS = test_ops.$(OBJEXT) test_init.$(OBJEXT) \
+	test_nua_api.$(OBJEXT) test_nua_params.$(OBJEXT) \
+	test_register.$(OBJEXT) test_basic_call.$(OBJEXT) \
+	test_offer_answer.$(OBJEXT) test_call_reject.$(OBJEXT) \
+	test_cancel_bye.$(OBJEXT) test_call_hold.$(OBJEXT) \
+	test_session_timer.$(OBJEXT) test_refer.$(OBJEXT) \
+	test_100rel.$(OBJEXT) test_simple.$(OBJEXT) \
+	test_sip_events.$(OBJEXT) test_extension.$(OBJEXT)
+libtestnua_a_OBJECTS = $(am_libtestnua_a_OBJECTS)
+libtestproxy_a_AR = $(AR) $(ARFLAGS)
+libtestproxy_a_LIBADD =
+am_libtestproxy_a_OBJECTS = test_proxy.$(OBJEXT)
+libtestproxy_a_OBJECTS = $(am_libtestproxy_a_OBJECTS)
 @HAVE_CHECK_TRUE@am__EXEEXT_1 = check_sofia$(EXEEXT)
-am__check_sofia_SOURCES_DIST = check_sofia.c check_sofia.h \
-	suite_for_nua.c
-@HAVE_CHECK_TRUE@am_check_sofia_OBJECTS = check_sofia.$(OBJEXT) \
-@HAVE_CHECK_TRUE@	suite_for_nua.$(OBJEXT)
+am_check_sofia_OBJECTS = check_sofia-check_sofia.$(OBJEXT) \
+	check_sofia-suite_for_nua.$(OBJEXT)
 check_sofia_OBJECTS = $(am_check_sofia_OBJECTS)
-@HAVE_CHECK_TRUE@check_sofia_DEPENDENCIES =  \
-@HAVE_CHECK_TRUE@	${sofiabuilddir}/nua/libtestnua.la \
-@HAVE_CHECK_TRUE@	${sofiabuilddir}/nua/libtestproxy.la \
-@HAVE_CHECK_TRUE@	${sofiabuilddir}/nua/libtestnat.la \
-@HAVE_CHECK_TRUE@	${sofiabuilddir}/libsofia-sip-ua.la
+am__DEPENDENCIES_1 = libtestnua.a libtestproxy.a libtestnat.a
+check_sofia_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	${sofiabuilddir}/libsofia-sip-ua.la
+am_test_nua_OBJECTS = test_nua.$(OBJEXT)
+test_nua_OBJECTS = $(am_test_nua_OBJECTS)
+test_nua_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	${sofiabuilddir}/libsofia-sip-ua.la
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir) -I$(top_builddir)/libsofia-sip-ua/su/sofia-sip
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -123,8 +146,12 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(check_sofia_SOURCES)
-DIST_SOURCES = $(am__check_sofia_SOURCES_DIST)
+SOURCES = $(libtestnat_a_SOURCES) $(libtestnua_a_SOURCES) \
+	$(libtestproxy_a_SOURCES) $(check_sofia_SOURCES) \
+	$(test_nua_SOURCES)
+DIST_SOURCES = $(libtestnat_a_SOURCES) $(libtestnua_a_SOURCES) \
+	$(libtestproxy_a_SOURCES) $(check_sofia_SOURCES) \
+	$(test_nua_SOURCES)
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
@@ -157,6 +184,7 @@ CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DOXYGEN = @DOXYGEN@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -225,6 +253,7 @@ MINGW_ENVIRONMENT = @MINGW_ENVIRONMENT@
 MOSTLYCLEANFILES = @MOSTLYCLEANFILES@
 NDEBUG_FALSE = @NDEBUG_FALSE@
 NDEBUG_TRUE = @NDEBUG_TRUE@
+NMEDIT = @NMEDIT@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -299,12 +328,39 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
+TESTS = test_nua $(am__append_1)
 EXTRA_DIST = check_sofia.h check_sofia.c suite_for_nua.c
-TESTS = $(am__append_4)
+test_nua_SOURCES = test_nua.c
+test_nua_LDADD = $(check_LIBRARIES) \
+			${sofiabuilddir}/libsofia-sip-ua.la
+
+check_LIBRARIES = libtestnua.a libtestproxy.a libtestnat.a
+libtestnua_a_SOURCES = test_nua.h test_ops.c \
+			test_init.c \
+			test_nua_api.c test_nua_params.c \
+			test_register.c test_basic_call.c \
+			test_offer_answer.c \
+			test_call_reject.c test_cancel_bye.c \
+			test_call_hold.c test_session_timer.c \
+			test_refer.c test_100rel.c \
+			test_simple.c test_sip_events.c \
+			test_extension.c
+
+libtestproxy_a_SOURCES = test_proxy.h test_proxy.c
+libtestnat_a_SOURCES = test_nat.h test_nat.c test_nat_tags.c
+check_sofia_CFLAGS = @CHECK_CFLAGS@
+check_sofia_SOURCES = check_sofia.c check_sofia.h \
+	suite_for_nua.c
+
+check_sofia_LDADD = $(check_LIBRARIES) \
+			${sofiabuilddir}/libsofia-sip-ua.la \
+			@CHECK_LIBS@
+
+CLEANFILES = tmp_sippasswd.??????
 sofiasrcdir = ${top_srcdir}/libsofia-sip-ua
 sofiabuilddir = ${top_builddir}/libsofia-sip-ua
 AM_CFLAGS = $(CWFLAG) $(SOFIA_COVERAGE) $(SOFIA_CFLAGS) \
-	$(openssl_CFLAGS) $(am__append_1) @CHECK_CFLAGS@
+	$(openssl_CFLAGS) $(am__append_3)
 SOFIA_COVERAGE = $(COVERAGE_FLAGS)
 DISTCLEANFILES = $(BUILT_SOURCES)
 
@@ -332,7 +388,7 @@ INTERNAL_INCLUDES = \
     -I${sofiasrcdir}/url -I${sofiabuilddir}/url \
     -I${sofiasrcdir}/su -I${sofiabuilddir}/su
 
-PHONY = built-sources clean-built-sources $(am__append_3)
+PHONY = built-sources clean-built-sources $(am__append_5)
 VALGRIND = valgrind 
 VALGRINDFLAGS = --tool=memcheck
 
@@ -345,20 +401,14 @@ VALGRINDFLAGS = --tool=memcheck
 
 # Options
 @HAVE_LCOV_TRUE@GENHTML_OPTIONS = --show-details --legend \
-@HAVE_LCOV_TRUE@	$(am__append_2)
+@HAVE_LCOV_TRUE@	$(am__append_4)
 
 # Fancy shell command that expands to directory relative to top_builddir
 @HAVE_LCOV_TRUE@expand_subdir = `pwd|sed "s'\`cd ${top_builddir};pwd\`''"`
+
+# ----------------------------------------------------------------------
+# Sofia specific rules
 INCLUDES = ${INTERNAL_INCLUDES}
-@HAVE_CHECK_TRUE@check_sofia_SOURCES = check_sofia.c check_sofia.h \
-@HAVE_CHECK_TRUE@	suite_for_nua.c
-
-@HAVE_CHECK_TRUE@check_sofia_LDADD = \
-@HAVE_CHECK_TRUE@	${sofiabuilddir}/nua/libtestnua.la \
-@HAVE_CHECK_TRUE@	${sofiabuilddir}/nua/libtestproxy.la \
-@HAVE_CHECK_TRUE@	${sofiabuilddir}/nua/libtestnat.la \
-@HAVE_CHECK_TRUE@	${sofiabuilddir}/libsofia-sip-ua.la @CHECK_LIBS@
-
 all: all-am
 
 .SUFFIXES:
@@ -393,6 +443,21 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
+clean-checkLIBRARIES:
+	-test -z "$(check_LIBRARIES)" || rm -f $(check_LIBRARIES)
+libtestnat.a: $(libtestnat_a_OBJECTS) $(libtestnat_a_DEPENDENCIES) 
+	-rm -f libtestnat.a
+	$(libtestnat_a_AR) libtestnat.a $(libtestnat_a_OBJECTS) $(libtestnat_a_LIBADD)
+	$(RANLIB) libtestnat.a
+libtestnua.a: $(libtestnua_a_OBJECTS) $(libtestnua_a_DEPENDENCIES) 
+	-rm -f libtestnua.a
+	$(libtestnua_a_AR) libtestnua.a $(libtestnua_a_OBJECTS) $(libtestnua_a_LIBADD)
+	$(RANLIB) libtestnua.a
+libtestproxy.a: $(libtestproxy_a_OBJECTS) $(libtestproxy_a_DEPENDENCIES) 
+	-rm -f libtestproxy.a
+	$(libtestproxy_a_AR) libtestproxy.a $(libtestproxy_a_OBJECTS) $(libtestproxy_a_LIBADD)
+	$(RANLIB) libtestproxy.a
+
 clean-checkPROGRAMS:
 	@list='$(check_PROGRAMS)'; for p in $$list; do \
 	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
@@ -402,6 +467,9 @@ clean-checkPROGRAMS:
 check_sofia$(EXEEXT): $(check_sofia_OBJECTS) $(check_sofia_DEPENDENCIES) 
 	@rm -f check_sofia$(EXEEXT)
 	$(LINK) $(check_sofia_LDFLAGS) $(check_sofia_OBJECTS) $(check_sofia_LDADD) $(LIBS)
+test_nua$(EXEEXT): $(test_nua_OBJECTS) $(test_nua_DEPENDENCIES) 
+	@rm -f test_nua$(EXEEXT)
+	$(LINK) $(test_nua_LDFLAGS) $(test_nua_OBJECTS) $(test_nua_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -409,8 +477,28 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_sofia.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/suite_for_nua.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_sofia-check_sofia.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_sofia-suite_for_nua.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_100rel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_basic_call.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_call_hold.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_call_reject.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_cancel_bye.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_extension.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_init.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nat_tags.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nua.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nua_api.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nua_params.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_offer_answer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_ops.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_proxy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_refer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_register.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_session_timer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_simple.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_sip_events.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -432,6 +520,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+check_sofia-check_sofia.o: check_sofia.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_sofia_CFLAGS) $(CFLAGS) -MT check_sofia-check_sofia.o -MD -MP -MF "$(DEPDIR)/check_sofia-check_sofia.Tpo" -c -o check_sofia-check_sofia.o `test -f 'check_sofia.c' || echo '$(srcdir)/'`check_sofia.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/check_sofia-check_sofia.Tpo" "$(DEPDIR)/check_sofia-check_sofia.Po"; else rm -f "$(DEPDIR)/check_sofia-check_sofia.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='check_sofia.c' object='check_sofia-check_sofia.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_sofia_CFLAGS) $(CFLAGS) -c -o check_sofia-check_sofia.o `test -f 'check_sofia.c' || echo '$(srcdir)/'`check_sofia.c
+
+check_sofia-check_sofia.obj: check_sofia.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_sofia_CFLAGS) $(CFLAGS) -MT check_sofia-check_sofia.obj -MD -MP -MF "$(DEPDIR)/check_sofia-check_sofia.Tpo" -c -o check_sofia-check_sofia.obj `if test -f 'check_sofia.c'; then $(CYGPATH_W) 'check_sofia.c'; else $(CYGPATH_W) '$(srcdir)/check_sofia.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/check_sofia-check_sofia.Tpo" "$(DEPDIR)/check_sofia-check_sofia.Po"; else rm -f "$(DEPDIR)/check_sofia-check_sofia.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='check_sofia.c' object='check_sofia-check_sofia.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_sofia_CFLAGS) $(CFLAGS) -c -o check_sofia-check_sofia.obj `if test -f 'check_sofia.c'; then $(CYGPATH_W) 'check_sofia.c'; else $(CYGPATH_W) '$(srcdir)/check_sofia.c'; fi`
+
+check_sofia-suite_for_nua.o: suite_for_nua.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_sofia_CFLAGS) $(CFLAGS) -MT check_sofia-suite_for_nua.o -MD -MP -MF "$(DEPDIR)/check_sofia-suite_for_nua.Tpo" -c -o check_sofia-suite_for_nua.o `test -f 'suite_for_nua.c' || echo '$(srcdir)/'`suite_for_nua.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/check_sofia-suite_for_nua.Tpo" "$(DEPDIR)/check_sofia-suite_for_nua.Po"; else rm -f "$(DEPDIR)/check_sofia-suite_for_nua.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='suite_for_nua.c' object='check_sofia-suite_for_nua.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_sofia_CFLAGS) $(CFLAGS) -c -o check_sofia-suite_for_nua.o `test -f 'suite_for_nua.c' || echo '$(srcdir)/'`suite_for_nua.c
+
+check_sofia-suite_for_nua.obj: suite_for_nua.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_sofia_CFLAGS) $(CFLAGS) -MT check_sofia-suite_for_nua.obj -MD -MP -MF "$(DEPDIR)/check_sofia-suite_for_nua.Tpo" -c -o check_sofia-suite_for_nua.obj `if test -f 'suite_for_nua.c'; then $(CYGPATH_W) 'suite_for_nua.c'; else $(CYGPATH_W) '$(srcdir)/suite_for_nua.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/check_sofia-suite_for_nua.Tpo" "$(DEPDIR)/check_sofia-suite_for_nua.Po"; else rm -f "$(DEPDIR)/check_sofia-suite_for_nua.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='suite_for_nua.c' object='check_sofia-suite_for_nua.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(check_sofia_CFLAGS) $(CFLAGS) -c -o check_sofia-suite_for_nua.obj `if test -f 'suite_for_nua.c'; then $(CYGPATH_W) 'suite_for_nua.c'; else $(CYGPATH_W) '$(srcdir)/suite_for_nua.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -593,7 +709,7 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
+	$(MAKE) $(AM_MAKEFLAGS) $(check_LIBRARIES) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
 all-am: Makefile
@@ -616,6 +732,7 @@ mostlyclean-generic:
 	-test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -627,8 +744,8 @@ maintainer-clean-generic:
 @HAVE_LCOV_FALSE@clean-local:
 clean: clean-am
 
-clean-am: clean-checkPROGRAMS clean-generic clean-libtool clean-local \
-	mostlyclean-am
+clean-am: clean-checkLIBRARIES clean-checkPROGRAMS clean-generic \
+	clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -677,13 +794,13 @@ ps-am:
 uninstall-am: uninstall-info-am
 
 .PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
-	clean-checkPROGRAMS clean-generic clean-libtool clean-local \
-	ctags distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-man install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	clean-checkLIBRARIES clean-checkPROGRAMS clean-generic \
+	clean-libtool clean-local ctags distclean distclean-compile \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-exec install-exec-am \
+	install-info install-info-am install-man install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-info-am
@@ -705,6 +822,8 @@ _tag.c_tag_ref.c:
  ../sresolv/libsresolv.la ../stun/libstun.la ../su/libsu.la \
  ../tport/libtport.la ../url/liburl.la:
 	cd $(@D) && $(MAKE) $(@F)
+
+checklib: $(noinst_LTLIBRARIES) $(check_LTLIBRARIES)
 
 valcheck: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) valcheck-am

@@ -203,6 +203,12 @@ int (*_su_home_mutex_unlocker)(void *mutex);
 
 void (*_su_home_destroy_mutexes)(void *mutex);
 
+#if HAVE_FREE_NULL
+#define safefree(x) free((x))
+#else
+su_inline void safefree(void *b) { b ? free(b) : (void)0; }
+#endif
+
 #define MEMLOCK(h)   \
   ((void)((h) && (h)->suh_lock ? _su_home_locker((h)->suh_lock) : 0), (h)->suh_blocks)
 #define UNLOCK(h) ((void)((h) && (h)->suh_lock ? _su_home_unlocker((h)->suh_lock) : 0), NULL)
@@ -277,7 +283,7 @@ size_t su_block_find_collision, su_block_find_collision_used,
   su_block_find_collision_size;
 #endif
 
-su_inline su_alloc_t *su_block_find(su_block_t *b, void const *p)
+su_inline su_alloc_t *su_block_find(su_block_t const *b, void const *p)
 {
   size_t h, h0, probe;
 
@@ -300,8 +306,10 @@ su_inline su_alloc_t *su_block_find(su_block_t *b, void const *p)
   probe = (b->sub_n > SUB_P) ? SUB_P : 1;
 
   do {
-    if (b->sub_nodes[h].sua_data == p)
-      return &b->sub_nodes[h];
+    if (b->sub_nodes[h].sua_data == p) {
+      su_alloc_t const *retval = &b->sub_nodes[h];
+      return (su_alloc_t *)retval; /* discard const */
+    }
     h += probe;
     if (h >= b->sub_n)
       h -= b->sub_n;
@@ -500,7 +508,7 @@ void *sub_alloc(su_home_t *home,
 
       subhome->suh_blocks = su_hash_alloc(SUB_N);
       if (!subhome->suh_blocks) 
-	return (void)free(data), NULL;
+	return (void)safefree(data), NULL;
 
       subhome->suh_size = (unsigned)size;
       subhome->suh_blocks->sub_parent = home;
@@ -555,7 +563,7 @@ void *su_home_new(isize_t size)
     if (home->suh_blocks)
       home->suh_blocks->sub_hauto = 0;
     else
-      free(home), home = NULL;
+      safefree(home), home = NULL;
   }
 
   return home;
@@ -670,7 +678,7 @@ int su_home_unref(su_home_t *home)
     int hauto = sub->sub_hauto;
     _su_home_deinit(home);
     if (!hauto)
-      free(home);
+      safefree(home);
     /* UNLOCK(home); */
     return 1;
   }
@@ -780,7 +788,10 @@ void *su_alloc(su_home_t *home, isize_t size)
  */
 void su_free(su_home_t *home, void *data)
 {
-  if (home && data) {
+  if (!data)
+    return;
+
+  if (home) {
     su_alloc_t *allocation;
     su_block_t *sub = MEMLOCK(home);
 
@@ -824,7 +835,28 @@ void su_free(su_home_t *home, void *data)
     UNLOCK(home);
   }
 
-  free(data);
+  safefree(data);
+}
+
+/** Check if pointer has been allocated through home.
+ *
+ * @param home   pointer to a memory home
+ * @param data   pointer to a memory area possibly allocated though home
+ */
+int su_home_check_alloc(su_home_t const *home, void const *data)
+{
+  int retval = 0;
+
+  if (home && data) {
+    su_block_t const *sub = MEMLOCK(home);
+    su_alloc_t *allocation = su_block_find(sub, data);
+
+    retval = allocation != NULL;
+
+    UNLOCK(home);
+  }
+
+  return retval;
 }
 
 /** Check home consistency.
@@ -974,7 +1006,7 @@ void _su_home_deinit(su_home_t *home)
 	}
 	else if (su_is_preloaded(b, b->sub_nodes[i].sua_data))
 	  continue;
-	free(b->sub_nodes[i].sua_data);
+	safefree(b->sub_nodes[i].sua_data);
       }
     }
 
@@ -1055,7 +1087,7 @@ int su_home_move(su_home_t *dst, su_home_t *src)
       else
 	used = s->sub_used;
 
-      if ((used && d == NULL) || 3 * used > 2 * d->sub_n) {
+      if (used && (d == NULL || 3 * used > 2 * d->sub_n)) {
 	if (d)
 	  for (n = n2 = d->sub_n; 3 * used > 2 * n2; n2 = 4 * n2 + 3)
 	    ;
@@ -1089,7 +1121,9 @@ int su_home_move(su_home_t *dst, su_home_t *src)
 	d = d2;
       }
 
-      if ((n = s->sub_n)) {
+      if (s->sub_used) {
+	n = s->sub_n;
+
 	for (i = 0; i < n; i++)
 	  if (s->sub_nodes[i].sua_data) {
 	    su_block_add(d, s->sub_nodes[i].sua_data)[0] = s->sub_nodes[i];
@@ -1101,6 +1135,7 @@ int su_home_move(su_home_t *dst, su_home_t *src)
       }
 
       if (s->sub_stats) {
+				/* XXX */
       }
     }
 
@@ -1616,7 +1651,7 @@ void su_home_init_stats(su_home_t *home)
 /** Retrieve statistics from memory home.
  */
 void su_home_get_stats(su_home_t *home, int include_clones, 
-		       su_home_stat_t hs[1],
+		       su_home_stat_t *hs,
 		       isize_t size)
 {
   su_block_t *sub;
@@ -1624,7 +1659,7 @@ void su_home_get_stats(su_home_t *home, int include_clones,
   if (hs == NULL || size < (sizeof hs->hs_size))
     return;
 
-  memset(hs, 0, size);
+  memset((void *)hs, 0, size);
 
   sub = MEMLOCK(home);
 
