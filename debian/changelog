@@ -1,6 +1,11 @@
 sofia-sip (1.12.11-1) unstable; urgency=low
 
   * New faces.  Thanks for your work on this one George!
+  * Replace cdbs with a sensible rules file.  Fixes many bugs, including the
+    double pass of doxgen attributed to Some Reason in the ancient TODO.Debian,
+    and Closes: #595526 (the missing sip_extra.h header).
+  * We don't appear to have any remaining problems with unresolved symbols now,
+    Closes: #558959
 
  -- Ron Lee <ron@debian.org>  Sun, 01 May 2011 01:11:11 +0930
 
