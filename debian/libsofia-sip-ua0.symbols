@@ -7,6 +7,7 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  _su_home_mutex_trylocker@Base 1.12.10
  _su_home_mutex_unlocker@Base 1.12.10
  _su_home_unlocker@Base 1.12.10
+ _su_monotime@Base 1.12.11+20110422
  _su_nanotime@Base 1.12.10
  _su_time@Base 1.12.10
  any_tag_class@Base 1.12.10
@@ -576,6 +577,7 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  msg_accept_language_class@Base 1.12.10
  msg_accept_language_d@Base 1.12.10
  msg_accept_language_e@Base 1.12.10
+ msg_accept_match@Base 1.12.11+20110422
  msg_accept_update@Base 1.12.10
  msg_addr@Base 1.12.10
  msg_addr_copy@Base 1.12.10
@@ -766,6 +768,7 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  msg_recv_buffer@Base 1.12.10
  msg_recv_commit@Base 1.12.10
  msg_recv_iovec@Base 1.12.10
+ msg_ref@Base 1.12.11+20110422
  msg_ref_create@Base 1.12.10
  msg_ref_destroy@Base 1.12.10
  msg_separator_class@Base 1.12.10
@@ -793,6 +796,7 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  msg_unquote@Base 1.12.10
  msg_unquote_dup@Base 1.12.10
  msg_unquoted_e@Base 1.12.10
+ msg_unref@Base 1.12.11+20110422
  msg_unref_external@Base 1.12.10
  msg_warning_class@Base 1.12.10
  msg_warning_d@Base 1.12.10
@@ -1464,6 +1468,8 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  nua_update_server_respond@Base 1.12.10
  nua_version@Base 1.12.10
  null_tag_class@Base 1.12.10
+ nutag_accept_multipart@Base 1.12.11+20110422
+ nutag_accept_multipart_ref@Base 1.12.11+20110422
  nutag_address@Base 1.12.10
  nutag_address_ref@Base 1.12.10
  nutag_allow@Base 1.12.10
@@ -1475,6 +1481,8 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  nutag_answer_sent@Base 1.12.10
  nutag_answer_sent_ref@Base 1.12.10
  nutag_any@Base 1.12.10
+ nutag_appl_event@Base 1.12.11+20110422
+ nutag_appl_event_ref@Base 1.12.11+20110422
  nutag_appl_method@Base 1.12.10
  nutag_appl_method_ref@Base 1.12.10
  nutag_auth@Base 1.12.10
@@ -1483,6 +1491,8 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  nutag_auth_ref@Base 1.12.10
  nutag_authtime@Base 1.12.10
  nutag_authtime_ref@Base 1.12.10
+ nutag_auto100@Base 1.12.11+20110422
+ nutag_auto100_ref@Base 1.12.11+20110422
  nutag_auto302@Base 1.12.11
  nutag_auto302_ref@Base 1.12.11
  nutag_auto305@Base 1.12.11
@@ -1501,6 +1511,8 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  nutag_certificate_dir_ref@Base 1.12.10
  nutag_certificate_phrase@Base 1.12.10
  nutag_certificate_phrase_ref@Base 1.12.10
+ nutag_deferrable_timers@Base 1.12.11+20110422
+ nutag_deferrable_timers_ref@Base 1.12.11+20110422
  nutag_detect_network_updates@Base 1.12.10
  nutag_detect_network_updates_ref@Base 1.12.10
  nutag_dialog@Base 1.12.10
@@ -1545,6 +1557,8 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  nutag_m_params_ref@Base 1.12.10
  nutag_m_username@Base 1.12.10
  nutag_m_username_ref@Base 1.12.10
+ nutag_max_retry_after@Base 1.12.11+20110422
+ nutag_max_retry_after_ref@Base 1.12.11+20110422
  nutag_max_subscriptions@Base 1.12.10
  nutag_max_subscriptions_ref@Base 1.12.10
  nutag_media_enable@Base 1.12.10
@@ -2628,6 +2642,8 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  soatag_srtp_enable_ref@Base 1.12.10
  soatag_srtp_integrity@Base 1.12.10
  soatag_srtp_integrity_ref@Base 1.12.10
+ soatag_user_o_line@Base 1.12.11+20110422
+ soatag_user_o_line_ref@Base 1.12.11+20110422
  soatag_user_sdp@Base 1.12.10
  soatag_user_sdp_ref@Base 1.12.10
  soatag_user_sdp_str@Base 1.12.10
@@ -2843,12 +2859,15 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  su_base_port_remove_prepoll@Base 1.12.10
  su_base_port_run@Base 1.12.10
  su_base_port_send@Base 1.12.10
+ su_base_port_stamp64@Base 1.12.11+20110422
+ su_base_port_stamp64_offset@Base 1.12.11+20110422
  su_base_port_start_shared@Base 1.12.10
  su_base_port_step@Base 1.12.10
  su_base_port_thread@Base 1.12.10
  su_base_port_timers@Base 1.12.10
  su_base_port_unlock@Base 1.12.10
  su_base_port_wait@Base 1.12.10
+ su_base_port_waiting@Base 1.12.11+20110422
  su_block_find_collision@Base 1.12.10
  su_block_find_collision_size@Base 1.12.10
  su_block_find_collision_used@Base 1.12.10
@@ -2871,6 +2890,7 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  su_deinit@Base 1.12.10
  su_devpoll_clone_start@Base 1.12.10
  su_devpoll_port_create@Base 1.12.10
+ su_duration64@Base 1.12.11+20110422
  su_duration@Base 1.12.10
  su_epoll_clone_start@Base 1.12.10
  su_epoll_port_create@Base 1.12.10
@@ -2960,6 +2980,7 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  su_nanocounter@Base 1.12.10
  su_nanotime@Base 1.12.10
  su_node_identifier@Base 1.12.10
+ su_now64@Base 1.12.11+20110422
  su_now@Base 1.12.10
  su_ntp_fraq@Base 1.12.10
  su_ntp_hi@Base 1.12.10
@@ -2991,8 +3012,6 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  su_random64@Base 1.12.11
  su_random@Base 1.12.10
  su_realloc@Base 1.12.10
- su_res32@Base 1.12.10
- su_res64@Base 1.12.10
  su_root_add_network_changed@Base 1.12.10
  su_root_add_prepoll@Base 1.12.10
  su_root_break@Base 1.12.10
@@ -3019,6 +3038,8 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  su_root_set_max_defer@Base 1.12.11
  su_root_size_hint@Base 1.12.10
  su_root_sleep@Base 1.12.10
+ su_root_stamp64@Base 1.12.11+20110422
+ su_root_stamp64_offset@Base 1.12.11+20110422
  su_root_step@Base 1.12.10
  su_root_task@Base 1.12.10
  su_root_threading@Base 1.12.10
@@ -3042,6 +3063,7 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  su_socket_port_wakeup@Base 1.12.11
  su_soerror@Base 1.12.10
  su_sprintf@Base 1.12.10
+ su_stamp64@Base 1.12.11+20110422
  su_strcasecmp@Base 1.12.11
  su_strcasestr@Base 1.12.11
  su_strcat@Base 1.12.10
@@ -3089,6 +3111,8 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  su_task_root@Base 1.12.10
  su_task_timers@Base 1.12.10
  su_task_wakeup@Base 1.12.11
+ su_time64_add@Base 1.12.11+20110422
+ su_time64_to_time@Base 1.12.11+20110422
  su_time@Base 1.12.10
  su_time_add@Base 1.12.10
  su_time_cmp@Base 1.12.10
@@ -3096,6 +3120,7 @@ libsofia-sip-ua.so.0 libsofia-sip-ua0 #MINVER#
  su_time_diff@Base 1.12.10
  su_time_ms@Base 1.12.10
  su_time_print@Base 1.12.10
+ su_time_to_time64@Base 1.12.11+20110422
  su_timer_create@Base 1.12.10
  su_timer_deferrable@Base 1.12.11
  su_timer_destroy@Base 1.12.10
