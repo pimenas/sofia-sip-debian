@@ -372,7 +372,7 @@ msg_multipart_t *msg_multipart_parse(su_home_t *home,
   msg_multipart_t *mp = NULL, *all = NULL, **mmp = &all;
   /* Dummy msg object */
   msg_t msg[1] = {{{ SU_HOME_INIT(msg) }}};
-  size_t len, m, blen;
+  size_t len, m, blen, prelen;
   char *boundary, *p, *next, save;
   char const *b, *end;
   msg_param_t param;
@@ -413,6 +413,8 @@ msg_multipart_t *msg_multipart_parse(su_home_t *home,
     return NULL;
   }
 
+  prelen = b - pl->pl_data;
+
   /* Split multipart into parts */
   for (;;) {
     while (p[0] == ' ')
@@ -433,9 +435,11 @@ msg_multipart_t *msg_multipart_parse(su_home_t *home,
     if (next != p && next[-1] == '\r')
       next--, m++;
 
-    mp = (msg_multipart_t *)msg_header_alloc(msg_home(msg), msg_multipart_class, 0);
+    mp = (msg_multipart_t *)
+      msg_header_alloc(msg_home(msg), msg_multipart_class, 0);
     if (mp == NULL)
       break;			/* error */
+
     *mmp = mp; mmp = &mp->mp_next;
 
     /* Put delimiter transport-padding CRLF here */
@@ -448,9 +452,6 @@ msg_multipart_t *msg_multipart_parse(su_home_t *home,
 
     if (next[m] == '-' && next[m + 1] == '-') {
       /* We found close-delimiter */
-      assert(mp);
-      if (!mp)
-	break;			/* error */
       mp->mp_close_delim = (msg_payload_t *)
 	msg_header_alloc(msg_home(msg), msg_payload_class, 0);
       if (!mp->mp_close_delim)
@@ -474,7 +475,10 @@ msg_multipart_t *msg_multipart_parse(su_home_t *home,
 
   /* Parse each part */
   for (mp = all; mp; mp = mp->mp_next) {
-    msg->m_object = (msg_pub_t *)mp; p = mp->mp_data; next = p + mp->mp_len;
+    msg->m_object = (msg_pub_t *)mp;
+
+    p = mp->mp_data;
+    next = p + mp->mp_len;
 
     if (msg->m_tail)
       mp->mp_common->h_prev = msg->m_tail,
@@ -518,7 +522,8 @@ msg_multipart_t *msg_multipart_parse(su_home_t *home,
     mp->mp_data = boundary;
     mp->mp_len = (unsigned)blen; /* XXX */
 
-    assert(mp->mp_payload || mp->mp_separator);
+    if (!(mp->mp_payload || mp->mp_separator))
+      continue;
 
     if (mp->mp_close_delim) {
       msg_header_t **tail;
@@ -537,7 +542,8 @@ msg_multipart_t *msg_multipart_parse(su_home_t *home,
   }
 
   msg_fragment_clear(pl->pl_common);
-  pl->pl_len = all->mp_data - (char *)pl->pl_data;
+
+  pl->pl_len = prelen;
 
   su_home_move(home, msg_home(msg)); su_home_deinit(msg_home(msg));
 
@@ -925,21 +931,23 @@ MSG_HEADER_CLASS(msg_, multipart, NULL, "", mp_common, append, msg_multipart);
  *
  * The function msg_q_value() converts q-value string @a q to numeric value
  * in range (0..1000).  Q values are used, for instance, to describe
- * relative priorities of registered contacts.
+ * relative priorities of acceptable Content-Types.
  *
  * @param q q-value string ("1" | "." 1,3DIGIT)
  *
  * @return
  * The function msg_q_value() returns an integer in range 0 .. 1000.
+ *
+ * @NEW_UNRELEASED
  */
 unsigned msg_q_value(char const *q)
 {
   unsigned value = 0;
 
   if (!q)
-    return 500;
+    return 1000;
   if (q[0] != '0' && q[0] != '.' && q[0] != '1')
-    return 500;
+    return 500; /* Garbage... */
   while (q[0] == '0')
     q++;
   if (q[0] >= '1' && q[0] <= '9')
@@ -947,8 +955,7 @@ unsigned msg_q_value(char const *q)
   if (q[0] == '\0')
     return 0;
   if (q[0] != '.')
-    /* Garbage... */
-    return 500;
+    return 500;    /* Garbage... */
 
   if (q[1] >= '0' && q[1] <= '9') {
     value = (q[1] - '0') * 100;
@@ -1154,6 +1161,53 @@ int msg_accept_update(msg_common_t *h,
   }
 
   return 0;
+}
+
+/** Check if the Content-Type is Acceptable.
+ *
+ * @return Best Accept header field from @a, or NULL if no match.
+ *
+ * @TODO Content-Type parameters (e.g., charset) are not checked.
+ *
+ * @NEW_UNRELEASED
+ */
+msg_accept_t *msg_accept_match(msg_accept_t const *a,
+			       msg_content_type_t const *c)
+{
+  char const *c_type = NULL, *c_subtype = NULL;
+  msg_accept_t const *found = NULL;
+
+  if (c != NULL)
+    c_type = c->c_type, c_subtype = c->c_subtype;
+  if (c_type == NULL)
+    c_type = "*/*";
+  if (c_subtype == NULL)
+    c_type = "*";
+
+  for (; a; a = a->ac_next) {
+    if (msg_q_value(a->ac_q) == 0 || a->ac_type == NULL)
+      continue;
+
+    if (found == NULL && su_strmatch(a->ac_type, "*/*")) {
+      found = a;
+      continue;
+    }
+
+    if (!su_casenmatch(a->ac_type, c_type, a->ac_subtype - a->ac_type))
+      continue;
+
+    if (su_casematch(c_subtype, a->ac_subtype)) {
+      found = a;
+      break;
+    }
+
+    if (su_strmatch(a->ac_subtype, "*")) {
+      if (found == NULL || su_strmatch(found->ac_type, "*/*"))
+	found = a;
+    }
+  }
+
+  return (msg_accept_t *)found;
 }
 
 /* ====================================================================== */
