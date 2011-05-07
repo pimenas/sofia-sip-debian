@@ -1,3 +1,10 @@
+sofia-sip (1.12.11+20110422-1) unstable; urgency=low
+
+  * In the 1.12.11 release, SOATAG_LOCAL_SDP_STR_REF is broken (but that is
+    fixed in commmit bcd0f17f), so let's take a snapshot off HEAD for now.
+
+ -- Ron Lee <ron@debian.org>  Sun, 08 May 2011 05:09:29 +0930
+
 sofia-sip (1.12.11-1) unstable; urgency=low
 
   * New faces.  Thanks for your work on this one George!
