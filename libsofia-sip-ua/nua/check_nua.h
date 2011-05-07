@@ -78,9 +78,12 @@ struct event *s2_remove_event(struct event *);
 void s2_free_event(struct event *);
 void s2_flush_events(void);
 
+int s2_next_thing(struct event **event, struct message **message);
+
 struct event *s2_next_event(void);
 struct event *s2_wait_for_event(nua_event_t event, int status);
 int s2_check_event(nua_event_t event, int status);
+enum nua_callstate s2_event_callstate(struct event *e);
 int s2_check_callstate(enum nua_callstate state);
 int s2_check_substate(struct event *e, enum nua_substate state);
 

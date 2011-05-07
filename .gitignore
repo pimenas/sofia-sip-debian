@@ -4,6 +4,7 @@
 
 /autom4te.cache/
 /config.h
+/config.h.in~
 /config.log
 /config.status
 /libtool
@@ -11,6 +12,7 @@
 
 Doxyfile
 Makefile
+TAGS
 .deps
 .libs
 *.a

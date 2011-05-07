@@ -922,6 +922,8 @@ void su_home_check_blocks(su_block_t const *b)
  *
  * @return This function returns a pointer to an #su_home_t object, or
  * NULL upon an error.
+ *
+ * @deprecated Use su_home_new(sizeof (su_home_t)) instead
  */
 su_home_t *su_home_create(void)
 {
@@ -1582,7 +1584,7 @@ int su_home_mutex_unlock(su_home_t *home)
   }
 
   if (home->suh_blocks == NULL)
-    return su_seterrno(EINVAL), -1; /* Uninitialized home */
+    return su_seterrno(EINVAL); /* Uninitialized home */
 
   su_home_unref(home);
 

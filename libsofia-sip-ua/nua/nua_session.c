@@ -44,6 +44,7 @@
 #include <sofia-sip/sip_status.h>
 #include <sofia-sip/sip_util.h>
 #include <sofia-sip/su_uniqueid.h>
+#include <sofia-sip/msg_mime_protos.h>
 
 #define NTA_INCOMING_MAGIC_T struct nua_server_request
 #define NTA_OUTGOING_MAGIC_T struct nua_client_request
@@ -383,10 +384,9 @@ static int nh_referral_check(nua_handle_t *nh, tagi_t const *tags);
 static void nh_referral_respond(nua_handle_t *,
 				int status, char const *phrase);
 
-static
-int session_get_description(sip_t const *sip,
-			    char const **return_sdp,
-			    size_t *return_len);
+static int session_get_description(sip_t const *sip,
+				   char const **return_sdp,
+				   size_t *return_len);
 
 static
 int session_include_description(soa_session_t *soa,
@@ -946,29 +946,58 @@ static int nua_session_client_response(nua_client_request_t *cr,
   SU_DEBUG_5(("nua(%p): %s: %s %s in %u %s\n", \
 	      (void *)nh, cr->cr_method_name, (m), received, status, phrase))
 
-  if (!ss || !sip || 300 <= status)
-    /* Xyzzy */;
-  else if (!session_get_description(sip, &sdp, &len))
-    /* No SDP */;
-  else if (cr->cr_answer_recv) {
-    /* Ignore spurious answers after completing O/A */
-    LOG3("ignoring duplicate");
-    sdp = NULL;
-  }
-  else if (cr->cr_offer_sent) {
-    /* case 1: answer to our offer */
+  if (!ss || 300 <= status || !session_get_description(sip, &sdp, &len))
+    return nua_base_client_response(cr, status, phrase, sip, NULL);
+
+  if (cr->cr_offer_sent) {
+    /* case 1: answer to our offer? */
+    int new_answer, previous_answer = cr->cr_answer_recv;
+
     cr->cr_answer_recv = status;
     received = Answer;
 
-    if (nh->nh_soa == NULL)
+    if (nh->nh_soa == NULL) {
       LOG5("got SDP");
-    else if (soa_set_remote_sdp(nh->nh_soa, NULL, sdp, len) < 0) {
+      goto response;
+    }
+
+    if (previous_answer && status < 200) {
+      /* Ignore extra answers in unreliable provisional responses */
+      LOG5("ignoring extra");
+      sdp = NULL;
+      received = NULL;
+      goto response;
+    }
+
+    new_answer = soa_set_remote_sdp(nh->nh_soa, NULL, sdp, len);
+    if (new_answer < 0) {
       LOG3("error parsing SDP");
       sdp = NULL;
       cr->cr_graceful = 1;
       ss->ss_reason = "SIP;cause=400;text=\"Malformed Session Description\"";
+      goto response;
     }
-    else if (soa_process_answer(nh->nh_soa, NULL) < 0) {
+
+    if (previous_answer) {
+      if (!new_answer) {
+	/* Ignore duplicate answers */
+	LOG5("ignoring duplicate");
+	sdp = NULL;
+	received = NULL;
+	goto response;
+      }
+      else {
+	if (soa_init_offer_answer(nh->nh_soa) < 0 ||
+	    soa_generate_offer(nh->nh_soa, 1, NULL) < 0 ||
+	    soa_set_remote_sdp(nh->nh_soa, NULL, sdp, len) < 0) {
+	  LOG5("error reinitializing session");
+	  sdp = NULL;
+	  goto response;
+	}
+      }
+    }
+
+    if (soa_process_answer(nh->nh_soa, NULL) < 0) {
       LOG5("error processing SDP");
       /* XXX */
       sdp = NULL;
@@ -1002,7 +1031,8 @@ static int nua_session_client_response(nua_client_request_t *cr,
       LOG5("got SDP");
   }
 
-  if (ss && received)
+ response:
+  if (received)
     ss->ss_oa_recv = received;
 
   if (sdp && nh->nh_soa)
@@ -1052,7 +1082,7 @@ static int nua_invite_client_report(nua_client_request_t *cr,
     return 1;
   }
 
-  response = msg_ref_create(response); /* Keep reference to contents of sip */
+  response = msg_ref(response); /* Keep reference to contents of sip */
 
   if (orq != cr->cr_orq && cr->cr_orq) {	/* Being restarted */
     next_state = nua_callstate_calling;
@@ -1549,10 +1579,13 @@ static void nua_session_usage_refresh(nua_handle_t *nh,
 	 sr->sr_method == sip_method_update))
       return;
 
+  /* XXX - should check if we actually start something */
+
   if (ss->ss_timer->refresher == nua_remote_refresher) {
+    SU_DEBUG_3(("nua(%p): session almost expired, "
+		"sending BYE before timeout.\n", (void *)nh));
     ss->ss_reason = "SIP;cause=408;text=\"Session timeout\"";
     nua_stack_bye(nh->nh_nua, nh, nua_r_bye, NULL);
-    return;
   }
   else if (NH_PGET(nh, update_refresh)) {
     nua_stack_update(nh->nh_nua, nh, nua_r_update, NULL);
@@ -2133,9 +2166,13 @@ nua_session_server_init(nua_server_request_t *sr)
   }
 
   if (nh->nh_soa) {
-    sip_accept_t *a = nua->nua_invite_accept;
+    sip_accept_t *a, *sdp_only = nua->nua_invite_accept;
 
-    /* XXX - soa should know what it supports */
+    if (NH_PGET(nh, accept_multipart))
+      a = nua->nua_accept_multipart;
+    else
+      a = nua->nua_invite_accept;
+
     sip_add_dup(msg, sip, (sip_header_t *)a);
 
     /* Make sure caller uses application/sdp without compression */
@@ -2145,7 +2182,7 @@ nua_session_server_init(nua_server_request_t *sr)
     }
 
     /* Make sure caller accepts application/sdp */
-    if (nta_check_accept(NULL, request, a, NULL, TAG_END())) {
+    if (nta_check_accept(NULL, request, sdp_only, NULL, TAG_END())) {
       sip_add_make(msg, sip, sip_accept_encoding_class, "");
       return SR_STATUS1(sr, SIP_406_NOT_ACCEPTABLE);
     }
@@ -2917,8 +2954,8 @@ int nua_prack_server_report(nua_server_request_t *sr, tagi_t const *tags)
 			     status, phrase,
 			     ss->ss_state);
     if (nh->nh_soa) {
-      soa_activate(nh->nh_soa, NULL);
-      ss->ss_sdp_version = soa_get_user_version(nh->nh_soa);
+      if (soa_activate(nh->nh_soa, NULL) >= 0)
+	ss->ss_sdp_version = soa_get_user_version(nh->nh_soa);
     }
   }
 
@@ -3938,8 +3975,6 @@ int nua_bye_server_report(nua_server_request_t *sr, tagi_t const *tags)
 
   retval = nua_base_server_report(sr, tags);
 
-  assert(2 <= retval && retval < 4);
-
 #if 0
   if (ss) {
     signal_call_state_change(nh, ss, 200,
@@ -4496,16 +4531,27 @@ session_timer_set(nua_session_usage_t *ss, int uas)
     t->timer_set = 1;
   }
   else if (t->refresher == nua_remote_refresher) {
-    /* if the side not performing refreshes does not receive a
+    /* RFC 4028 section 10:
+
+       "Similarly, if the side not performing refreshes does not receive a
        session refresh request before the session expiration, it SHOULD send
        a BYE to terminate the session, slightly before the session
        expiration.  The minimum of 32 seconds and one third of the session
-       interval is RECOMMENDED. */
-    unsigned interval = t->interval;
+       interval is RECOMMENDED."
 
-    interval -= 32 > interval / 3 ? interval / 3 : 32;
+       However, we use increased interval from 2/3 to 9/10 of session
+       expiration delay because some endpoints won't UPDATE early enough
+       with very short sessions (e.g. 120).
+    */
+    unsigned interval;
+
+    if (t->interval / 10 < 32)
+      interval = t->interval - t->interval / 10;
+    else
+      interval = t->interval - 32;
 
     nua_dialog_usage_set_refresh_range(du, interval, interval);
+
     t->timer_set = 1;
   }
   else {
@@ -4522,40 +4568,72 @@ session_timer_has_been_set(struct session_timer const *t)
 
 /* ======================================================================== */
 
+static int session_get_multipart_description(msg_multipart_t *mp,
+					     char const **return_sdp,
+					     size_t *return_len)
+{
+  /* Find the SDP from multiparts */
+  for (; mp; mp = mp->mp_next) {
+    msg_content_type_t *c = mp->mp_content_type;
+
+    if (!c || !c->c_type || !mp->mp_payload)
+      continue;
+
+    if (!su_casematch(c->c_type, SDP_MIME_TYPE))
+      continue;
+
+    if (return_sdp)
+      *return_sdp = mp->mp_payload->pl_data;
+    if (return_len)
+      *return_len = mp->mp_payload->pl_len;
+
+    return 1;
+  }
+
+  return 0;
+}
+
+
 /** Get SDP from a SIP message.
  *
  * @retval 1 if message contains SDP
  * @retval 0 if message does not contain valid SDP
  */
-static
-int session_get_description(sip_t const *sip,
-			    char const **return_sdp,
-			    size_t *return_len)
+static int session_get_description(sip_t const *sip,
+				   char const **return_sdp,
+				   size_t *return_len)
 {
-  sip_payload_t const *pl = sip->sip_payload;
-  sip_content_type_t const *ct = sip->sip_content_type;
+  sip_payload_t const *pl;
+  sip_content_type_t const *ct;
   int matching_content_type = 0;
 
-  if (pl == NULL)
+  if (sip == NULL)
     return 0;
-  else if (pl->pl_len == 0 || pl->pl_data == NULL)
+
+  pl = sip->sip_payload;
+
+  if (pl == NULL || pl->pl_len == 0 || pl->pl_data == NULL)
     return 0;
-  else if (ct == NULL)
+
+  ct = sip->sip_content_type;
+
+  if (ct == NULL)
     /* Be bug-compatible with our old gateways */
     SU_DEBUG_3(("nua: no %s, assuming %s\n",
 		"Content-Type", SDP_MIME_TYPE));
   else if (ct->c_type == NULL)
     SU_DEBUG_3(("nua: empty %s, assuming %s\n",
 		"Content-Type", SDP_MIME_TYPE));
+  else if (sip->sip_multipart) {
+    return session_get_multipart_description(sip->sip_multipart,
+					     return_sdp, return_len);
+  }
   else if (!su_casematch(ct->c_type, SDP_MIME_TYPE)) {
     SU_DEBUG_5(("nua: unknown %s: %s\n", "Content-Type", ct->c_type));
     return 0;
   }
   else
     matching_content_type = 1;
-
-  if (pl == NULL)
-    return 0;
 
   if (!matching_content_type) {
     /* Make sure we got SDP */

@@ -83,7 +83,7 @@ typedef struct nua_ee_data {
   nua_event_data_t ee_data[1];
 } nua_ee_data_t;
 
-#define       NONE ((void *)-1)
+#define NONE ((void *)(intptr_t)-1)
 
 typedef struct register_usage nua_registration_t;
 
@@ -223,6 +223,7 @@ struct nua_s {
   nua_registration_t *nua_registrations; /**< Active registrations */
 
   /* Constants */
+  sip_accept_t       *nua_accept_multipart;
   sip_accept_t       *nua_invite_accept; /* What we accept for invite */
 
   su_root_t          *nua_root;
