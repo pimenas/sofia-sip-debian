@@ -1,3 +1,10 @@
+sofia-sip (1.12.11+20110422.1-1) unstable; urgency=low
+
+  * Update for newer autoconf/libtool, needed for some new arches.
+  * Typo fix in the package description.  Closes: #673678
+
+ -- Ron Lee <ron@debian.org>  Sun, 27 Oct 2013 05:21:33 +1030
+
 sofia-sip (1.12.11+20110422-1) unstable; urgency=low
 
   * In the 1.12.11 release, SOATAG_LOCAL_SDP_STR_REF is broken (but that is
