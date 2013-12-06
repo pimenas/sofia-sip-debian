@@ -1,3 +1,14 @@
+sofia-sip (1.12.11+20110422.1-2) unstable; urgency=low
+
+  * Fixes undefined behaviour that compiled into buggy code with gcc 4.8.
+    Thanks to Simon McVittie for originally spotting it and doing a lot of
+    legwork to pin it down; Ilya Melnikov for a useful clue about it being
+    a failure under heavy optimisation; and Radist Morse for hunting down
+    the precise location of the ill-formed code, correctly identifying the
+    real reason for the failure, and providing a patch.  Closes: #729301
+
+ -- Ron Lee <ron@debian.org>  Sat, 07 Dec 2013 00:46:33 +1030
+
 sofia-sip (1.12.11+20110422.1-1) unstable; urgency=low
 
   * Update for newer autoconf/libtool, needed for some new arches.
