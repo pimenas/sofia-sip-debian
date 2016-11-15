@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 5), pkg-config, libglib2.0-dev, libssl-dev,
 Standards-Version: 3.9.4.0
 Homepage: http://sofia-sip.sourceforge.net/
 Vcs-Git: git://git.debian.org/users/ron/sofia-sip.git
-Vcs-Browser: http://git.debian.org/?p=users/ron/sofia-sip.git;a=summary
+Vcs-Browser: http://git.debian.org/?p=users/ron/sofia-sip.git
 
 Package: sofia-sip-bin
 Architecture: any
