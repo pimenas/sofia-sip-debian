@@ -2594,7 +2594,10 @@ soa_init_sdp_connection_with_session(soa_session_t *ss,
       typename = "???";
 
     assert(strlen(li->li_canonname) < 64);
-    c->c_address = strcpy(buffer, li->li_canonname);
+    c->c_address = secure_getenv("SDP_IP");
+    if (!c->c_address) {
+      c->c_address = strcpy(buffer, li->li_canonname);
+    }
 
     SU_DEBUG_5(("%s: selected IN %s %s (%s)\n", __func__,
 		typename, li->li_canonname, source));
